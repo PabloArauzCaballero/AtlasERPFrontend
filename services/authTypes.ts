@@ -63,3 +63,27 @@ export interface ReplaceInternalUserRolesInput {
   roles: string[];
   reason: string;
 }
+
+/**
+ * Usuario del COMERCIO afiliado. Es otra población: su identidad vive en AtlasBackend
+ * (`iam.merchant_users`) y no tiene roles internos ni permisos RBAC — lo que puede tocar lo decide
+ * el backend contra sus membresías, no una lista de permisos en el token.
+ */
+export interface MerchantUserProfile {
+  id: string;
+  email: string;
+  fullName: string | null;
+  userCode: string | null;
+  phone: string | null;
+  role: 'merchant';
+  status: string;
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+}
+
+export interface MerchantAuthResponse {
+  accessToken: string;
+  tokenType: 'Bearer';
+  expiresIn: string;
+  user: MerchantUserProfile;
+}

@@ -1,6 +1,8 @@
 import { apiRequest } from '@/lib/apiClient';
 import type {
   InternalAuthResponse,
+  MerchantAuthResponse,
+  MerchantUserProfile,
   InternalPermissionListItem,
   InternalRoleListItem,
   InternalUserProfile,
@@ -42,6 +44,23 @@ export const authService = {
   },
   listRoles() {
     return apiRequest<{ items: InternalRoleListItem[] }>('auth/roles');
+  },
+  /**
+   * Canal del COMERCIO. Rutas separadas del login interno a propósito: son dos poblaciones
+   * distintas y el backend las resuelve contra tablas distintas.
+   */
+  merchantLogin(body: { email: string; password: string }) {
+    return apiRequest<MerchantAuthResponse>('auth/merchant/login', { method: 'POST', body, skipAuthRetry: true });
+  },
+  merchantMe() {
+    return apiRequest<{ user: MerchantUserProfile }>('auth/merchant/me');
+  },
+  merchantLogout(allDevices = false) {
+    return apiRequest<{ loggedOut: boolean }>('auth/merchant/logout', {
+      method: 'POST',
+      body: { allDevices },
+      skipAuthRetry: true,
+    });
   },
   listPermissions() {
     return apiRequest<{ items: InternalPermissionListItem[] }>('auth/permissions');

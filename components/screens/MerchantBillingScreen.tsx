@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { portalService } from '@/services/portalService';
-import { b2bService } from '@/services/b2bService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
-import { useOptions } from '@/hooks/useOptions';
+import { useMerchantScope } from '@/hooks/useMerchantScope';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { MetricCard } from '@/components/atlas/MetricCard';
@@ -15,16 +14,11 @@ import { formatBob, formatDate } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
 export function MerchantBillingScreen() {
-  const accountOptions = useOptions(useCallback(async () => {
-    const result = await b2bService.listAccounts({ page: 1, limit: 100 });
-    const rows = (result.items ?? result.rows ?? []) as ResourceRow[];
-    return rows.map((row) => ({ value: String(row.id), label: String(row.tradeName ?? row.legalName ?? 'Comercio') }));
-  }, []));
-
-  const [merchantAccountId, setMerchantAccountId] = useState('');
+  const scope = useMerchantScope();
+  const { accountId, ready } = scope;
   const billing = useAsyncResource(
-    useCallback(() => (merchantAccountId ? portalService.getBilling(merchantAccountId) : Promise.resolve({} as ResourceRow)), [merchantAccountId]),
-    Boolean(merchantAccountId),
+    useCallback(() => (ready ? portalService.getBilling(accountId) : Promise.resolve({} as ResourceRow)), [accountId, ready]),
+    ready,
   );
   const data = (billing.data ?? {}) as ResourceRow;
   const summary = (data.summary ?? {}) as ResourceRow;
@@ -39,22 +33,25 @@ export function MerchantBillingScreen() {
         description="Resumen del plan contratado, facturas emitidas y saldos pendientes del comercio."
       />
 
-      <Panel compact>
-        <FormField
-          kind="select"
-          label="Comercio"
-          name="merchantAccountId"
-          className="max-w-md"
-          value={merchantAccountId}
-          onChange={(e) => setMerchantAccountId(e.target.value)}
-          options={[{ label: '— Seleccione un comercio —', value: '' }, ...accountOptions]}
-        />
-      </Panel>
+      {/* El comercio no elige comercio: su alcance lo deriva el backend de sus membresías. */}
+      {scope.isMerchant ? null : (
+        <Panel compact>
+          <FormField
+            kind="select"
+            label="Comercio"
+            name="merchantAccountId"
+            className="max-w-md"
+            value={scope.accountId ?? ''}
+            onChange={(e) => scope.setAccountId(e.target.value)}
+            options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]}
+          />
+        </Panel>
+      )}
 
       {billing.error ? <InlineNotice tone="danger" title="No se pudo cargar la facturación">{billing.error}</InlineNotice> : null}
-      {!merchantAccountId ? <InlineNotice tone="info" title="Seleccione un comercio">Elija un comercio para ver su consumo y facturación.</InlineNotice> : null}
+      {!ready ? <InlineNotice tone="info" title="Seleccione un comercio">Elija un comercio para ver su consumo y facturación.</InlineNotice> : null}
 
-      {merchantAccountId && !billing.error ? (
+      {ready && !billing.error ? (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Plan actual" value={String(summary.planName ?? 'Sin plan')} detail={summary.monthlyPlanPrice ? `${formatBob(Number(summary.monthlyPlanPrice))}/mes` : 'Sin costo mensual'} icon="workspace_premium" />

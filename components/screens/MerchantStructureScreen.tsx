@@ -10,6 +10,7 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useMerchantScope } from '@/hooks/useMerchantScope';
 import { useOptions } from '@/hooks/useOptions';
 import { formDataToPayload } from '@/lib/formPayload';
 import { b2bService } from '@/services/b2bService';
@@ -34,10 +35,11 @@ export function MerchantStructureScreen() {
   );
   const userBranchOptions = ((userBranches.data ?? []) as ResourceRow[]).map((b) => ({ value: String(b.id), label: String(b.name ?? 'Sucursal') }));
 
-  const [queryAccountId, setQueryAccountId] = useState('');
+  const scope = useMerchantScope();
+  const { accountId: queryAccountId, ready } = scope;
   const branches = useAsyncResource(
-    useCallback(() => (queryAccountId ? portalService.listBranches(queryAccountId) : Promise.resolve([] as ResourceRow[])), [queryAccountId]),
-    Boolean(queryAccountId),
+    useCallback(() => (ready ? portalService.listBranches(queryAccountId) : Promise.resolve([] as ResourceRow[])), [queryAccountId, ready]),
+    ready,
   );
   const branchRows = (branches.data ?? []) as ResourceRow[];
 
@@ -54,17 +56,21 @@ export function MerchantStructureScreen() {
   return (
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Sucursales' }]} title="Sucursales del comercio" description="Configure ubicaciones físicas y otorgue acceso al personal del comercio sin mezclar permisos administrativos." />
-      <div className="grid gap-5 xl:grid-cols-2">
+      {/* Alta de sucursales y de usuarios son operaciones INTERNAS (`/b2b/*`): el comercio no
+          tiene permiso sobre ellas, así que no se le pintan formularios que sólo darían 403. */}
+      <div className={`grid gap-5 xl:grid-cols-2 ${scope.isMerchant ? 'hidden' : ''}`}>
         <form onSubmit={submitBranch}><Panel title="Agregar sucursal" description="Registre una nueva ubicación comercial vinculada a la cuenta merchant." icon="add_location"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" /><FormField label="Ciudad" name="city" required placeholder="Santa Cruz de la Sierra" /><FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" /></div>{branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}{branchMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Sucursal registrada correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading}>Registrar sucursal</AtlasButton></div></Panel></form>
         <form onSubmit={submitUser}><Panel title="Asociar usuario" description="Conceda acceso operativo al personal autorizado del comercio." icon="person_add"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" value={userAccountId} onChange={(e) => setUserAccountId(e.target.value)} options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField kind="select" label="Sucursal" name="branchId" options={[{ label: userAccountId ? '— Alcance global —' : '— Elija primero el comercio —', value: '' }, ...userBranchOptions]} hint="Opcional para usuarios con alcance global." /><FormField label="Nombre completo" name="fullName" required placeholder="Nombre del responsable" /><FormField label="Correo corporativo" name="email" type="email" required placeholder="usuario@empresa.com" /><FormField kind="select" label="Rol principal" name="roleCode" required defaultValue="MERCHANT_OPERATOR" options={[{ label: 'Administrador merchant', value: 'MERCHANT_ADMIN' }, { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' }, { label: 'Operador estándar', value: 'MERCHANT_OPERATOR' }, { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' }]} /></div>{userMutation.error ? <InlineNotice className="mt-4" tone="danger">{userMutation.error}</InlineNotice> : null}{userMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Usuario merchant asociado correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="person_add" loading={userMutation.isLoading}>Asociar usuario</AtlasButton></div></Panel></form>
       </div>
 
-      <Panel title="Sucursales registradas" description="Listado de sucursales del comercio seleccionado." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!queryAccountId} onClick={branches.reload}>Actualizar</AtlasButton>}>
-        <div className="mb-3 max-w-md">
-          <FormField kind="select" label="Comercio a consultar" name="queryAccountId" value={queryAccountId} onChange={(e) => setQueryAccountId(e.target.value)} options={[{ label: '— Seleccione un comercio —', value: '' }, ...accountOptions]} />
-        </div>
+      <Panel title="Sucursales registradas" description="Listado de sucursales del comercio seleccionado." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>}>
+        {scope.isMerchant ? null : (
+          <div className="mb-3 max-w-md">
+            <FormField kind="select" label="Comercio a consultar" name="queryAccountId" value={queryAccountId ?? ''} onChange={(e) => scope.setAccountId(e.target.value)} options={[{ label: '— Seleccione un comercio —', value: '' }, ...accountOptions]} />
+          </div>
+        )}
         {branches.error ? <InlineNotice tone="danger" title="No se pudo consultar">{branches.error}</InlineNotice> : null}
-        {!queryAccountId ? (
+        {!ready ? (
           <p className="py-6 text-center text-xs text-slate-500">Seleccione un comercio para ver sus sucursales.</p>
         ) : branchRows.length ? (
           <div className="overflow-hidden rounded-lg border border-slate-200">

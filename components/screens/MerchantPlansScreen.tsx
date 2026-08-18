@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { portalService } from '@/services/portalService';
-import { b2bService } from '@/services/b2bService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useMerchantScope } from '@/hooks/useMerchantScope';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
@@ -25,16 +25,11 @@ export function MerchantPlansScreen() {
   const plansResource = useAsyncResource(useCallback(() => portalService.listPlans(), []));
   const plans = (plansResource.data ?? []) as ResourceRow[];
 
-  const accountsResource = useAsyncResource(useCallback(() => b2bService.listAccounts({ page: 1, limit: 100 }), []));
-  const accounts = useMemo(() => {
-    const data = accountsResource.data;
-    return (data?.items ?? data?.rows ?? []) as ResourceRow[];
-  }, [accountsResource.data]);
-
-  const [merchantAccountId, setMerchantAccountId] = useState('');
+  const scope = useMerchantScope();
+  const { accountId, ready } = scope;
   const subscription = useAsyncResource(
-    useCallback(() => (merchantAccountId ? portalService.getSubscription(merchantAccountId) : Promise.resolve(null)), [merchantAccountId]),
-    Boolean(merchantAccountId),
+    useCallback(() => (ready ? portalService.getSubscription(accountId) : Promise.resolve(null)), [accountId, ready]),
+    ready,
   );
   const current = (subscription.data ?? null) as ResourceRow | null;
   const currentPlanId = current ? String(current.planId ?? '') : '';
@@ -42,14 +37,16 @@ export function MerchantPlansScreen() {
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { setError(null); }, [merchantAccountId]);
+  useEffect(() => { setError(null); }, [accountId]);
 
   async function selectPlan(planId: string) {
-    if (!merchantAccountId) { setError('Seleccione primero el comercio.'); return; }
+    // El staff debe decir en nombre de quién contrata; el comercio no, y por eso `ready` ya es
+    // cierto para él sin haber elegido nada.
+    if (!ready) { setError('Seleccione primero el comercio.'); return; }
     setBusyPlan(planId);
     setError(null);
     try {
-      await portalService.subscribe({ merchantAccountId, planId, autoRenew: true });
+      await portalService.subscribe({ ...(accountId ? { merchantAccountId: accountId } : {}), planId, autoRenew: true });
       await subscription.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo activar el plan.');
@@ -68,15 +65,18 @@ export function MerchantPlansScreen() {
 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <FormField
-            kind="select"
-            label="Comercio"
-            name="merchantAccountId"
-            className="flex-1"
-            value={merchantAccountId}
-            onChange={(e) => setMerchantAccountId(e.target.value)}
-            options={[{ label: '— Seleccione un comercio —', value: '' }, ...accounts.map((a) => ({ value: String(a.id), label: `${String(a.tradeName ?? a.legalName ?? 'Comercio')}` }))]}
-          />
+          {/* El comercio no elige comercio: su alcance sale de sus membresías. */}
+          {scope.isMerchant ? null : (
+            <FormField
+              kind="select"
+              label="Comercio"
+              name="merchantAccountId"
+              className="flex-1"
+              value={scope.accountId ?? ''}
+              onChange={(e) => scope.setAccountId(e.target.value)}
+              options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]}
+            />
+          )}
           {current ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs">
               <span className="font-bold text-emerald-800">Plan actual: {String((current.plan as ResourceRow | undefined)?.name ?? '—')}</span>
@@ -117,7 +117,7 @@ export function MerchantPlansScreen() {
                 {isCurrent ? (
                   <AtlasButton variant="secondary" icon="check" className="w-full" disabled>Plan actual</AtlasButton>
                 ) : (
-                  <AtlasButton icon="bolt" className="w-full" loading={busyPlan === planId} disabled={!merchantAccountId || Boolean(busyPlan)} onClick={() => selectPlan(planId)}>
+                  <AtlasButton icon="bolt" className="w-full" loading={busyPlan === planId} disabled={!ready || Boolean(busyPlan)} onClick={() => selectPlan(planId)}>
                     {current ? 'Cambiar a este plan' : 'Seleccionar plan'}
                   </AtlasButton>
                 )}

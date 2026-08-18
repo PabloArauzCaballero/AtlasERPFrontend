@@ -3,7 +3,7 @@ import { RequireAuth } from '@/components/layout/RequireAuth';
 
 export default function OperationsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <RequireAuth>
+    <RequireAuth audience="internal">
       <AppShell>{children}</AppShell>
     </RequireAuth>
   );

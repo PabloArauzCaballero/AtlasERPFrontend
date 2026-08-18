@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { portalService } from '@/services/portalService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
-import { useOptions } from '@/hooks/useOptions';
+import { useMerchantScope } from '@/hooks/useMerchantScope';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
@@ -17,10 +17,22 @@ import type { ResourceRow } from '@/services/types';
 const micros = (value: unknown) => Number(value ?? 0) / 1_000_000;
 
 export function MerchantCampaignsScreen() {
-  const advertiserOptions = useOptions(useCallback(async () => {
-    const rows = await portalService.listAdvertisers();
-    return rows.map((row) => ({ value: String(row.id), label: String(row.tradeName ?? row.legalName ?? 'Anunciante') }));
-  }, []));
+  const scope = useMerchantScope();
+  const { accountId, ready } = scope;
+
+  /**
+   * Los anunciantes se recargan al cambiar de comercio, así que NO puede ser `useOptions`, que
+   * carga una sola vez al montar: el staff cambiaría de comercio y seguiría viendo los anunciantes
+   * del anterior.
+   */
+  const advertisers = useAsyncResource(
+    useCallback(() => (ready ? portalService.listAdvertisers(accountId) : Promise.resolve([] as ResourceRow[])), [accountId, ready]),
+    ready,
+  );
+  const advertiserOptions = useMemo(
+    () => ((advertisers.data ?? []) as ResourceRow[]).map((row) => ({ value: String(row.id), label: String(row.tradeName ?? row.legalName ?? 'Anunciante') })),
+    [advertisers.data],
+  );
 
   const [advertiserId, setAdvertiserId] = useState('');
   const campaigns = useAsyncResource(
@@ -56,11 +68,18 @@ export function MerchantCampaignsScreen() {
       />
 
       <Panel compact>
-        <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Seleccione un anunciante —', value: '' }, ...advertiserOptions]} />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {/* El comercio no elige comercio: el backend deriva sus anunciantes de sus membresías. */}
+          {scope.isMerchant ? null : (
+            <FormField kind="select" label="Comercio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]} />
+          )}
+          <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: ready ? '— Seleccione un anunciante —' : '— Elija primero el comercio —', value: '' }, ...advertiserOptions]} />
+        </div>
       </Panel>
 
       {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
       {campaigns.error ? <InlineNotice tone="danger" title="No se pudieron cargar las campañas">{campaigns.error}</InlineNotice> : null}
+      {advertisers.error ? <InlineNotice tone="danger" title="No se pudieron cargar los anunciantes">{advertisers.error}</InlineNotice> : null}
       {!advertiserId ? <InlineNotice tone="info" title="Seleccione un anunciante">Elija un anunciante para ver sus campañas.</InlineNotice> : null}
 
       {advertiserId && !campaigns.error ? (

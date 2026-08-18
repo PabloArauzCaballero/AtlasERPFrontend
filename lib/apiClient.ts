@@ -17,6 +17,7 @@ const defaultApiOrigin = 'http://localhost:3000';
 const defaultApiPrefix = 'api/v1';
 const defaultTimeoutMs = 20_000;
 const ACCESS_TOKEN_KEY = 'atlas_access_token';
+const SESSION_KIND_KEY = 'atlas_session_kind';
 
 function trimSlashes(value: string): string {
   return value.replace(/^\/+|\/+$/g, '');
@@ -51,19 +52,33 @@ function buildUrl(path: string, query?: ApiRequestOptions['query']): string {
   return url.toString();
 }
 
+/**
+ * Población de la sesión guardada. Hace falta porque el refresh de cada canal es un endpoint
+ * distinto: renovar una sesión de comercio contra `/auth/refresh` (el del panel interno) devuelve
+ * 401 y expulsa al comercio sin motivo.
+ */
+export type SessionKind = 'internal' | 'merchant';
+
+export function getSessionKind(): SessionKind {
+  if (typeof window === 'undefined') return 'internal';
+  return window.localStorage.getItem(SESSION_KIND_KEY) === 'merchant' ? 'merchant' : 'internal';
+}
+
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
-export function setAccessToken(token: string): void {
+export function setAccessToken(token: string, kind: SessionKind = getSessionKind()): void {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  window.localStorage.setItem(SESSION_KIND_KEY, kind);
 }
 
 export function clearAccessToken(): void {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+  window.localStorage.removeItem(SESSION_KIND_KEY);
 }
 
 /** Notifica a `AuthProvider` que la sesión ya no es válida (el refresh contra /auth/refresh falló). */
@@ -148,7 +163,8 @@ async function tryRefreshSession(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        const response = await performFetch('auth/refresh', { method: 'POST', skipAuthRetry: true });
+        const refreshPath = getSessionKind() === 'merchant' ? 'auth/merchant/refresh' : 'auth/refresh';
+        const response = await performFetch(refreshPath, { method: 'POST', skipAuthRetry: true });
         const payload = await parseResponse<{ accessToken: string }>(response);
         setAccessToken(payload.accessToken);
         return true;

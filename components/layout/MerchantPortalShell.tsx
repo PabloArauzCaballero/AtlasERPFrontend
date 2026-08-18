@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { Icon } from '@/components/atlas/Icon';
+import { useAuth } from '@/lib/authContext';
 
 const links = [
   { href: '/portal-comercio/planes', label: 'Planes y suscripción', icon: 'workspace_premium' },
@@ -10,11 +13,18 @@ const links = [
 ];
 
 export function MerchantPortalShell({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { merchant, user, logout } = useAuth();
+  // El staff interno también abre este portal, en nombre de un comercio: se identifica a quien
+  // realmente está operando, para que quede claro en pantalla y no sólo en la auditoría.
+  const displayName = merchant?.fullName ?? merchant?.email ?? user?.fullName ?? 'Comercio';
+  const displayRole = merchant ? 'Operación merchant' : 'Acceso delegado (staff)';
+  const initials = displayName.trim().slice(0, 2).toUpperCase();
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] text-slate-900">
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-5 shadow-sm">
         <div className="flex items-center gap-3"><div className="grid h-8 w-8 place-items-center rounded bg-[#031636] text-white"><Icon name="account_balance" className="text-[19px]" /></div><div><p className="text-sm font-extrabold tracking-tight">ATLAS ERP</p><p className="text-[9px] font-bold uppercase tracking-[.18em] text-slate-400">Merchant Portal</p></div></div>
-        <div className="flex items-center gap-3"><button className="grid h-8 w-8 place-items-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="Notificaciones"><Icon name="notifications" className="text-[19px]" /></button><div className="h-7 w-px bg-slate-200" /><div className="text-right"><p className="text-xs font-bold">Comercio</p><p className="text-[10px] text-slate-500">Operación merchant</p></div><div className="grid h-8 w-8 place-items-center rounded-full bg-slate-200 text-xs font-bold">MC</div></div>
+        <div className="flex items-center gap-3"><button className="grid h-8 w-8 place-items-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="Notificaciones"><Icon name="notifications" className="text-[19px]" /></button><div className="h-7 w-px bg-slate-200" /><div className="text-right"><p className="max-w-40 truncate text-xs font-bold">{displayName}</p><p className="text-[10px] text-slate-500">{displayRole}</p></div><div className="grid h-8 w-8 place-items-center rounded-full bg-slate-200 text-xs font-bold">{initials}</div><button type="button" onClick={() => void logout()} className="grid h-8 w-8 place-items-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="Cerrar sesión"><Icon name="logout" className="text-[19px]" /></button></div>
       </header>
       <div className="mx-auto grid min-h-[calc(100vh-56px)] max-w-[1600px] lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="hidden border-r border-slate-200 bg-white p-4 lg:block">

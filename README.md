@@ -29,6 +29,29 @@ docs/         Auditoría contra las vistas originales.
 
 Cada área usa su propio shell de navegación. No se mezclan permisos ni navegación operativa con la del comercio.
 
+## Dos poblaciones, dos sesiones
+
+`/login` ofrece dos accesos porque detrás hay dos identidades distintas, no dos estilos de la misma:
+
+| Población        | Endpoint                | Identidad                                        |
+| ---------------- | ----------------------- | ------------------------------------------------ |
+| Personal Atlas   | `auth/login`            | Usuarios internos de AtlasBackend, con RBAC      |
+| Comercio afiliado| `auth/merchant/login`   | `iam.merchant_users` de AtlasBackend, sin RBAC   |
+
+Un comercio **no tiene permisos**: lo que puede tocar lo decide el backend contra sus membresías
+(`atlas_sales.merchant_users`), no una lista de permisos en el token. Por eso `hasPermission()`
+devuelve siempre `false` para él y las pantallas del portal no deciden nada con eso.
+
+`RequireAuth` recibe la población esperada (`audience`) y devuelve a cada quien a su sección: un
+comercio autenticado no navega `/operaciones`, donde sólo encontraría una consola que falla
+endpoint por endpoint.
+
+`useMerchantScope()` resuelve sobre qué comercio trabaja cada pantalla del portal: el staff interno
+elige (y queda auditado como acceso delegado), el comercio no elige nada —su alcance lo deriva el
+backend— y por eso no ve el selector. Antes todas las pantallas asumían siempre lo primero, con un
+selector alimentado por `b2b/accounts`, un endpoint interno que un comercio ni siquiera puede
+llamar: el portal sólo era usable por personal de Atlas.
+
 ## Diseño aplicado
 
 Se aplicó `atlas_erp/DESIGN.md` de las vistas originales:
