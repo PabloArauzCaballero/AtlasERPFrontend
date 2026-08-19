@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { clearAccessToken, getAccessToken, getSessionKind, setAccessToken } from '@/lib/apiClient';
 import type { SessionKind } from '@/lib/apiClient';
 import { authService } from '@/services/authService';
-import type { InternalUserProfile, MerchantUserProfile } from '@/services/authTypes';
+import { isPinChallenge } from '@/services/authTypes';
+import type { InternalLoginOutcome, InternalUserProfile, MerchantUserProfile } from '@/services/authTypes';
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -21,7 +22,13 @@ interface AuthContextValue {
   isMerchant: boolean;
   status: AuthStatus;
   hasPermission: (permissionCode: string) => boolean;
-  login: (input: { email: string; password: string }) => Promise<void>;
+  /**
+   * Devuelve el desenlace en vez de `void`: con el segundo factor obligatorio para todo actor
+   * interno, "el login terminó bien" ya no implica "hay sesión", y la pantalla necesita saberlo
+   * para pedir el código en vez de navegar a un portal al que todavía no se puede entrar.
+   */
+  login: (input: { email: string; password: string }) => Promise<InternalLoginOutcome>;
+  verifyLoginPin: (input: { challengeToken: string; pin: string }) => Promise<void>;
   loginMerchant: (input: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -74,14 +81,32 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     return () => window.removeEventListener('atlas:auth:logout', handleForcedLogout);
   }, []);
 
-  const login = useCallback(async (input: { email: string; password: string }) => {
-    const result = await authService.login(input);
+  /** Deja la sesión interna en pie. Compartido por el login de un paso y por el canje del PIN. */
+  const adoptInternalSession = useCallback((result: { accessToken: string; user: InternalUserProfile }) => {
     setAccessToken(result.accessToken, 'internal');
     setUser(result.user);
     setMerchant(null);
     setSessionKind('internal');
     setStatus('authenticated');
   }, []);
+
+  const login = useCallback(
+    async (input: { email: string; password: string }) => {
+      const outcome = await authService.login(input);
+      // Con el desafío pendiente NO se guarda token: no lo hay. Guardar `undefined` dejaba la
+      // pantalla en "authenticated" y la primera llamada real devolvía 401.
+      if (!isPinChallenge(outcome)) adoptInternalSession(outcome);
+      return outcome;
+    },
+    [adoptInternalSession],
+  );
+
+  const verifyLoginPin = useCallback(
+    async (input: { challengeToken: string; pin: string }) => {
+      adoptInternalSession(await authService.loginPin(input));
+    },
+    [adoptInternalSession],
+  );
 
   const loginMerchant = useCallback(async (input: { email: string; password: string }) => {
     const result = await authService.merchantLogin(input);
@@ -112,7 +137,18 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
 
   return (
     <AuthContext.Provider
-      value={{ user, merchant, sessionKind, isMerchant: sessionKind === 'merchant', status, hasPermission, login, loginMerchant, logout }}
+      value={{
+        user,
+        merchant,
+        sessionKind,
+        isMerchant: sessionKind === 'merchant',
+        status,
+        hasPermission,
+        login,
+        verifyLoginPin,
+        loginMerchant,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

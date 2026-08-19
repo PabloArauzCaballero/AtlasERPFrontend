@@ -7,6 +7,8 @@ import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Icon } from '@/components/atlas/Icon';
 import { useAuth } from '@/lib/authContext';
+import { isPinChallenge } from '@/services/authTypes';
+import type { PinChallenge } from '@/services/authTypes';
 
 /**
  * Dos poblaciones, dos canales. El personal interno se autentica contra el plano interno de
@@ -36,12 +38,16 @@ const AUDIENCE_COPY: Record<Audience, { tab: string; subtitle: string; emailLabe
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, loginMerchant, status, isMerchant } = useAuth();
+  const { login, verifyLoginPin, loginMerchant, status, isMerchant } = useAuth();
   const [audience, setAudience] = useState<Audience>('internal');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // Desafío del segundo factor pendiente: la contraseña ya se validó, pero todavía no hay sesión.
+  // Sólo el canal interno lo produce; el del comercio no exige PIN.
+  const [challenge, setChallenge] = useState<PinChallenge | null>(null);
+  const [pin, setPin] = useState('');
 
   const copy = AUDIENCE_COPY[audience];
 
@@ -64,7 +70,11 @@ function LoginForm() {
         await loginMerchant({ email, password });
         router.replace(copy.home);
       } else {
-        await login({ email, password });
+        const outcome = await login({ email, password });
+        if (isPinChallenge(outcome)) {
+          setChallenge(outcome);
+          return;
+        }
         router.replace(searchParams.get('next') ?? copy.home);
       }
     } catch (submitError) {
@@ -72,6 +82,61 @@ function LoginForm() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleVerifyPin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!challenge) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      await verifyLoginPin({ challengeToken: challenge.challengeToken, pin });
+      router.replace(searchParams.get('next') ?? AUDIENCE_COPY.internal.home);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No fue posible verificar el código.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (challenge) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-4">
+        <div className="w-full max-w-[340px]">
+          <div className="mb-10 flex flex-col items-center gap-3 text-center">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-[#031636] text-white"><Icon name="mail_lock" className="text-[20px]" /></span>
+            <div>
+              <p className="text-base font-bold tracking-tight text-slate-900">Verifica tu acceso</p>
+              <p className="mt-0.5 text-xs text-slate-400">
+                Enviamos un código de 6 dígitos a tu correo. Vence en {challenge.expiresInMinutes} minutos.
+              </p>
+            </div>
+          </div>
+          <form onSubmit={handleVerifyPin} className="space-y-5">
+            <FormField
+              label="Código de verificación"
+              name="pin"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              required
+              value={pin}
+              onChange={(event) => setPin(event.target.value)}
+              placeholder="000000"
+            />
+            {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
+            <AtlasButton type="submit" className="w-full" loading={submitting}>Confirmar y entrar</AtlasButton>
+            <button
+              type="button"
+              className="w-full text-xs font-semibold text-slate-500 hover:text-slate-700"
+              onClick={() => { setChallenge(null); setPin(''); setError(null); }}
+            >
+              Usar otra cuenta
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   return (

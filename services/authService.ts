@@ -1,6 +1,8 @@
 import { apiRequest } from '@/lib/apiClient';
 import type {
   InternalAuthResponse,
+  InternalLoginOutcome,
+  PinChallenge,
   MerchantAuthResponse,
   MerchantUserProfile,
   InternalPermissionListItem,
@@ -17,8 +19,23 @@ import type {
  * cliente jamás toca; el refresco ocurre automático en `lib/apiClient.ts` cuando algo da 401.
  */
 export const authService = {
+  /** Primer paso. Puede devolver la sesión o el desafío de segundo factor: los dos son éxito. */
   login(body: { email: string; password: string }) {
-    return apiRequest<InternalAuthResponse>('auth/login', { method: 'POST', body, skipAuthRetry: true });
+    return apiRequest<InternalLoginOutcome>('auth/login', { method: 'POST', body, skipAuthRetry: true });
+  },
+  /** Segundo paso: el desafío más el PIN del correo, a cambio de la sesión. */
+  loginPin(body: { challengeToken: string; pin: string }) {
+    return apiRequest<InternalAuthResponse>('auth/login/pin', { method: 'POST', body, skipAuthRetry: true });
+  },
+  /**
+   * Cambio de contraseña de la cuenta con sesión abierta, en dos pasos y con el mismo segundo
+   * factor. No lleva email ni id: quién cambia la contraseña lo decide la sesión.
+   */
+  requestPasswordChange(body: { currentPassword: string }) {
+    return apiRequest<PinChallenge>('auth/password/change/request', { method: 'POST', body });
+  },
+  confirmPasswordChange(body: { challengeToken: string; code: string; newPassword: string }) {
+    return apiRequest<{ passwordChanged: boolean }>('auth/password/change/confirm', { method: 'POST', body });
   },
   logout(allDevices = false) {
     return apiRequest<{ loggedOut: boolean }>('auth/logout', {
