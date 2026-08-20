@@ -10,6 +10,7 @@ const inventoryQueryKeys = ['surface', 'status'] as const;
 const policiesQueryKeys = ['category', 'isActive', 'severity'] as const;
 const deliveryQueryKeys = ['placementId', 'status', 'from', 'to'] as const;
 const auditQueryKeys = ['entityType', 'entityId', 'actorId', 'severity', 'from', 'to'] as const;
+const segmentQueryKeys = ['advertiserId', 'segmentType', 'status'] as const;
 
 const adsQuery = (query: PageQuery, allowedKeys?: readonly string[]) =>
   buildBackendQuery(query, { pageSizeKey: 'limit', defaultPageSize: 25, allowedKeys });
@@ -57,6 +58,46 @@ export const adsService = {
   getCampaign(campaignId: string) {
     const safeCampaignId = requireUuidPathParam(campaignId, 'el UUID de la campaña');
     return apiRequest<ResourceRow>(`/admin/ads/campaigns/${safeCampaignId}`);
+  },
+  /**
+   * Alta de la cadena publicitaria. Hasta ahora el portal sólo sabía listar campañas y cambiarles
+   * el estado, porque el backend tampoco ofrecía más: una campaña únicamente podía nacer sembrada
+   * por SQL.
+   */
+  createCampaign(body: JsonObject) {
+    return apiRequest<ResourceRow>('/admin/ads/campaigns', { method: 'POST', body });
+  },
+  createAdSet(campaignId: string, body: JsonObject) {
+    const safeCampaignId = requireUuidPathParam(campaignId, 'el UUID de la campaña');
+    return apiRequest<ResourceRow>(`/admin/ads/campaigns/${safeCampaignId}/ad-sets`, {
+      method: 'POST',
+      body,
+    });
+  },
+  createCreative(body: JsonObject) {
+    return apiRequest<ResourceRow>('/admin/ads/creatives', { method: 'POST', body });
+  },
+  createAd(adSetId: string, body: JsonObject) {
+    const safeAdSetId = requireUuidPathParam(adSetId, 'el UUID del conjunto de anuncios');
+    return apiRequest<ResourceRow>(`/admin/ads/ad-sets/${safeAdSetId}/ads`, {
+      method: 'POST',
+      body,
+    });
+  },
+  listSegments(query: PageQuery) {
+    return apiRequest<PaginatedResult<ResourceRow>>('/admin/ads/segments', {
+      query: adsQuery(query, segmentQueryKeys),
+    });
+  },
+  createSegment(body: JsonObject) {
+    return apiRequest<ResourceRow>('/admin/ads/segments', { method: 'POST', body });
+  },
+  /** Vistas, clicks, conversiones y gasto de una campaña, leídos del agregado diario. */
+  getCampaignPerformance(campaignId: string, query: PageQuery) {
+    const safeCampaignId = requireUuidPathParam(campaignId, 'el UUID de la campaña');
+    return apiRequest<ResourceRow>(`/admin/ads/campaigns/${safeCampaignId}/performance`, {
+      query: adsQuery(query, ['from', 'to', 'groupBy']),
+    });
   },
   updateCampaignStatus(campaignId: string, body: JsonObject) {
     const safeCampaignId = requireUuidPathParam(campaignId, 'el UUID de la campaña');

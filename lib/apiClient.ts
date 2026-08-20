@@ -24,7 +24,13 @@ function trimSlashes(value: string): string {
 }
 
 function readConfiguredBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_ATLAS_API_BASE_URL ?? defaultApiOrigin;
+  // `??` no basta: la variable puede venir DECLARADA Y VACÍA, que es como se configura el front
+  // para hablar con su propio proxy (`next.config.ts` reescribe `/api/v1/*` hacia el backend, y es
+  // lo que permite exponerlo por un túnel sin exponer el backend). Con `??`, la cadena vacía
+  // atravesaba y producía una base relativa que `new URL` rechaza.
+  const configured = process.env.NEXT_PUBLIC_ATLAS_API_BASE_URL;
+  if (configured === undefined) return defaultApiOrigin;
+  return configured.trim();
 }
 
 function readConfiguredPrefix(): string {
@@ -42,8 +48,28 @@ function buildApiBaseUrl(): string {
   return `${configuredBaseUrl}/${configuredPrefix}`;
 }
 
+/**
+ * El origen contra el que se resuelve una base RELATIVA.
+ *
+ * Una base vacía significa «el mismo origen que sirve esta página», que es exactamente lo que el
+ * proxy de Next necesita. `new URL()` exige una URL absoluta, así que hay que darle ese origen
+ * explícitamente. En el servidor no existe `location`, y entonces una base relativa no se puede
+ * resolver: se falla diciendo QUÉ variable configurar, en vez de dejar escapar un
+ * `Failed to construct 'URL': Invalid URL` que no significa nada para quien lo lee.
+ */
+function resolveOrigin(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin;
+  throw new Error(
+    'La API del ERP no está configurada para llamadas desde el servidor: define NEXT_PUBLIC_ATLAS_API_BASE_URL con una URL absoluta.',
+  );
+}
+
 function buildUrl(path: string, query?: ApiRequestOptions['query']): string {
-  const url = new URL(`${buildApiBaseUrl()}/${trimSlashes(path)}`);
+  const base = buildApiBaseUrl();
+  const absolute = /^https?:\/\//i.test(base);
+  const url = absolute
+    ? new URL(`${base}/${trimSlashes(path)}`)
+    : new URL(`/${trimSlashes(base)}/${trimSlashes(path)}`, resolveOrigin());
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== '') url.searchParams.set(key, String(value));
@@ -98,8 +124,38 @@ async function readPayload<T>(response: Response): Promise<ApiEnvelope<T> | T | 
   return (await response.json().catch(() => null)) as ApiEnvelope<T> | T | null;
 }
 
+/**
+ * Los detalles campo a campo que acompañan a un rechazo de validación.
+ *
+ * El backend responde `{ code: 'VALIDATION_ERROR', message: 'Los datos enviados no son válidos.',
+ * details: [{ path, message }] }`: el mensaje es genérico A PROPÓSITO —vale para cualquier
+ * endpoint— y lo que dice QUÉ está mal viaja en `details`. Mostrando sólo el mensaje, la pantalla
+ * pedía corregir un formulario de doce campos sin decir cuál, que es como convertir una validación
+ * precisa en un juego de adivinanzas.
+ */
+function describeValidationDetails(details: unknown): string | null {
+  if (!Array.isArray(details) || details.length === 0) return null;
+  const lines = details
+    .map((detail) => {
+      if (!detail || typeof detail !== 'object') return null;
+      const { path, message } = detail as { path?: unknown; message?: unknown };
+      if (typeof message !== 'string' || message.length === 0) return null;
+      // La ruta se antepone sólo cuando existe: en un error de nivel raíz añadiría un guion suelto.
+      return typeof path === 'string' && path.length > 0 ? `${path}: ${message}` : message;
+    })
+    .filter((line): line is string => line !== null);
+  // Se acotan a cuatro: un cuerpo mal formado puede producir docenas de incidencias y una pared de
+  // texto se lee igual de mal que un mensaje genérico.
+  const shown = lines.slice(0, 4).join(' · ');
+  const rest = lines.length - 4;
+  return rest > 0 ? `${shown} (y ${rest} más)` : shown;
+}
+
 function extractErrorMessage<T>(response: Response, payload: ApiEnvelope<T> | T | null): string {
-  if (isApiEnvelope(payload) && payload.error?.message) return payload.error.message;
+  if (isApiEnvelope(payload) && payload.error?.message) {
+    const details = describeValidationDetails(payload.error.details);
+    return details ? `${payload.error.message} ${details}` : payload.error.message;
+  }
   if (response.status === 404) return 'Endpoint no encontrado. Revise prefijo /api/v1, módulo e identificadores requeridos.';
   if (response.status === 401) return 'Sesión no autorizada. Inicie sesión o configure un token Bearer válido.';
   if (response.status === 403) return 'No tiene permisos para ejecutar esta acción.';

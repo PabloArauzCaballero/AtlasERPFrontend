@@ -52,6 +52,7 @@ const navigation: NavGroup[] = [
       { label: 'Dashboard', href: '/operaciones/ads/dashboard', icon: 'monitoring' },
       { label: 'Anunciantes', href: '/operaciones/ads/anunciantes', icon: 'business' },
       { label: 'Campañas', href: '/operaciones/ads/campanas', icon: 'campaign' },
+      { label: 'Segmentos', href: '/operaciones/ads/segmentos', icon: 'groups' },
       { label: 'Moderación', href: '/operaciones/ads/moderacion', icon: 'verified' },
       { label: 'Delivery y fraude', href: '/operaciones/ads/delivery-monitor', icon: 'radar' },
       { label: 'Carga masiva', href: '/operaciones/ads/bulk-anunciantes', icon: 'upload_file' },
@@ -111,9 +112,25 @@ export function AtlasSidebar() {
           </section>
         ))}
       </nav>
+      {/*
+       * Aquí había un acceso al «Portal comercio», y era un enlace roto para la
+       * única población capaz de verlo.
+       *
+       * Esta barra es la de la consola INTERNA: sólo se pinta bajo
+       * `app/operaciones/layout.tsx`, que exige `RequireAuth audience="internal"`.
+       * Un comercio nunca llega hasta ella —su sesión entra por
+       * `MerchantPortalShell`—, así que el enlace sólo lo veía el personal de
+       * Atlas; y `app/portal-comercio/layout.tsx` exige `audience="merchant"`,
+       * de modo que pulsarlo devolvía a `/operaciones` de inmediato.
+       *
+       * El portal del comercio es del comercio, y su entrada es su propio inicio
+       * de sesión. Si algún día hace falta el acceso delegado del staff que
+       * `MerchantPortalShell` menciona, lo que hay que abrir es la audiencia en
+       * `RequireAuth` —con su auditoría—, no volver a poner el enlace: sin eso,
+       * es una promesa que el enrutador ya se niega a cumplir.
+       */}
       <div className="border-t border-slate-200 p-3">
-        <Link href="/portal-comercio/sucursales-usuarios" className="flex items-center gap-3 rounded-md bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200"><Icon name="storefront" className="text-[18px]" />Portal comercio</Link>
-        <div className="mt-3 flex gap-2"><button className="flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-white"><Icon name="help" className="text-[18px]" />Ayuda</button><button onClick={handleLogout} className="grid h-9 w-9 place-items-center rounded-md text-red-600 hover:bg-red-50" aria-label="Cerrar sesión"><Icon name="logout" className="text-[18px]" /></button></div>
+        <div className="flex gap-2"><button className="flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-white"><Icon name="help" className="text-[18px]" />Ayuda</button><button onClick={handleLogout} className="grid h-9 w-9 place-items-center rounded-md text-red-600 hover:bg-red-50" aria-label="Cerrar sesión"><Icon name="logout" className="text-[18px]" /></button></div>
       </div>
     </aside>
   );
