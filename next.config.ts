@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  /**
+   * Salida autónoma: `.next/standalone` trae su propio `server.js` con sólo las dependencias que el
+   * servidor usa de verdad, así que la imagen no arrastra el `node_modules` de construcción ni el
+   * código fuente. Es lo que permite servir este front desde un contenedor con `node server.js`.
+   */
+  output: 'standalone',
   poweredByHeader: false,
   /**
    * El front hace de proxy de la API del ERP: el navegador habla solo con este
