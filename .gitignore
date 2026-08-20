@@ -14,3 +14,7 @@ tsconfig.tsbuildinfo
 # misc
 .DS_Store
 *.log
+
+# Playwright
+test-results/
+playwright-report/

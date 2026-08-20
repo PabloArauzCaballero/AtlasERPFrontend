@@ -5,6 +5,9 @@ import { Icon } from '@/components/atlas/Icon';
 import { useAuth } from '@/lib/authContext';
 
 const links = [
+  // El expediente va PRIMERO: sin él aprobado el comercio no puede cobrar, así que es lo que hay
+  // que terminar antes que nada. Ponerlo tras los planes invitaría a contratar antes de verificar.
+  { href: '/portal-comercio/expediente', label: 'Expediente del negocio', icon: 'badge' },
   { href: '/portal-comercio/planes', label: 'Planes y suscripción', icon: 'workspace_premium' },
   { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
   { href: '/portal-comercio/campanas', label: 'Campañas', icon: 'campaign' },
