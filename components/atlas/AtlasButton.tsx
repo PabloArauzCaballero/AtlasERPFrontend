@@ -33,7 +33,14 @@ export function AtlasButton({ children, className, icon, loading = false, varian
     <button
       type={type}
       disabled={disabled || loading}
-      className={cn('inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-xs font-bold shadow-sm transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60', variants[variant], className)}
+      className={cn(
+        'atlas-tap inline-flex h-9 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-bold shadow-sm transition-all duration-150 ease-out',
+        'hover:-translate-y-px hover:shadow-md active:translate-y-0 active:scale-[0.97]',
+        'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20',
+        'disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none',
+        variants[variant],
+        className,
+      )}
       {...props}
     >
       {loading ? <LoadingSpinner label="Procesando" /> : icon ? <Icon name={icon} className="text-[17px]" /> : null}

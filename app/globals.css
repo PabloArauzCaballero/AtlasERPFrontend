@@ -96,3 +96,20 @@ button { -webkit-tap-highlight-color: transparent; }
 .atlas-pulse { animation: atlas-pulse 1.4s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+/*
+ * Respuesta al dedo. Dos reglas que Tailwind no puede expresar en una clase de utilidad y que son
+ * la diferencia entre una consola de escritorio encogida y algo que se deja usar con el pulgar.
+ */
+
+/* Un objetivo táctil mide 44 px; por debajo el dedo falla y el usuario culpa a la app. Va sólo en
+   punteros gruesos: con ratón, 44 px de alto en cada botón de una barra desperdicia la barra. */
+@media (pointer: coarse) {
+  .atlas-tap { min-height: 44px; min-width: 44px; }
+}
+
+/* Carril horizontal de acciones: en un teléfono, tres botones de cabecera se envolvían en tres
+   líneas que empujaban el contenido fuera de la primera pantalla. Arrastrándose caben en una, y
+   se oculta la barra de desplazamiento porque el carril ya se anuncia con el propio recorte. */
+.atlas-rail { scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.atlas-rail::-webkit-scrollbar { display: none; }

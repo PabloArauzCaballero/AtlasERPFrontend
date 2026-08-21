@@ -58,7 +58,7 @@ export function RolesPermissionsScreen() {
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-bold">{role.name}</span>
-                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-white/75' : 'text-slate-400'}`}>{role.department ?? role.code}</span>
+                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-white/75' : 'text-slate-500'}`}>{role.department ?? role.code}</span>
                   </span>
                   <Icon name="chevron_right" className="text-[17px] opacity-60" />
                 </button>
@@ -100,7 +100,7 @@ export function RolesPermissionsScreen() {
                     );
                   })}
                   {selectedRole.permissions.length === 0 ? (
-                    <tr><td colSpan={5} className="p-6 text-center text-slate-400">Este rol no tiene permisos asignados.</td></tr>
+                    <tr><td colSpan={5} className="p-6 text-center text-slate-500">Este rol no tiene permisos asignados.</td></tr>
                   ) : null}
                 </tbody>
               </table>

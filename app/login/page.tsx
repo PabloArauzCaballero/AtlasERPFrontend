@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
@@ -125,14 +124,7 @@ function LoginForm() {
   }
 
   return (
-    /*
-     * El fondo ambiental va también en el acceso, no sólo dentro del armazón: es la primera
-     * pantalla del ERP y la única que ve alguien que aún no entró, así que es donde el lenguaje
-     * visual tiene que quedar dicho. La variante `auth` es más calmada que la del escritorio —
-     * aquí el trabajo es leer un formulario corto, no acompañar una sesión larga.
-     */
-    <main className="relative grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
-      <AmbientBackground variant="auth" />
+    <main className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
       <Portada />
 
       {/*
@@ -141,7 +133,7 @@ function LoginForm() {
        * atmósfera compitiendo se leen como ruido. Aquí, en cambio, había un plano
        * liso, y es la superficie a la que se mira mientras se teclea.
        */}
-      <section className="relative flex items-center justify-center px-5 py-10 sm:px-10">
+      <section className="relative flex items-center justify-center px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] pt-[calc(2.5rem+env(safe-area-inset-top,0px))] sm:px-10">
         <AmbientBackground variant="auth" state={error ? 'error' : 'idle'} />
         <div className="relative z-10 w-full max-w-[380px]">
           {challenge ? (

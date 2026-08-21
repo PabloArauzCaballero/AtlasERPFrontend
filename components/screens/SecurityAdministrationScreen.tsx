@@ -103,7 +103,7 @@ export function SecurityAdministrationScreen() {
               {users.length === 0 && usersResource.status !== 'loading' ? (
                 <div className="grid min-h-56 place-items-center p-8 text-center">
                   <div>
-                    <Icon name="person_search" className="text-[34px] text-slate-300" />
+                    <Icon name="person_search" className="text-[34px] text-slate-400" />
                     <p className="mt-2 text-xs font-bold text-slate-600">Sin usuarios internos en este tenant</p>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export function SecurityAdministrationScreen() {
                       </div>
                       <span className="truncate text-slate-600">{row.roles.join(', ') || '—'}</span>
                       <span><StatusPill tone={statusTone[row.status] ?? 'neutral'}>{row.status}</StatusPill></span>
-                      <span>{row.mfaEnabled ? <Icon name="check_circle" className="text-[18px] text-emerald-600" /> : <Icon name="remove_circle" className="text-[18px] text-slate-300" />}</span>
+                      <span>{row.mfaEnabled ? <Icon name="check_circle" className="text-[18px] text-emerald-600" /> : <Icon name="remove_circle" className="text-[18px] text-slate-500" />}</span>
                       <span className="text-right">
                         {canManage && row.id !== currentUser?.id && nextStatus[row.status] ? (
                           <AtlasButton

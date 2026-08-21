@@ -35,7 +35,7 @@ function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNa
               active ? 'bg-[#006a61] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-[#006a61]',
             )}
           >
-            <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-cyan-300' : 'text-slate-400')} />
+            <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-cyan-300' : 'text-slate-500')} />
             <span className="truncate">{item.label}</span>
           </Link>
         );
@@ -74,7 +74,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           <div className="hidden h-8 w-8 shrink-0 place-items-center rounded bg-[#006a61] text-white sm:grid"><Icon name="account_balance" className="text-[19px]" /></div>
           <div className="min-w-0">
             <p className="truncate text-sm font-extrabold tracking-tight">ATLAS ERP</p>
-            <p className="truncate text-[9px] font-bold uppercase tracking-[.18em] text-slate-400">Merchant Portal</p>
+            <p className="truncate text-[9px] font-bold uppercase tracking-[.18em] text-slate-500">Merchant Portal</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
@@ -98,14 +98,14 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           <p className="truncate text-[10px] text-slate-500">{displayRole}</p>
         </div>
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
-          <p className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400">Operación</p>
+          <p className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-500">Operación</p>
           <PortalNav pathname={pathname} onNavigate={() => setNavOpen(false)} />
         </div>
       </NavDrawer>
 
       <div className="relative z-10 mx-auto grid min-h-[calc(100dvh-56px)] max-w-[1600px] lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="hidden border-r border-slate-200/80 bg-white/70 p-4 backdrop-blur-xl lg:block">
-          <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400">Operación</p>
+          <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-500">Operación</p>
           <PortalNav pathname={pathname} />
           <div className="mt-8 rounded-lg bg-[#006a61] p-4 text-white"><Icon name="verified_user" className="text-[22px] text-cyan-300" /><p className="mt-3 text-xs font-bold">Canal merchant seguro</p><p className="mt-1 text-[10px] leading-4 text-slate-300">Las acciones se registran con trazabilidad y permisos separados del panel operativo.</p></div>
         </aside>

@@ -59,7 +59,7 @@ export function PartnerDefaultAccountsPanel({ partnerId }: { partnerId: string }
           return (
             <div key={purpose} className="flex flex-col gap-2 rounded-md border border-slate-200 p-2 sm:flex-row sm:items-center">
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <Icon name="link" className="text-[16px] text-slate-400" />
+                <Icon name="link" className="text-[16px] text-slate-500" />
                 <span className="text-xs font-semibold text-slate-800">{purposeLabel(purpose)}</span>
                 <StatusPill tone={assigned ? 'success' : 'warning'} dot={false}>{assigned ? 'Asignada' : 'Slot'}</StatusPill>
               </div>

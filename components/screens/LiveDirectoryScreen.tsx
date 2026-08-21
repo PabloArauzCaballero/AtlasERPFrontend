@@ -156,7 +156,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <div data-tutorial-id="directory-filters" className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-2 sm:flex-row">
             <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-blue-100">
-              <Icon name="search" className="text-[18px] text-slate-400" />
+              <Icon name="search" className="text-[18px] text-slate-500" />
               <input data-tutorial-id="directory-search" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
             </label>
             {effectiveFilters.map((filter) => (
@@ -213,7 +213,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                     </tr>
                   );
                 })}
-                {!rows.length && resource.status !== 'loading' ? <tr><td colSpan={props.columns.length + 1} className="px-6 py-16 text-center"><Icon name="inbox" className="text-[36px] text-slate-300" /><p className="mt-2 font-bold text-slate-700">No hay registros para los filtros aplicados</p><p className="mt-1 text-xs text-slate-500">Prueba con otros criterios o crea el primer registro.</p></td></tr> : null}
+                {!rows.length && resource.status !== 'loading' ? <tr><td colSpan={props.columns.length + 1} className="px-6 py-16 text-center"><Icon name="inbox" className="text-[36px] text-slate-400" /><p className="mt-2 font-bold text-slate-700">No hay registros para los filtros aplicados</p><p className="mt-1 text-xs text-slate-500">Prueba con otros criterios o crea el primer registro.</p></td></tr> : null}
               </tbody>
             </table>
           </div>

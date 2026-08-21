@@ -90,7 +90,7 @@ export function MerchantStructureScreen() {
             </table>
           </div>
         ) : branches.status !== 'loading' ? (
-          <div className="grid min-h-32 place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center"><div><Icon name="inventory_2" className="text-[30px] text-slate-300" /><p className="mt-2 text-xs font-bold text-slate-600">Este comercio aún no tiene sucursales registradas.</p></div></div>
+          <div className="grid min-h-32 place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center"><div><Icon name="inventory_2" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-600">Este comercio aún no tiene sucursales registradas.</p></div></div>
         ) : null}
       </Panel>
     </div>

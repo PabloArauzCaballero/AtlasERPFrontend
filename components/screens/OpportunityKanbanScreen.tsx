@@ -93,7 +93,7 @@ export function OpportunityKanbanScreen() {
                   <span className="text-xs font-bold text-slate-700">{stage.label}</span>
                   <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200">{items.length}</span>
                 </header>
-                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400">{formatBob(totalVolume)} / mes</div>
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-500">{formatBob(totalVolume)} / mes</div>
                 <div className="flex-1 space-y-2 p-2">
                   {items.map((op) => {
                     const id = String(op.id);
@@ -116,7 +116,7 @@ export function OpportunityKanbanScreen() {
                       </article>
                     );
                   })}
-                  {!items.length ? <p className="px-1 py-4 text-center text-[10px] text-slate-400">Sin oportunidades</p> : null}
+                  {!items.length ? <p className="px-1 py-4 text-center text-[10px] text-slate-500">Sin oportunidades</p> : null}
                 </div>
               </section>
             );

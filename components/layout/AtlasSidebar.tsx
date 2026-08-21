@@ -79,7 +79,7 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
                     onClick={onNavigate}
                     className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors', active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]')}
                   >
-                    <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-white/75' : 'text-slate-400')} />
+                    <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-white/75' : 'text-slate-500')} />
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );

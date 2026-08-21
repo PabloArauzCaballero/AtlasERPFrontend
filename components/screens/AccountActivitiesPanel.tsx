@@ -110,7 +110,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
                     {isTask ? <StatusPill tone={done ? 'success' : 'warning'} dot={false}>{done ? 'Completada' : 'Pendiente'}</StatusPill> : <StatusPill tone="neutral" dot={false}>{type}</StatusPill>}
                   </div>
                   {activity.description ? <p className="mt-1 text-[11px] leading-4 text-slate-600">{String(activity.description)}</p> : null}
-                  <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-400">
+                  <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-500">
                     <span>Creada {formatDate(typeof activity.createdAt === 'string' ? activity.createdAt : undefined)}</span>
                     {isTask ? <span>· Vence {formatDate(typeof activity.dueAt === 'string' ? activity.dueAt : undefined)}</span> : null}
                     <span className="ml-auto flex gap-2">
@@ -125,7 +125,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
         </ol>
       ) : !resource.error ? (
         <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-center">
-          <Icon name="history" className="text-[28px] text-slate-300" />
+          <Icon name="history" className="text-[28px] text-slate-400" />
           <p className="mt-2 text-xs font-bold text-slate-700">Sin actividad registrada</p>
           <p className="mt-1 text-[11px] text-slate-500">Registre la primera nota, llamada o tarea de esta cuenta.</p>
         </div>

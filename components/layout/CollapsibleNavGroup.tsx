@@ -42,9 +42,9 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
           containsActive ? 'text-[#006a61]' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
         )}
       >
-        <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-blue-500' : 'text-slate-400')} />
+        <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-[#006a61]' : 'text-slate-500')} />
         <span className="flex-1 truncate text-left">{label}</span>
-        <Icon name={open ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-400" />
+        <Icon name={open ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-500" />
       </button>
       {open ? (
         <div className="mt-0.5 space-y-0.5 border-l border-slate-200 pl-3">
@@ -60,7 +60,7 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
                   active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
                 )}
               >
-                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-white/75' : 'text-slate-400')} />
+                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-white/75' : 'text-slate-500')} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );

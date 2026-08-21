@@ -31,7 +31,10 @@ export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [],
           </nav>
         ) : null}
         {eyebrow ? <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{eyebrow}</p> : null}
-        <h1 className="text-2xl font-bold tracking-tight text-[#006a61] md:text-[30px] md:leading-[38px]">{title}</h1>
+        {/* El título se recompone en móvil en vez de encogerse: a 30 px en 360 px de ancho parte en
+            tres líneas y empuja el contenido fuera de la primera pantalla. `text-pretty` evita
+            además la palabra huérfana en la última, que es donde más se nota al partir. */}
+        <h1 className="text-pretty text-xl font-bold leading-tight tracking-tight text-[#006a61] sm:text-2xl md:text-[30px] md:leading-[38px]">{title}</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-600">{description}</p>
       </div>
       {/*
@@ -42,7 +45,7 @@ export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [],
        * resuelve su contenido por la ruta, así que aparece sola en todas —y en
        * las que se añadan después— sin tocar ni una pantalla.
        */}
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
+      <div className="atlas-rail -mx-3 flex shrink-0 items-center gap-2 overflow-x-auto px-3 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         {hideHelp ? null : <ScreenGuideButton />}
         {actions}
       </div>

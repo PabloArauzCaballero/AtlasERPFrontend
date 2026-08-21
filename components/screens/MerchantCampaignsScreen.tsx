@@ -94,7 +94,7 @@ export function MerchantCampaignsScreen() {
             return (
               <section key={id} className="flex flex-col rounded-xl border border-slate-200 bg-white/80 backdrop-blur-[2px] p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{String(campaign.name)}</p><p className="text-[10px] uppercase tracking-wide text-slate-400">{String(campaign.objective ?? '')}</p></div>
+                  <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{String(campaign.name)}</p><p className="text-[10px] uppercase tracking-wide text-slate-500">{String(campaign.objective ?? '')}</p></div>
                   <StatusPill tone={status === 'ACTIVE' ? 'success' : status === 'PAUSED' ? 'warning' : 'neutral'}>{status}</StatusPill>
                 </div>
                 <div className="mt-3 text-[11px] text-slate-600">
@@ -102,7 +102,7 @@ export function MerchantCampaignsScreen() {
                   <div className="flex justify-between"><span>Presupuesto</span><b>{formatBob(budget)}</b></div>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-[#006a61]" style={{ width: `${pct}%` }} /></div>
                 </div>
-                <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400">
+                <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-500">
                   <Icon name="verified" className="text-[13px]" />{String(campaign.approvalStatus ?? '')}
                 </div>
                 <div className="mt-3">

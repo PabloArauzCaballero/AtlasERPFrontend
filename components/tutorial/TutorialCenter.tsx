@@ -77,7 +77,7 @@ export function TutorialCenter({ audience }: { audience: 'internal' | 'merchant'
       <Panel compact>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-[#006a61]">
-            <Icon name="search" className="text-[18px] text-slate-400" />
+            <Icon name="search" className="text-[18px] text-slate-500" />
             <input
               className="min-w-0 flex-1 bg-transparent text-xs outline-none"
               placeholder="Buscar un tutorial..."

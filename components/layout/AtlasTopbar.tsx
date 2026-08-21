@@ -80,9 +80,9 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           </button>
           <Link href="/operaciones" className="shrink-0 text-base font-black tracking-tight text-[#006a61] sm:text-lg">ATLAS ERP</Link>
           <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-[#006a61] focus-within:bg-white md:flex lg:w-72">
-            <Icon name="search" className="text-[19px] text-slate-400" />
+            <Icon name="search" className="text-[19px] text-slate-500" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder="Buscar pantalla u operación..." />
-            <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-slate-400 lg:inline">↵</kbd>
+            <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-slate-500 lg:inline">↵</kbd>
           </form>
         </div>
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
@@ -146,7 +146,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
       </div>
       {searchOpen ? (
         <form onSubmit={submit} className="flex h-14 items-center gap-2 border-t border-slate-200/80 px-3 md:hidden">
-          <Icon name="search" className="text-[19px] text-slate-400" />
+          <Icon name="search" className="text-[19px] text-slate-500" />
           <input
             ref={searchInput}
             value={search}
