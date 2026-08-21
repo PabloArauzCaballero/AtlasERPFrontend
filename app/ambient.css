@@ -1,0 +1,389 @@
+/**
+ * Fondo ambiental del ERP.
+ *
+ * Cinco capas superpuestas —aurora, foco del cursor, malla técnica, red de nodos
+ * y viñeta— que se desplazan a ritmos distintos (`--par-*`). De ese desfase sale
+ * la profundidad: sin él, moverse sería sólo desplazar una imagen plana.
+ *
+ * Sólo se animan `transform` y `opacity`, que el navegador compone en la GPU. No
+ * hay imágenes, canvas ni bucle de dibujo.
+ *
+ * A diferencia del de DecisionEngine, aquí el fondo va `fixed`: el ERP desplaza
+ * el documento entero, y un fondo absoluto se iría con el scroll dejando blanco
+ * por debajo en las pantallas largas.
+ */
+
+.ambient-bg {
+  /* Posición absoluta del cursor (0…1) y su desvío respecto al centro. */
+  --ambient-px: 0.5;
+  --ambient-py: 0.4;
+  --ambient-x: 0;
+  --ambient-y: 0;
+  /* Avance de la lectura de la página (0…1). */
+  --ambient-scroll: 0;
+  /* Recorrido máximo del paralaje, en píxeles, por capa. Generoso a propósito:
+     con recorridos de 20-40 px el movimiento existe pero no se percibe, y el
+     fondo se lee como una imagen fija. */
+  --par-aurora: 110px;
+  --par-grid: 38px;
+  --par-network: 72px;
+  /* Azul institucional de ATLAS; cada área lo sobreescribe con el suyo. */
+  --accent-rgb: 37, 99, 235;
+  --state-rgb: 37, 99, 235;
+  --ambient-ease: cubic-bezier(0.2, 0, 0, 1);
+  --ambient-slow: 480ms;
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.ambient-bg > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transition: opacity var(--ambient-slow) var(--ambient-ease);
+}
+
+/* ------------------------------------------------- acento por área activa */
+
+/**
+ * El fondo reacciona a DÓNDE está el usuario. Son los mismos colores que marcan
+ * los grupos del menú lateral, así que cambiar de área tiñe la escena con el
+ * color que esa área ya usa: es información, no decoración.
+ */
+.ambient-bg[data-accent='crm'] { --accent-rgb: 20, 184, 166; }
+.ambient-bg[data-accent='contabilidad'] { --accent-rgb: 59, 130, 246; }
+.ambient-bg[data-accent='ads'] { --accent-rgb: 139, 92, 246; }
+.ambient-bg[data-accent='control'] { --accent-rgb: 245, 158, 11; }
+.ambient-bg[data-accent='portal'] { --accent-rgb: 6, 182, 212; }
+.ambient-bg[data-accent] { --state-rgb: var(--accent-rgb); }
+
+/* Estados reales de la sesión: el color cambia, la geometría no. */
+.ambient-bg[data-state='running'] { --state-rgb: 21, 112, 239; }
+.ambient-bg[data-state='success'] { --state-rgb: 16, 185, 129; }
+.ambient-bg[data-state='warning'] { --state-rgb: 245, 158, 11; }
+.ambient-bg[data-state='error'] { --state-rgb: 220, 38, 38; }
+
+/* ---------------------------------------------------------------- aurora */
+
+/**
+ * Tres manchas de luz de tamaños muy distintos. La primera responde al estado;
+ * las otras dos sostienen el color del área, así que el fondo cambia de
+ * temperatura sin cambiar de identidad.
+ *
+ * El contenedor lleva el paralaje del cursor y cada mancha su propia deriva:
+ * separarlos es lo que permite que ambas cosas ocurran a la vez —una animación
+ * sobre `transform` gana siempre al `transform` de la regla, así que en un solo
+ * elemento el paralaje se perdía.
+ */
+.ambient-aurora {
+  opacity: 0.5;
+  transform: translate3d(
+    calc(var(--ambient-x) * var(--par-aurora)),
+    calc(var(--ambient-y) * var(--par-aurora)),
+    0
+  );
+  /* Amortiguación corta: por encima de ~350 ms el fondo va detrás del cursor y
+     se percibe como retardo, no como inercia. */
+  transition:
+    transform 320ms var(--ambient-ease),
+    opacity var(--ambient-slow) var(--ambient-ease);
+}
+
+/**
+ * Cada mancha es una caja redonda con un degradado radial que la rellena:
+ * `closest-side` da el borde difuso sin recurrir a `filter: blur`, que sobre
+ * superficies de este tamaño obliga al navegador a rasterizar de nuevo en cada
+ * fotograma. Así el movimiento es sólo `transform`, compuesto en la GPU.
+ *
+ * Son mayores que la ventana y se salen por los bordes a propósito: una mancha
+ * que se mueve nunca debe dejar ver su contorno.
+ */
+.ambient-aurora i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  will-change: transform;
+}
+.ambient-aurora i[data-blob='1'] {
+  left: -14vmax;
+  top: -16vmax;
+  width: 74vmax;
+  height: 62vmax;
+  background: radial-gradient(closest-side, rgba(var(--state-rgb), 0.3), transparent 80%);
+}
+.ambient-aurora i[data-blob='2'] {
+  right: -16vmax;
+  top: -12vmax;
+  width: 82vmax;
+  height: 68vmax;
+  background: radial-gradient(closest-side, rgba(var(--accent-rgb), 0.22), transparent 82%);
+}
+.ambient-aurora i[data-blob='3'] {
+  left: 6vmax;
+  bottom: -26vmax;
+  width: 92vmax;
+  height: 74vmax;
+  background: radial-gradient(closest-side, rgba(3, 22, 54, 0.16), transparent 82%);
+}
+
+/* Periodos deliberadamente sin múltiplos comunes (37 · 53 · 67 s): las tres
+   curvas vuelven a coincidir cada ~36 horas, así que el bucle no se percibe. */
+.is-animated .ambient-aurora i[data-blob='1'] { animation: ambient-blob-a 37s var(--ambient-ease) infinite; }
+.is-animated .ambient-aurora i[data-blob='2'] { animation: ambient-blob-b 53s var(--ambient-ease) infinite; }
+.is-animated .ambient-aurora i[data-blob='3'] { animation: ambient-blob-c 67s var(--ambient-ease) infinite; }
+
+/* Recorridos distintos entre sí: si las tres describieran la misma figura, el
+   conjunto se leería como una sola imagen balanceándose. La escala y la opacidad
+   acompañan al desplazamiento para que la mancha parezca acercarse y alejarse,
+   no deslizarse sobre un plano. */
+@keyframes ambient-blob-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.9; }
+  25% { transform: translate3d(8vmax, 5vmax, 0) scale(1.12); opacity: 1; }
+  50% { transform: translate3d(3vmax, 11vmax, 0) scale(0.92); opacity: 0.78; }
+  75% { transform: translate3d(-7vmax, 4vmax, 0) scale(1.06); opacity: 0.95; }
+}
+@keyframes ambient-blob-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.02); opacity: 0.85; }
+  33% { transform: translate3d(-11vmax, 6vmax, 0) scale(0.9); opacity: 1; }
+  66% { transform: translate3d(-5vmax, -7vmax, 0) scale(1.14); opacity: 0.8; }
+}
+@keyframes ambient-blob-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.82; }
+  40% { transform: translate3d(7vmax, -9vmax, 0) scale(1.16); opacity: 1; }
+  70% { transform: translate3d(-6vmax, -4vmax, 0) scale(0.95); opacity: 0.88; }
+}
+
+/* ------------------------------------------------------------------ foco */
+
+/**
+ * Luz anclada al cursor.
+ *
+ * A diferencia de las demás capas, ésta no se desplaza un poco: su centro ES la
+ * posición del puntero. Es lo que convierte "un fondo que se mueve" en "un fondo
+ * que responde", y sólo cuesta recalcular un degradado.
+ */
+.ambient-spotlight {
+  background: radial-gradient(
+    26vmax 26vmax at calc(var(--ambient-px) * 100%) calc(var(--ambient-py) * 100%),
+    rgba(var(--state-rgb), 0.13),
+    rgba(var(--accent-rgb), 0.06) 42%,
+    transparent 68%
+  );
+  opacity: 0;
+  transition: opacity var(--ambient-slow) var(--ambient-ease);
+}
+.is-animated .ambient-spotlight { opacity: 1; }
+
+/* Onda al pulsar: confirma el gesto desde el propio fondo. */
+.ambient-ripple {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 2px solid rgba(var(--state-rgb), 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ambient-ripple 620ms var(--ambient-ease) forwards;
+}
+@keyframes ambient-ripple {
+  to { opacity: 0; transform: scale(16); }
+}
+
+/* ------------------------------------------------------------ cuadrícula */
+
+.ambient-grid {
+  background-image:
+    linear-gradient(to right, rgba(100, 116, 139, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.15) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(74% 74% at 50% 42%, #000 20%, transparent 80%);
+  opacity: 0.35;
+  /* La malla también se desplaza con la lectura: al bajar por una pantalla larga
+     el fondo acompaña, y eso funciona igual en táctil, donde no hay cursor. */
+  transform: translate3d(
+    calc(var(--ambient-x) * var(--par-grid)),
+    calc(var(--ambient-y) * var(--par-grid) - var(--ambient-scroll) * 60px),
+    0
+  );
+  transition: transform 420ms var(--ambient-ease);
+}
+
+/* --------------------------------------------------------- red de nodos */
+
+/**
+ * La red se revela alrededor del cursor.
+ *
+ * La máscara tiene dos partes: una base tenue que la mantiene presente en toda
+ * la escena, y un círculo anclado al puntero que la destapa donde está la mano.
+ * Recorrer la pantalla "enciende" la red a su paso, que es la reacción más clara
+ * que puede dar un fondo sin robar atención.
+ */
+.ambient-network {
+  mask-image:
+    radial-gradient(
+      22vmax 22vmax at calc(var(--ambient-px) * 100%) calc(var(--ambient-py) * 100%),
+      #000 0%,
+      rgba(0, 0, 0, 0.25) 70%,
+      transparent 100%
+    ),
+    radial-gradient(76% 76% at 50% 46%, rgba(0, 0, 0, 0.4) 12%, transparent 82%);
+  transform: translate3d(
+    calc(var(--ambient-x) * var(--par-network) * -1),
+    calc(var(--ambient-y) * var(--par-network) * -1),
+    0
+  );
+  transition: transform 260ms var(--ambient-ease);
+}
+/* Sin reacción al puntero, la red se muestra entera y homogénea: la máscara que
+   sigue al cursor no debe esconder nada cuando no hay cursor que seguir. */
+.is-static .ambient-network {
+  mask-image: radial-gradient(76% 76% at 50% 46%, #000 12%, transparent 82%);
+}
+.ambient-network svg { width: 100%; height: 100%; }
+.ambient-links line {
+  stroke: rgba(var(--accent-rgb), 0.14);
+  stroke-width: 1;
+}
+/* El destello recorre la red de un extremo a otro. */
+.ambient-pulse {
+  fill: none;
+  stroke: rgba(var(--state-rgb), 0.95);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14 320;
+  opacity: 0;
+}
+.is-animated .ambient-pulse {
+  opacity: 0.7;
+  animation: ambient-flow 9s linear infinite;
+}
+@keyframes ambient-flow {
+  from { stroke-dashoffset: 334; }
+  to { stroke-dashoffset: 0; }
+}
+
+.ambient-network i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.85);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.14);
+  opacity: 0.28;
+}
+.ambient-network i.is-anchor {
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  background: rgba(var(--state-rgb), 0.9);
+  box-shadow: 0 0 0 6px rgba(var(--state-rgb), 0.12);
+}
+/* Tres anillos de retardo: la red late desacompasada y parece viva sin que
+   ninguna pulsación concreta llame la atención. */
+.is-animated .ambient-network i { animation: ambient-node 7.5s var(--ambient-ease) infinite; }
+.is-animated .ambient-network i[data-ring='2'] { animation-delay: -2.5s; animation-duration: 9.5s; }
+.is-animated .ambient-network i[data-ring='3'] { animation-delay: -5s; animation-duration: 11.5s; }
+@keyframes ambient-node {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 0.85; transform: scale(1.22); }
+}
+
+/* --------------------------------------------------------------- viñeta */
+
+/**
+ * Enmarca la escena: un velo suave en el centro y un cierre oscuro en los
+ * bordes. El velo se mantiene bajo: subirlo apaga el foco que sigue al cursor
+ * justo donde más se mira, que es lo que hace parecer el fondo inerte. El
+ * contraste del texto no se sostiene lavando el fondo, sino apoyando el
+ * contenido en superficies opacas —que es lo que ya hacen paneles y tarjetas.
+ */
+.ambient-vignette {
+  background:
+    radial-gradient(80% 62% at 50% 42%, rgba(255, 255, 255, 0.16), transparent 60%),
+    radial-gradient(140% 120% at 50% 50%, transparent 52%, rgba(15, 23, 42, 0.12));
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------ ajuste por zona */
+
+/* El acceso no compite con ninguna tabla: es donde el fondo puede lucirse. */
+.ambient-auth .ambient-aurora { opacity: 0.95; }
+.ambient-auth .ambient-network { opacity: 1; }
+.ambient-auth .ambient-links line { stroke: rgba(var(--accent-rgb), 0.4); }
+.ambient-auth .ambient-vignette {
+  background:
+    radial-gradient(80% 60% at 50% 42%, rgba(255, 255, 255, 0.4), transparent 62%),
+    radial-gradient(150% 130% at 50% 50%, transparent 52%, rgba(15, 23, 42, 0.12));
+}
+
+/**
+ * Consola interna y portal: presencia media.
+ *
+ * Aquí el contenido son tablas y formularios densos, y el fondo se ve por los
+ * huecos entre paneles. La lección de DecisionEngine —repetida tres veces allí—
+ * es que en pantallas de trabajo la lechada tiñe los bordes blancos y se lee
+ * como suciedad. Se conserva el color, se baja la carga: aurora a media asta y
+ * red discreta, para que el fondo dé profundidad sin pedir que lo interpreten.
+ */
+.ambient-console .ambient-aurora,
+.ambient-portal .ambient-aurora { opacity: 0.62; }
+.ambient-console .ambient-network,
+.ambient-portal .ambient-network { opacity: 0.8; }
+.ambient-console .ambient-grid,
+.ambient-portal .ambient-grid { opacity: 0.4; }
+/* El velo central se queda bajo: subirlo apaga el foco que sigue al cursor justo
+   donde más se mira, y era lo que hacía que este fondo se leyera como una imagen
+   fija. El texto no lo necesita —vive sobre paneles opacos—; lo que sí se cierra
+   son los bordes, para que la escena quede enmarcada. */
+.ambient-console .ambient-vignette,
+.ambient-portal .ambient-vignette {
+  background:
+    radial-gradient(90% 70% at 50% 26%, rgba(255, 255, 255, 0.3), transparent 66%),
+    radial-gradient(150% 130% at 50% 50%, transparent 54%, rgba(15, 23, 42, 0.1));
+}
+
+/**
+ * Versión estática: conserva color, composición y profundidad; retira todo el
+ * movimiento. Es lo que ven la gama baja, la pestaña en segundo plano y quien
+ * pide movimiento reducido. La información nunca vive dentro de la animación,
+ * así que no se pierde nada al apagarla.
+ */
+.ambient-bg.is-static .ambient-aurora,
+.ambient-bg.is-static .ambient-aurora i,
+.ambient-bg.is-static .ambient-grid,
+.ambient-bg.is-static .ambient-network i,
+.ambient-bg.is-static .ambient-pulse {
+  animation: none;
+}
+.ambient-bg.is-static .ambient-pulse { opacity: 0.35; stroke-dasharray: none; }
+.ambient-bg.is-static .ambient-network i { opacity: 0.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-bg,
+  .ambient-bg * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .ambient-bg .ambient-pulse { stroke-dasharray: none; opacity: 0.3; }
+}
+
+@media (max-width: 820px) {
+  /* En móvil el fondo se simplifica: sin paralaje —no hay cursor que lo mueva—,
+     malla más apretada para que la escala no se lea gigante, y menos carga por
+     píxel en la pantalla que menos potencia tiene. */
+  .ambient-bg {
+    --par-aurora: 0px;
+    --par-grid: 0px;
+    --par-network: 0px;
+  }
+  .ambient-grid { background-size: 34px 34px; }
+  .ambient-network { opacity: 0.45; }
+  .ambient-aurora { opacity: 0.36; }
+  .ambient-auth .ambient-aurora { opacity: 0.7; }
+}

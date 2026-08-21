@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -126,8 +127,15 @@ function LoginForm() {
     <main className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
       <Portada />
 
-      <section className="flex items-center justify-center px-5 py-10 sm:px-10">
-        <div className="w-full max-w-[380px]">
+      {/*
+       * La columna del formulario lleva el fondo ambiental —el mismo del motor de
+       * decisión— y la portada no: allí ya hay un degradado propio, y dos capas de
+       * atmósfera compitiendo se leen como ruido. Aquí, en cambio, había un plano
+       * liso, y es la superficie a la que se mira mientras se teclea.
+       */}
+      <section className="relative flex items-center justify-center px-5 py-10 sm:px-10">
+        <AmbientBackground variant="auth" state={error ? 'error' : 'idle'} />
+        <div className="relative z-10 w-full max-w-[380px]">
           {challenge ? (
             <PasoDelCodigo
               expiresInMinutes={challenge.expiresInMinutes}

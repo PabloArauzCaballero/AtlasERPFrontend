@@ -69,7 +69,7 @@ export function OpportunityKanbanScreen() {
       {error ? <InlineNotice tone="danger" title="No se pudo actualizar">{error}</InlineNotice> : null}
       {resource.error && !opportunities.length ? <InlineNotice tone="warning" title="No se pudo cargar el pipeline">{resource.error}</InlineNotice> : null}
 
-      <div className="custom-scrollbar overflow-x-auto pb-2">
+      <div className="table-scroll pb-2">
         <div className="flex min-w-max gap-3">
           {STAGES.map((stage) => {
             const items = byStage[stage.key] ?? [];

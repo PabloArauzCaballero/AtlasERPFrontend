@@ -77,7 +77,7 @@ export function ProposalManagerScreen() {
           </Panel>
 
           <Panel title="Commercial Terms" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>
-            <div className="custom-scrollbar overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo</th><th className="px-2 py-2">Facturación</th><th className="px-2 py-2">Mínimo mensual</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
                 <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.termType} onChange={(event) => updateLine(line.id, 'termType', event.target.value)}>{['MDR','SUBSCRIPTION','SETUP_FEE','SERVICE_FEE','PENALTY','MINIMUM_MONTHLY_FEE'].map((value) => <option key={value}>{value}</option>)}</select></td>
                 <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" required /></td>

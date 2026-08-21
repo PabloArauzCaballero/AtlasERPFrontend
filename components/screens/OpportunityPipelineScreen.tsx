@@ -56,7 +56,7 @@ export function OpportunityPipelineScreen() {
 
       {showCreate ? <Panel title="Nueva oportunidad" icon="add_business" action={<button className="text-slate-500 hover:text-slate-900" onClick={() => setShowCreate(false)}><Icon name="close" /></button>}><form onSubmit={createOpportunity} className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><FormField label="UUID cuenta" name="accountId" required /><FormField label="UUID responsable" name="ownerUserId" required /><FormField label="Nombre" name="name" required className="md:col-span-2" /><FormField kind="select" label="Tipo" name="opportunityType" options={[{ label: 'Nuevo comercio', value: 'NEW_MERCHANT' }, { label: 'Expansión', value: 'EXPANSION' }, { label: 'Renovación', value: 'RENEWAL' }]} /><FormField label="Volumen mensual" name="expectedMonthlyVolume" type="number" defaultValue="0" /><FormField label="MDR esperado (%)" name="expectedMdrRate" type="number" defaultValue="0" /><FormField label="Probabilidad (%)" name="probability" type="number" defaultValue="0" /><FormField label="Cierre esperado" name="expectedCloseDate" type="date" /><div className="flex items-end md:col-span-2 xl:col-span-3"><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Crear oportunidad</AtlasButton></div></form>{createMutation.error ? <div className="mt-3"><InlineNotice tone="danger">{createMutation.error}</InlineNotice></div> : null}</Panel> : null}
 
-      <div className="custom-scrollbar overflow-x-auto pb-2">
+      <div className="table-scroll pb-2">
         <div className="grid min-w-[1400px] grid-cols-6 gap-3">
           {stages.map((stage) => {
             const stageCards = cards.filter((card) => String(card.stage ?? 'DISCOVERY') === stage);

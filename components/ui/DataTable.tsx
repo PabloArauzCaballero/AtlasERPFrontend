@@ -30,10 +30,10 @@ export function DataTable({ columns, isLoading = false, rows }: DataTableProps) 
   if (rows.length === 0 && !isLoading) return null;
 
   return (
-    <div aria-busy={isLoading} className="custom-scrollbar overflow-x-auto rounded-xl border border-border-subtle bg-surface">
+    <div aria-busy={isLoading} className="table-scroll rounded-xl border border-border-subtle bg-surface">
       <table className="min-w-full text-left text-sm">
         <thead className="bg-surface-muted text-xs uppercase tracking-wide text-outline">
-          <tr>{columns.map((column) => <th className="px-3 py-2" key={column}>{column}</th>)}</tr>
+          <tr>{columns.map((column) => <th className="whitespace-nowrap px-3 py-2" key={column}>{column}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((row, index) => (

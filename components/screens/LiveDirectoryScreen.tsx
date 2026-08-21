@@ -180,7 +180,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
 
       <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
         {loading && !rows.length ? <TableSkeleton columns={props.columns.length + 1} /> : (
-          <div className="custom-scrollbar overflow-x-auto">
+          <div className="table-scroll">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
               <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.08em] text-slate-500">
                 <tr>{props.columns.map((column) => <th className={`border-b border-slate-200 px-3 py-3 font-bold ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`} key={column.key}>{column.label}</th>)}<th className="border-b border-slate-200 px-3 py-3 text-right font-bold">Acciones</th></tr>

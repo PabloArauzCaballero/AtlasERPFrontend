@@ -75,7 +75,7 @@ export function RolesPermissionsScreen() {
           {!selectedRole ? (
             <p className="px-1 py-4 text-xs text-slate-500">No hay roles disponibles.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-[720px] w-full text-left text-xs">
                 <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
                   <tr>
