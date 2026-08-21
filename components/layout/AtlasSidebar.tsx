@@ -46,13 +46,25 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
           </div>
         </div>
       </div>
-      <nav className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
+      <nav data-tutorial-id="sidebar-nav" className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
         <Link
           href="/operaciones"
+          data-tutorial-id="sidebar-dashboard"
           onClick={onNavigate}
           className={cn('mb-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones' ? 'bg-[#00544d] text-white' : 'text-slate-600 hover:bg-white')}
         >
           <Icon name="dashboard" className="text-[19px]" /> Dashboard
+        </Link>
+        {/*
+         * El Centro va arriba y no en un grupo: quien lo necesita es
+         * precisamente quien todavía no entiende los grupos.
+         */}
+        <Link
+          href="/operaciones/tutoriales"
+          onClick={onNavigate}
+          className={cn('mb-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones/tutoriales' ? 'bg-[#00544d] text-white' : 'text-slate-600 hover:bg-white')}
+        >
+          <Icon name="school" className="text-[19px]" /> Centro de Tutoriales
         </Link>
         {NAVIGATION.map((group) => (
           <section className="mb-3" key={group.label}>

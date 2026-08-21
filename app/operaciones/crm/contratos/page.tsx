@@ -13,7 +13,7 @@ export default function CommercialContractsPage() {
   return (
     <MultiActionWorkspace
       moduleLabel="CRM"
-      title="Generate Contract"
+      title="Generar contrato comercial"
       description="Genere el contrato desde una propuesta aceptada y complete la firma y activación con responsables identificados."
       sideTitle="Flujo contractual"
       actions={[

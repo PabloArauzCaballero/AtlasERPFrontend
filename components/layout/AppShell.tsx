@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
+import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { AtlasSidebar } from './AtlasSidebar';
 import { AtlasTopbar } from './AtlasTopbar';
 import { NavDrawer } from './NavDrawer';
@@ -30,6 +31,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
   useEffect(() => setNavOpen(false), [pathname]);
 
   return (
+    <TutorialProvider>
     <div className="relative min-h-[100dvh] text-slate-900">
       <AmbientBackground variant="console" accent={area} />
 
@@ -47,5 +49,6 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-4 md:space-y-6 md:p-6">{children}</div>
       </main>
     </div>
+    </TutorialProvider>
   );
 }

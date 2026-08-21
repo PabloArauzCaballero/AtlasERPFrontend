@@ -9,7 +9,7 @@ export default function BulkAccountsPage() {
   return (
     <BulkImportScreen
       moduleLabel="CRM"
-      title="Bulk Cuentas B2B"
+      title="Carga masiva de cuentas B2B"
       description="Carga masiva de cuentas con staging, vista previa y validación previa a la operación transaccional."
       templateName="atlas-cuentas-b2b-template.csv"
       headers={headers}

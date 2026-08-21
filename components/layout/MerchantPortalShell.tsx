@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
+import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
@@ -16,11 +17,12 @@ const links = [
   { href: '/portal-comercio/campanas', label: 'Campañas', icon: 'campaign' },
   { href: '/portal-comercio/sucursales-usuarios', label: 'Sucursales', icon: 'storefront' },
   { href: '/portal-comercio/compras-bnpl', label: 'Registro BNPL', icon: 'point_of_sale' },
+  { href: '/portal-comercio/tutoriales', label: 'Centro de Tutoriales', icon: 'school' },
 ];
 
 function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNavigate?: () => void }) {
   return (
-    <nav className="space-y-1">
+    <nav data-tutorial-id="portal-nav" className="space-y-1">
       {links.map((item) => {
         const active = isActivePath(pathname, item.href);
         return (
@@ -55,6 +57,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
   useEffect(() => setNavOpen(false), [pathname]);
 
   return (
+    <TutorialProvider>
     <div className="relative min-h-[100dvh] text-slate-900">
       <AmbientBackground variant="portal" accent="portal" />
 
@@ -109,5 +112,6 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         <main className="min-w-0 p-3 sm:p-4 md:p-6 xl:p-8">{children}</main>
       </div>
     </div>
+    </TutorialProvider>
   );
 }

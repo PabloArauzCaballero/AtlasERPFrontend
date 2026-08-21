@@ -4,7 +4,7 @@ import { CrudTable } from '@/components/ui/CrudTable';
 import { accountingService } from '@/services/accountingService';
 import { loadAccountingPeriods, loadBillingEvents, loadBusinessPartners, loadContracts, loadGlAccounts, loadLedgers, loadLegalEntities, loadTaxCodes, withEmpty } from '@/services/optionLoaders';
 export default function ArInvoicePage() {
-  return <div className="space-y-6"><StructuredActionForm moduleLabel="Contabilidad" title="Issue AR Invoice" description="Emita una factura por cobrar y genere el asiento contable propuesto para cliente, ingresos e impuestos." submitLabel="Post & Emit SIAT" submitIcon="receipt_long" onSubmit={accountingService.createArInvoice} sections={[
+  return <div className="space-y-6"><StructuredActionForm moduleLabel="Contabilidad" title="Emitir factura por cobrar (AR)" description="Emita una factura por cobrar y genere el asiento contable propuesto para cliente, ingresos e impuestos." submitLabel="Post & Emit SIAT" submitIcon="receipt_long" onSubmit={accountingService.createArInvoice} sections={[
     { title: 'Customer & Document Info', icon: 'domain', fields: [
       { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, optionsLoader: loadLegalEntities }, { name: 'customerBpId', label: 'Cliente (Business Partner)', type: 'select', required: true, optionsLoader: loadBusinessPartners }, { name: 'contractId', label: 'Contrato', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
       { name: 'invoiceNo', label: 'Número factura', required: true }, { name: 'invoiceDate', label: 'Fecha factura', type: 'date', required: true }, { name: 'dueDate', label: 'Fecha vencimiento', type: 'date', required: true },

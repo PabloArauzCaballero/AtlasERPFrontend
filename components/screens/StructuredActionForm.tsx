@@ -77,12 +77,12 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
+    <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit}>
       <WorkspaceHeader
         breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}
         title={props.title}
         description={props.description}
-        actions={<><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>}
+        actions={<><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>}
       />
 
       {props.warning ? <InlineNotice tone="warning" title="Validación requerida">{props.warning}</InlineNotice> : null}
@@ -105,7 +105,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
           ))}
         </div>
 
-        <aside className="space-y-4 xl:sticky xl:top-20">
+        <aside data-tutorial-id="action-summary" className="space-y-4 xl:sticky xl:top-20">
           <Panel title={props.summaryTitle ?? 'Control de registro'} icon="fact_check">
             <div className="space-y-3">
               {(props.summaryItems ?? [

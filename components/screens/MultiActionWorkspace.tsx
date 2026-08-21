@@ -36,10 +36,10 @@ export function MultiActionWorkspace(props: MultiActionWorkspaceProps) {
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]} title={props.title} description={props.description} />
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div data-tutorial-id="workspace-action-cards" className="grid gap-4 lg:grid-cols-2">
           {props.actions.map((action) => <ActionCard key={action.id} action={action} />)}
         </div>
-        <aside className="space-y-4 xl:sticky xl:top-20">
+        <aside data-tutorial-id="workspace-sequence" className="space-y-4 xl:sticky xl:top-20">
           <Panel title={props.sideTitle ?? 'Secuencia recomendada'} icon="account_tree">
             <ol className="space-y-4">
               {(props.sideItems ?? props.actions.map((action) => ({ label: action.title, detail: action.description, icon: action.icon }))).map((item, index) => (

@@ -9,7 +9,7 @@ export default function BulkAdvertisersPage() {
   return (
     <BulkImportScreen
       moduleLabel="Ads"
-      title="Bulk Import Advertisers"
+      title="Carga masiva de anunciantes"
       description="Importe anunciantes con control de duplicados por país y NIT, validación de contacto y límites de crédito en micros."
       templateName="atlas-ads-advertisers-template.csv"
       headers={headers}

@@ -14,7 +14,7 @@ export default function QualifyAccountPage() {
   return (
     <StructuredActionForm
       moduleLabel="CRM"
-      title="Qualify Account"
+      title="Calificar cuenta"
       description="Formalice el fit comercial, documente la decisión y cree una oportunidad cuando corresponda."
       submitLabel="Finalizar decisión"
       submitIcon="verified"

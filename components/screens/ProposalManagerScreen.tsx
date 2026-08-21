@@ -66,17 +66,17 @@ export function ProposalManagerScreen() {
 
   return (
     <form className="space-y-5" onSubmit={submit}>
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Commercial Proposal Manager" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><AtlasButton variant="secondary" icon="history">Audit Log</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar PDF</AtlasButton><AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal}>Enviar propuesta</AtlasButton></>} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Gestor de propuestas comerciales" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><AtlasButton variant="secondary" icon="history">Audit Log</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar PDF</AtlasButton><AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal}>Enviar propuesta</AtlasButton></>} />
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
       {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">El UUID generado quedó listo para envío. Revise el resumen antes de continuar.</InlineNotice> : null}
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
-          <Panel title="Proposal Identification" icon="description">
+          <Panel title="Identificación de la propuesta" icon="description">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><FormField label="UUID oportunidad" name="opportunityId" required className="xl:col-span-2" /><FormField label="Número de propuesta" name="proposalNumber" required placeholder="CP-2026-001" /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="UUID creado" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Se completa después de guardar." /></div>
           </Panel>
 
-          <Panel title="Commercial Terms" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>
+          <Panel title="Términos comerciales" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>
             <div className="table-scroll">
               <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo</th><th className="px-2 py-2">Facturación</th><th className="px-2 py-2">Mínimo mensual</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
                 <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.termType} onChange={(event) => updateLine(line.id, 'termType', event.target.value)}>{['MDR','SUBSCRIPTION','SETUP_FEE','SERVICE_FEE','PENALTY','MINIMUM_MONTHLY_FEE'].map((value) => <option key={value}>{value}</option>)}</select></td>
@@ -89,13 +89,13 @@ export function ProposalManagerScreen() {
               </tr>)}</tbody></table>
             </div>
           </Panel>
-          <Panel title="Pricing Exception" icon="warning"><FormField kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
+          <Panel title="Excepción de tarifa" icon="warning"><FormField kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
           <div className="flex justify-end"><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar propuesta</AtlasButton></div>
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-20">
-          <Panel title="Approval Status" icon="fact_check"><div className="flex items-center justify-between"><span className="text-xs text-slate-500">Estado</span><StatusPill tone={proposalId ? 'warning' : 'neutral'}>{proposalId ? 'DRAFT' : 'SIN GUARDAR'}</StatusPill></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded bg-slate-50 p-3"><p className="text-[10px] uppercase text-slate-500">Términos</p><p className="mt-1 text-lg font-bold">{lines.length}</p></div><div className="rounded bg-slate-50 p-3"><p className="text-[10px] uppercase text-slate-500">Base estimada</p><p className="mt-1 text-sm font-bold">{formatBob(estimated)}</p></div></div></Panel>
-          <Panel title="Client Context" icon="analytics"><div className="space-y-3 text-xs"><Context label="Moneda" value="BOB" /><Context label="Trazabilidad" value="Habilitada" /><Context label="Envío" value={proposalId ? 'Disponible' : 'Pendiente'} /><Context label="Aprobación" value="Según excepción" /></div></Panel>
+          <Panel title="Estado de aprobación" icon="fact_check"><div className="flex items-center justify-between"><span className="text-xs text-slate-500">Estado</span><StatusPill tone={proposalId ? 'warning' : 'neutral'}>{proposalId ? 'DRAFT' : 'SIN GUARDAR'}</StatusPill></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded bg-slate-50 p-3"><p className="text-[10px] uppercase text-slate-500">Términos</p><p className="mt-1 text-lg font-bold">{lines.length}</p></div><div className="rounded bg-slate-50 p-3"><p className="text-[10px] uppercase text-slate-500">Base estimada</p><p className="mt-1 text-sm font-bold">{formatBob(estimated)}</p></div></div></Panel>
+          <Panel title="Contexto del cliente" icon="analytics"><div className="space-y-3 text-xs"><Context label="Moneda" value="BOB" /><Context label="Trazabilidad" value="Habilitada" /><Context label="Envío" value={proposalId ? 'Disponible' : 'Pendiente'} /><Context label="Aprobación" value="Según excepción" /></div></Panel>
           <InlineNotice tone="warning" title="Revisión comercial">Las excepciones de pricing pueden generar una aprobación pendiente antes del envío.</InlineNotice>
         </aside>
       </div>

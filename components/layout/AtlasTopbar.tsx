@@ -79,7 +79,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
             <Icon name="menu" className="text-[22px]" />
           </button>
           <Link href="/operaciones" className="shrink-0 text-base font-black tracking-tight text-[#006a61] sm:text-lg">ATLAS ERP</Link>
-          <form onSubmit={submit} className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-[#006a61] focus-within:bg-white md:flex lg:w-72">
+          <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-[#006a61] focus-within:bg-white md:flex lg:w-72">
             <Icon name="search" className="text-[19px] text-slate-400" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder="Buscar pantalla u operación..." />
             <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-slate-400 lg:inline">↵</kbd>
@@ -111,6 +111,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
+              data-tutorial-id="topbar-profile"
               className="grid h-9 w-9 place-items-center rounded-full bg-[#00544d] text-[10px] font-black text-white ring-2 ring-slate-100"
               aria-label="Perfil de usuario"
               aria-expanded={menuOpen}

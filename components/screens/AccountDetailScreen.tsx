@@ -55,7 +55,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
             <div className="space-y-4">
-              <Panel title="Account Overview" icon="corporate_fare">
+              <Panel title="Resumen de la cuenta" icon="corporate_fare">
                 <dl className="grid gap-x-6 gap-y-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
                   <Detail label="Razón social" value={account.legalName} />
                   <Detail label="Nombre comercial" value={account.tradeName} />
@@ -79,14 +79,14 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
               </Panel>
             </div>
             <aside className="space-y-4">
-              <Panel title="Quick Actions" icon="bolt">
+              <Panel title="Acciones rápidas" icon="bolt">
                 <div className="space-y-2">
                   <Quick href={`/operaciones/crm/cuentas/calificar?accountId=${requestedId}`} icon="verified" title="Calificar cuenta" detail="Ejecutar evaluación comercial" />
                   <Quick href="/operaciones/crm/oportunidades" icon="handshake" title="Crear oportunidad" detail="Iniciar nuevo negocio" />
                   <Quick href="/operaciones/crm/onboarding" icon="fact_check" title="Iniciar onboarding" detail="Preparar activación del comercio" />
                 </div>
               </Panel>
-              <Panel title="Action Log" icon="history_edu">
+              <Panel title="Historial de acciones" icon="history_edu">
                 <div className="space-y-4 text-xs"><Timeline label="Consulta de expediente" detail="La información visible proviene del backend actual." /><Timeline label="Trazabilidad protegida" detail="Las mutaciones generan Business Action Logs." /><Timeline label="PII enmascarada" detail="NIT, teléfono y correo se presentan parcialmente." /></div>
               </Panel>
             </aside>

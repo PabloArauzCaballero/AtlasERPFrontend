@@ -9,11 +9,20 @@ interface PanelProps {
   children: React.ReactNode;
   className?: string | undefined;
   compact?: boolean;
+  /**
+   * Ancla para el motor de tutoriales. Se declara explícitamente en vez de
+   * aceptar props sueltas: así el panel sigue teniendo una superficie cerrada y
+   * el recorrido puede apuntar a él sin envolverlo en un `div` de más.
+   */
+  'data-tutorial-id'?: string | undefined;
 }
 
-export function Panel({ title, description, icon, action, children, className, compact = false }: PanelProps) {
+export function Panel({ title, description, icon, action, children, className, compact = false, ...rest }: PanelProps) {
   return (
-    <section className={cn('overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]', className)}>
+    <section
+      data-tutorial-id={rest['data-tutorial-id']}
+      className={cn('overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]', className)}
+    >
       {title || action ? (
         <header className="flex min-h-14 items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">

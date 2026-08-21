@@ -24,7 +24,7 @@ export function MerchantActivationScreen() {
   async function activate() { try { await mutation.execute(caseId); } catch { /* controlled */ } }
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Activación' }]} title="Contract Activation" description="Último control de preparación antes de habilitar al comercio para operar en ATLAS." actions={<><AtlasButton variant="secondary" icon="visibility">Previsualizar contrato</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar auditoría</AtlasButton></>} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Activación' }]} title="Activación del contrato" description="Último control de preparación antes de habilitar al comercio para operar en ATLAS." actions={<><AtlasButton variant="secondary" icon="visibility">Previsualizar contrato</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar auditoría</AtlasButton></>} />
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
       {mutation.status === 'success' ? <InlineNotice tone="success" title="Comercio activado">El caso fue activado por el backend y quedó disponible para operación.</InlineNotice> : null}
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_360px]">
