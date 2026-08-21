@@ -112,6 +112,35 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     tutorialId: 'portal-bnpl',
   },
 
+  '/portal-comercio/expediente': {
+    eyebrow: 'Portal del comercio',
+    title: 'Expediente del negocio',
+    intro: 'El legajo con el que Atlas comprueba que tu negocio existe, opera y cobra donde dice cobrar.',
+    sections: [
+      {
+        title: 'Se abre una vez y se completa por partes',
+        body: 'No hay que terminarlo de una sentada. Se abre el expediente, y a partir de ahí se van sumando sucursales, QR y terminales cuando los tengas a mano.',
+      },
+      {
+        title: 'De la sucursal cuelga todo lo demás',
+        body: 'El QR y los terminales pertenecen a un local, no a la empresa. Es lo que permite responder «¿en qué sucursal se hizo este cobro?», que es la primera pregunta de cualquier reclamo.',
+        tip: 'Registra primero las sucursales; si no, no habrá dónde colgar el QR.',
+      },
+      {
+        title: 'El QR se guarda como imagen, no como número',
+        body: 'Se conserva el archivo y su huella digital, no el número que alguien transcribió. Un QR dice a qué cuenta va el dinero: si algún día se discute, la imagen es la prueba y el número tecleado no lo es.',
+      },
+      {
+        title: 'Un QR no se edita: se reemplaza',
+        body: 'El anterior se conserva marcado. Si un cobro salió mal hay que poder reconstruir contra qué QR se cobró ese día, y sobrescribirlo destruye justo eso.',
+      },
+      {
+        title: 'Al enviar, pasa a revisión',
+        body: 'Deja de ser tuyo para editar y lo revisa Atlas. Repasa los datos antes: una corrección después es un caso, no un cambio.',
+      },
+    ],
+  },
+
   '/portal-comercio/cuenta': {
     eyebrow: 'Portal del comercio',
     title: 'Mi cuenta',

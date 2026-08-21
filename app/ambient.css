@@ -27,9 +27,12 @@
   --par-aurora: 110px;
   --par-grid: 38px;
   --par-network: 72px;
-  /* Azul institucional de ATLAS; cada área lo sobreescribe con el suyo. */
-  --accent-rgb: 37, 99, 235;
-  --state-rgb: 37, 99, 235;
+  /* El acento del motor de decisión (`#006a61`); cada área lo sobreescribe con
+     el suyo. Es el mismo valor que `tailwind.config.ts` fija como `primary`:
+     escribirlo en RGB aquí es inevitable —una capa que se compone necesita los
+     canales sueltos para modular alfa—, pero no puede divergir de aquél. */
+  --accent-rgb: 0, 106, 97;
+  --state-rgb: 0, 106, 97;
   --ambient-ease: cubic-bezier(0.2, 0, 0, 1);
   --ambient-slow: 480ms;
 
@@ -54,11 +57,11 @@
  * los grupos del menú lateral, así que cambiar de área tiñe la escena con el
  * color que esa área ya usa: es información, no decoración.
  */
-.ambient-bg[data-accent='crm'] { --accent-rgb: 20, 184, 166; }
-.ambient-bg[data-accent='contabilidad'] { --accent-rgb: 59, 130, 246; }
-.ambient-bg[data-accent='ads'] { --accent-rgb: 139, 92, 246; }
-.ambient-bg[data-accent='control'] { --accent-rgb: 245, 158, 11; }
-.ambient-bg[data-accent='portal'] { --accent-rgb: 6, 182, 212; }
+.ambient-bg[data-accent='crm'] { --accent-rgb: 13, 148, 136; }
+.ambient-bg[data-accent='contabilidad'] { --accent-rgb: 37, 99, 235; }
+.ambient-bg[data-accent='ads'] { --accent-rgb: 124, 58, 237; }
+.ambient-bg[data-accent='control'] { --accent-rgb: 217, 119, 6; }
+.ambient-bg[data-accent='portal'] { --accent-rgb: 8, 145, 178; }
 .ambient-bg[data-accent] { --state-rgb: var(--accent-rgb); }
 
 /* Estados reales de la sesión: el color cambia, la geometría no. */
@@ -127,7 +130,7 @@
   bottom: -26vmax;
   width: 92vmax;
   height: 74vmax;
-  background: radial-gradient(closest-side, rgba(3, 22, 54, 0.16), transparent 82%);
+  background: radial-gradient(closest-side, rgba(29, 29, 31, 0.14), transparent 82%);
 }
 
 /* Periodos deliberadamente sin múltiplos comunes (37 · 53 · 67 s): las tres

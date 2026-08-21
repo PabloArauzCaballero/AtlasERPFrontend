@@ -58,7 +58,7 @@ export function RolesPermissionsScreen() {
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-bold">{role.name}</span>
-                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-blue-200' : 'text-slate-400'}`}>{role.department ?? role.code}</span>
+                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-white/75' : 'text-slate-400'}`}>{role.department ?? role.code}</span>
                   </span>
                   <Icon name="chevron_right" className="text-[17px] opacity-60" />
                 </button>

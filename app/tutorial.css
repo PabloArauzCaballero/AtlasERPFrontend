@@ -32,7 +32,7 @@
   border-radius: 10px;
   box-shadow:
     0 0 0 9999px rgba(2, 8, 23, 0.55),
-    0 0 0 2px rgba(37, 99, 235, 0.9);
+    0 0 0 2px rgba(0, 106, 97, 0.9);
   transition: all 220ms cubic-bezier(0.2, 0, 0, 1);
   pointer-events: none;
 }
@@ -54,7 +54,7 @@
   border-radius: 12px;
   background: #fff;
   color: #1b1b1e;
-  box-shadow: 0 24px 60px -18px rgba(3, 22, 54, 0.5), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  box-shadow: 0 24px 60px -18px rgba(29, 29, 31, 0.45), 0 0 0 1px rgba(226, 232, 240, 0.9);
   pointer-events: auto;
   animation: tutorial-in 200ms cubic-bezier(0.2, 0, 0, 1) both;
 }
@@ -198,7 +198,7 @@
   flex: 1 1 8rem;
   font-size: 11px;
   font-weight: 700;
-  color: #1d4ed8;
+  color: #00544d;
 }
 
 /* ------------------------------------------------ panel «¿Qué es esto?» */
@@ -221,7 +221,7 @@
   width: min(30rem, 100vw);
   height: 100%;
   background: #fff;
-  box-shadow: -24px 0 60px -20px rgba(3, 22, 54, 0.4);
+  box-shadow: -24px 0 60px -20px rgba(29, 29, 31, 0.35);
   animation: guide-slide 220ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 @keyframes guide-slide { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -279,15 +279,15 @@
   width: 100%;
   margin-top: 1rem;
   padding: 0.75rem 0.85rem;
-  border: 1px solid #bfdbfe;
+  border: 1px solid #d9ebe8;
   border-radius: 10px;
-  background: #eff6ff;
+  background: #f0f8f7;
   text-align: left;
-  color: #1e3a8a;
+  color: #00544d;
 }
-.guide-cta:hover { background: #dbeafe; }
+.guide-cta:hover { background: #d9ebe8; }
 .guide-cta b { display: block; font-size: 12.5px; font-weight: 800; }
-.guide-cta em { display: block; margin-top: 2px; font-size: 11.5px; font-style: normal; color: #1d4ed8; }
+.guide-cta em { display: block; margin-top: 2px; font-size: 11.5px; font-style: normal; color: #00544d; }
 
 .guide-sections { margin-top: 1.15rem; display: flex; flex-direction: column; gap: 1.15rem; }
 .guide-sections > li { display: flex; gap: 0.75rem; }

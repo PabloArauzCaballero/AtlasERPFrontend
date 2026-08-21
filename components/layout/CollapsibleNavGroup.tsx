@@ -60,7 +60,7 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
                   active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
                 )}
               >
-                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-blue-200' : 'text-slate-400')} />
+                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-white/75' : 'text-slate-400')} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );
