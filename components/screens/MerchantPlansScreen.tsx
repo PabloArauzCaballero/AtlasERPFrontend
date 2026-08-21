@@ -98,7 +98,7 @@ export function MerchantPlansScreen() {
           return (
             <section key={planId} className={`flex flex-col rounded-xl border bg-white p-5 shadow-sm ${isCurrent ? 'border-emerald-400 ring-2 ring-emerald-100' : 'border-slate-200'}`}>
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-extrabold text-[#031636]">{String(plan.name)}</h3>
+                <h3 className="text-base font-extrabold text-[#006a61]">{String(plan.name)}</h3>
                 <StatusPill tone={tierTone[String(plan.tier)] ?? 'neutral'} dot={false}>{String(plan.tier)}</StatusPill>
               </div>
               <p className="mt-1 min-h-8 text-xs text-slate-500">{String(plan.description ?? '')}</p>

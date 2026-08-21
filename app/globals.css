@@ -2,19 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; background: #f8fafc; }
+/* El lienzo del motor: un neutro cálido, no el azulado de Tailwind. */
+:root { color-scheme: light; background: #f5f5f7; }
 * { box-sizing: border-box; }
-html { min-width: 320px; background: #f8fafc; }
-body { margin: 0; background: #f8fafc; color: #1b1b1e; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+html { min-width: 320px; background: #f5f5f7; }
+body { margin: 0; background: #f5f5f7; color: #38383d; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { transition-duration: 150ms; }
 button { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 2px solid #4e5e82; outline-offset: 2px; }
+/* El anillo de foco lleva el acento: es la única forma de saber dónde está el teclado. */
+:focus-visible { outline: 2px solid #006a61; outline-offset: 2px; }
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; line-height: 1; }
-.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #c9c9cf transparent; }
 .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-.atlas-grid-lines { background-image: linear-gradient(to right, rgba(148,163,184,.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,.12) 1px, transparent 1px); background-size: 28px 28px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #c9c9cf; border-radius: 999px; }
+.atlas-grid-lines { background-image: linear-gradient(to right, rgba(107,107,117,.10) 1px, transparent 1px), linear-gradient(to bottom, rgba(107,107,117,.10) 1px, transparent 1px); background-size: 28px 28px; }
 @keyframes atlas-pulse { 0%,100% { opacity: .55 } 50% { opacity: 1 } }
 .atlas-pulse { animation: atlas-pulse 1.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }

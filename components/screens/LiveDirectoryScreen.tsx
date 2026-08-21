@@ -155,7 +155,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
       <Panel compact>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-2 sm:flex-row">
-            <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-[#031636] focus-within:ring-2 focus-within:ring-blue-100">
+            <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-blue-100">
               <Icon name="search" className="text-[18px] text-slate-400" />
               <input className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
             </label>
@@ -167,7 +167,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-[#031636]" />Actualizando</span> : null}
+            {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-[#006a61]" />Actualizando</span> : null}
             <select className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs" value={pageSize} onChange={(event) => setQuery((current) => ({ ...current, page: 1, limit: Number(event.target.value), pageSize: Number(event.target.value) }))}>
               {[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size} filas</option>)}
             </select>
@@ -197,7 +197,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                         {actions.length ? (
                           <div className="flex items-center justify-end gap-1">
                             {actions.map((action) => {
-                              const toneClass = action.tone === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-[#031636] hover:bg-blue-50';
+                              const toneClass = action.tone === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-[#006a61] hover:bg-blue-50';
                               const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold ${toneClass}`;
                               return action.href
                                 ? <Link key={action.key} className={className} href={action.href}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
@@ -205,7 +205,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                             })}
                           </div>
                         ) : href ? (
-                          <Link className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold text-[#031636] hover:bg-blue-50" href={href}>Ver <Icon name="chevron_right" className="text-[16px]" /></Link>
+                          <Link className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold text-[#006a61] hover:bg-blue-50" href={href}>Ver <Icon name="chevron_right" className="text-[16px]" /></Link>
                         ) : (
                           <button className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100" aria-label="Más acciones"><Icon name="more_horiz" className="text-[18px]" /></button>
                         )}
@@ -218,7 +218,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
             </table>
           </div>
         )}
-        {loading && rows.length ? <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-blue-100"><div className="h-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] bg-[#031636]" /></div> : null}
+        {loading && rows.length ? <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-blue-100"><div className="h-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] bg-[#006a61]" /></div> : null}
       </section>
 
       <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 sm:flex-row">

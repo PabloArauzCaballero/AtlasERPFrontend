@@ -24,7 +24,7 @@ export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [],
           </nav>
         ) : null}
         {eyebrow ? <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{eyebrow}</p> : null}
-        <h1 className="text-2xl font-bold tracking-tight text-[#031636] md:text-[30px] md:leading-[38px]">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[#006a61] md:text-[30px] md:leading-[38px]">{title}</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-600">{description}</p>
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}

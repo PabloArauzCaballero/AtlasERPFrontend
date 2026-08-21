@@ -122,7 +122,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
           </Panel>
           <Panel title="Actividad de la operación" icon="history_edu">
             <ol className="space-y-4 text-xs">
-              <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-blue-50 text-[#031636]"><Icon name="edit" className="text-[14px]" /></span><div><b>Preparación</b><p className="mt-0.5 text-slate-500">Complete los campos obligatorios y confirme referencias.</p></div></li>
+              <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-blue-50 text-[#006a61]"><Icon name="edit" className="text-[14px]" /></span><div><b>Preparación</b><p className="mt-0.5 text-slate-500">Complete los campos obligatorios y confirme referencias.</p></div></li>
               <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700"><Icon name="rule" className="text-[14px]" /></span><div><b>Validación</b><p className="mt-0.5 text-slate-500">La API aplica esquema, permisos y reglas de negocio.</p></div></li>
               <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700"><Icon name="verified" className="text-[14px]" /></span><div><b>Confirmación</b><p className="mt-0.5 text-slate-500">La operación queda registrada con correlación auditable.</p></div></li>
             </ol>

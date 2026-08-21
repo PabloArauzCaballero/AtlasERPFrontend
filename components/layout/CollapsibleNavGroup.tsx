@@ -37,7 +37,7 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false }:
         aria-expanded={open}
         className={cn(
           'flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
-          containsActive ? 'text-[#031636]' : 'text-slate-600 hover:bg-white hover:text-[#031636]',
+          containsActive ? 'text-[#006a61]' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
         )}
       >
         <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-blue-500' : 'text-slate-400')} />
@@ -54,7 +54,7 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false }:
                 href={item.href}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
-                  active ? 'bg-[#1a2b4c] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#031636]',
+                  active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
                 )}
               >
                 <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-blue-200' : 'text-slate-400')} />

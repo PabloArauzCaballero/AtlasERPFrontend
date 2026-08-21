@@ -100,7 +100,7 @@ export function MerchantCampaignsScreen() {
                 <div className="mt-3 text-[11px] text-slate-600">
                   <div className="flex justify-between"><span>Gastado</span><b>{formatBob(spent)}</b></div>
                   <div className="flex justify-between"><span>Presupuesto</span><b>{formatBob(budget)}</b></div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-[#031636]" style={{ width: `${pct}%` }} /></div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-[#006a61]" style={{ width: `${pct}%` }} /></div>
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400">
                   <Icon name="verified" className="text-[13px]" />{String(campaign.approvalStatus ?? '')}

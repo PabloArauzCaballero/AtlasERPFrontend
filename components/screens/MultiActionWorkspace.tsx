@@ -44,7 +44,7 @@ export function MultiActionWorkspace(props: MultiActionWorkspaceProps) {
             <ol className="space-y-4">
               {(props.sideItems ?? props.actions.map((action) => ({ label: action.title, detail: action.description, icon: action.icon }))).map((item, index) => (
                 <li className="flex gap-3" key={item.label}>
-                  <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#031636] text-[10px] font-bold text-white">{index + 1}</span>
+                  <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#006a61] text-[10px] font-bold text-white">{index + 1}</span>
                   <div><p className="text-xs font-bold text-slate-800">{item.label}</p><p className="mt-0.5 text-[11px] leading-4 text-slate-500">{item.detail}</p></div>
                 </li>
               ))}

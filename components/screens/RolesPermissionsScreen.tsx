@@ -54,7 +54,7 @@ export function RolesPermissionsScreen() {
                   type="button"
                   key={role.code}
                   onClick={() => setSelectedRoleCode(role.code)}
-                  className={`flex w-full items-center justify-between rounded px-3 py-2.5 text-left text-xs ${role.code === selectedRole?.code ? 'bg-[#031636] text-white' : 'hover:bg-slate-50'}`}
+                  className={`flex w-full items-center justify-between rounded px-3 py-2.5 text-left text-xs ${role.code === selectedRole?.code ? 'bg-[#006a61] text-white' : 'hover:bg-slate-50'}`}
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-bold">{role.name}</span>

@@ -12,12 +12,20 @@ interface AtlasButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   variant?: ButtonVariant;
 }
 
+/*
+ * La acción principal va en casi negro, no en el acento.
+ *
+ * Es la regla del motor de decisión, y su razón está escrita en su propio tema: un bloque de color
+ * saturado del tamaño de un botón compite con el contenido. En este sistema el color es SEÑAL —lo
+ * llevan los estados y la letra del acento—, así que el botón aporta jerarquía por contraste y no
+ * por saturación. `danger` y `success` sí lo llevan: ahí el color ES la información.
+ */
 const variants: Record<ButtonVariant, string> = {
-  primary: 'border-[#031636] bg-[#031636] text-white hover:bg-[#142746]',
+  primary: 'border-slate-900 bg-slate-900 text-white hover:bg-slate-950',
   secondary: 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50',
-  danger: 'border-red-600 bg-red-600 text-white hover:bg-red-700',
+  danger: 'border-danger bg-danger text-white hover:brightness-95',
   ghost: 'border-transparent bg-transparent text-slate-700 hover:bg-slate-100',
-  success: 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700',
+  success: 'border-success bg-success text-white hover:brightness-95',
 };
 
 export function AtlasButton({ children, className, icon, loading = false, variant = 'primary', disabled, type = 'button', ...props }: AtlasButtonProps) {

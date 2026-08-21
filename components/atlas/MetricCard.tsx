@@ -10,7 +10,7 @@ interface MetricCardProps {
 }
 
 const iconTone = {
-  navy: 'bg-blue-50 text-[#031636]',
+  navy: 'bg-blue-50 text-[#006a61]',
   teal: 'bg-teal-50 text-teal-700',
   amber: 'bg-amber-50 text-amber-700',
   red: 'bg-red-50 text-red-700',

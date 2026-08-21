@@ -52,4 +52,4 @@ export function BnplPurchaseScreen() {
     </form>
   );
 }
-function Summary({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) { return <div className="flex items-center justify-between py-2 text-xs"><span className="text-slate-500">{label}</span><span className={strong ? 'text-base font-extrabold text-[#031636]' : 'font-bold'}>{value}</span></div>; }
+function Summary({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) { return <div className="flex items-center justify-between py-2 text-xs"><span className="text-slate-500">{label}</span><span className={strong ? 'text-base font-extrabold text-[#006a61]' : 'font-bold'}>{value}</span></div>; }

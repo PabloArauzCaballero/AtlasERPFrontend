@@ -38,7 +38,7 @@ export function RequireAuth({ children, audience }: Readonly<{ children: React.R
   if (status !== 'authenticated' || audienceMismatch) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#f8fafc]">
-        <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-[#031636]" />
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-[#006a61]" />
       </div>
     );
   }
