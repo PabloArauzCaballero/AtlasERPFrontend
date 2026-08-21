@@ -47,10 +47,10 @@ export function ExecutiveDashboard() {
   const resource = useAsyncResource(load);
   const data = resource.data;
   const counts = [
-    { label: 'Cuentas B2B', value: totalOf(data?.accounts ?? null), color: 'bg-teal-600' },
-    { label: 'Business Partners', value: totalOf(data?.partners ?? null), color: 'bg-blue-600' },
-    { label: 'Cuentas GL', value: totalOf(data?.glAccounts ?? null), color: 'bg-indigo-600' },
-    { label: 'Business Actions', value: totalOf(data?.audit ?? null), color: 'bg-amber-500' },
+    { label: 'Cuentas B2B', value: totalOf(data?.accounts ?? null), color: 'bg-[#006a61]' },
+    { label: 'Business Partners', value: totalOf(data?.partners ?? null), color: 'bg-[#006a61]/70' },
+    { label: 'Cuentas GL', value: totalOf(data?.glAccounts ?? null), color: 'bg-[#006a61]/55' },
+    { label: 'Business Actions', value: totalOf(data?.audit ?? null), color: 'bg-[#006a61]/40' },
   ];
   const maxCount = Math.max(1, ...counts.map((item) => item.value));
   const alerts = Array.isArray(data?.ads?.alerts) ? data.ads.alerts : [];

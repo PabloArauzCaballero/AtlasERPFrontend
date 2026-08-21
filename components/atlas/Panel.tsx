@@ -13,7 +13,7 @@ interface PanelProps {
 
 export function Panel({ title, description, icon, action, children, className, compact = false }: PanelProps) {
   return (
-    <section className={cn('overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]', className)}>
+    <section className={cn('overflow-hidden rounded-lg border border-slate-200 bg-white/80 shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-[2px]', className)}>
       {title || action ? (
         <header className="flex min-h-14 items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">

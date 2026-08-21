@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
+import { AmbientBackground } from '@/components/ambient/AmbientBackground';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
@@ -37,7 +38,7 @@ const AUDIENCE_COPY: Record<
     subtitle: 'Panel administrativo interno',
     acceso: 'al panel administrativo interno',
     emailLabel: 'Correo corporativo',
-    placeholder: 'usuario@atlas.internal',
+    placeholder: 'a2020115468@estudiantes.upsa.edu.bo',
     home: '/operaciones',
   },
   merchant: {
@@ -45,7 +46,7 @@ const AUDIENCE_COPY: Record<
     subtitle: 'Portal del comercio',
     acceso: 'al portal de tu comercio',
     emailLabel: 'Correo del comercio',
-    placeholder: 'usuario@micomercio.com',
+    placeholder: 'contacto@tucomercio.bo',
     home: '/portal-comercio/planes',
   },
 };
@@ -123,10 +124,17 @@ function LoginForm() {
   }
 
   return (
-    <main className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
+    /*
+     * El fondo ambiental va también en el acceso, no sólo dentro del armazón: es la primera
+     * pantalla del ERP y la única que ve alguien que aún no entró, así que es donde el lenguaje
+     * visual tiene que quedar dicho. La variante `auth` es más calmada que la del escritorio —
+     * aquí el trabajo es leer un formulario corto, no acompañar una sesión larga.
+     */
+    <main className="relative grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
+      <AmbientBackground variant="auth" />
       <Portada />
 
-      <section className="flex items-center justify-center px-5 py-10 sm:px-10">
+      <section className="relative flex items-center justify-center px-5 py-10 sm:px-10">
         <div className="w-full max-w-[380px]">
           {challenge ? (
             <PasoDelCodigo

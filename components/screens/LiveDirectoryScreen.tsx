@@ -178,7 +178,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
 
       {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar la información">{resource.error}</InlineNotice> : null}
 
-      <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white/80 backdrop-blur-[2px]">
         {loading && !rows.length ? <TableSkeleton columns={props.columns.length + 1} /> : (
           <div className="custom-scrollbar overflow-x-auto">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
@@ -221,7 +221,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         {loading && rows.length ? <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-blue-100"><div className="h-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] bg-[#006a61]" /></div> : null}
       </section>
 
-      <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 sm:flex-row">
+      <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white/80 backdrop-blur-[2px] px-4 py-3 text-xs text-slate-600 sm:flex-row">
         <span>Página <b>{page}</b> · {rows.length} visibles · <b>{total}</b> registros</span>
         <div className="flex gap-2"><AtlasButton variant="secondary" disabled={page <= 1 || loading} onClick={() => setQuery((current) => ({ ...current, page: page - 1 }))}>Anterior</AtlasButton><AtlasButton variant="secondary" disabled={page * pageSize >= total || loading} onClick={() => setQuery((current) => ({ ...current, page: page + 1 }))}>Siguiente</AtlasButton></div>
       </div>

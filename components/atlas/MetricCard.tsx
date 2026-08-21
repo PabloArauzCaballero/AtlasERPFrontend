@@ -20,7 +20,7 @@ const iconTone = {
 export function MetricCard({ label, value, detail, icon = 'analytics', trend = 'flat', tone = 'navy' }: MetricCardProps) {
   const trendClass = trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-red-600' : 'text-slate-500';
   return (
-    <article className="flex min-h-28 items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+    <article className="flex min-h-28 items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white/80 p-4 backdrop-blur-[2px] shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <div className="min-w-0">
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
         <div className="mt-1 truncate text-2xl font-bold text-slate-900">{value}</div>

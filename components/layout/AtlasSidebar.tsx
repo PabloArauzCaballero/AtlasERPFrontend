@@ -13,7 +13,7 @@ interface NavGroup { label: string; icon: string; accent: string; items: NavItem
 
 const navigation: NavGroup[] = [
   {
-    label: 'CRM', icon: 'business_center', accent: 'bg-teal-500', items: [
+    label: 'CRM', icon: 'business_center', accent: 'bg-[#006a61]', items: [
       { label: 'Cuentas B2B', href: '/operaciones/crm/cuentas', icon: 'domain' },
       { label: 'Pipeline', href: '/operaciones/crm/oportunidades', icon: 'view_kanban' },
       { label: 'Propuestas', href: '/operaciones/crm/propuestas', icon: 'request_quote' },
@@ -25,7 +25,7 @@ const navigation: NavGroup[] = [
     ],
   },
   {
-    label: 'Contabilidad', icon: 'account_balance_wallet', accent: 'bg-blue-500',
+    label: 'Contabilidad', icon: 'account_balance_wallet', accent: 'bg-[#006a61]/75',
     items: [
       { label: 'Business partners', href: '/operaciones/contabilidad/business-partners', icon: 'handshake' },
       { label: 'Contratos', href: '/operaciones/contabilidad/contratos', icon: 'description' },
@@ -48,7 +48,7 @@ const navigation: NavGroup[] = [
     ],
   },
   {
-    label: 'Ads', icon: 'campaign', accent: 'bg-violet-500', items: [
+    label: 'Ads', icon: 'campaign', accent: 'bg-[#006a61]/55', items: [
       { label: 'Dashboard', href: '/operaciones/ads/dashboard', icon: 'monitoring' },
       { label: 'Anunciantes', href: '/operaciones/ads/anunciantes', icon: 'business' },
       { label: 'Campañas', href: '/operaciones/ads/campanas', icon: 'campaign' },
@@ -59,7 +59,7 @@ const navigation: NavGroup[] = [
     ],
   },
   {
-    label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', items: [
+    label: 'Control', icon: 'verified_user', accent: 'bg-[#006a61]/35', items: [
       { label: 'Business Action Log', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
       { label: 'Notificaciones', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' },
       { label: 'Usuarios', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
@@ -81,7 +81,7 @@ export function AtlasSidebar() {
   }
 
   return (
-    <aside className="fixed bottom-0 left-0 top-16 z-40 hidden w-64 flex-col border-r border-slate-200 bg-[#f8fafc] lg:flex">
+    <aside className="fixed bottom-0 left-0 top-16 z-40 hidden w-64 flex-col border-r border-slate-200 bg-white/70 backdrop-blur-xl lg:flex">
       <div className="border-b border-slate-200 px-5 py-5">
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-md bg-[#006a61] text-white"><Icon name="account_balance" className="text-[23px]" /></span>

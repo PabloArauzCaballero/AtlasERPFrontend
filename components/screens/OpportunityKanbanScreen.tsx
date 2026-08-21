@@ -12,10 +12,10 @@ import type { ResourceRow } from '@/services/types';
 
 const STAGES = [
   { key: 'DISCOVERY', label: 'Descubrimiento', accent: 'bg-slate-400' },
-  { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-sky-500' },
-  { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-indigo-500' },
-  { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-amber-500' },
-  { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-violet-500' },
+  { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-[#006a61]/40' },
+  { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-[#006a61]/55' },
+  { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-[#006a61]/70' },
+  { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-[#006a61]' },
   { key: 'CLOSED_WON', label: 'Ganada', accent: 'bg-emerald-500' },
   { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-red-500' },
 ];

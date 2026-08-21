@@ -92,7 +92,7 @@ export function MerchantCampaignsScreen() {
             const budget = micros(campaign.budgetTotalMicros);
             const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
             return (
-              <section key={id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <section key={id} className="flex flex-col rounded-xl border border-slate-200 bg-white/80 backdrop-blur-[2px] p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{String(campaign.name)}</p><p className="text-[10px] uppercase tracking-wide text-slate-400">{String(campaign.objective ?? '')}</p></div>
                   <StatusPill tone={status === 'ACTIVE' ? 'success' : status === 'PAUSED' ? 'warning' : 'neutral'}>{status}</StatusPill>

@@ -33,7 +33,7 @@ export function AtlasTopbar() {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+    <header className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl md:px-6">
       <div className="flex min-w-0 items-center gap-6">
         <Link href="/operaciones" className="shrink-0 text-lg font-black tracking-tight text-[#006a61]">ATLAS ERP</Link>
         <form onSubmit={submit} className="hidden h-9 w-72 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 focus-within:border-[#006a61] focus-within:bg-white md:flex">

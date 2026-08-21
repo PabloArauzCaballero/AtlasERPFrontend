@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '../styles/ambient.css';
+
+/*
+ * Los tokens que el fondo ambiental y el resto del lenguaje de ATLAS dan por sentados.
+ *
+ * El motor de decisión los define en `theme.css`; aquí se declaran como variables CSS porque el
+ * fondo se portó VERBATIM y su hoja los consume por nombre. Duplicar los valores en la
+ * configuración de Tailwind y aquí es deliberado: Tailwind los necesita para generar clases, el
+ * CSS portado los necesita en tiempo de ejecución, y no hay puente entre ambos sin un plugin.
+ */
+:root {
+  --accent: #006a61;
+  --accent-strong: #00544d;
+  --accent-rgb: 0, 106, 97;
+  --ink: #1d1d1f;
+  --text: #38383d;
+  --muted: #5a5a63;
+  --line: #e4e4e7;
+  --canvas: #f5f5f7;
+  --surface: #ffffff;
+
+  /* Movimiento: mismas curvas y duraciones que el motor. */
+  --dur-slow: 280ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
 /* El lienzo del motor: un neutro cálido, no el azulado de Tailwind. */
 :root { color-scheme: light; background: #f5f5f7; }
 * { box-sizing: border-box; }
