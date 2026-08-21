@@ -7,7 +7,7 @@ export default function BranchesFiscalYearsPage() {
   return (
     <MultiActionWorkspace
       moduleLabel="Contabilidad"
-      title="Structure Configuration"
+      title="Sucursales y años fiscales"
       description="Defina sucursales contables y años fiscales vinculados a una entidad legal previamente registrada."
       actions={[
         {

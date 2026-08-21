@@ -52,6 +52,17 @@ backend— y por eso no ve el selector. Antes todas las pantallas asumían siemp
 selector alimentado por `b2b/accounts`, un endpoint interno que un comercio ni siquiera puede
 llamar: el portal sólo era usable por personal de Atlas.
 
+## Ayuda en pantalla
+
+Cada vista lleva junto a su título un botón **«¿Qué es esto?»** que explica qué
+es esa pantalla, qué se hace en ella y qué mirar cuando algo falla; las que tienen
+recorrido guiado llevan además **«Recorrido»**, que señala los elementos reales
+paso a paso. El catálogo completo está en `/operaciones/tutoriales`.
+
+Los dos botones se resuelven por la RUTA desde `WorkspaceHeader`, así que ninguna
+pantalla tiene que declararlos y no hay forma de olvidarse de uno. Cómo añadir
+contenido: `docs/tutoriales.md`.
+
 ## Diseño aplicado
 
 Se aplicó `atlas_erp/DESIGN.md` de las vistas originales:

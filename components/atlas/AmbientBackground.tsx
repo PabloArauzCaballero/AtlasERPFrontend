@@ -1,47 +1,47 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useAmbientMotion } from './useMotionPreferences';
+import { useAmbientMotion } from '@/hooks/useMotionPreferences';
 import { AMBIENT_LINKS, AMBIENT_NODES, pulsePoints } from './ambient-network';
 
-export type AmbientVariant = 'auth' | 'dashboard' | 'lab' | 'editor' | 'results' | 'deploy';
+export type AmbientVariant = 'auth' | 'console' | 'portal';
 export type AmbientState = 'idle' | 'running' | 'success' | 'warning' | 'error';
 
 interface AmbientBackgroundProps {
   variant?: AmbientVariant;
-  /** Estado real de la plataforma; tiñe el fondo sin cambiar su geometría. */
+  /** Estado real de la sesión; tiñe el fondo sin cambiar su geometría. */
   state?: AmbientState;
+  /**
+   * Acento del área activa (`crm`, `contabilidad`, `ads`, `control`…). Es la
+   * reacción del fondo a DÓNDE está el usuario, no a un temporizador.
+   */
+  accent?: string | undefined;
   /** Sigue suavemente al cursor. Se ignora en táctil y en gama baja. */
   interactive?: boolean;
 }
 
 /**
- * Fondo ambiental de ATLAS, traído del motor de decisión.
- *
- * Se COPIA en vez de compartirse por un paquete porque los tres portales no comparten build ni
- * despliegue: un paquete común obligaría a publicar y versionar para cambiar un degradado, y hoy
- * cada uno se construye por su cuenta. La copia tiene un coste conocido —divergir— y por eso el
- * archivo dice de dónde viene: `AtlasDecisionEngineFrontend/src/components/AmbientBackground.tsx`.
- *
- * Fondo ambiental: aurora, haz de luz, malla técnica y una red de nodos
- * conectados con un destello que la recorre.
+ * Fondo ambiental: aurora, malla técnica y una red de nodos conectados con un
+ * destello que la recorre.
  *
  * Todo se resuelve con degradados, SVG y `transform`/`opacity` —las dos
  * propiedades que el navegador compone en la GPU sin recalcular diseño—; no hay
- * canvas, ni WebGL, ni bucle de dibujo. Las capas se desplazan con el cursor a
- * ritmos distintos, y de ese desfase sale la sensación de profundidad.
+ * canvas, ni WebGL, ni bucle de dibujo, así que el coste de descarga es cero y
+ * el de pintado, el de componer cinco capas.
  *
- * Contraste: una viñeta final oscurece los bordes y aclara el centro, de modo
- * que las superficies con texto quedan sobre la zona más calmada del fondo.
+ * Reacciona a tres cosas reales: el cursor (foco de luz y máscara de la red),
+ * el desplazamiento de la lectura (paralaje, que también funciona en táctil) y
+ * el área de la aplicación en la que se está (`accent`). Se apaga solo cuando la
+ * pestaña deja de estar visible, cuando el equipo declara gama baja y cuando el
+ * usuario pide movimiento reducido; entonces queda la versión estática, que
+ * conserva color y composición pero no se mueve.
  *
- * Se apaga solo cuando la pestaña deja de estar visible, cuando el equipo
- * declara gama baja y cuando el usuario pide movimiento reducido; entonces
- * queda la versión estática, que conserva color y composición pero no se mueve.
- * Siempre va detrás del contenido (`aria-hidden`, sin eventos de puntero).
+ * Va siempre detrás del contenido (`aria-hidden`, sin eventos de puntero).
  */
 export function AmbientBackground({
-  variant = 'dashboard',
+  variant = 'console',
   state = 'idle',
+  accent,
   interactive = true,
 }: AmbientBackgroundProps) {
   const host = useRef<HTMLDivElement>(null);
@@ -97,9 +97,10 @@ export function AmbientBackground({
   }, [animated, interactive]);
 
   /**
-   * El fondo también responde al desplazamiento: al leer una página larga las
+   * El fondo también responde al desplazamiento: al recorrer una tabla larga las
    * capas se desfasan, así que el movimiento propio de la lectura produce
-   * profundidad sin que haga falta mover el ratón (y funciona en táctil).
+   * profundidad sin que haga falta mover el ratón (y funciona en táctil, donde
+   * no hay cursor que seguir).
    */
   useEffect(() => {
     const element = host.current;
@@ -155,6 +156,7 @@ export function AmbientBackground({
       ref={host}
       className={`ambient-bg ambient-${variant} ${animated ? 'is-animated' : 'is-static'}`}
       data-state={state}
+      data-accent={accent}
       aria-hidden="true"
     >
       {/* Tres manchas de luz independientes, cada una con su propio recorrido y
@@ -169,7 +171,6 @@ export function AmbientBackground({
       {/* Foco que sigue al cursor: la luz va exactamente donde está la mano, que
           es lo que hace que el fondo se perciba reactivo y no sólo animado. */}
       <span className="ambient-spotlight" />
-      <span className="ambient-beam" />
       <span className="ambient-grid" />
       <span className="ambient-network">
         {/* Las líneas van en SVG estirado al contenedor: una línea no sufre por
@@ -177,29 +178,18 @@ export function AmbientBackground({
             Los nodos siguen siendo elementos HTML para conservarse redondos. */}
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
           <g className="ambient-links">
-            {AMBIENT_LINKS.map(([from, to]) => {
-              // Mismo criterio que en `pulsePoints`: un enlace a un nodo inexistente se omite en
-              // vez de tumbar el armazón.
-              const origen = AMBIENT_NODES[from];
-              const destino = AMBIENT_NODES[to];
-              if (!origen || !destino) return null;
-              return (
-                <line
-                  key={`${from}-${to}`}
-                  x1={origen.x}
-                  y1={origen.y}
-                  x2={destino.x}
-                  y2={destino.y}
-                  vectorEffect="non-scaling-stroke"
-                />
-              );
-            })}
+            {AMBIENT_LINKS.map(([from, to]) => (
+              <line
+                key={`${from}-${to}`}
+                x1={AMBIENT_NODES[from]!.x}
+                y1={AMBIENT_NODES[from]!.y}
+                x2={AMBIENT_NODES[to]!.x}
+                y2={AMBIENT_NODES[to]!.y}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
           </g>
-          <polyline
-            className="ambient-pulse"
-            points={pulsePoints()}
-            vectorEffect="non-scaling-stroke"
-          />
+          <polyline className="ambient-pulse" points={pulsePoints()} vectorEffect="non-scaling-stroke" />
         </svg>
         {AMBIENT_NODES.map((node) => (
           <i

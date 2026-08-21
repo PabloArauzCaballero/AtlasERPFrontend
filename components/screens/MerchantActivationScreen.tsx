@@ -24,7 +24,7 @@ export function MerchantActivationScreen() {
   async function activate() { try { await mutation.execute(caseId); } catch { /* controlled */ } }
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Activación' }]} title="Contract Activation" description="Último control de preparación antes de habilitar al comercio para operar en ATLAS." actions={<><AtlasButton variant="secondary" icon="visibility">Previsualizar contrato</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar auditoría</AtlasButton></>} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Activación' }]} title="Activación del contrato" description="Último control de preparación antes de habilitar al comercio para operar en ATLAS." actions={<><AtlasButton variant="secondary" icon="visibility">Previsualizar contrato</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar auditoría</AtlasButton></>} />
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
       {mutation.status === 'success' ? <InlineNotice tone="success" title="Comercio activado">El caso fue activado por el backend y quedó disponible para operación.</InlineNotice> : null}
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_360px]">
@@ -33,7 +33,7 @@ export function MerchantActivationScreen() {
           <Panel title="Activation Audit" icon="history_edu"><div className="grid gap-4 text-xs md:grid-cols-3"><Audit label="Control" value="4/4 validaciones" /><Audit label="Separación" value="Legal + Operaciones" /><Audit label="Registro" value="Business Action Log" /></div></Panel>
         </div>
         <aside className="space-y-4 xl:sticky xl:top-20">
-          <Panel title="Account Activated" icon="rocket_launch"><div className="mb-4 rounded-md bg-[#006a61] p-4 text-white"><p className="text-[10px] font-bold uppercase tracking-widest text-blue-200">Activation readiness</p><p className="mt-1 text-2xl font-bold">100%</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20"><div className="h-full w-full bg-emerald-400" /></div></div><FormField label="UUID del caso de onboarding" name="caseId" value={caseId} onChange={(event) => setCaseId(event.target.value)} required /><AtlasButton className="mt-4 w-full" icon="rocket_launch" variant="success" loading={mutation.isLoading} disabled={!caseId} onClick={activate}>Activar comercio</AtlasButton><p className="mt-3 text-[11px] leading-4 text-slate-500">La API volverá a comprobar los requisitos. La interfaz no puede saltarse controles del backend.</p></Panel>
+          <Panel title="Account Activated" icon="rocket_launch"><div className="mb-4 rounded-md bg-[#006a61] p-4 text-white"><p className="text-[10px] font-bold uppercase tracking-widest text-white/75">Activation readiness</p><p className="mt-1 text-2xl font-bold">100%</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20"><div className="h-full w-full bg-emerald-400" /></div></div><FormField label="UUID del caso de onboarding" name="caseId" value={caseId} onChange={(event) => setCaseId(event.target.value)} required /><AtlasButton className="mt-4 w-full" icon="rocket_launch" variant="success" loading={mutation.isLoading} disabled={!caseId} onClick={activate}>Activar comercio</AtlasButton><p className="mt-3 text-[11px] leading-4 text-slate-500">La API volverá a comprobar los requisitos. La interfaz no puede saltarse controles del backend.</p></Panel>
         </aside>
       </div>
     </div>

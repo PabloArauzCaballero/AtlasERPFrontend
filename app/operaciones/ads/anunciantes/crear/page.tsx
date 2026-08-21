@@ -2,7 +2,7 @@
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { adsService } from '@/services/adsService';
 export default function CreateAdvertiserPage() {
-  return <StructuredActionForm moduleLabel="Ads" title="New Advertiser" description="Registre identidad fiscal, contacto, modalidad de facturación y límite de crédito del anunciante." submitLabel="Crear anunciante" submitIcon="add_business" onSubmit={adsService.createAdvertiser} sections={[
+  return <StructuredActionForm moduleLabel="Ads" title="Nuevo anunciante" description="Registre identidad fiscal, contacto, modalidad de facturación y límite de crédito del anunciante." submitLabel="Crear anunciante" submitIcon="add_business" onSubmit={adsService.createAdvertiser} sections={[
     { title: 'Advertiser Identity', icon: 'business', fields: [
       { name: 'legalName', label: 'Razón social', required: true, span: 2 }, { name: 'tradeName', label: 'Nombre comercial', required: true },
       { name: 'taxId', label: 'NIT', required: true }, { name: 'businessCategory', label: 'Categoría de negocio', optional: true },

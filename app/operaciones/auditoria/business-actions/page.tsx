@@ -7,7 +7,7 @@ export default function BusinessActionLogPage() {
   return (
     <LiveDirectoryScreen
       moduleLabel="Auditoría"
-      title="Business Action Log"
+      title="Registro de acciones de negocio"
       description="Ledger de acciones de negocio para trazabilidad, investigaciones y control interno."
       load={auditService.listBusinessActions}
       statusOptions={[{ label: 'Exitosa', value: 'SUCCESS' }, { label: 'Fallida', value: 'FAILED' }, { label: 'Parcial', value: 'PARTIAL' }]}

@@ -9,7 +9,7 @@ export default function BulkAccountingDocumentsPage() {
   return (
     <BulkImportScreen
       moduleLabel="Contabilidad"
-      title="Bulk Documentos Contables"
+      title="Carga masiva de documentos contables"
       description="Prepare documentos balanceados de dos líneas y publíquelos como un batch transaccional de hasta 50 registros."
       templateName="atlas-accounting-documents-template.csv"
       headers={headers}

@@ -9,6 +9,7 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useAuth } from '@/lib/authContext';
@@ -34,6 +35,7 @@ export function SecurityAdministrationScreen() {
   const loadUsers = useCallback(() => authService.listUsers(), []);
   const usersResource = useAsyncResource(loadUsers);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [statusChange, setStatusChange] = useState<{ row: InternalUserProfile; target: InternalUserStatus } | null>(null);
   const canManage = hasPermission('internal.users.manage');
 
   const mutation = useAtlasMutation((input: { internalUserId: string; status: InternalUserStatus; reason: string }) =>
@@ -45,13 +47,14 @@ export function SecurityAdministrationScreen() {
   const suspendedCount = users.filter((row) => row.status === 'suspended' || row.status === 'locked').length;
   const mfaCount = users.filter((row) => row.mfaEnabled).length;
 
-  async function toggleStatus(row: InternalUserProfile) {
-    const target = nextStatus[row.status];
-    if (!target) return;
-    const reason = window.prompt(
-      `Motivo para ${target === 'suspended' ? 'suspender' : 'reactivar'} a ${row.fullName} (mínimo 8 caracteres):`,
-    );
-    if (!reason || reason.trim().length < 8) return;
+  /**
+   * Retirar o devolver el acceso de una persona exige motivo. Se pedía con
+   * `window.prompt` y se descartaba en silencio si el texto era corto: quien
+   * escribía «baja» veía cerrarse la caja y no pasaba nada, sin explicación.
+   * El diálogo de la aplicación no deja confirmar hasta que hay motivo, y dice
+   * cuál es el mínimo antes de escribirlo.
+   */
+  async function applyStatusChange(row: InternalUserProfile, target: InternalUserStatus, reason: string) {
     setPendingUserId(row.id);
     try {
       await mutation.execute({ internalUserId: row.id, status: target, reason: reason.trim() });
@@ -61,11 +64,17 @@ export function SecurityAdministrationScreen() {
     }
   }
 
+  function toggleStatus(row: InternalUserProfile) {
+    const target = nextStatus[row.status];
+    if (!target) return;
+    setStatusChange({ row, target });
+  }
+
   return (
     <div className="space-y-5">
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Administración' }, { label: 'Seguridad' }]}
-        title="User Management"
+        title="Usuarios internos"
         description="Directorio real de usuarios internos, roles y estado de acceso (internal_users / internal_roles)."
         actions={
           <>
@@ -83,7 +92,7 @@ export function SecurityAdministrationScreen() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_360px]">
-        <Panel title="Enterprise Users" description="Usuario, rol, estado y MFA — datos en vivo desde /internal/users." icon="manage_accounts">
+        <Panel title="Personal de Atlas" description="Usuario, rol, estado y MFA — datos en vivo desde /internal/users." icon="manage_accounts">
           {usersResource.error && !users.length ? (
             <InlineNotice tone="danger" title="No se pudo cargar el directorio">{usersResource.error}</InlineNotice>
           ) : (
@@ -129,7 +138,7 @@ export function SecurityAdministrationScreen() {
           )}
         </Panel>
         <div className="space-y-4">
-          <Panel title="Global Security" icon="shield">
+          <Panel title="Seguridad global" icon="shield">
             <div className="space-y-3">
               {policyItems().map((item) => (
                 <div key={item} className="flex items-start gap-2 text-xs">
@@ -139,7 +148,7 @@ export function SecurityAdministrationScreen() {
               ))}
             </div>
           </Panel>
-          <Panel title="Contract Status" icon="api">
+          <Panel title="Estado del contrato" icon="api">
             <StatusPill tone="success">CONECTADO</StatusPill>
             <p className="mt-3 text-xs leading-5 text-slate-600">GET/PATCH /internal/users y /internal/users/:id/roles (AtlasBackend, módulo internal-users).</p>
           </Panel>
@@ -147,6 +156,27 @@ export function SecurityAdministrationScreen() {
       </div>
       {!canManage ? <InlineNotice tone="info">Tu usuario no tiene el permiso internal.users.manage: puedes ver el directorio, pero no suspender/reactivar cuentas.</InlineNotice> : null}
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
+      {statusChange ? (
+        <ConfirmDialog
+          title={statusChange.target === 'suspended' ? 'Suspender el acceso' : 'Reactivar el acceso'}
+          body={
+            statusChange.target === 'suspended'
+              ? `${statusChange.row.fullName} dejará de poder entrar a la consola. Su historial se conserva: lo que se retira es el acceso, no lo que hizo.`
+              : `${statusChange.row.fullName} volverá a poder entrar a la consola con los roles que ya tenía.`
+          }
+          confirmLabel={statusChange.target === 'suspended' ? 'Suspender' : 'Reactivar'}
+          tone={statusChange.target === 'suspended' ? 'danger' : 'primary'}
+          reasonLabel="Motivo"
+          reasonPlaceholder="Baja del equipo, rotación de puesto, incidente de seguridad..."
+          minReasonLength={8}
+          onConfirm={(reason) => {
+            const pending = statusChange;
+            setStatusChange(null);
+            void applyStatusChange(pending.row, pending.target, reason);
+          }}
+          onCancel={() => setStatusChange(null)}
+        />
+      ) : null}
     </div>
   );
 }

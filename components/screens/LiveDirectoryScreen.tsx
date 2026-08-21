@@ -143,21 +143,21 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         actions={
           <>
             <AtlasButton variant="secondary" icon="download">Exportar CSV</AtlasButton>
-            {props.createHref ? <Link href={props.createHref}><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link> : null}
+            {props.createHref ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link> : null}
           </>
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div data-tutorial-id="directory-metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {props.metrics.slice(0, 4).map((metric) => <MetricCard key={metric.label} {...metric} value={metric.value(rows, total)} />)}
       </div>
 
       <Panel compact>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div data-tutorial-id="directory-filters" className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-2 sm:flex-row">
             <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-blue-100">
               <Icon name="search" className="text-[18px] text-slate-400" />
-              <input className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
+              <input data-tutorial-id="directory-search" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
             </label>
             {effectiveFilters.map((filter) => (
               filter.kind === 'text' ? <input key={filter.key} aria-label={filter.label} placeholder={filter.placeholder ?? filter.label} className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))} /> : <select key={filter.key} aria-label={filter.label} className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))}>
@@ -178,9 +178,9 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
 
       {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar la información">{resource.error}</InlineNotice> : null}
 
-      <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white/80 backdrop-blur-[2px]">
+      <section data-tutorial-id="resource-table" className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
         {loading && !rows.length ? <TableSkeleton columns={props.columns.length + 1} /> : (
-          <div className="custom-scrollbar overflow-x-auto">
+          <div className="table-scroll">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
               <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.08em] text-slate-500">
                 <tr>{props.columns.map((column) => <th className={`border-b border-slate-200 px-3 py-3 font-bold ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`} key={column.key}>{column.label}</th>)}<th className="border-b border-slate-200 px-3 py-3 text-right font-bold">Acciones</th></tr>
@@ -221,7 +221,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         {loading && rows.length ? <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-blue-100"><div className="h-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] bg-[#006a61]" /></div> : null}
       </section>
 
-      <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white/80 backdrop-blur-[2px] px-4 py-3 text-xs text-slate-600 sm:flex-row">
+      <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 sm:flex-row">
         <span>Página <b>{page}</b> · {rows.length} visibles · <b>{total}</b> registros</span>
         <div className="flex gap-2"><AtlasButton variant="secondary" disabled={page <= 1 || loading} onClick={() => setQuery((current) => ({ ...current, page: page - 1 }))}>Anterior</AtlasButton><AtlasButton variant="secondary" disabled={page * pageSize >= total || loading} onClick={() => setQuery((current) => ({ ...current, page: page + 1 }))}>Siguiente</AtlasButton></div>
       </div>

@@ -1,10 +1,24 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './ambient.css';
+import './tutorial.css';
 import { AuthProvider } from '@/lib/authContext';
 
 export const metadata: Metadata = {
   title: { default: 'ATLAS ERP', template: '%s | ATLAS ERP' },
   description: 'Plataforma operacional y financiera ATLAS.',
+};
+
+/**
+ * El App Router ya emite `width=device-width, initial-scale=1`; lo que se añade
+ * aquí es `viewport-fit=cover`, para que las barras fija y lateral puedan
+ * respetar las zonas seguras del móvil en lugar de quedar bajo el notch.
+ */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#f5f5f7',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

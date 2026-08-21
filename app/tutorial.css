@@ -1,0 +1,355 @@
+/**
+ * Motor de tutoriales: overlay del recorrido y panel de «¿Qué es esto?».
+ *
+ * Va en CSS y no en utilidades de Tailwind porque el overlay se posiciona con
+ * coordenadas calculadas en JavaScript y necesita una máscara de recorte que no
+ * tiene equivalente en clases sueltas.
+ */
+
+/* ------------------------------------------------- overlay del recorrido */
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  /* Por encima de la barra superior (z-50) y del cajón de navegación (z-60):
+     el recorrido explica esos elementos, así que tiene que poder taparlos. */
+  z-index: 80;
+  /* El overlay NO intercepta el puntero: el paso puede pedir que se pulse el
+     elemento real de la página, y un velo que se come el clic haría imposible
+     cumplirlo. Sólo la tarjeta vuelve a aceptarlo. */
+  pointer-events: none;
+}
+
+/**
+ * Foco sobre el elemento del paso.
+ *
+ * El oscurecido se dibuja con una sombra enorme en vez de con cuatro paneles
+ * alrededor: un solo elemento, sin costuras en las esquinas y sin recalcular
+ * geometría cuando el objetivo se mueve.
+ */
+.tutorial-spotlight {
+  position: absolute;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 9999px rgba(2, 8, 23, 0.55),
+    0 0 0 2px rgba(0, 106, 97, 0.9);
+  transition: all 220ms cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+
+/* Cuando el paso no señala nada concreto, el velo cubre la pantalla entera. */
+.tutorial-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 8, 23, 0.5);
+}
+
+.tutorial-card {
+  position: absolute;
+  width: min(23rem, calc(100vw - 24px));
+  max-height: min(70vh, 34rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.15rem 1.15rem 1rem;
+  border-radius: 12px;
+  background: #fff;
+  color: #1b1b1e;
+  box-shadow: 0 24px 60px -18px rgba(29, 29, 31, 0.45), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  pointer-events: auto;
+  animation: tutorial-in 200ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+/* Sin objetivo resuelto, la tarjeta se centra en lugar de irse a la esquina. */
+.tutorial-card.is-centered {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes tutorial-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.tutorial-card.is-centered { animation-name: tutorial-in-centered; }
+@keyframes tutorial-in-centered {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Flecha hacia el elemento. El lado lo decide `placeTooltip`. */
+.tutorial-card::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+.tutorial-from-below::before { top: -6px; left: 24px; }
+.tutorial-from-above::before { bottom: -6px; left: 24px; }
+.tutorial-from-right::before { left: -6px; top: 24px; }
+.tutorial-from-left::before { right: -6px; top: 24px; }
+.tutorial-card.is-centered::before { display: none; }
+
+.tutorial-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #64748b;
+}
+.tutorial-close:hover { background: #f1f5f9; color: #0f172a; }
+
+.tutorial-kicker {
+  margin-right: 2rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.tutorial-bar {
+  margin: 0.5rem 0 0.85rem;
+  height: 4px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.tutorial-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #006a61;
+  transition: width 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.tutorial-lead {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #475569;
+}
+.tutorial-card h3 { font-size: 15px; font-weight: 800; color: #006a61; }
+.tutorial-card > p { margin-top: 0.35rem; font-size: 13px; line-height: 1.55; color: #334155; }
+
+.tutorial-tip,
+.tutorial-note {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.tutorial-tip { background: #fffbeb; color: #92400e; }
+.tutorial-note { background: #f1f5f9; color: #475569; }
+
+.tutorial-confirm {
+  margin-top: 0.8rem;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #7f1d1d;
+}
+.tutorial-confirm-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+
+.tutorial-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tutorial-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 34px;
+  padding: 0 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+.tutorial-btn:hover:not(:disabled) { background: #f5f5f7; }
+.tutorial-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.tutorial-btn.is-primary { margin-left: auto; border-color: #006a61; background: #006a61; color: #fff; }
+.tutorial-btn.is-primary:hover { background: #00544d; }
+.tutorial-btn.is-danger { border-color: #dc2626; background: #dc2626; color: #fff; }
+
+.tutorial-wait {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 8rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: #00544d;
+}
+
+/* ------------------------------------------------ panel «¿Qué es esto?» */
+
+.guide-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(2, 8, 23, 0.42);
+  backdrop-filter: blur(2px);
+  animation: guide-fade 160ms ease-out both;
+}
+@keyframes guide-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.guide-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(30rem, 100vw);
+  height: 100%;
+  background: #fff;
+  box-shadow: -24px 0 60px -20px rgba(29, 29, 31, 0.35);
+  animation: guide-slide 220ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+@keyframes guide-slide { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.guide-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.1rem 1.15rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+.guide-head-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: #006a61;
+  color: #fff;
+}
+.guide-head p {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.guide-head h2 { font-size: 16px; font-weight: 800; color: #006a61; }
+.guide-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border-radius: 999px;
+  color: #64748b;
+}
+.guide-close:hover { background: #f1f5f9; color: #0f172a; }
+
+.guide-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.15rem;
+}
+.guide-lead { font-size: 13px; line-height: 1.55; color: #334155; }
+
+.guide-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #d9ebe8;
+  border-radius: 10px;
+  background: #f0f8f7;
+  text-align: left;
+  color: #00544d;
+}
+.guide-cta:hover { background: #d9ebe8; }
+.guide-cta b { display: block; font-size: 12.5px; font-weight: 800; }
+.guide-cta em { display: block; margin-top: 2px; font-size: 11.5px; font-style: normal; color: #00544d; }
+
+.guide-sections { margin-top: 1.15rem; display: flex; flex-direction: column; gap: 1.15rem; }
+.guide-sections > li { display: flex; gap: 0.75rem; }
+.guide-num {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #f1f5f9;
+  font-size: 11px;
+  font-weight: 800;
+  color: #006a61;
+}
+.guide-sections h3 { font-size: 13px; font-weight: 800; color: #0f172a; }
+.guide-sections p { margin-top: 0.25rem; font-size: 12.5px; line-height: 1.55; color: #475569; }
+.guide-tip {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e !important;
+}
+
+.guide-backend { margin-top: 1.5rem; border-top: 1px solid #f1f5f9; padding-top: 0.85rem; }
+.guide-backend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+.guide-backend code {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  background: #f5f5f7;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #334155;
+  overflow-x: auto;
+}
+
+.guide-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.85rem 1.15rem;
+  border-top: 1px solid #e2e8f0;
+}
+.guide-foot .tutorial-btn.is-primary { margin-left: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-card,
+  .tutorial-spotlight,
+  .guide-backdrop,
+  .guide-drawer {
+    animation: none !important;
+    transition: none !important;
+  }
+}

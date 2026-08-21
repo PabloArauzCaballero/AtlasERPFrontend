@@ -4,9 +4,12 @@ import { useEffect, useState } from 'react';
 
 /**
  * Preferencias y capacidades que deciden cuánta animación puede permitirse la
- * interfaz. Todos los hooks arrancan en el valor "seguro" (sin movimiento) para
- * que el HTML del servidor y el primer render del cliente coincidan: el valor
- * real se resuelve en un efecto, después de hidratar.
+ * interfaz.
+ *
+ * Todos los hooks arrancan en el valor "seguro" (sin movimiento) para que el
+ * HTML del servidor y el primer render del cliente coincidan: el valor real se
+ * resuelve en un efecto, ya hidratado. Si se leyera `matchMedia` durante el
+ * render, React encontraría dos árboles distintos y descartaría el del servidor.
  */
 
 function matches(query: string): boolean {
@@ -28,7 +31,7 @@ function subscribe(query: string, onChange: (value: boolean) => void): () => voi
   }
   const listener = (event: MediaQueryListEvent) => onChange(event.matches);
   onChange(list.matches);
-  // Safari < 14 sólo expone la API antigua; sin este fallback el fondo se
+  // Safari < 14 sólo expone la API antigua; sin este respaldo el fondo se
   // quedaría congelado en su valor inicial en esos navegadores.
   if (typeof list.addEventListener === 'function') {
     list.addEventListener('change', listener);
@@ -68,25 +71,20 @@ interface CapabilityHints {
 
 /**
  * Heurística de gama baja: poca memoria, pocos núcleos o una pantalla que el
- * navegador declara lenta de refrescar. En esos equipos los fondos animados se
- * sirven en su versión estática.
+ * navegador declara lenta de refrescar. En esos equipos el fondo se sirve en su
+ * versión estática, que conserva color y composición pero no se mueve.
  */
 export function isLowPowerDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   const hints = navigator as Navigator & CapabilityHints;
-  if (typeof hints.deviceMemory === 'number' && hints.deviceMemory > 0 && hints.deviceMemory <= 2) {
-    return true;
-  }
-  if (typeof hints.hardwareConcurrency === 'number' && hints.hardwareConcurrency > 0) {
-    if (hints.hardwareConcurrency <= 2) return true;
-  }
+  if (typeof hints.deviceMemory === 'number' && hints.deviceMemory > 0 && hints.deviceMemory <= 2) return true;
+  if (typeof hints.hardwareConcurrency === 'number' && hints.hardwareConcurrency > 0 && hints.hardwareConcurrency <= 2) return true;
   return matches('(update: slow)');
 }
 
 /**
- * Decisión única para cualquier superficie ambiental (fondos, partículas,
- * pulsos en bucle): sólo se anima con la pestaña visible, sin preferencia de
- * movimiento reducido y en un equipo capaz.
+ * Decisión única para cualquier superficie ambiental: sólo se anima con la
+ * pestaña visible, sin preferencia de movimiento reducido y en un equipo capaz.
  */
 export function useAmbientMotion(): boolean {
   const reduced = useReducedMotion();
@@ -94,4 +92,11 @@ export function useAmbientMotion(): boolean {
   const [capable, setCapable] = useState(false);
   useEffect(() => setCapable(!isLowPowerDevice()), []);
   return capable && visible && !reduced;
+}
+
+/** `true` cuando la ventana es de escritorio (>= 1024 px), el corte `lg` de Tailwind. */
+export function useIsDesktop(): boolean {
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => subscribe('(min-width: 1024px)', setDesktop), []);
+  return desktop;
 }

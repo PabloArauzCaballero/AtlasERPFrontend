@@ -18,13 +18,15 @@ interface CollapsibleNavGroupProps {
   items: CollapsibleNavItem[];
   /** Colapsado por defecto salvo que la ruta activa esté dentro del grupo. */
   defaultOpen?: boolean;
+  /** Se propaga a los enlaces: el cajón del móvil se cierra al navegar. */
+  onNavigate?: () => void;
 }
 
 /**
  * Sub-grupo colapsable dentro del sidebar (Tailwind puro, sin librería).
  * Se auto-expande si la ruta actual pertenece a alguno de sus ítems.
  */
-export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false }: CollapsibleNavGroupProps) {
+export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, onNavigate = () => {} }: CollapsibleNavGroupProps) {
   const pathname = usePathname();
   const containsActive = items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const [open, setOpen] = useState(defaultOpen || containsActive);
@@ -52,12 +54,13 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false }:
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
                   active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
                 )}
               >
-                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-blue-200' : 'text-slate-400')} />
+                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-white/75' : 'text-slate-400')} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );

@@ -73,8 +73,8 @@ export function MerchantStructureScreen() {
         {!ready ? (
           <p className="py-6 text-center text-xs text-slate-500">Seleccione un comercio para ver sus sucursales.</p>
         ) : branchRows.length ? (
-          <div className="overflow-hidden rounded-lg border border-slate-200">
-            <table className="w-full text-left text-xs">
+          <div className="table-scroll rounded-lg border border-slate-200">
+            <table className="w-full min-w-[680px] text-left text-xs">
               <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Sucursal</th><th className="p-2.5">Ciudad</th><th className="p-2.5">Dirección</th><th className="p-2.5">BNPL</th><th className="p-2.5">Estado</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {branchRows.map((branch) => (

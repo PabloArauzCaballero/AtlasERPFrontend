@@ -1,8 +1,9 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { AmbientBackground } from '@/components/ambient/AmbientBackground';
+import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -38,7 +39,7 @@ const AUDIENCE_COPY: Record<
     subtitle: 'Panel administrativo interno',
     acceso: 'al panel administrativo interno',
     emailLabel: 'Correo corporativo',
-    placeholder: 'a2020115468@estudiantes.upsa.edu.bo',
+    placeholder: 'usuario@atlas.internal',
     home: '/operaciones',
   },
   merchant: {
@@ -46,7 +47,7 @@ const AUDIENCE_COPY: Record<
     subtitle: 'Portal del comercio',
     acceso: 'al portal de tu comercio',
     emailLabel: 'Correo del comercio',
-    placeholder: 'contacto@tucomercio.bo',
+    placeholder: 'usuario@micomercio.com',
     home: '/portal-comercio/planes',
   },
 };
@@ -134,8 +135,15 @@ function LoginForm() {
       <AmbientBackground variant="auth" />
       <Portada />
 
+      {/*
+       * La columna del formulario lleva el fondo ambiental —el mismo del motor de
+       * decisión— y la portada no: allí ya hay un degradado propio, y dos capas de
+       * atmósfera compitiendo se leen como ruido. Aquí, en cambio, había un plano
+       * liso, y es la superficie a la que se mira mientras se teclea.
+       */}
       <section className="relative flex items-center justify-center px-5 py-10 sm:px-10">
-        <div className="w-full max-w-[380px]">
+        <AmbientBackground variant="auth" state={error ? 'error' : 'idle'} />
+        <div className="relative z-10 w-full max-w-[380px]">
           {challenge ? (
             <PasoDelCodigo
               expiresInMinutes={challenge.expiresInMinutes}

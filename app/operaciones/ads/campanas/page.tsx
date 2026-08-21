@@ -46,7 +46,7 @@ export default function CampaignsPage() {
     <div className="space-y-6">
       <LiveDirectoryScreen
         moduleLabel="Ads"
-        title="Campaign Management"
+        title="Gestión de campañas"
         description="Seguimiento de campañas, presupuesto, aprobación, entrega y estado operativo."
         load={adsService.listCampaigns}
         statusOptions={[

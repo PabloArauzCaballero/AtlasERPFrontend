@@ -7,7 +7,7 @@ export default function B2BAccountsPage() {
   return (
     <LiveDirectoryScreen
       moduleLabel="CRM"
-      title="Accounts Directory"
+      title="Directorio de cuentas B2B"
       description="Gestione entidades comerciales, perfiles de cumplimiento, propiedad de cuenta y estado del ciclo de vida."
       load={b2bService.listAccounts}
       createHref="/operaciones/crm/cuentas/crear"

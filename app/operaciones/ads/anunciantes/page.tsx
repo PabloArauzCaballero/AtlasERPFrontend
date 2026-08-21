@@ -7,7 +7,7 @@ export default function AdvertisersPage() {
   return (
     <LiveDirectoryScreen
       moduleLabel="Ads"
-      title="Advertiser Directory"
+      title="Directorio de anunciantes"
       description="Directorio de anunciantes, modalidad de facturación, riesgo comercial y habilitación operativa."
       load={adsService.listAdvertisers}
       createHref="/operaciones/ads/anunciantes/crear"

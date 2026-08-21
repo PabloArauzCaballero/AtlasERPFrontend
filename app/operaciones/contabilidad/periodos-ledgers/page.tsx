@@ -7,7 +7,7 @@ export default function PeriodsLedgersPage() {
   return (
     <MultiActionWorkspace
       moduleLabel="Contabilidad"
-      title="Accounting Setup"
+      title="Períodos y libros contables"
       description="Configure períodos operativos y libros paralelos para contabilidad local, gerencial e IFRS."
       actions={[
         {

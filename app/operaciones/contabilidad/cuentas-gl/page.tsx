@@ -10,7 +10,7 @@ export default function GlAccountsPage() {
   return (
     <LiveDirectoryScreen
       moduleLabel="Contabilidad"
-      title="Master Data: GL Accounts"
+      title="Plan de cuentas (cuentas GL)"
       description="Plan de cuentas operativo, clasificación contable y banderas de control por dimensión."
       load={accountingService.listGlAccounts}
       createHref="/operaciones/contabilidad/cuentas-gl/crear"

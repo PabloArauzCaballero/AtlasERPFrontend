@@ -36,7 +36,7 @@ export function RolesPermissionsScreen() {
     <div className="space-y-5">
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Administración' }, { label: 'Seguridad' }, { label: 'Roles' }]}
-        title="Roles & Permissions"
+        title="Roles y permisos"
         description="Catálogo real de internal_roles / internal_permissions (AtlasBackend)."
         actions={<StatusPill tone="success">CONECTADO</StatusPill>}
       />
@@ -44,7 +44,7 @@ export function RolesPermissionsScreen() {
       {error && !roles.length ? <InlineNotice tone="danger" title="No se pudo cargar el catálogo">{error}</InlineNotice> : null}
 
       <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-        <Panel title="Role Directory" icon="admin_panel_settings" description={`${roles.length} roles activos`}>
+        <Panel title="Catálogo de roles" icon="admin_panel_settings" description={`${roles.length} roles activos`}>
           {loading && !roles.length ? (
             <p className="px-1 py-4 text-xs text-slate-500">Cargando roles…</p>
           ) : (
@@ -58,7 +58,7 @@ export function RolesPermissionsScreen() {
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-bold">{role.name}</span>
-                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-blue-200' : 'text-slate-400'}`}>{role.department ?? role.code}</span>
+                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-white/75' : 'text-slate-400'}`}>{role.department ?? role.code}</span>
                   </span>
                   <Icon name="chevron_right" className="text-[17px] opacity-60" />
                 </button>
@@ -75,7 +75,7 @@ export function RolesPermissionsScreen() {
           {!selectedRole ? (
             <p className="px-1 py-4 text-xs text-slate-500">No hay roles disponibles.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-scroll">
               <table className="min-w-[720px] w-full text-left text-xs">
                 <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
                   <tr>

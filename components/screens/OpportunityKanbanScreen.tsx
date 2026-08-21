@@ -7,6 +7,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { formatBob } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
@@ -26,6 +27,7 @@ export function OpportunityKanbanScreen() {
   const opportunities = useMemo(() => (resource.data ?? []) as ResourceRow[], [resource.data]);
   const [error, setError] = useState<string | null>(null);
   const [movingId, setMovingId] = useState<string | null>(null);
+  const [lossFor, setLossFor] = useState<{ op: ResourceRow; stage: string } | null>(null);
 
   const byStage = useMemo(() => {
     const map: Record<string, ResourceRow[]> = {};
@@ -37,15 +39,25 @@ export function OpportunityKanbanScreen() {
     return map;
   }, [opportunities]);
 
-  async function move(op: ResourceRow, stage: string) {
+  /**
+   * Perder una oportunidad exige motivo, y ese motivo se pedía con
+   * `window.prompt`: una caja gris del navegador, sin decir de qué oportunidad
+   * se trataba y sin validar nada —una sola letra pasaba—. Ahora se pregunta en
+   * un diálogo de la aplicación que nombra el registro y exige un texto.
+   */
+  function requestMove(op: ResourceRow, stage: string) {
+    if (stage === 'CLOSED_LOST') {
+      setLossFor({ op, stage });
+      return;
+    }
+    void move(op, stage);
+  }
+
+  async function move(op: ResourceRow, stage: string, lossReason?: string) {
     const id = String(op.id);
     setError(null);
     const body: Record<string, unknown> = { stage };
-    if (stage === 'CLOSED_LOST') {
-      const reason = typeof window !== 'undefined' ? window.prompt('Motivo de pérdida (requerido):') : null;
-      if (!reason) return;
-      body.lossReason = reason;
-    }
+    if (lossReason) body.lossReason = lossReason;
     setMovingId(id);
     try {
       await b2bService.moveOpportunity(id, body);
@@ -69,7 +81,7 @@ export function OpportunityKanbanScreen() {
       {error ? <InlineNotice tone="danger" title="No se pudo actualizar">{error}</InlineNotice> : null}
       {resource.error && !opportunities.length ? <InlineNotice tone="warning" title="No se pudo cargar el pipeline">{resource.error}</InlineNotice> : null}
 
-      <div className="custom-scrollbar overflow-x-auto pb-2">
+      <div data-tutorial-id="kanban-board" className="table-scroll pb-2">
         <div className="flex min-w-max gap-3">
           {STAGES.map((stage) => {
             const items = byStage[stage.key] ?? [];
@@ -97,7 +109,7 @@ export function OpportunityKanbanScreen() {
                           className="mt-2 h-8 w-full rounded border border-slate-300 bg-white px-2 text-[11px] font-semibold text-slate-700 disabled:opacity-50"
                           value={stage.key}
                           disabled={movingId === id}
-                          onChange={(e) => { if (e.target.value !== stage.key) void move(op, e.target.value); }}
+                          onChange={(e) => { if (e.target.value !== stage.key) requestMove(op, e.target.value); }}
                         >
                           {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
                         </select>
@@ -111,6 +123,21 @@ export function OpportunityKanbanScreen() {
           })}
         </div>
       </div>
+      {lossFor ? (
+        <ConfirmDialog
+          title="Marcar la oportunidad como perdida"
+          body={`Se cerrará «${String(lossFor.op.name ?? lossFor.op.title ?? lossFor.op.id)}» como perdida. El motivo queda en el historial de la cuenta y es lo que se revisa al analizar por qué se pierden negocios.`}
+          confirmLabel="Cerrar como perdida"
+          reasonLabel="Motivo de la pérdida"
+          reasonPlaceholder="Precio, plazo, competencia, el cliente no siguió..."
+          onConfirm={(reason) => {
+            const pending = lossFor;
+            setLossFor(null);
+            void move(pending.op, pending.stage, reason);
+          }}
+          onCancel={() => setLossFor(null)}
+        />
+      ) : null}
     </div>
   );
 }
