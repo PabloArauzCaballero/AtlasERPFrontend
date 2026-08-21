@@ -236,14 +236,21 @@ function LoginForm() {
  */
 function Portada() {
   return (
-    <aside className="relative hidden overflow-hidden bg-slate-900 px-12 py-14 text-white lg:flex lg:flex-col lg:justify-between">
+    /*
+     * La losa es verde ATLAS, no un carbón con dos manchas encima.
+     *
+     * Era `slate-900` —un gris azulado— con el acento aplicado como dos radiales al 50% de
+     * opacidad: mezclados sobre ese gris, el verde no llegaba a leerse como color de marca y la
+     * mitad izquierda del acceso quedaba de un carbón sucio que no aparece en ninguna otra
+     * pantalla del producto. Es la misma malla que ya usa el portal interno —el degradado va de
+     * un casi negro al verde profundo—, así que las dos aplicaciones abren igual.
+     */
+    <aside className="relative hidden overflow-hidden bg-[linear-gradient(135deg,#12181a_0%,#10322f_48%,#00544d_100%)] px-12 py-14 text-white lg:flex lg:flex-col lg:justify-between">
+      {/* Un halo del acento en la esquina baja, que es lo que le da profundidad a la losa sin
+          volver a lavar el color con una capa a media opacidad por encima. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.5]"
-        style={{
-          backgroundImage:
-            'radial-gradient(60rem 40rem at 15% 0%, rgba(0,106,97,0.5), transparent 60%), radial-gradient(45rem 35rem at 100% 100%, rgba(0,84,77,0.45), transparent 55%)',
-        }}
+        className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-[#006a61]/25 blur-3xl"
       />
 
       <div className="relative flex items-center gap-3">
@@ -252,7 +259,7 @@ function Portada() {
         </span>
         <div>
           <p className="text-sm font-bold leading-tight">ATLAS</p>
-          <p className="text-xs text-white/60">Enterprise Hub</p>
+          <p className="text-xs text-white/75">Enterprise Hub</p>
         </div>
       </div>
 
@@ -260,13 +267,13 @@ function Portada() {
         <h2 className="text-[2rem] font-bold leading-[1.15] tracking-tight">
           La operación de tu negocio, con cada número explicable.
         </h2>
-        <p className="mt-4 text-sm leading-6 text-white/70">
+        <p className="mt-4 text-sm leading-6 text-white/85">
           Contabilidad, cartera y publicidad sobre una sola fuente de verdad.
         </p>
 
         <ul className="mt-9 space-y-3.5">
           {CAPACIDADES.map((item) => (
-            <li key={item.text} className="flex items-center gap-3 text-sm text-white/85">
+            <li key={item.text} className="flex items-center gap-3 text-sm text-white/90">
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-xs bg-white/10">
                 <Icon name={item.icon} className="text-[16px]" />
               </span>
@@ -276,7 +283,8 @@ function Portada() {
         </ul>
       </div>
 
-      <p className="relative text-xs text-white/45">
+      {/* Al 45% este aviso no se leía sobre la losa: es texto legal, no un adorno. */}
+      <p className="relative text-xs text-white/70">
         Acceso únicamente para personal autorizado · Todas las acciones son auditadas
       </p>
     </aside>

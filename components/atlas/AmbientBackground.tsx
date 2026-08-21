@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useAmbientMotion } from '@/hooks/useMotionPreferences';
 import { AMBIENT_LINKS, AMBIENT_NODES, pulsePoints } from './ambient-network';
 
-export type AmbientVariant = 'auth' | 'console' | 'portal';
+export type AmbientVariant = 'auth' | 'console' | 'portal' | 'trabajo';
 export type AmbientState = 'idle' | 'running' | 'success' | 'warning' | 'error';
 
 interface AmbientBackgroundProps {

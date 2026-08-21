@@ -104,3 +104,24 @@ export function areaForPath(pathname: string): string | undefined {
   }
   return undefined;
 }
+
+/**
+ * Variante de fondo ambiental que le toca a la ruta.
+ *
+ * El fondo se puso «a media asta» en TODA la consola —aurora al 0,62, red al 0,8, malla al 0,4—
+ * razonando que así daría profundidad sin estorbar. Sobre blanco no ocurre eso: en una pantalla de
+ * trabajo el verde se cuela por los huecos entre paneles, tiñe sus bordes y cubre la banda de
+ * cabecera, donde el título y su descripción viven sobre el fondo y no sobre una tarjeta. El
+ * resultado no se lee como profundidad, se lee como una mancha.
+ *
+ * Es la misma lección que el motor de decisión dejó escrita tras repetirla tres veces, y que aquí
+ * se había recogido a medias: se copió la advertencia y luego se atenuó en vez de retirar.
+ *
+ * Así que el fondo se queda donde hay superficie libre que ganar y nada con lo que competir —el
+ * panel de operaciones, que es una portada— y se retira de las pantallas de trabajo. La regla
+ * enumera las portadas, que son pocas: una vista nueva nace con el lienzo limpio, que es lo que
+ * necesita una tabla, sin que nadie tenga que acordarse de nada.
+ */
+export function ambientVariantFor(pathname: string): 'console' | 'trabajo' {
+  return pathname === '/operaciones' ? 'console' : 'trabajo';
+}

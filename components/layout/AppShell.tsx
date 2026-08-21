@@ -7,7 +7,7 @@ import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { AtlasSidebar } from './AtlasSidebar';
 import { AtlasTopbar } from './AtlasTopbar';
 import { NavDrawer } from './NavDrawer';
-import { areaForPath } from './navigation';
+import { ambientVariantFor, areaForPath } from './navigation';
 
 /**
  * Armazón de la consola interna.
@@ -24,6 +24,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   const area = useMemo(() => areaForPath(pathname), [pathname]);
+  const ambiente = useMemo(() => ambientVariantFor(pathname), [pathname]);
 
   // Navegar cierra el cajón. `AtlasSidebar` ya lo cierra al pulsar un enlace,
   // pero no toda navegación sale de ahí —una miga de pan, el botón atrás del
@@ -33,7 +34,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
   return (
     <TutorialProvider>
     <div className="relative min-h-[100dvh] text-slate-900">
-      <AmbientBackground variant="console" accent={area} />
+      <AmbientBackground variant={ambiente} accent={area} />
 
       <AtlasTopbar onOpenNav={() => setNavOpen(true)} />
 

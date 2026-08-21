@@ -326,20 +326,38 @@
 }
 
 /**
- * Consola interna y portal: presencia media.
+ * Pantallas de trabajo: sin fondo.
  *
- * Aquí el contenido son tablas y formularios densos, y el fondo se ve por los
- * huecos entre paneles. La lección de DecisionEngine —repetida tres veces allí—
- * es que en pantallas de trabajo la lechada tiñe los bordes blancos y se lee
- * como suciedad. Se conserva el color, se baja la carga: aurora a media asta y
- * red discreta, para que el fondo dé profundidad sin pedir que lo interpreten.
+ * Bajar la carga no bastaba. Atenuada, la lechada seguía cubriendo la banda de cabecera —donde el
+ * título y su descripción se leen sobre el fondo, no sobre una tarjeta—, colándose por los huecos
+ * entre paneles y tiñendo de verde sus bordes blancos. En modo claro eso no se percibe como
+ * profundidad sino como una mancha, y el texto de encima pierde contraste contra una superficie
+ * que además cambia de color mientras se lee.
+ *
+ * Es la misma conclusión a la que llegó el motor de decisión y que dejó escrita en su CSS: el
+ * fondo se conserva donde hay superficie libre que ganar —portada y acceso— y se retira donde hay
+ * contenido denso. Aquí se había copiado la advertencia y luego atenuado en vez de retirar.
+ */
+.ambient-trabajo .ambient-aurora,
+.ambient-trabajo .ambient-spotlight,
+.ambient-trabajo .ambient-grid,
+.ambient-trabajo .ambient-network,
+.ambient-trabajo .ambient-vignette { display: none; }
+
+/**
+ * Portada de operaciones y portal del comercio: presencia, pero luz y no película.
+ *
+ * Con la aurora al 0,62 y la viñeta cerrando los bordes con un slate, las manchas verdes y ese
+ * oscurecimiento se sumaban en un verdoso apagado que cubría la pantalla entera. La corrección no
+ * es quitar el color, es levantarlo: menos carga de mancha, menos red, y el velo blanco del centro
+ * —el mismo que usa el acceso— que hace que el mismo verde se lea como luz.
  */
 .ambient-console .ambient-aurora,
-.ambient-portal .ambient-aurora { opacity: 0.62; }
+.ambient-portal .ambient-aurora { opacity: 0.4; }
 .ambient-console .ambient-network,
-.ambient-portal .ambient-network { opacity: 0.8; }
+.ambient-portal .ambient-network { opacity: 0.5; }
 .ambient-console .ambient-grid,
-.ambient-portal .ambient-grid { opacity: 0.4; }
+.ambient-portal .ambient-grid { opacity: 0.28; }
 /* El velo central se queda bajo: subirlo apaga el foco que sigue al cursor justo
    donde más se mira, y era lo que hacía que este fondo se leyera como una imagen
    fija. El texto no lo necesita —vive sobre paneles opacos—; lo que sí se cierra
@@ -347,8 +365,8 @@
 .ambient-console .ambient-vignette,
 .ambient-portal .ambient-vignette {
   background:
-    radial-gradient(90% 70% at 50% 26%, rgba(255, 255, 255, 0.3), transparent 66%),
-    radial-gradient(150% 130% at 50% 50%, transparent 54%, rgba(15, 23, 42, 0.1));
+    radial-gradient(90% 70% at 50% 30%, rgba(255, 255, 255, 0.36), transparent 66%),
+    radial-gradient(150% 130% at 50% 50%, transparent 56%, rgba(15, 23, 42, 0.07));
 }
 
 /**
