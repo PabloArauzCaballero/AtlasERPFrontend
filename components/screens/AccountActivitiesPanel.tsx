@@ -103,7 +103,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
             const done = Boolean(activity.completedAt);
             return (
               <li key={String(activity.id)} className="flex gap-3">
-                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-50 text-[#006a61]"><Icon name={typeIcon[type] ?? 'bolt'} className="text-[16px]" /></span>
+                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-wash text-primary"><Icon name={typeIcon[type] ?? 'bolt'} className="text-[16px]" /></span>
                 <div className="min-w-0 flex-1 rounded-md border border-slate-200 p-2.5">
                   <div className="flex items-center gap-2">
                     <b className="truncate text-xs text-slate-800">{String(activity.subject ?? '—')}</b>

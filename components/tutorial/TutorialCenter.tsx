@@ -153,7 +153,7 @@ function SummaryTile({ label, value, detail, icon }: { label: string; value: str
         <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
         <p className="mt-1 truncate text-[11px] text-slate-500">{detail}</p>
       </div>
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-blue-50 text-[#006a61]">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary-wash text-primary">
         <Icon name={icon} className="text-[22px]" />
       </span>
     </article>

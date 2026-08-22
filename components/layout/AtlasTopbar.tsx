@@ -123,7 +123,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
                 <div className="px-2 py-1.5">
                   <p className="truncate font-bold text-slate-800">{user?.fullName ?? 'Usuario'}</p>
                   <p className="truncate text-slate-500">{user?.email ?? ''}</p>
-                  {user?.roles.length ? <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-wide text-blue-700">{user.roles.join(', ')}</p> : null}
+                  {user?.roles.length ? <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-wide text-primary">{user.roles.join(', ')}</p> : null}
                 </div>
                 {/* En móvil estos dos accesos no caben en la barra; aquí sí. */}
                 <Link href="/operaciones/admin/notificaciones" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-semibold text-slate-600 hover:bg-slate-50 sm:hidden">

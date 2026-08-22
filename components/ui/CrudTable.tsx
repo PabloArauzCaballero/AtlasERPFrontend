@@ -92,7 +92,7 @@ export function CrudTable({ title, description, columns, list, update, remove, e
         ...row,
         acciones: (
           <span className="flex gap-3">
-            {canEdit ? <button type="button" className="font-semibold text-blue-700 hover:underline" onClick={() => beginEdit(row)}>Editar</button> : null}
+            {canEdit ? <button type="button" className="font-semibold text-primary hover:underline" onClick={() => beginEdit(row)}>Editar</button> : null}
             {remove ? <button type="button" className="font-semibold text-red-700 hover:underline" onClick={() => setDeleting(row)}>Eliminar</button> : null}
           </span>
         ),
@@ -119,7 +119,7 @@ export function CrudTable({ title, description, columns, list, update, remove, e
       {error ? <InlineNotice tone="danger" title="No se pudo completar la operación">{error}</InlineNotice> : null}
 
       {editing ? (
-        <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-4">
+        <div className="rounded-lg border border-primary-soft bg-primary-wash p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-[#006a61]">Editando: {labelOf(editing)}</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {(editable ?? []).map((field) => (

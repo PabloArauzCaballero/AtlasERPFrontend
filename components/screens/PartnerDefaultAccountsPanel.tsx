@@ -64,7 +64,7 @@ export function PartnerDefaultAccountsPanel({ partnerId }: { partnerId: string }
                 <StatusPill tone={assigned ? 'success' : 'warning'} dot={false}>{assigned ? 'Asignada' : 'Slot'}</StatusPill>
               </div>
               <input
-                className="h-9 flex-1 rounded-md border border-slate-300 bg-white px-3 font-mono text-[11px] outline-none focus:border-[#006a61] focus:ring-2 focus:ring-blue-100"
+                className="h-9 flex-1 rounded-md border border-slate-300 bg-white px-3 font-mono text-[11px] outline-none focus:border-[#006a61] focus:ring-2 focus:ring-primary/15"
                 placeholder="UUID de la cuenta GL"
                 value={drafts[purpose] ?? ''}
                 onChange={(e) => setDrafts((current) => ({ ...current, [purpose]: e.target.value }))}

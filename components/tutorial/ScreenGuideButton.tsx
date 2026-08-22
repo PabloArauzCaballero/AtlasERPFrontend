@@ -79,7 +79,7 @@ export function ScreenGuideButton() {
       >
         <Icon name="help" className="text-[17px] text-[#006a61]" />
         <span className="hidden sm:inline">¿Qué es esto?</span>
-        {unseen ? <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-blue-600" aria-hidden="true" /> : null}
+        {unseen ? <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" /> : null}
       </button>
       {hasTour ? (
         <button
