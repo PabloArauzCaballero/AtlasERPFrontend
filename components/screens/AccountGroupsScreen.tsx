@@ -90,7 +90,7 @@ export function AccountGroupsScreen() {
         actions={<AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>}
       />
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,.8fr)]">
+      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,.8fr)]">
         <Panel title="Estructura jerárquica" description="Árbol de grupos ordenado por statement / clasificación." icon="account_tree">
           <div className="mb-3 flex items-center gap-2">
             <FormField kind="select" label="Filtrar por plan de cuentas (COA)" name="coaFilter" value={coaFilter} onChange={(e) => setCoaFilter(e.target.value)} options={[{ label: 'Todos los COA', value: '' }, ...coaOptions]} className="flex-1" />

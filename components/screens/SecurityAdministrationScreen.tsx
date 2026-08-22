@@ -91,7 +91,7 @@ export function SecurityAdministrationScreen() {
         <MetricCard label="MFA Enabled" value={mfaCount} detail="De los usuarios listados" icon="verified_user" tone="purple" />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_360px]">
+      <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_360px]">
         <Panel title="Personal de Atlas" description="Usuario, rol, estado y MFA — datos en vivo desde /internal/users." icon="manage_accounts">
           {usersResource.error && !users.length ? (
             <InlineNotice tone="danger" title="No se pudo cargar el directorio">{usersResource.error}</InlineNotice>

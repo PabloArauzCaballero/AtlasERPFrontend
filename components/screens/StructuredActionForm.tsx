@@ -89,7 +89,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
       {mutation.status === 'success' ? <InlineNotice tone="success" title="Operación registrada">El backend aceptó el registro. Se conservaron los identificadores y la trazabilidad devuelta por la API.</InlineNotice> : null}
       {mutation.error ? <InlineNotice tone="danger" title="No se pudo completar la operación">{mutation.error}</InlineNotice> : null}
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid items-start gap-5 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">
           {props.sections.map((section) => (
             <Panel key={section.title} title={section.title} description={section.description} icon={section.icon}>

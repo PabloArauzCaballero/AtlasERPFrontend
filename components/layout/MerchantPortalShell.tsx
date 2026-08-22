@@ -103,7 +103,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         </div>
       </NavDrawer>
 
-      <div className="relative z-10 mx-auto grid min-h-[calc(100dvh-56px)] max-w-[1600px] lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="relative z-10 mx-auto grid min-h-[calc(100dvh-56px)] max-w-[1600px] grid-cols-[minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="hidden border-r border-slate-200/80 bg-white/70 p-4 backdrop-blur-xl lg:block">
           <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-500">Operación</p>
           <PortalNav pathname={pathname} />

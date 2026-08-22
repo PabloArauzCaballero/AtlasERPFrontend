@@ -70,7 +70,7 @@ export function ProposalManagerScreen() {
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
       {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">El UUID generado quedó listo para envío. Revise el resumen antes de continuar.</InlineNotice> : null}
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_340px]">
+      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
           <Panel title="Identificación de la propuesta" icon="description">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><FormField label="UUID oportunidad" name="opportunityId" required className="xl:col-span-2" /><FormField label="Número de propuesta" name="proposalNumber" required placeholder="CP-2026-001" /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="UUID creado" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Se completa después de guardar." /></div>

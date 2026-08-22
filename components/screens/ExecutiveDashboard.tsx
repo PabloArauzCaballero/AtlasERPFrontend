@@ -66,7 +66,7 @@ export function ExecutiveDashboard() {
         <MetricCard label="Campañas activas" value={data?.ads ? numeric(data.ads, 'activeCampaigns') : '—'} detail="Delivery publicitario" icon="campaign" tone="purple" />
         <MetricCard label="Acciones auditadas" value={data?.audit ? totalOf(data.audit) : '—'} detail="Business Action Log" icon="history_edu" tone="amber" />
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_360px]">
+      <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.6fr)_360px]">
         <Panel title="Huella operativa" description="Volumen real disponible por módulo; no representa una serie histórica." icon="bar_chart" action={resource.status === 'loading' ? <StatusPill tone="warning">ACTUALIZANDO</StatusPill> : <StatusPill tone="success">SINCRONIZADO</StatusPill>}>
           <div className="space-y-5 py-3">{counts.map((item) => <div key={item.label}><div className="mb-2 flex items-center justify-between text-xs"><span className="font-bold text-slate-700">{item.label}</span><span className="font-mono text-slate-500">{item.value}</span></div><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full transition-all duration-500 ${item.color}`} style={{ width: `${Math.max(item.value ? 4 : 0, item.value / maxCount * 100)}%` }} /></div></div>)}</div>
         </Panel>

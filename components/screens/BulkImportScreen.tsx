@@ -63,7 +63,7 @@ export function BulkImportScreen(props: BulkImportScreenProps) {
       {mutation.error ? <InlineNotice tone="danger" title="El batch fue rechazado">{mutation.error}</InlineNotice> : null}
       {mutation.status === 'success' ? <InlineNotice tone="success" title="Batch procesado">El backend recibió {validRows.length} registros bajo una única operación auditable.</InlineNotice> : null}
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-4">
           <Panel title="Carga del archivo" icon="upload_file">
             <input ref={inputRef} className="hidden" type="file" accept=".csv,text/csv" onChange={(event) => void stageFile(event.target.files?.[0])} />

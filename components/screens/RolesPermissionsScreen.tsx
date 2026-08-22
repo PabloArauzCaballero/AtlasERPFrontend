@@ -43,7 +43,7 @@ export function RolesPermissionsScreen() {
 
       {error && !roles.length ? <InlineNotice tone="danger" title="No se pudo cargar el catálogo">{error}</InlineNotice> : null}
 
-      <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
         <Panel title="Catálogo de roles" icon="admin_panel_settings" description={`${roles.length} roles activos`}>
           {loading && !roles.length ? (
             <p className="px-1 py-4 text-xs text-slate-500">Cargando roles…</p>

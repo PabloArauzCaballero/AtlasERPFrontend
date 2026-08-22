@@ -46,7 +46,7 @@ export function OnboardingCaseScreen() {
       {(createMutation.error || checklistMutation.error) ? <InlineNotice tone="danger">{createMutation.error ?? checklistMutation.error}</InlineNotice> : null}
       {(createMutation.status === 'success' || checklistMutation.status === 'success') ? <InlineNotice tone="success">La operación de onboarding fue registrada correctamente.</InlineNotice> : null}
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_340px]">
+      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
           <Panel data-tutorial-id="onboarding-checklist" title="Resumen de la cuenta" icon="domain"><form id="create-onboarding-form" onSubmit={createCase} className="grid gap-3 md:grid-cols-2"><FormField label="UUID cuenta" name="accountId" required /><FormField label="UUID responsable" name="ownerUserId" required /></form></Panel>
           <Panel title="Requirement Checklist" description="Defina al menos un requisito verificable." icon="fact_check" action={<AtlasButton variant="secondary" icon="add" onClick={() => setItems((current) => [...current, newChecklistItem(crypto.randomUUID())])}>Agregar requisito</AtlasButton>}>

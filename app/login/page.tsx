@@ -124,7 +124,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
+    <main className="grid min-h-screen bg-background grid-cols-[minmax(0,1fr)] lg:grid-cols-[1.05fr_1fr]">
       <Portada />
 
       {/*

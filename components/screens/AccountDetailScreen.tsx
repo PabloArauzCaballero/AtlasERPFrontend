@@ -53,7 +53,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
             <MetricCard label="Industria" value={String(account.industry ?? '—')} detail="Segmentación comercial" icon="category" tone="purple" />
           </div>
 
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
+          <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
             <div className="space-y-4">
               <Panel title="Resumen de la cuenta" icon="corporate_fare">
                 <dl className="grid gap-x-6 gap-y-4 text-xs sm:grid-cols-2 lg:grid-cols-3">

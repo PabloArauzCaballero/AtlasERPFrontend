@@ -35,7 +35,7 @@ export function MultiActionWorkspace(props: MultiActionWorkspaceProps) {
   return (
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]} title={props.title} description={props.description} />
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_300px]">
         <div data-tutorial-id="workspace-action-cards" className="grid gap-4 lg:grid-cols-2">
           {props.actions.map((action) => <ActionCard key={action.id} action={action} />)}
         </div>
