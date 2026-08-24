@@ -3,6 +3,7 @@
 import { MultiActionWorkspace } from '@/components/screens/MultiActionWorkspace';
 import { b2bService } from '@/services/b2bService';
 import type { JsonObject } from '@/services/types';
+import { loadB2BContracts, loadInternalUsers } from '@/services/optionLoaders';
 
 export default function CommercialContractsPage() {
   async function sign(payload: JsonObject) {
@@ -32,8 +33,8 @@ export default function CommercialContractsPage() {
         {
           id: 'sign', title: 'Signature & Activation', description: 'Confirmación institucional y activación del contrato.', icon: 'draw', submitLabel: 'Firmar y activar', submitIcon: 'verified', onSubmit: sign,
           fields: [
-            { name: 'contractId', label: 'UUID contrato', required: true, span: 2 },
-            { name: 'approvedByUserId', label: 'UUID aprobador', required: true, span: 2 },
+            { name: 'contractId', label: 'Contrato', type: 'select', required: true, span: 2, optionsLoader: loadB2BContracts },
+            { name: 'approvedByUserId', label: 'Aprobador', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
             { name: 'signedAt', label: 'Fecha y hora de firma', type: 'text', optional: true, placeholder: '2026-07-10T20:00:00-04:00', span: 2 },
           ],
         },

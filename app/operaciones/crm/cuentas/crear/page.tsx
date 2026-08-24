@@ -2,7 +2,8 @@
 
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { b2bService } from '@/services/b2bService';
-import { industryOptions, riskTierOptions } from '@/lib/catalogs';
+import { businessLineOptions, countryOptions, industryOptions, merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
+import { loadInternalUsers } from '@/services/optionLoaders';
 
 const optionalSelect = <T extends { label: string; value: string }>(options: T[]) => [
   { label: '— Sin especificar —', value: '' },
@@ -28,19 +29,19 @@ export default function CreateB2BAccountPage() {
               { label: 'Comercio', value: 'MERCHANT' }, { label: 'Empresa', value: 'ENTERPRISE' }, { label: 'Socio', value: 'PARTNER' },
             ] },
             { name: 'industry', label: 'Industria', type: 'select', optional: true, options: optionalSelect(industryOptions) },
-            { name: 'category', label: 'Categoría comercial', required: true, placeholder: 'Retail, Servicios, Manufactura' },
-            { name: 'businessLine', label: 'Rubro / actividad principal', required: true, placeholder: 'Electrodomésticos, educación, logística' },
+            { name: 'category', label: 'Categoría comercial', type: 'select', required: true, options: merchantCategoryOptions, hint: 'Catálogo cerrado: es lo que agrupa la cartera por tipo de comercio.' },
+            { name: 'businessLine', label: 'Rubro / actividad principal', type: 'select', required: true, options: businessLineOptions, hint: 'Qué vende exactamente el comercio.' },
             { name: 'businessDescription', label: 'Descripción del negocio', type: 'textarea', optional: true, placeholder: 'Actividad, propuesta de valor y mercado objetivo...', span: 3 },
             { name: 'tags', label: 'Tags de clasificación', valueKind: 'stringList', optional: true, placeholder: 'mayorista, omnicanal, pyme', hint: 'Separe los tags con comas.' },
             { name: 'websiteUrl', label: 'Sitio web', type: 'url', optional: true, placeholder: 'https://empresa.com' },
-            { name: 'countryCode', label: 'País (ISO)', required: true, defaultValue: 'BO' },
+            { name: 'countryCode', label: 'País', type: 'select', required: true, defaultValue: 'BO', options: countryOptions },
             { name: 'city', label: 'Ciudad', optional: true },
             { name: 'address', label: 'Dirección comercial', optional: true, span: 2 },
             { name: 'employeeCount', label: 'Cantidad de empleados', type: 'number', valueKind: 'number', optional: true },
             { name: 'foundedYear', label: 'Año de fundación', type: 'number', valueKind: 'number', optional: true },
             { name: 'annualRevenue', label: 'Facturación anual (BOB)', type: 'number', valueKind: 'number', optional: true },
-            { name: 'ownerUserId', label: 'UUID del responsable', optional: true, placeholder: 'Usuario propietario' },
-            { name: 'territoryId', label: 'UUID del territorio', optional: true, placeholder: 'Territorio comercial' },
+            /* Nadie sabe de memoria un UUID: el responsable se ELIGE de la lista de usuarios internos. */
+            { name: 'ownerUserId', label: 'Ejecutivo responsable', type: 'select', optional: true, optionsLoader: async () => optionalSelect(await loadInternalUsers()) },
             { name: 'riskTier', label: 'Nivel de riesgo inicial', type: 'select', optional: true, options: optionalSelect(riskTierOptions) },
             { name: 'expectedMonthlyVolume', label: 'Volumen mensual esperado (BOB)', type: 'number', valueKind: 'number', optional: true, placeholder: '150000' },
             { name: 'notes', label: 'Notas comerciales', type: 'textarea', optional: true, placeholder: 'Contexto, referencias y observaciones...', span: 3 },

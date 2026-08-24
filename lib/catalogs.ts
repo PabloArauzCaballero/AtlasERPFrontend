@@ -164,6 +164,44 @@ export const industryOptions: CatalogOption[] = [
   { label: 'Otro', value: 'OTHER' },
 ];
 
+/**
+ * Categoria comercial del comercio afiliado. Antes era texto libre con un `placeholder` de ejemplo
+ * («Retail, Servicios, Manufactura»): cada vendedor escribia lo que le parecia y la columna
+ * `b2b_accounts.category` acababa con variantes que no agrupan ni filtran. Un dato que sirve para
+ * segmentar tiene que venir de un catalogo cerrado.
+ */
+export const merchantCategoryOptions: CatalogOption[] = [
+  { label: 'Retail / Comercio', value: 'RETAIL' },
+  { label: 'Servicios profesionales', value: 'SERVICIOS' },
+  { label: 'Educacion', value: 'EDUCACION' },
+  { label: 'Salud y farmacia', value: 'SALUD' },
+  { label: 'Alimentos y bebidas', value: 'ALIMENTOS' },
+  { label: 'Tecnologia y electronica', value: 'TECNOLOGIA' },
+  { label: 'Hogar y muebles', value: 'HOGAR' },
+  { label: 'Vestimenta y calzado', value: 'VESTIMENTA' },
+  { label: 'Automotor y repuestos', value: 'AUTOMOTOR' },
+  { label: 'Construccion y ferreteria', value: 'CONSTRUCCION' },
+  { label: 'Turismo y transporte', value: 'TURISMO' },
+  { label: 'Otro', value: 'OTRO' },
+];
+
+/** Rubro o actividad principal. Mismo motivo que la categoria: se usa para agrupar cartera. */
+export const businessLineOptions: CatalogOption[] = [
+  { label: 'Venta de electrodomesticos y tecnologia', value: 'ELECTRODOMESTICOS' },
+  { label: 'Supermercado y abarrotes', value: 'ABARROTES' },
+  { label: 'Farmacia', value: 'FARMACIA' },
+  { label: 'Restaurante y comida rapida', value: 'RESTAURANTE' },
+  { label: 'Preparacion academica y cursos', value: 'PREPARACION_ACADEMICA' },
+  { label: 'Colegio o instituto', value: 'INSTITUCION_EDUCATIVA' },
+  { label: 'Tienda de ropa y calzado', value: 'ROPA_CALZADO' },
+  { label: 'Muebleria y decoracion', value: 'MUEBLERIA' },
+  { label: 'Ferreteria y materiales', value: 'FERRETERIA' },
+  { label: 'Taller y repuestos', value: 'TALLER_REPUESTOS' },
+  { label: 'Agencia de viajes y transporte', value: 'VIAJES_TRANSPORTE' },
+  { label: 'Servicios profesionales', value: 'SERVICIOS_PROFESIONALES' },
+  { label: 'Otro', value: 'OTRO' },
+];
+
 /** Helper para `StructuredActionForm` (usa `type: 'select'` + `options`). */
 export function asFormOptions(options: CatalogOption[]): CatalogOption[] {
   return options;

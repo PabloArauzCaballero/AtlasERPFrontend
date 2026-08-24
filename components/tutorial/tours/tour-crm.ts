@@ -117,7 +117,7 @@ export const TOURS_CRM: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="onboarding-checklist"]',
         title: 'Cada requisito bloquea la activación',
         content:
-          'Legales, operativos y técnicos. Mientras quede uno pendiente el comercio no se activa, y eso es deliberado: activar sin los papeles es justo el riesgo que este caso existe para impedir.',
+          'Legales, operativos y técnicos. Mientras quede uno pendiente el comercio no se activa, y eso es deliberado: activar sin los papeles es justo el riesgo que este caso existe para impedir. Para cerrar uno, elige el caso en el panel de la derecha y su lista de requisitos se rellena sola.',
         optional: true,
       },
       {

@@ -10,6 +10,8 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
+import { useOptions } from '@/hooks/useOptions';
+import { loadOnboardingCases } from '@/services/optionLoaders';
 
 const checks = [
   { icon: 'draw', title: 'Digital Signature Status', detail: 'Contrato comercial firmado y vigente.' },
@@ -20,6 +22,9 @@ const checks = [
 
 export function MerchantActivationScreen() {
   const [caseId, setCaseId] = useState('');
+  /* El caso se ELIGE: la etiqueta trae el nombre del comercio y cuantos requisitos siguen pendientes,
+     que es exactamente lo que decide si la activacion va a pasar o la va a frenar el backend. */
+  const cases = useOptions(loadOnboardingCases);
   const mutation = useAtlasMutation(useCallback((id: string) => b2bService.activateOnboarding(id, {}), []));
   async function activate() { try { await mutation.execute(caseId); } catch { /* controlled */ } }
   return (
@@ -33,7 +38,7 @@ export function MerchantActivationScreen() {
           <Panel title="Activation Audit" icon="history_edu"><div className="grid gap-4 text-xs md:grid-cols-3"><Audit label="Control" value="4/4 validaciones" /><Audit label="Separación" value="Legal + Operaciones" /><Audit label="Registro" value="Business Action Log" /></div></Panel>
         </div>
         <aside className="space-y-4 xl:sticky xl:top-20">
-          <Panel title="Account Activated" icon="rocket_launch"><div className="mb-4 rounded-md bg-[#006a61] p-4 text-white"><p className="text-[10px] font-bold uppercase tracking-widest text-white/75">Activation readiness</p><p className="mt-1 text-2xl font-bold">100%</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20"><div className="h-full w-full bg-emerald-400" /></div></div><FormField label="UUID del caso de onboarding" name="caseId" value={caseId} onChange={(event) => setCaseId(event.target.value)} required /><AtlasButton className="mt-4 w-full" icon="rocket_launch" variant="success" loading={mutation.isLoading} disabled={!caseId} onClick={activate}>Activar comercio</AtlasButton><p className="mt-3 text-[11px] leading-4 text-slate-500">La API volverá a comprobar los requisitos. La interfaz no puede saltarse controles del backend.</p></Panel>
+          <Panel title="Account Activated" icon="rocket_launch"><div className="mb-4 rounded-md bg-[#006a61] p-4 text-white"><p className="text-[10px] font-bold uppercase tracking-widest text-white/75">Activation readiness</p><p className="mt-1 text-2xl font-bold">100%</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20"><div className="h-full w-full bg-emerald-400" /></div></div><FormField kind="select" label="Caso de onboarding" name="caseId" value={caseId} onChange={(event) => setCaseId(event.target.value)} required options={[{ label: '— Elija el caso —', value: '' }, ...cases]} hint="Un caso con requisitos pendientes será rechazado por el backend." /><AtlasButton className="mt-4 w-full" icon="rocket_launch" variant="success" loading={mutation.isLoading} disabled={!caseId} onClick={activate}>Activar comercio</AtlasButton><p className="mt-3 text-[11px] leading-4 text-slate-500">La API volverá a comprobar los requisitos. La interfaz no puede saltarse controles del backend.</p></Panel>
         </aside>
       </div>
     </div>

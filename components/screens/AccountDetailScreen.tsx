@@ -16,9 +16,13 @@ import { AccountActivitiesPanel } from '@/components/screens/AccountActivitiesPa
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { formatBob, maskPii } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
+import { useOptions } from '@/hooks/useOptions';
+import { loadB2BAccounts } from '@/services/optionLoaders';
 
 export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) {
   const [accountId, setAccountId] = useState(initialId);
+  /* Las cuentas se ELIGEN: nadie recuerda un uuid, y tecleado mal solo da «no encontrada». */
+  const accounts = useOptions(loadB2BAccounts);
   const [requestedId, setRequestedId] = useState(initialId);
   const load = useCallback(() => requestedId ? b2bService.getAccount(requestedId) : Promise.resolve({} as ResourceRow), [requestedId]);
   const resource = useAsyncResource(load, Boolean(requestedId));
@@ -36,7 +40,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <FormField label="UUID de cuenta" name="accountLookup" value={accountId} onChange={(event) => setAccountId(event.target.value)} placeholder="00000000-0000-4000-8000-000000000000" className="flex-1" />
+          <FormField kind="select" label="Cuenta B2B" name="accountLookup" value={accountId} onChange={(event) => setAccountId(event.target.value)} options={[{ label: '— Elija la cuenta —', value: '' }, ...accounts]} className="flex-1" />
           <AtlasButton icon="search" loading={resource.status === 'loading'} onClick={() => setRequestedId(accountId.trim())}>Consultar cuenta</AtlasButton>
         </div>
       </Panel>

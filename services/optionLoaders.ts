@@ -76,3 +76,26 @@ export const loadB2BContracts = async (): Promise<Option[]> =>
 
 export const loadReceivables = async (): Promise<Option[]> =>
   toOptions(await b2bService.listReceivables(), (r) => `${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`);
+
+/**
+ * Casos de onboarding, etiquetados por el NOMBRE del comercio y su estado.
+ *
+ * La pantalla pedia el uuid a mano porque el backend no exponia lectura. Se etiqueta con el nombre
+ * y con cuantos requisitos quedan pendientes, que es lo que decide si el caso se puede activar.
+ */
+export const loadOnboardingCases = async (): Promise<Option[]> =>
+  (await b2bService.listOnboardingCases()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.tradeName) || s(row.accountId)} — ${s(row.status)}${Number(row.pendingItems) > 0 ? ` (${s(row.pendingItems)} pendiente(s))` : ''}`,
+  }));
+
+/** Requisitos del caso elegido. Vacio mientras no haya caso: no hay item sin caso. */
+export const loadChecklistItems = async (onboardingCaseId: string): Promise<Option[]> => {
+  if (!onboardingCaseId) return [];
+  const detail = await b2bService.getOnboardingCase(onboardingCaseId);
+  const items = (detail.checklistItems ?? []) as Array<Record<string, unknown>>;
+  return items.map((item) => ({
+    value: s(item.id),
+    label: `${s(item.itemType)} · ${s(item.description)} — ${s(item.status)}`,
+  }));
+};

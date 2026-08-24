@@ -52,6 +52,10 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Es el campo por el que el sistema reconoce que dos registros son la misma empresa. Un NIT mal escrito no da error hoy; da un duplicado mañana.',
       },
       {
+        title: 'Categoría y rubro salen de un catálogo',
+        body: 'No se escriben. Son lo que agrupa la cartera —«cuántos comercios de retail tengo», «cuánto financio en farmacias»—, y un campo libre convierte esa pregunta en algo que nadie puede responder: «Retail», «retail» y «RETAIL» son tres grupos distintos para una base de datos.',
+      },
+      {
         title: 'El volumen esperado no es un compromiso',
         body: 'Sirve para priorizar y para dimensionar la propuesta. Se puede corregir en cualquier momento y no bloquea nada.',
       },
@@ -230,8 +234,12 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         title: 'Sucursales y usuarios se dan de alta aquí',
         body: 'Dónde opera el comercio y quién de su personal entra al portal. Se puede ampliar después, pero al menos uno de cada tiene que existir.',
       },
+      {
+        title: 'Todo se elige de una lista',
+        body: 'El comercio, el responsable, el caso y el requisito salen de desplegables con nombres, no de identificadores tecleados. Al elegir un caso, la lista de requisitos se rellena con los suyos: no se puede completar un requisito de otro expediente.',
+      },
     ],
-    backend: 'POST/PATCH /b2b/onboarding',
+    backend: 'GET/POST/PATCH /b2b/onboarding',
     tutorialId: 'crm-onboarding',
   },
 
@@ -252,8 +260,12 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         title: 'Revertir no es gratis',
         body: 'Desactivar un comercio ya activo afecta a operaciones vivas. Antes de activar, comprueba; después, la corrección es un caso.',
       },
+      {
+        title: 'El caso se elige por su nombre',
+        body: 'El desplegable trae el nombre del comercio y cuántos requisitos le quedan pendientes. Si dice que quedan, el backend va a rechazar la activación: ciérralos primero en «Onboarding».',
+      },
     ],
-    backend: 'PATCH /b2b/onboarding/cases/:id/activate',
+    backend: 'GET /b2b/onboarding/cases · PATCH /b2b/onboarding/cases/:id/activate',
   },
 
   '/operaciones/crm/facturacion': {

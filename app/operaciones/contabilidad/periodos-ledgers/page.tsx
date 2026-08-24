@@ -2,6 +2,7 @@
 
 import { MultiActionWorkspace } from '@/components/screens/MultiActionWorkspace';
 import { accountingService } from '@/services/accountingService';
+import { loadLegalEntities } from '@/services/optionLoaders';
 
 export default function PeriodsLedgersPage() {
   return (
@@ -22,7 +23,7 @@ export default function PeriodsLedgersPage() {
         {
           id: 'ledger', title: 'Create Ledger', description: 'Libro contable por base normativa o propósito gerencial.', icon: 'menu_book', submitLabel: 'Crear ledger', onSubmit: accountingService.createLedger,
           fields: [
-            { name: 'legalEntityId', label: 'UUID entidad legal', required: true, span: 2 },
+            { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
             { name: 'code', label: 'Código', required: true, placeholder: 'LOCAL-BO' },
             { name: 'name', label: 'Nombre', required: true, placeholder: 'Libro local Bolivia' },
             { name: 'accountingBasis', label: 'Base contable', type: 'select', required: true, defaultValue: 'LOCAL_BO', options: [

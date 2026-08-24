@@ -3,6 +3,7 @@
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { b2bService } from '@/services/b2bService';
 import type { JsonObject } from '@/services/types';
+import { loadB2BAccounts } from '@/services/optionLoaders';
 
 export default function QualifyAccountPage() {
   async function qualify(payload: JsonObject) {
@@ -22,7 +23,7 @@ export default function QualifyAccountPage() {
       sections={[
         {
           title: 'Institutional Record', icon: 'history_edu', description: 'Cuenta y resultado de la evaluación.', fields: [
-            { name: 'accountId', label: 'UUID de cuenta', required: true, span: 2 },
+            { name: 'accountId', label: 'Cuenta B2B', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
             { name: 'hasCommercialFit', label: '¿Tiene fit comercial?', type: 'select', valueKind: 'boolean', required: true, defaultValue: 'true', options: [{ label: 'Sí, calificar', value: 'true' }, { label: 'No, descalificar', value: 'false' }] },
             { name: 'disqualificationReason', label: 'Motivo de descalificación', type: 'textarea', optional: true, placeholder: 'Obligatorio si no existe fit comercial.', span: 3 },
           ],

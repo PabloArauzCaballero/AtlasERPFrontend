@@ -80,6 +80,13 @@ export const b2bService = {
   createOnboardingCase(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/onboarding/cases', { method: 'POST', body });
   },
+  listOnboardingCases() {
+    return apiRequest<ResourceRow[]>('/b2b/onboarding/cases');
+  },
+  getOnboardingCase(onboardingCaseId: string) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}`);
+  },
   createBranch(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/onboarding/branches', { method: 'POST', body });
   },
