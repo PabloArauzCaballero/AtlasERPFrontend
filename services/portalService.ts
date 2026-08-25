@@ -28,6 +28,14 @@ export const portalService = {
   subscribe(body: JsonObject) {
     return apiRequest<ResourceRow>('/portal/subscription', { method: 'POST', body });
   },
+  /** Lo que este comercio le debe a Atlas: la comision de cada venta. */
+  commissions(merchantAccountId?: string) {
+    const id = optionalUuid(merchantAccountId, 'el UUID de la cuenta merchant');
+    return apiRequest<{
+      summary: { chargedTotal: string; owedToAtlas: string; settled: string; salesCharged: number };
+      commissions: { id: string; purchaseId: string; amountCharged: string; amountOpen: string; currency: string; issuedAt: string; dueDate: string; status: string }[];
+    }>('/portal/commissions', { query: { merchantAccountId: id } });
+  },
   listBranches(accountId?: string) {
     const id = optionalUuid(accountId, 'el UUID de la cuenta merchant');
     return apiRequest<ResourceRow[]>('/portal/branches', { query: { accountId: id } });

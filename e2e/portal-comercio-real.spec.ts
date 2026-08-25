@@ -148,7 +148,8 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   await expect(resumen.getByText(/por cobrar/i)).toBeVisible();
   await expect(resumen.getByText(/vencido/i).first()).toBeVisible();
   await expect(resumen.getByText(/cobrado/i)).toBeVisible();
-  await expect(resumen.getByText(/comprobantes/i)).toBeVisible();
+  // La cuarta tarjeta pasó a ser la comisión: es la cifra que el comercio pregunta más.
+  await expect(resumen.getByText(/debe a atlas/i)).toBeVisible();
   await sinErrores(page, 'cartera · panel');
   await page.screenshot({ path: `${EVIDENCIA}/01-panel.png`, fullPage: true });
 
@@ -163,6 +164,14 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   await expect(page.locator('[data-tutorial-id="cartera-calendario"]')).toBeVisible();
   await sinErrores(page, 'cartera · calendario');
   await page.screenshot({ path: `${EVIDENCIA}/03-calendario.png`, fullPage: true });
+
+  // Comision: cuanto se le cobra por venta y cuanto le debe a Atlas.
+  await page.getByRole('button', { name: /^comisión$/i }).click();
+  await expect(page.locator('[data-tutorial-id="cartera-comision"]')).toBeVisible();
+  await expect(page.getByText(/debe a atlas/i).first()).toBeVisible();
+  await expect(page.getByText(/de dónde sale este porcentaje/i)).toBeVisible();
+  await sinErrores(page, 'cartera · comisión');
+  await page.screenshot({ path: `${EVIDENCIA}/09-comision.png`, fullPage: true });
 
   // La cartera no revela a quién se le debe.
   await expect(page.getByText(/por qué no ve nombres/i)).toBeVisible();

@@ -11,6 +11,7 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
+import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
 import { useOptions } from '@/hooks/useOptions';
 import type { Option } from '@/services/optionLoaders';
 import { loadB2BAccounts, loadChecklistItems, loadInternalUsers, loadOnboardingCases } from '@/services/optionLoaders';
@@ -81,6 +82,9 @@ export function OnboardingCaseScreen() {
             <div className="space-y-2">{items.map((item, index) => <div key={item.id} className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 md:grid-cols-[160px_minmax(0,1fr)_36px]"><select className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs" value={item.itemType} onChange={(event) => updateItem(item.id, 'itemType', event.target.value)}><option>LEGAL</option><option>OPERATIONS</option><option>TECHNICAL</option><option>FINANCE</option></select><input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito ${index + 1}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} /><button type="button" disabled={items.length === 1} className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50 disabled:opacity-30" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))}><Icon name="delete" className="text-[18px]" /></button></div>)}</div>
           </Panel>
           <div className="flex justify-end"><AtlasButton icon="send" type="submit" form="create-onboarding-form" loading={createMutation.isLoading}>Crear caso de onboarding</AtlasButton></div>
+          {/* La comisión se pacta en el alta: activar sin haberla acordado deja la primera venta
+              cobrando lo que hubiera por defecto, y esa conversación ya no se puede tener después. */}
+          <MdrRulesPanel />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-20">

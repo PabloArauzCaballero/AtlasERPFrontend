@@ -10,9 +10,10 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
+import { portalService } from '@/services/portalService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
 
-type Vista = 'panel' | 'creditos' | 'calendario';
+type Vista = 'panel' | 'creditos' | 'calendario' | 'comision';
 
 const fecha = (valor: string) => new Date(`${valor}T12:00:00`).toLocaleDateString('es-BO', { weekday: 'short', day: '2-digit', month: 'short' });
 
@@ -35,6 +36,17 @@ export function MerchantPortfolioScreen() {
   const [error, setError] = useState<string | null>(null);
   const [vista, setVista] = useState<Vista>('panel');
   const [abierto, setAbierto] = useState<string | null>(null);
+  /* Lo que el comercio le debe a Atlas por usar el servicio: la comision de cada venta. */
+  const [comision, setComision] = useState<Awaited<ReturnType<typeof portalService.commissions>> | null>(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    portalService
+      .commissions()
+      .then((resultado) => { if (!cancelado) setComision(resultado); })
+      .catch(() => { if (!cancelado) setComision(null); });
+    return () => { cancelado = true; };
+  }, []);
 
   const cargar = useCallback(async (partnerId: string) => {
     setCargando(true);
@@ -78,9 +90,9 @@ export function MerchantPortfolioScreen() {
         description={`Lo que le deben${nombre ? ` a ${nombre}` : ''}, con su detalle cuota a cuota y el calendario de cobros.`}
         actions={
           <div className="flex gap-1.5">
-            {(['panel', 'creditos', 'calendario'] as Vista[]).map((opcion) => (
+            {(['panel', 'creditos', 'calendario', 'comision'] as Vista[]).map((opcion) => (
               <AtlasButton key={opcion} variant={vista === opcion ? 'primary' : 'secondary'} onClick={() => setVista(opcion)}>
-                {opcion === 'panel' ? 'Panel' : opcion === 'creditos' ? 'Créditos' : 'Calendario'}
+                {opcion === 'panel' ? 'Panel' : opcion === 'creditos' ? 'Créditos' : opcion === 'calendario' ? 'Calendario' : 'Comisión'}
               </AtlasButton>
             ))}
           </div>
@@ -93,7 +105,7 @@ export function MerchantPortfolioScreen() {
         <MetricCard label="Por cobrar" value={cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0))} detail={`${resumen?.activeCredits ?? 0} créditos activos`} icon="account_balance_wallet" />
         <MetricCard label="Vencido" value={cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0))} detail={`${resumen?.overdueInstallments ?? 0} cuotas en mora`} icon="running_with_errors" tone={Number(resumen?.overdueAmount ?? 0) > 0 ? 'amber' : 'teal'} />
         <MetricCard label="Cobrado" value={cargando ? '…' : formatBob(Number(resumen?.collected ?? 0))} detail="Acumulado de la cartera" icon="payments" tone="teal" />
-        <MetricCard label="Comprobantes" value={cargando ? '…' : (resumen?.proofsAwaitingVerification ?? 0)} detail="Esperando que usted los verifique" icon="receipt_long" tone="purple" />
+        <MetricCard label="Debe a Atlas" value={formatBob(Number(comision?.summary.owedToAtlas ?? 0))} detail={`Comisión de ${comision?.summary.salesCharged ?? 0} venta(s)`} icon="percent" tone="purple" />
       </div>
 
       {vista === 'panel' ? (
@@ -188,6 +200,50 @@ export function MerchantPortfolioScreen() {
                 ))}
               </div>
             )}
+        </Panel>
+      ) : null}
+
+      {vista === 'comision' ? (
+        <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por usar el servicio, venta a venta." icon="percent">
+          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-md bg-slate-50 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Cobrado en total</p>
+              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(comision?.summary.chargedTotal ?? 0))}</p>
+            </div>
+            <div className="rounded-md bg-slate-50 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Debe a Atlas</p>
+              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(comision?.summary.owedToAtlas ?? 0))}</p>
+              <p className="text-[11px] text-slate-500">Lo que sigue abierto</p>
+            </div>
+            <div className="rounded-md bg-slate-50 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Ya saldado</p>
+              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(comision?.summary.settled ?? 0))}</p>
+            </div>
+          </div>
+          {(comision?.commissions ?? []).length === 0 ? (
+            <p className="py-6 text-center text-xs text-slate-500">Todavía no se le cobró comisión por ninguna venta.</p>
+          ) : (
+            <div className="table-scroll rounded-lg border border-slate-200">
+              <table className="w-full min-w-[620px] text-left text-xs">
+                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Emitida</th><th className="p-2.5">Vence</th><th className="p-2.5 text-right">Comisión</th><th className="p-2.5 text-right">Abierto</th><th className="p-2.5">Estado</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(comision?.commissions ?? []).map((fila) => (
+                    <tr key={fila.id}>
+                      <td className="p-2.5 text-slate-600">{new Date(fila.issuedAt).toLocaleDateString('es-BO')}</td>
+                      <td className="p-2.5 text-slate-600">{fila.dueDate ? new Date(`${String(fila.dueDate).slice(0, 10)}T12:00:00`).toLocaleDateString('es-BO') : '—'}</td>
+                      <td className="p-2.5 text-right font-bold">{formatBob(Number(fila.amountCharged))}</td>
+                      <td className="p-2.5 text-right">{formatBob(Number(fila.amountOpen))}</td>
+                      <td className="p-2.5"><StatusPill tone={Number(fila.amountOpen) === 0 ? 'success' : 'warning'}>{fila.status}</StatusPill></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <InlineNotice className="mt-4" tone="info" title="De dónde sale este porcentaje">
+            La comisión se pactó en su alta y puede variar por categoría de producto, sucursal o
+            segmento de riesgo: cada venta paga la regla que le correspondía en ese momento.
+          </InlineNotice>
         </Panel>
       ) : null}
 

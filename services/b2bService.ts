@@ -53,6 +53,17 @@ export const b2bService = {
   listApprovals(onlyPending = true) {
     return apiRequest<ResourceRow[]>('/b2b/proposals/approvals', { query: { onlyPending: onlyPending ? 'true' : 'false' } });
   },
+  /** Reglas de comision (MDR). No habia endpoint: solo se creaban por SQL. */
+  listMdrRules(contractVersionId?: string) {
+    return apiRequest<ResourceRow[]>('/b2b/contracts/mdr-rules', contractVersionId ? { query: { contractVersionId } } : {});
+  },
+  createMdrRule(body: JsonObject) {
+    return apiRequest<ResourceRow>('/b2b/contracts/mdr-rules', { method: 'POST', body });
+  },
+  updateMdrRule(ruleId: string, body: JsonObject) {
+    const id = requireUuidPathParam(ruleId, 'el UUID de la regla');
+    return apiRequest<ResourceRow>(`/b2b/contracts/mdr-rules/${id}`, { method: 'PATCH', body });
+  },
   listContracts() {
     return apiRequest<ResourceRow[]>('/b2b/contracts');
   },

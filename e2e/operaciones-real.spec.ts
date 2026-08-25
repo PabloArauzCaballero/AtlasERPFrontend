@@ -61,6 +61,18 @@ test('la activación muestra controles reales, no un 100 % dibujado', async ({ p
   await expect(page.locator('select[name="caseId"]')).toBeVisible();
 });
 
+test('la comisión por venta se configura en el alta, por segmento', async ({ page }) => {
+  await page.goto('/operaciones/crm/onboarding');
+  const panel = page.locator('[data-tutorial-id="mdr-reglas"]');
+  await expect(panel).toBeVisible({ timeout: 45_000 });
+
+  // Es parte del alta, no una pantalla suelta.
+  await expect(panel.getByText(/se acuerda en el alta/i)).toBeVisible();
+  // Y la segmentación es lo que la hace flexible.
+  await expect(panel.locator('select[name="contractVersionId"]')).toBeVisible();
+  await page.screenshot({ path: 'docs/visual-evidence/operaciones/01-comision-en-el-alta.png', fullPage: true });
+});
+
 test('ninguna pantalla interna pide escribir un UUID', async ({ page }) => {
   const rutas = [
     '/operaciones/crm/oportunidades',
