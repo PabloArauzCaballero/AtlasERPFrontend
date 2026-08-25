@@ -62,6 +62,32 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     tutorialId: 'portal-comprobantes',
   },
 
+  '/portal-comercio/cartera': {
+    eyebrow: 'Portal del comercio',
+    title: 'Mi cartera',
+    intro: 'Qué te deben, con su detalle cuota a cuota, y qué debería entrar cada día.',
+    sections: [
+      {
+        title: 'Tres vistas de lo mismo',
+        body: 'El panel resume, «Créditos» abre cada operación cuota a cuota y «Calendario» dice cuánto entra cada día. Salen de la misma lectura, así que las tres cuentan igual: si el panel dice Bs 4.000 por cobrar, el calendario suma Bs 4.000.',
+      },
+      {
+        title: 'Lo vencido va aparte',
+        body: 'Una cuota vencida sigue siendo cobrable, pero no es lo mismo que una que aún no llega. Por eso el vencido tiene su propia cifra y sus días de mora: es lo que decide a quién llamar hoy.',
+      },
+      {
+        title: 'No verás nombres',
+        body: 'Tu cartera dice qué operación vence y cuándo, no quién la debe. Tú decides sobre la operación; el expediente del cliente es suyo y no de quien le vendió.',
+      },
+      {
+        title: 'Los comprobantes cuentan aparte',
+        body: 'El contador de comprobantes es lo que espera tu confirmación, no dinero cobrado. Hasta que verificas, esa cuota sigue en «por cobrar».',
+      },
+    ],
+    backend: 'GET /merchant-credit/:partnerId/portfolio',
+    tutorialId: 'portal-cartera',
+  },
+
   '/portal-comercio/planes': {
     eyebrow: 'Portal del comercio',
     title: 'Tarifas de publicidad',

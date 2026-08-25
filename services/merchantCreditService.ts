@@ -41,6 +41,43 @@ export interface ComprobanteDePago {
   decidedAt: string | null;
 }
 
+export interface CuotaDeCartera {
+  installmentId: string;
+  installmentNumber: number;
+  dueDate: string;
+  amountDue: string;
+  amountPaid: string;
+  amountOutstanding: string;
+  status: string;
+  daysPastDue: number;
+  overdue: boolean;
+}
+
+export interface CreditoDeCartera {
+  loanId: string;
+  loanCode: string;
+  currencyCode: string;
+  principalAmount: string;
+  status: string;
+  outstanding: string;
+  installments: CuotaDeCartera[];
+}
+
+export interface Cartera {
+  partnerProfileId: string;
+  summary: {
+    activeCredits: number;
+    totalCredits: number;
+    outstanding: string;
+    overdueAmount: string;
+    overdueInstallments: number;
+    collected: string;
+    proofsAwaitingVerification: number;
+  };
+  credits: CreditoDeCartera[];
+  calendar: { date: string; installments: number; amount: string; overdue: boolean }[];
+}
+
 export const merchantCreditService = {
   /** Cuál es mi expediente. El portal no lo sabía: sólo lo conocía justo tras crearlo. */
   misExpedientes() {
@@ -65,6 +102,11 @@ export const merchantCreditService = {
       `/merchant-credit/${encodeURIComponent(partnerId)}/payment-claims`,
       { query: { onlyPending: soloPendientes ? 'true' : 'false' } },
     );
+  },
+
+  /** Qué me deben, quién y cuándo. Una sola lectura para créditos, calendario y panel. */
+  cartera(partnerId: string) {
+    return apiRequest<Cartera>(`/merchant-credit/${encodeURIComponent(partnerId)}/portfolio`);
   },
 
   /** Confirmar registra el pago del préstamo. Rechazar exige motivo. */

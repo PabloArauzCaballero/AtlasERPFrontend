@@ -10,9 +10,28 @@
  */
 import { expect, test } from '@playwright/test';
 
+/**
+ * Las capturas se versionan: son documentación del flujo, no un artefacto de la corrida. Cada
+ * prueba deja la suya con el nombre de lo que demuestra, así que un cambio que rompa la pantalla
+ * se ve en el diff de la imagen y no sólo en un aserto rojo.
+ */
+const EVIDENCIA = 'docs/visual-evidence/portal-comercio';
+
 const COMERCIO = { email: 'pabliarca@gmail.com', password: '72107014Casa_' };
 
 test.describe.configure({ mode: 'serial' });
+
+/**
+ * Ninguna pantalla puede quedarse en un error.
+ *
+ * Se comprueba aparte porque la primera version de estas pruebas miraba solo que las ETIQUETAS
+ * estuvieran, y pasaba en verde con la cartera entera en cero y un «Error interno no controlado»
+ * encima: el modelo del reclamo no estaba registrado en Sequelize. Una prueba que no mira el error
+ * da una confianza peor que no tener prueba.
+ */
+async function sinErrores(page: import('@playwright/test').Page, donde: string) {
+  await expect(page.getByText(/error interno|no se pudo|no fue posible/i), `error visible en ${donde}`).toHaveCount(0);
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/login');
@@ -44,6 +63,7 @@ test('las tarifas se cobran por alcance y por clic, sin cuota ni tope de sucursa
   await expect(page.getByText(/\/ mes/i)).toHaveCount(0);
   await expect(page.getByText(/hasta \d+ sucursal/i)).toHaveCount(0);
   expect(await page.getByText(/sucursales ilimitadas/i).count()).toBe(3);
+  await page.screenshot({ path: `${EVIDENCIA}/05-tarifas.png`, fullPage: true });
 });
 
 test('las solicitudes de compra no tienen ningún campo editable', async ({ page }) => {
@@ -57,6 +77,8 @@ test('las solicitudes de compra no tienen ningún campo editable', async ({ page
   // Dentro de la cola no hay un solo control de entrada: sólo se acepta o se rechaza.
   const cola = page.locator('section, article').filter({ hasText: /esperando su respuesta/i }).first();
   await expect(cola.locator('input:not([type=hidden]), textarea')).toHaveCount(0);
+  await sinErrores(page, 'solicitudes');
+  await page.screenshot({ path: `${EVIDENCIA}/06-solicitudes.png`, fullPage: true });
 });
 
 test('el comercio es su propio anunciante: no hay que elegirlo', async ({ page }) => {
@@ -83,6 +105,7 @@ test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) =>
   const nombre = page.getByLabel(/nombre de sucursal/i).last();
   await expect(nombre).toBeVisible();
   await expect(nombre).not.toHaveValue('');
+  await page.screenshot({ path: `${EVIDENCIA}/07-sucursales.png`, fullPage: true });
 });
 
 test('los comprobantes de transferencia los verifica el comercio', async ({ page }) => {
@@ -99,6 +122,8 @@ test('los comprobantes de transferencia los verifica el comercio', async ({ page
   const vacio = page.getByText(/no hay comprobantes esperando/i);
   const cola = page.locator('article').filter({ hasText: /por verificar/i });
   await expect(vacio.or(cola.first())).toBeVisible({ timeout: 30_000 });
+  await sinErrores(page, 'comprobantes');
+  await page.screenshot({ path: `${EVIDENCIA}/04-comprobantes.png`, fullPage: true });
 });
 
 test('el menú ofrece verificar comprobantes', async ({ page }) => {
@@ -106,10 +131,40 @@ test('el menú ofrece verificar comprobantes', async ({ page }) => {
   await expect(menu.getByText(/comprobantes por verificar/i)).toBeVisible();
 });
 
+test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => {
+  await page.goto('/portal-comercio/cartera');
+  await expect(page.getByRole('heading', { name: /mi cartera/i })).toBeVisible({ timeout: 45_000 });
+
+  // El panel: las cuatro cifras que el comercio mira primero.
+  const resumen = page.locator('[data-tutorial-id="cartera-resumen"]');
+  await expect(resumen.getByText(/por cobrar/i)).toBeVisible();
+  await expect(resumen.getByText(/vencido/i).first()).toBeVisible();
+  await expect(resumen.getByText(/cobrado/i)).toBeVisible();
+  await expect(resumen.getByText(/comprobantes/i)).toBeVisible();
+  await sinErrores(page, 'cartera · panel');
+  await page.screenshot({ path: `${EVIDENCIA}/01-panel.png`, fullPage: true });
+
+  // Créditos pendientes con su detalle.
+  await page.getByRole('button', { name: /^créditos$/i }).click();
+  await expect(page.locator('[data-tutorial-id="cartera-creditos"]')).toBeVisible();
+  await sinErrores(page, 'cartera · créditos');
+  await page.screenshot({ path: `${EVIDENCIA}/02-creditos.png`, fullPage: true });
+
+  // Calendario de cobros por día.
+  await page.getByRole('button', { name: /^calendario$/i }).click();
+  await expect(page.locator('[data-tutorial-id="cartera-calendario"]')).toBeVisible();
+  await sinErrores(page, 'cartera · calendario');
+  await page.screenshot({ path: `${EVIDENCIA}/03-calendario.png`, fullPage: true });
+
+  // La cartera no revela a quién se le debe.
+  await expect(page.getByText(/por qué no ve nombres/i)).toBeVisible();
+});
+
 test('ninguna pantalla del portal pide escribir un UUID', async ({ page }) => {
-  for (const ruta of ['/portal-comercio/solicitudes', '/portal-comercio/comprobantes', '/portal-comercio/planes', '/portal-comercio/sucursales-usuarios', '/portal-comercio/facturacion']) {
+  for (const ruta of ['/portal-comercio/solicitudes', '/portal-comercio/comprobantes', '/portal-comercio/cartera', '/portal-comercio/planes', '/portal-comercio/sucursales-usuarios', '/portal-comercio/facturacion']) {
     await page.goto(ruta);
     await page.waitForLoadState('networkidle');
     await expect(page.getByText(/\bUUID\b/i), `«UUID» visible en ${ruta}`).toHaveCount(0);
+    await sinErrores(page, ruta);
   }
 });
