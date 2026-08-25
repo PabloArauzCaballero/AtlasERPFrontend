@@ -118,10 +118,18 @@ test('los comprobantes de transferencia los verifica el comercio', async ({ page
   await expect(page.getByText(/el dinero entra en su cuenta/i)).toBeVisible();
   await expect(page.getByText(/por qué lo confirma usted/i)).toBeVisible();
 
-  // Lee del backend: o hay comprobantes, o dice que no hay ninguno. Nunca un error.
-  const vacio = page.getByText(/no hay comprobantes esperando/i);
-  const cola = page.locator('article').filter({ hasText: /por verificar/i });
-  await expect(vacio.or(cola.first())).toBeVisible({ timeout: 30_000 });
+  /*
+   * Lee del backend: o hay comprobantes, o dice que no hay ninguno. Nunca un error.
+   *
+   * Se busca DENTRO del panel de la cola y no en toda la pagina: la tarjeta de metrica «Por
+   * verificar» tambien es un `<article>`, asi que un localizador suelto casaba con dos cosas
+   * distintas y fallaba por ambiguo en vez de por lo que se quiere comprobar.
+   */
+  const cola = page.locator('[data-tutorial-id="comprobantes-cola"]');
+  await expect(cola).toBeVisible({ timeout: 30_000 });
+  const vacio = cola.getByText(/no hay comprobantes esperando/i);
+  const filas = cola.locator('article');
+  await expect(vacio.or(filas.first())).toBeVisible({ timeout: 30_000 });
   await sinErrores(page, 'comprobantes');
   await page.screenshot({ path: `${EVIDENCIA}/04-comprobantes.png`, fullPage: true });
 });
