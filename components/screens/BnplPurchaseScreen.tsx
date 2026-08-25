@@ -39,17 +39,32 @@ export function BnplPurchaseScreen() {
   const scheduleTotal = useMemo(() => roundMoney(installments.reduce((sum, item) => sum + Number(item.amount || 0), 0)), [installments]);
   const balanced = amounts.financed > 0 && Math.abs(scheduleTotal - amounts.financed) <= .01;
 
+  /*
+   * El reparto se calcula ENTERO dentro del updater y sin tocar nada de fuera.
+   *
+   * Antes acumulaba en una variable declarada fuera (`assigned`) y la mutaba dentro del updater de
+   * `setInstallments`. React invoca el updater dos veces en desarrollo para detectar justo esto, asi
+   * que `assigned` sumaba el doble y la ultima cuota salia NEGATIVA: con 600 financiados en 4
+   * cuotas mostraba 150, 150, 150 y -450. El calendario nunca cuadraba y el boton de registrar
+   * quedaba deshabilitado sin decir por que.
+   */
   function distributeFinanced() {
-    const base = roundMoney(amounts.financed / installments.length);
-    let assigned = 0;
-    setInstallments((current) => current.map((item, index) => { const amount = index === current.length - 1 ? roundMoney(amounts.financed - assigned) : base; assigned = roundMoney(assigned + amount); return { ...item, amount: amount.toFixed(2) }; }));
+    setInstallments((current) => {
+      const base = roundMoney(amounts.financed / current.length);
+      // El resto va a la ultima para que la suma cuadre al centimo aunque no sea divisible.
+      const ultima = roundMoney(amounts.financed - base * (current.length - 1));
+      return current.map((item, index) => ({
+        ...item,
+        amount: (index === current.length - 1 ? ultima : base).toFixed(2),
+      }));
+    });
   }
 
   function updateInstallment(id: string, key: 'dueDate' | 'amount', value: string) { setInstallments((current) => current.map((item) => item.id === id ? { ...item, [key]: value } : item)); }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget);
-    const payload: JsonObject = { merchantAccountId: String(form.get('merchantAccountId') ?? ''), branchId: String(form.get('branchId') ?? ''), consumerId: String(form.get('consumerId') ?? ''), consumerExternalRef: String(form.get('consumerExternalRef') ?? '') || undefined, purchaseAmount: amounts.purchase, downPaymentAmount: amounts.down, downPaymentPaidAt: String(form.get('downPaymentPaidAt') ?? '') || undefined, downPaymentEvidenceRef: String(form.get('downPaymentEvidenceRef') ?? '') || undefined, financedAmount: amounts.financed, riskTierAtOrigination: String(form.get('riskTierAtOrigination') ?? '') || undefined, cohortId: String(form.get('cohortId') ?? '') || undefined, productCategory: String(form.get('productCategory') ?? '') || undefined, mdrReceivableDueDate: String(form.get('mdrReceivableDueDate') ?? ''), installments: installments.map((item, index) => ({ installmentNumber: index + 1, dueDate: item.dueDate, amount: Number(item.amount) })) };
+    const payload: JsonObject = { merchantAccountId: String(form.get('merchantAccountId') ?? '') || undefined, branchId: String(form.get('branchId') ?? ''), consumerExternalRef: String(form.get('consumerExternalRef') ?? '') || undefined, purchaseAmount: amounts.purchase, downPaymentAmount: amounts.down, downPaymentPaidAt: String(form.get('downPaymentPaidAt') ?? '') || undefined, downPaymentEvidenceRef: String(form.get('downPaymentEvidenceRef') ?? '') || undefined, financedAmount: amounts.financed, riskTierAtOrigination: String(form.get('riskTierAtOrigination') ?? '') || undefined, cohortId: String(form.get('cohortId') ?? '') || undefined, productCategory: String(form.get('productCategory') ?? '') || undefined, mdrReceivableDueDate: String(form.get('mdrReceivableDueDate') ?? ''), installments: installments.map((item, index) => ({ installmentNumber: index + 1, dueDate: item.dueDate, amount: Number(item.amount) })) };
     try { await mutation.execute(payload); } catch { /* shown inline */ }
   }
 
@@ -59,7 +74,7 @@ export function BnplPurchaseScreen() {
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}{mutation.status === 'success' ? <InlineNotice tone="success" title="Transacción registrada">La compra, pago inicial, financiamiento y cuotas fueron persistidos por el backend.</InlineNotice> : null}
       <div className="grid items-start gap-5 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_330px]">
         <div className="space-y-4"><Panel title="Comercio y cliente" icon="storefront"><div className="grid gap-3 md:grid-cols-2">{scope.isMerchant
-            ? <input type="hidden" name="merchantAccountId" value="" />
+            ? null
             : <FormField kind="select" label="Comercio" name="merchantAccountId" required value={scope.accountId ?? ''} onChange={(event) => scope.setAccountId(event.target.value)} options={[{ label: '— Elija el comercio —', value: '' }, ...scope.accountOptions]} hint="Acceso delegado: queda auditado a su nombre." />}
             <FormField kind="select" label="Sucursal" name="branchId" required options={[{ label: branches.length ? '— Elija la sucursal —' : '— Sin sucursales habilitadas —', value: '' }, ...branches]} hint="Sólo las sucursales habilitadas para originar BNPL." />
             <FormField label="Documento del cliente" name="consumerExternalRef" required hint="Carnet o NIT. Atlas reutiliza al cliente si ya compró antes." />
