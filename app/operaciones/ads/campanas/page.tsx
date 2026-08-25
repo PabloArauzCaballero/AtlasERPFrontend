@@ -3,6 +3,7 @@ import { LiveDirectoryScreen } from '@/components/screens/LiveDirectoryScreen';
 import { MultiActionWorkspace } from '@/components/screens/MultiActionWorkspace';
 import { adsService } from '@/services/adsService';
 import type { JsonObject } from '@/services/types';
+import { loadAdSets, loadAdvertisers, loadCampaigns, loadCreatives, loadPlacements, loadSegments } from '@/services/optionLoaders';
 
 /**
  * Campañas publicitarias: portafolio, alta de la cadena completa y flujo de estado.
@@ -109,7 +110,7 @@ export default function CampaignsPage() {
             submitLabel: 'Crear campaña',
             onSubmit: createCampaign,
             fields: [
-              { name: 'advertiserId', label: 'UUID anunciante', required: true, span: 2 },
+              { name: 'advertiserId', label: 'Anunciante', type: 'select', required: true, span: 2, optionsLoader: loadAdvertisers },
               { name: 'name', label: 'Nombre de la campaña', required: true, span: 2 },
               {
                 name: 'objective',
@@ -147,7 +148,7 @@ export default function CampaignsPage() {
             submitLabel: 'Crear conjunto',
             onSubmit: createAdSet,
             fields: [
-              { name: 'campaignId', label: 'UUID campaña', required: true, span: 2 },
+              { name: 'campaignId', label: 'Campaña', type: 'select', required: true, span: 2, optionsLoader: loadCampaigns },
               { name: 'name', label: 'Nombre del conjunto', required: true, span: 2 },
               {
                 name: 'buyingModel',
@@ -159,16 +160,25 @@ export default function CampaignsPage() {
               { name: 'bidAmountMicros', label: 'Puja (micros)', required: true, valueKind: 'number' },
               {
                 name: 'targetSegmentId',
-                label: 'UUID segmento',
+                label: 'Segmento de audiencia',
+                type: 'select',
                 optional: true,
                 span: 2,
+                optionsLoader: async () => [{ label: '— Toda la audiencia —', value: '' }, ...(await loadSegments())],
                 hint: 'Sin segmento, el conjunto entrega a toda la audiencia.',
               },
               {
                 name: 'placementIds',
-                label: 'UUIDs de espacios (separados por coma)',
+                label: 'Espacio publicitario',
+                type: 'select',
                 required: true,
                 span: 2,
+                optionsLoader: loadPlacements,
+                /*
+                 * Uno por ahora. Antes era una lista de uuids separados por comas: escribir a mano
+                 * varios identificadores en un campo de texto es la forma mas facil de mandar una
+                 * campana a un sitio que no era, sin que nada lo advierta.
+                 */
                 valueKind: 'stringList',
               },
               {
@@ -194,7 +204,7 @@ export default function CampaignsPage() {
             submitLabel: 'Crear creatividad',
             onSubmit: createCreative,
             fields: [
-              { name: 'advertiserId', label: 'UUID anunciante', required: true, span: 2 },
+              { name: 'advertiserId', label: 'Anunciante', type: 'select', required: true, span: 2, optionsLoader: loadAdvertisers },
               { name: 'name', label: 'Nombre', required: true, span: 2 },
               {
                 name: 'creativeType',
@@ -221,8 +231,8 @@ export default function CampaignsPage() {
             submitLabel: 'Crear anuncio',
             onSubmit: createAd,
             fields: [
-              { name: 'adSetId', label: 'UUID conjunto', required: true, span: 2 },
-              { name: 'creativeId', label: 'UUID creatividad', required: true, span: 2 },
+              { name: 'adSetId', label: 'Conjunto de anuncios', type: 'select', required: true, span: 2, optionsLoader: loadAdSets },
+              { name: 'creativeId', label: 'Creatividad', type: 'select', required: true, span: 2, optionsLoader: loadCreatives },
               { name: 'name', label: 'Nombre del anuncio', required: true, span: 2 },
               {
                 name: 'weight',
@@ -250,7 +260,7 @@ export default function CampaignsPage() {
             submitLabel: 'Actualizar estado',
             onSubmit: update,
             fields: [
-              { name: 'campaignId', label: 'UUID campaña', required: true, span: 2 },
+              { name: 'campaignId', label: 'Campaña', type: 'select', required: true, span: 2, optionsLoader: loadCampaigns },
               {
                 name: 'status',
                 label: 'Nuevo estado',

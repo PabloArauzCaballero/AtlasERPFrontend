@@ -3,7 +3,7 @@
 import { MultiActionWorkspace } from '@/components/screens/MultiActionWorkspace';
 import { b2bService } from '@/services/b2bService';
 import type { JsonObject } from '@/services/types';
-import { loadB2BContracts, loadInternalUsers } from '@/services/optionLoaders';
+import { loadContracts2, loadInternalUsers, loadProposals } from '@/services/optionLoaders';
 
 export default function CommercialContractsPage() {
   async function sign(payload: JsonObject) {
@@ -21,7 +21,7 @@ export default function CommercialContractsPage() {
         {
           id: 'create', title: 'Primary Identification', description: 'Cabecera contractual heredada de una propuesta.', icon: 'description', submitLabel: 'Generar contrato', onSubmit: b2bService.createContractFromProposal,
           fields: [
-            { name: 'proposalId', label: 'UUID propuesta', required: true, span: 2 },
+            { name: 'proposalId', label: 'Propuesta aceptada', type: 'select', required: true, span: 2, optionsLoader: loadProposals },
             { name: 'contractNumber', label: 'Número de contrato', required: true, placeholder: 'CTR-2026-001' },
             { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true },
             { name: 'endDate', label: 'Fecha final', type: 'date', optional: true },
@@ -33,7 +33,7 @@ export default function CommercialContractsPage() {
         {
           id: 'sign', title: 'Signature & Activation', description: 'Confirmación institucional y activación del contrato.', icon: 'draw', submitLabel: 'Firmar y activar', submitIcon: 'verified', onSubmit: sign,
           fields: [
-            { name: 'contractId', label: 'Contrato', type: 'select', required: true, span: 2, optionsLoader: loadB2BContracts },
+            { name: 'contractId', label: 'Contrato', type: 'select', required: true, span: 2, optionsLoader: loadContracts2 },
             { name: 'approvedByUserId', label: 'Aprobador', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
             { name: 'signedAt', label: 'Fecha y hora de firma', type: 'text', optional: true, placeholder: '2026-07-10T20:00:00-04:00', span: 2 },
           ],

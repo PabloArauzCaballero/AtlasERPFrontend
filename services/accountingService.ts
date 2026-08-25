@@ -159,6 +159,10 @@ export const accountingService = {
   createDocument(body: JsonObject) {
     return apiRequest<ResourceRow>('/accounting/documents', { method: 'POST', body });
   },
+  /** Documentos contables ya registrados. El backend siempre los expuso; faltaba pedirlos. */
+  listAccountingDocuments() {
+    return apiRequest<PaginatedResult<ResourceRow>>('/accounting/documents');
+  },
   bulkCreateDocuments(body: JsonObject) {
     return apiRequest<ResourceRow>('/accounting/documents/bulk', { method: 'POST', body });
   },

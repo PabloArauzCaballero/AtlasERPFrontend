@@ -84,6 +84,15 @@ export const adsService = {
       body,
     });
   },
+  listAdSets(campaignId?: string) {
+    return apiRequest<JsonObject[]>('/admin/ads/ad-sets', campaignId ? { query: { campaignId } } : {});
+  },
+  listCreatives(advertiserId?: string) {
+    return apiRequest<JsonObject[]>('/admin/ads/creatives', advertiserId ? { query: { advertiserId } } : {});
+  },
+  listPlacements() {
+    return apiRequest<JsonObject[]>('/admin/ads/placements');
+  },
   listSegments(query: PageQuery) {
     return apiRequest<PaginatedResult<ResourceRow>>('/admin/ads/segments', {
       query: adsQuery(query, segmentQueryKeys),

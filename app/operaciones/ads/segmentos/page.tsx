@@ -3,6 +3,7 @@ import { LiveDirectoryScreen } from '@/components/screens/LiveDirectoryScreen';
 import { MultiActionWorkspace } from '@/components/screens/MultiActionWorkspace';
 import { adsService } from '@/services/adsService';
 import type { JsonObject } from '@/services/types';
+import { loadAdvertisers } from '@/services/optionLoaders';
 
 /**
  * Segmentos de audiencia publicitaria.
@@ -114,12 +115,10 @@ export default function AdSegmentsPage() {
                   { label: 'Lista estática', value: 'LOOKUP_STATIC' },
                 ],
               },
-              {
-                name: 'advertiserId',
-                label: 'UUID anunciante',
+              { name: 'advertiserId', label: 'Anunciante', type: 'select',
                 optional: true,
                 hint: 'Vacío = segmento de plataforma, disponible para todos.',
-              },
+               optionsLoader: loadAdvertisers },
               {
                 name: 'attribute',
                 label: 'Atributo',

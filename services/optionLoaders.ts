@@ -1,4 +1,5 @@
 import { accountingService } from './accountingService';
+import { adsService } from './adsService';
 import { b2bService } from './b2bService';
 import type { PaginatedResult, ResourceRow } from './types';
 
@@ -99,3 +100,111 @@ export const loadChecklistItems = async (onboardingCaseId: string): Promise<Opti
     label: `${s(item.itemType)} · ${s(item.description)} — ${s(item.status)}`,
   }));
 };
+
+/** Propuestas, etiquetadas por su numero y el comercio: es por lo que se las busca. */
+export const loadProposals = async (): Promise<Option[]> =>
+  (await b2bService.listProposals()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.proposalNumber)} — ${s(row.tradeName) || s(row.accountId)} (${s(row.status)})`,
+  }));
+
+/** Aprobaciones esperando decision. Sin este listado la cola no se podia ni leer. */
+export const loadPendingApprovals = async (): Promise<Option[]> =>
+  (await b2bService.listApprovals(true)).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.approvalType)} — ${s(row.reason).slice(0, 60) || 'sin motivo'}`,
+  }));
+
+/** Contratos vivos, por numero y comercio. */
+export const loadContracts2 = async (): Promise<Option[]> =>
+  (await b2bService.listContracts()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.contractNumber)} — ${s(row.tradeName) || s(row.accountId)} (${s(row.status)})`,
+  }));
+
+/** Oportunidades del pipeline, por nombre y etapa. */
+export const loadOpportunities = async (): Promise<Option[]> =>
+  (await b2bService.listOpportunities()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.name)} — ${s(row.stage)}`,
+  }));
+
+// ---- Ads ----
+/** Anunciantes registrados. El bloque de Ads ya los expone; la pantalla pedia su uuid a mano. */
+export const loadAdvertisers = async (): Promise<Option[]> =>
+  toOptions(rowsOf(await adsService.listAdvertisers({ page: 1, pageSize: 100 })), (r) => `${s(r.name || r.legalName)}`);
+
+/** Campanas, por nombre y estado. */
+export const loadCampaigns = async (): Promise<Option[]> =>
+  toOptions(rowsOf(await adsService.listCampaigns({ page: 1, pageSize: 100 })), (r) => `${s(r.name)} — ${s(r.status)}`);
+
+/** Segmentos de audiencia. */
+export const loadSegments = async (): Promise<Option[]> =>
+  toOptions(rowsOf(await adsService.listSegments({ page: 1, pageSize: 100 })), (r) => `${s(r.name)}`);
+
+/** Anos fiscales. Ya existia `GET /accounting/financial-structure/fiscal-years`. */
+export const loadFiscalYears = async (): Promise<Option[]> =>
+  toOptions(await accountingService.listFiscalYears(), (r) => `${s(r.code || r.name)} (${s(r.status)})`);
+
+/** Documentos contables, por numero y fecha. */
+export const loadAccountingDocuments = async (): Promise<Option[]> =>
+  toOptions(rowsOf(await accountingService.listAccountingDocuments()), (r) => `${s(r.documentNo || r.id)} — ${s(r.postingDate).slice(0, 10)}`);
+
+/** Cuotas BNPL, por vencimiento e importe: es como las reconoce quien concilia. */
+export const loadInstallments = async (): Promise<Option[]> =>
+  (await b2bService.listInstallments()).map((row) => ({
+    value: s(row.id),
+    label: `Cuota ${s(row.installmentNumber)} — vence ${s(row.dueDate).slice(0, 10)} — ${s(row.amount)} (${s(row.status)})`,
+  }));
+
+/** Pagos pendientes al comercio. */
+export const loadPayables = async (): Promise<Option[]> =>
+  (await b2bService.listPayables()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.amount)} — ${s(row.status)} (programado ${s(row.scheduledPaymentDate).slice(0, 10)})`,
+  }));
+
+/** Recuperaciones abiertas, por mora e importe cubierto. */
+export const loadRecoveries = async (): Promise<Option[]> =>
+  (await b2bService.listRecoveries()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.recoveryStatus)} — cubierto ${s(row.amountCoveredByAtlas)} — ${s(row.daysPastDue)} dias de mora`,
+  }));
+
+/** Conjuntos de anuncios, por nombre y modelo de compra (CPM o CPC). */
+export const loadAdSets = async (): Promise<Option[]> =>
+  (await adsService.listAdSets()).map((row) => ({
+    value: s((row as ResourceRow).id),
+    label: `${s((row as ResourceRow).name)} — ${s((row as ResourceRow).buyingModel)}`,
+  }));
+
+/** Creatividades disponibles. */
+export const loadCreatives = async (): Promise<Option[]> =>
+  (await adsService.listCreatives()).map((row) => ({
+    value: s((row as ResourceRow).id),
+    label: `${s((row as ResourceRow).name)} — ${s((row as ResourceRow).creativeType)}`,
+  }));
+
+/** Espacios publicitarios donde se puede entregar. */
+export const loadPlacements = async (): Promise<Option[]> =>
+  (await adsService.listPlacements()).map((row) => ({
+    value: s((row as ResourceRow).id),
+    label: `${s((row as ResourceRow).code)} — ${s((row as ResourceRow).surface)}`,
+  }));
+
+/** Facturas de comercio, por numero y estado. */
+export const loadMerchantInvoices = async (): Promise<Option[]> =>
+  (await b2bService.listMerchantInvoices()).map((row) => ({
+    value: s(row.id),
+    label: `${s(row.invoiceNumber)} — ${s(row.totalAmount)} (${s(row.status)})`,
+  }));
+
+/**
+ * Eventos de entrega recientes, para corregir su elegibilidad de facturacion.
+ *
+ * El monitor de arriba ya los lista; lo que faltaba era poder ELEGIR uno. Pedir «el UUID exacto del
+ * evento seleccionado en el monitor» obligaba a copiarlo a mano de una tabla a un campo de texto.
+ */
+export const loadDeliveryEvents = async (): Promise<Option[]> =>
+  toOptions(rowsOf(await adsService.getDeliveryMonitor({ page: 1, pageSize: 100 })), (r) =>
+    `${s(r.eventType)} — ${s(r.occurredAt).slice(0, 16).replace('T', ' ')} — ${s(r.billableStatus)}`);

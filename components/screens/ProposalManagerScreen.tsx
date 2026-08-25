@@ -12,6 +12,8 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { formatBob } from '@/lib/formatters';
 import type { JsonObject } from '@/services/types';
+import { useOptions } from '@/hooks/useOptions';
+import { loadOpportunities } from '@/services/optionLoaders';
 
 interface ProposalLine {
   id: string;
@@ -26,6 +28,8 @@ interface ProposalLine {
 const emptyLine = (id: string): ProposalLine => ({ id, termType: 'MDR', description: '', ratePercent: '', fixedAmount: '', billingTiming: 'PER_TRANSACTION', minimumMonthlyAmount: '' });
 
 export function ProposalManagerScreen() {
+  /* Las oportunidades se ELIGEN: el backend las expone y nadie se sabe un uuid. */
+  const oportunidades = useOptions(loadOpportunities);
   const [lines, setLines] = useState<ProposalLine[]>([emptyLine('line-0')]);
   const [proposalId, setProposalId] = useState('');
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createProposal(payload), []));
@@ -73,7 +77,7 @@ export function ProposalManagerScreen() {
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
           <Panel title="Identificación de la propuesta" icon="description">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><FormField label="UUID oportunidad" name="opportunityId" required className="xl:col-span-2" /><FormField label="Número de propuesta" name="proposalNumber" required placeholder="CP-2026-001" /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="UUID creado" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Se completa después de guardar." /></div>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField label="Número de propuesta" name="proposalNumber" required placeholder="CP-2026-001" /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="Propuesta creada" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Lo asigna el sistema al guardar." /></div>
           </Panel>
 
           <Panel title="Términos comerciales" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>

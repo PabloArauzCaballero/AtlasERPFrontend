@@ -35,6 +35,27 @@ export const b2bService = {
     const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
     return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/qualify`, { method: 'POST', body });
   },
+  listMerchantInvoices() {
+    return apiRequest<ResourceRow[]>('/b2b/billing/invoices');
+  },
+  listInstallments() {
+    return apiRequest<ResourceRow[]>('/b2b/coverage/installments');
+  },
+  listPayables() {
+    return apiRequest<ResourceRow[]>('/b2b/coverage/payables');
+  },
+  listRecoveries() {
+    return apiRequest<ResourceRow[]>('/b2b/coverage/recoveries');
+  },
+  listProposals() {
+    return apiRequest<ResourceRow[]>('/b2b/proposals');
+  },
+  listApprovals(onlyPending = true) {
+    return apiRequest<ResourceRow[]>('/b2b/proposals/approvals', { query: { onlyPending: onlyPending ? 'true' : 'false' } });
+  },
+  listContracts() {
+    return apiRequest<ResourceRow[]>('/b2b/contracts');
+  },
   listOpportunities(query?: { accountId?: string; stage?: string }) {
     return apiRequest<ResourceRow[]>('/b2b/opportunities', query ? { query } : {});
   },
