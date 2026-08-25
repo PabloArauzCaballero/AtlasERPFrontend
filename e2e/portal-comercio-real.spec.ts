@@ -21,6 +21,14 @@ const COMERCIO = { email: 'pabliarca@gmail.com', password: '72107014Casa_' };
 
 test.describe.configure({ mode: 'serial' });
 
+/*
+ * Margen amplio a propósito. Esto corre contra el stack local COMPLETO —dos backends, Postgres,
+ * Redis, MinIO y el servidor de desarrollo— en la misma máquina, y el login hace hash de contraseña,
+ * que es CPU pura. Con la máquina cargada el mismo login pasa de 0,2 s a 6 s sin que nada esté roto.
+ * Un timeout corto aquí no detecta un fallo: fabrica uno.
+ */
+test.setTimeout(180_000);
+
 /**
  * Ninguna pantalla puede quedarse en un error.
  *
@@ -40,7 +48,7 @@ test.beforeEach(async ({ page }) => {
   await page.locator('input[name="email"]').fill(COMERCIO.email);
   await page.locator('input[name="password"]').fill(COMERCIO.password);
   await page.getByRole('button', { name: /iniciar sesi/i }).click();
-  await page.waitForURL(/\/portal-comercio\//, { timeout: 45_000 });
+  await page.waitForURL(/\/portal-comercio\//, { timeout: 120_000 });
 });
 
 test('el menú ya no ofrece «Registro BNPL»', async ({ page }) => {
@@ -52,7 +60,7 @@ test('el menú ya no ofrece «Registro BNPL»', async ({ page }) => {
 
 test('las tarifas se cobran por alcance y por clic, sin cuota ni tope de sucursales', async ({ page }) => {
   await page.goto('/portal-comercio/planes');
-  await expect(page.getByRole('heading', { name: /tarifas de publicidad/i })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /tarifas de publicidad/i })).toBeVisible({ timeout: 120_000 });
 
   // Las dos unidades de cobro, en las tres tarifas.
   await expect(page.getByText(/por cada 1\.000 personas/i).first()).toBeVisible();
@@ -68,7 +76,7 @@ test('las tarifas se cobran por alcance y por clic, sin cuota ni tope de sucursa
 
 test('las solicitudes de compra no tienen ningún campo editable', async ({ page }) => {
   await page.goto('/portal-comercio/solicitudes');
-  await expect(page.getByRole('heading', { name: /solicitudes de compra/i })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /solicitudes de compra/i })).toBeVisible({ timeout: 120_000 });
 
   // El expediente se resuelve solo: el portal sabe cuál es su comercio.
   await expect(page.getByText(/expediente \d+/i)).toBeVisible();
@@ -83,14 +91,14 @@ test('las solicitudes de compra no tienen ningún campo editable', async ({ page
 
 test('el comercio es su propio anunciante: no hay que elegirlo', async ({ page }) => {
   await page.goto('/portal-comercio/campanas');
-  await expect(page.getByRole('heading', { name: /campa/i }).first()).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /campa/i }).first()).toBeVisible({ timeout: 120_000 });
   // El desplegable de anunciante desaparece cuando sólo hay uno, que es siempre para un comercio.
   await expect(page.getByLabel(/^anunciante$/i)).toHaveCount(0);
 });
 
 test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) => {
   await page.goto('/portal-comercio/sucursales-usuarios');
-  await expect(page.getByRole('heading', { name: /sucursales/i }).first()).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /sucursales/i }).first()).toBeVisible({ timeout: 120_000 });
 
   const tabla = page.locator('table').first();
   await expect(tabla).toBeVisible({ timeout: 30_000 });
@@ -110,7 +118,7 @@ test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) =>
 
 test('los comprobantes de transferencia los verifica el comercio', async ({ page }) => {
   await page.goto('/portal-comercio/comprobantes');
-  await expect(page.getByRole('heading', { name: /comprobantes por verificar/i })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /comprobantes por verificar/i })).toBeVisible({ timeout: 120_000 });
 
   // El expediente se resuelve solo, igual que en solicitudes.
   await expect(page.getByText(/expediente \d+/i)).toBeVisible();
@@ -141,7 +149,7 @@ test('el menú ofrece verificar comprobantes', async ({ page }) => {
 
 test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => {
   await page.goto('/portal-comercio/cartera');
-  await expect(page.getByRole('heading', { name: /mi cartera/i })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /mi cartera/i })).toBeVisible({ timeout: 120_000 });
 
   // El panel: las cuatro cifras que el comercio mira primero.
   const resumen = page.locator('[data-tutorial-id="cartera-resumen"]');

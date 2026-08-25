@@ -15,6 +15,15 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
+  /*
+   * Los 5 s por defecto de `expect` están pensados para una pantalla que ya tiene sus datos. Las
+   * baterías `*-real` esperan a DOS backends en la misma máquina que corre el servidor de
+   * desarrollo, y con la máquina cargada una lectura que normalmente tarda 300 ms tarda varios
+   * segundos. Con el default, el aserto se evalúa mientras el panel todavía dice «Procesando» y
+   * falla por llegar pronto, no por estar mal: exactamente la clase de rojo que enseña a
+   * desconfiar de la batería.
+   */
+  expect: { timeout: 20_000 },
   fullyParallel: false,
   reporter: [['list']],
   use: {

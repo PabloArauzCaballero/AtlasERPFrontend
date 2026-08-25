@@ -18,6 +18,14 @@ const INTERNO = {
 
 test.describe.configure({ mode: 'serial' });
 
+/*
+ * Margen amplio a propósito. Esto corre contra el stack local COMPLETO —dos backends, Postgres,
+ * Redis, MinIO y el servidor de desarrollo— en la misma máquina, y el login hace hash de contraseña,
+ * que es CPU pura. Con la máquina cargada el mismo login pasa de 0,2 s a 6 s sin que nada esté roto.
+ * Un timeout corto aquí no detecta un fallo: fabrica uno.
+ */
+test.setTimeout(180_000);
+
 test.beforeEach(async ({ page }) => {
   test.skip(!INTERNO.email || !INTERNO.password, 'Sin PW_INTERNAL_EMAIL/PW_INTERNAL_PASSWORD.');
   await page.goto('/login');
@@ -26,13 +34,13 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('button', { name: /iniciar sesi/i }).click();
 
   // Si el segundo factor sigue activo, el login se queda en el paso del código: no se finge.
-  const entro = await page.waitForURL(/\/operaciones/, { timeout: 45_000 }).then(() => true).catch(() => false);
+  const entro = await page.waitForURL(/\/operaciones/, { timeout: 120_000 }).then(() => true).catch(() => false);
   test.skip(!entro, 'El login interno exige segundo factor en este entorno.');
 });
 
 test('la cola de aprobaciones se lee del backend', async ({ page }) => {
   await page.goto('/operaciones/crm/aprobaciones');
-  await expect(page.getByRole('heading', { name: /excepciones de mdr/i })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /excepciones de mdr/i })).toBeVisible({ timeout: 120_000 });
 
   // Ya no admite carecer de lectura, y la métrica sale de la propia cola.
   await expect(page.getByText(/sin lectura disponible/i)).toHaveCount(0);
@@ -45,7 +53,7 @@ test('la cola de aprobaciones se lee del backend', async ({ page }) => {
 
 test('el tablero de oportunidades se lee del servidor', async ({ page }) => {
   await page.goto('/operaciones/crm/oportunidades');
-  await expect(page.getByRole('heading', { name: /oportunidad/i }).first()).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /oportunidad/i }).first()).toBeVisible({ timeout: 120_000 });
   // No queda ni rastro del aviso de que el pipeline no se podía leer.
   await expect(page.getByText(/todav[ií]a no expone un get/i)).toHaveCount(0);
   await expect(page.getByText(/no inventa registros hist/i)).toHaveCount(0);
@@ -53,7 +61,7 @@ test('el tablero de oportunidades se lee del servidor', async ({ page }) => {
 
 test('la activación muestra controles reales, no un 100 % dibujado', async ({ page }) => {
   await page.goto('/operaciones/crm/activacion-comercio');
-  await expect(page.getByRole('heading', { name: /activaci/i }).first()).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: /activaci/i }).first()).toBeVisible({ timeout: 120_000 });
 
   // Sin caso elegido no se afirma nada: antes decía 100 % siempre.
   await expect(page.getByText(/sin caso elegido/i)).toBeVisible();
@@ -64,7 +72,7 @@ test('la activación muestra controles reales, no un 100 % dibujado', async ({ p
 test('la comisión por venta se configura en el alta, por segmento', async ({ page }) => {
   await page.goto('/operaciones/crm/onboarding');
   const panel = page.locator('[data-tutorial-id="mdr-reglas"]');
-  await expect(panel).toBeVisible({ timeout: 45_000 });
+  await expect(panel).toBeVisible({ timeout: 120_000 });
 
   // Es parte del alta, no una pantalla suelta.
   await expect(panel.getByText(/se acuerda en el alta/i)).toBeVisible();

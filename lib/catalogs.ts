@@ -170,6 +170,13 @@ export const industryOptions: CatalogOption[] = [
  * `b2b_accounts.category` acababa con variantes que no agrupan ni filtran. Un dato que sirve para
  * segmentar tiene que venir de un catalogo cerrado.
  */
+/*
+ * Estos valores tienen que coincidir EXACTAMENTE con `PARTNER_BUSINESS_CATEGORIES` de AtlasBackend:
+ * son los que el borde acepta y los que agrupan el gasto del cliente y segmentan la comisión. Una
+ * etiqueta se puede retocar aquí; un `value`, no —cambiarlo por su cuenta hace que el select deje
+ * de reflejar lo que hay guardado, que es como el rubro de un comercio real llegó a verse como
+ * «Sin definir» teniéndolo puesto—.
+ */
 export const merchantCategoryOptions: CatalogOption[] = [
   { label: 'Retail / Comercio', value: 'RETAIL' },
   { label: 'Servicios profesionales', value: 'SERVICIOS' },

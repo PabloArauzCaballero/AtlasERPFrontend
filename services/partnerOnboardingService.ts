@@ -48,6 +48,15 @@ export interface PartnerBranch {
   addressLine: string | null;
   city: string | null;
   status: string;
+  /**
+   * La sucursal del ERP con la que se corresponde este local, cuando se declaro.
+   *
+   * Es el unico puente fiable entre las dos vistas de «sucursal» que tiene el sistema: la del ERP
+   * —donde se le asignan usuarios y se factura— y la del expediente —de donde cuelga el QR—. Se
+   * cruza por este campo y nunca por el nombre: dos locales pueden llamarse igual, y enseñar el QR
+   * equivocado manda el dinero a otra caja.
+   */
+  erpBranchId: string | null;
 }
 
 export interface PartnerQrCode {
@@ -100,6 +109,19 @@ export const partnerOnboardingService = {
   },
   getState(partnerId: string) {
     return apiRequest<PartnerOnboardingState>(`${RUTA}/${encodeURIComponent(partnerId)}/status`);
+  },
+  /** Cual es MI expediente. Sin esto la pantalla solo lo conocia justo despues de crearlo. */
+  mine() {
+    return apiRequest<{ profiles: { partnerId: string; legalName: string | null; tradeName: string | null; status: string }[] }>(
+      `${RUTA}/mine`,
+    );
+  },
+  /** Corrige nombre de fachada, rubro y telefono. Funciona con el expediente ya aprobado. */
+  updateCommercialProfile(partnerId: string, body: JsonObject) {
+    return apiRequest<PartnerProfile>(`${RUTA}/${encodeURIComponent(partnerId)}/commercial-profile`, {
+      method: 'PATCH',
+      body,
+    });
   },
   submit(partnerId: string) {
     return apiRequest<PartnerProfile>(`${RUTA}/${encodeURIComponent(partnerId)}/submit`, { method: 'POST' });

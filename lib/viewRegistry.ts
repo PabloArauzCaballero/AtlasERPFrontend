@@ -23,7 +23,7 @@ export const atlasViewLinks: AtlasViewLink[] = [
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Onboarding comercio', href: '/operaciones/crm/onboarding', status: 'solo-accion', backend: 'POST/PATCH /b2b/onboarding' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Activación de comercio', href: '/operaciones/crm/activacion-comercio', status: 'solo-accion', backend: 'PATCH /b2b/onboarding/cases/:id/activate' },
   { area: 'Portal comercio', phase: 'Comercio', title: 'Sucursales y usuarios merchant', href: '/portal-comercio/sucursales-usuarios', status: 'solo-accion', backend: 'POST /b2b/onboarding/branches | merchant-users' },
-  { area: 'Portal comercio', phase: 'Comercio', title: 'Registrar compra BNPL', href: '/portal-comercio/compras-bnpl', status: 'solo-accion', backend: 'POST /b2b/bnpl/purchases' },
+  { area: 'Portal comercio', phase: 'Comercio', title: 'Mi empresa', href: '/portal-comercio/expediente', status: 'integrada', backend: 'GET /partner-onboarding/mine | :id/status · PATCH :id/commercial-profile' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Facturación B2B', href: '/operaciones/crm/facturacion', status: 'solo-accion', backend: 'POST /b2b/billing/*' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Conciliación y cobertura', href: '/operaciones/crm/conciliacion-cobertura', status: 'solo-accion', backend: 'POST/PATCH /b2b/coverage | reconciliation' },
   { area: 'Panel operaciones', phase: 'Contabilidad', title: 'Estructura financiera', href: '/operaciones/contabilidad/estructura', status: 'solo-accion', backend: 'POST /accounting/financial-structure/*' },

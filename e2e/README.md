@@ -45,3 +45,22 @@ No corras `npm run build` con el servidor de desarrollo levantado: reescribe `.n
 en marcha se queda con módulos que ya no existen —la página sirve 200 y carga sus recursos con
 404, así que se ve en blanco sin decir por qué—. Se cura parando el servidor, borrando `.next` y
 arrancando de nuevo.
+
+## El QR se comprueba LEYENDOLO
+
+`mi-empresa-real.spec.ts` cubre «Mi empresa» contra el backend real: que la pantalla reconozca el
+expediente ya existente, que el rubro sea un catálogo que muestre el valor guardado, y que al abrir
+una sucursal aparezca el QR de su caja.
+
+Ese último punto no se puede dar por bueno mirando la captura. Un QR mal codificado —un fallo en la
+corrección de errores o en la máscara— se ve exactamente igual de cuadriculado que uno bueno, y el
+error aparece recién en la caja, con el cliente delante. Por eso la prueba guarda el QR recortado y
+se verifica aparte con el lector de códigos del sistema:
+
+```bash
+npx playwright test e2e/mi-empresa-real.spec.ts
+python3 scripts/verificar-qr.py docs/visual-evidence/portal-comercio/qr-sucursal-cpa.png CPA-CENTRO-01
+```
+
+El generador (`lib/qr.ts`) no tiene dependencias, así que nadie más garantiza que su salida sea
+legible: esa segunda orden es la que lo garantiza.

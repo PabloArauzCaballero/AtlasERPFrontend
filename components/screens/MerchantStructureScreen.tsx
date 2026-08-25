@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
+import { QrCanvas } from '@/components/atlas/QrCanvas';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -15,6 +16,7 @@ import { useOptions } from '@/hooks/useOptions';
 import { formDataToPayload } from '@/lib/formPayload';
 import { b2bService } from '@/services/b2bService';
 import { portalService } from '@/services/portalService';
+import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 export function MerchantStructureScreen() {
@@ -85,6 +87,39 @@ export function MerchantStructureScreen() {
     } catch { /* shown inline */ } finally { setOcupada(null); }
   }
 
+  /*
+   * El QR que se imprime para una sucursal.
+   *
+   * Vive en el expediente del comercio (AtlasBackend) y no en el ERP, asi que hay que cruzarlo. El
+   * cruce es por `erpBranchId` —el campo con el que el expediente declara a que sucursal del ERP
+   * corresponde cada local— y NUNCA por el nombre: dos locales pueden llamarse «Sucursal Centro», y
+   * enseñar el QR de la otra tienda manda el cobro a la caja equivocada. Si no hay declaracion, se
+   * dice que no la hay.
+   */
+  const [qrAbierto, setQrAbierto] = useState<string | null>(null);
+  const red = useAsyncResource<PartnerOnboardingState | null>(
+    useCallback(async () => {
+      // `mine` responde sobre la sesion de un COMERCIO. Un usuario interno de Atlas mirando esta
+      // pantalla no tiene expediente propio, y preguntarlo solo produciria un error que no
+      // significa nada para el.
+      if (!scope.isMerchant) return null;
+      const propios = await partnerOnboardingService.mine();
+      const propio = propios.profiles?.[0];
+      if (!propio) return null;
+      return partnerOnboardingService.getState(propio.partnerId);
+    }, [scope.isMerchant]),
+    true,
+  );
+  const redDatos = red.data ?? null;
+
+  /** Los terminales del local del expediente enlazado con ESTA sucursal del ERP. */
+  function terminalesDe(erpBranchId: string) {
+    if (!redDatos) return null;
+    const local = redDatos.branches.find((branch) => branch.erpBranchId === erpBranchId);
+    if (!local) return null;
+    return redDatos.posTerminals.filter((pos) => pos.branchId === local.branchId);
+  }
+
   async function submitBranch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try { await branchMutation.execute(formDataToPayload(new FormData(event.currentTarget), [{ name: 'accountId' }, { name: 'name' }, { name: 'city' }, { name: 'address', optional: true }])); event.currentTarget.reset(); if (queryAccountId) await branches.reload(); } catch { /* shown inline */ }
@@ -138,8 +173,13 @@ export function MerchantStructureScreen() {
             <table className="w-full min-w-[680px] text-left text-xs">
               <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Sucursal</th><th className="p-2.5">Ciudad</th><th className="p-2.5">Dirección</th><th className="p-2.5">BNPL</th><th className="p-2.5">Estado</th><th className="p-2.5 text-right">Acciones</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
-                {branchRows.map((branch) => (
-                  <tr key={String(branch.id)}>
+                {branchRows.map((branch) => {
+                  const id = String(branch.id);
+                  const abierto = qrAbierto === id;
+                  const terminales = abierto ? terminalesDe(id) : null;
+                  return (
+                  <Fragment key={id}>
+                  <tr>
                     <td className="p-2.5 font-semibold text-slate-800">{String(branch.name ?? '—')}</td>
                     <td className="p-2.5 text-slate-600">{String(branch.city ?? '—')}</td>
                     <td className="p-2.5 text-slate-600">{String(branch.address ?? '—')}</td>
@@ -147,6 +187,9 @@ export function MerchantStructureScreen() {
                     <td className="p-2.5"><StatusPill tone={String(branch.status) === 'ACTIVE' ? 'success' : 'warning'}>{String(branch.status ?? '—')}</StatusPill></td>
                     <td className="p-2.5">
                       <div className="flex justify-end gap-1.5">
+                        <AtlasButton variant="secondary" icon="qr_code_2" data-testid={`ver-qr-${id}`} onClick={() => setQrAbierto(abierto ? null : id)}>
+                          {abierto ? 'Ocultar QR' : 'Ver QR'}
+                        </AtlasButton>
                         <AtlasButton variant="secondary" icon="edit" onClick={() => setEditando(branch)}>Editar</AtlasButton>
                         <AtlasButton variant={String(branch.status) === 'ACTIVE' ? 'danger' : 'success'} icon={String(branch.status) === 'ACTIVE' ? 'block' : 'check'} loading={ocupada === String(branch.id)} onClick={() => void cambiarEstado(branch)}>
                           {String(branch.status) === 'ACTIVE' ? 'Dar de baja' : 'Reactivar'}
@@ -154,7 +197,40 @@ export function MerchantStructureScreen() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  {abierto ? (
+                    <tr>
+                      <td colSpan={6} className="bg-slate-50/70 p-3" data-testid={`qr-de-${id}`}>
+                        {red.status === 'loading' ? (
+                          <p className="text-slate-600">Buscando el QR de esta sucursal…</p>
+                        ) : terminales === null ? (
+                          <p className="text-slate-600">
+                            Esta sucursal no está enlazada con ningún local del expediente, así que no se puede saber
+                            cuál es su QR sin arriesgarse a mostrar el de otra tienda. Regístrala en{' '}
+                            <strong>Mi empresa</strong> indicando esta sucursal.
+                          </p>
+                        ) : terminales.length === 0 ? (
+                          <p className="text-slate-600">
+                            El local existe en el expediente pero todavía no tiene ninguna caja dada de alta, así que
+                            no hay QR que imprimir.
+                          </p>
+                        ) : (
+                          <div className="flex flex-wrap gap-4">
+                            {terminales.map((pos) => (
+                              <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
+                                <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
+                                <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
+                                <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
+                                <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ) : null}
+                  </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -176,12 +176,30 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
 
   '/portal-comercio/expediente': {
     eyebrow: 'Portal del comercio',
-    title: 'Expediente del negocio',
-    intro: 'El legajo con el que Atlas comprueba que tu negocio existe, opera y cobra donde dice cobrar.',
+    title: 'Mi empresa',
+    intro: 'Los datos de tu negocio, dónde opera, con qué cobra y el QR que escanean tus clientes.',
     sections: [
       {
         title: 'Se abre una vez y se completa por partes',
         body: 'No hay que terminarlo de una sentada. Se abre el expediente, y a partir de ahí se van sumando sucursales, QR y terminales cuando los tengas a mano.',
+      },
+      {
+        title: 'Qué puedes corregir y qué no',
+        body: 'El nombre comercial, el rubro y el teléfono los cambias cuando quieras, incluso con el negocio ya aprobado: son datos que se mueven con el negocio vivo. La razón social, el NIT y la matrícula no, porque son contra lo que Atlas verificó que tu empresa es tu empresa.',
+        tip: 'El rubro no es decorativo: agrupa tu cartera y entra en el cálculo de tu comisión.',
+      },
+      {
+        title: 'Abre una sucursal para ver su QR',
+        body: 'Al pulsar sobre una sucursal se despliega el código de cada una de sus cajas. Ese es el QR que hay que imprimir y dejar en el mostrador: es lo que tu cliente apunta con el teléfono para pedir su compra en cuotas.',
+        tip: 'Si la sucursal no tiene ninguna caja dada de alta todavía, no hay QR que imprimir: regístrala en «Terminales POS».',
+      },
+      {
+        title: 'El QR lleva el código de la caja, no tu nombre',
+        body: 'Dentro del cuadro no va el nombre de tu negocio: va el código de esa caja, y el nombre lo pone Atlas cuando el teléfono lo consulta. Es lo que impide que alguien imprima un QR con tu nombre y cobre por ti.',
+      },
+      {
+        title: 'Un terminal suspendido deja de cobrar en el acto',
+        body: 'Si pierdes un equipo o cierras una caja, cámbiale el estado: desde ese momento el teléfono del cliente rechaza ese código, aunque el cartel siga pegado en la pared.',
       },
       {
         title: 'De la sucursal cuelga todo lo demás',
