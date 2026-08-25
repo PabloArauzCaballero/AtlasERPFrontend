@@ -10,6 +10,32 @@ import type { ScreenGuide } from '../tutorial-types';
  * esperabas.
  */
 export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
+  '/portal-comercio/solicitudes': {
+    eyebrow: 'Portal del comercio',
+    title: 'Solicitudes de compra',
+    intro: 'Lo que tus clientes pidieron escaneando el QR del local, esperando tu sí o tu no.',
+    sections: [
+      {
+        title: 'Cómo llega una solicitud aquí',
+        body: 'El cliente escanea el QR de tu local, pide un importe y el motor de decisión resuelve si lo aprueba y en cuántas cuotas. Sólo llegan aquí las que aprobó: las que no, ni las ves.',
+      },
+      {
+        title: 'Sólo puedes aceptar o rechazar',
+        body: 'No hay ningún campo editable, y esa ausencia es la función de la pantalla. El importe y el calendario los fijó el motor con el historial del cliente delante; cambiarlos desde el mostrador sería rehacer esa decisión sin el dato que la sostiene.',
+      },
+      {
+        title: 'Rechazar exige un motivo',
+        body: 'Puedes rechazar —el cliente se arrepintió, no tienes el producto, el importe no cuadra con la venta—, pero tienes que decir cuál. Es lo que después permite distinguir un problema tuyo de un problema del cliente.',
+      },
+      {
+        title: 'No ves quién es el cliente',
+        body: 'A propósito. Decides sobre la operación: importe, plazo, que el motor la aprobó. Enseñarte su expediente convertiría cada compra en una consulta de historial crediticio que esa persona no autorizó.',
+      },
+    ],
+    backend: 'GET/POST /merchant-credit/:partnerId/applications',
+    tutorialId: 'portal-solicitudes',
+  },
+
   '/portal-comercio/planes': {
     eyebrow: 'Portal del comercio',
     title: 'Planes y suscripción',
@@ -94,7 +120,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
   '/portal-comercio/compras-bnpl': {
     eyebrow: 'Portal del comercio',
     title: 'Registro de compras BNPL',
-    intro: 'Registra una venta a crédito con el esquema 60/40 y su calendario de cuotas.',
+    intro: 'Registra una venta a crédito con el esquema 60/40 y su calendario de cuotas. Es el canal para lo que NO nació de un QR: si el cliente escaneó, la venta te llega ya resuelta a «Solicitudes de compra» y ahí sólo se acepta o se rechaza.',
     sections: [
       {
         title: 'Cómo se reparte el importe',

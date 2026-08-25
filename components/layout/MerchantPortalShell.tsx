@@ -12,6 +12,8 @@ import { NavDrawer } from './NavDrawer';
 import { isActivePath } from './navigation';
 
 const links = [
+  /* Lo primero del menu: es la pantalla donde el comercio responde a sus clientes. */
+  { href: '/portal-comercio/solicitudes', label: 'Solicitudes de compra', icon: 'inbox' },
   { href: '/portal-comercio/planes', label: 'Planes y suscripción', icon: 'workspace_premium' },
   { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
   { href: '/portal-comercio/campanas', label: 'Campañas', icon: 'campaign' },

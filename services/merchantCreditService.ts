@@ -1,0 +1,50 @@
+import { apiRequest } from '@/lib/apiClient';
+import type { JsonObject } from './types';
+
+/** Una solicitud esperando la respuesta del comercio. Sin identidad del cliente, a propósito. */
+export interface SolicitudDeCompra {
+  applicationId: string;
+  applicationCode: string;
+  status: string;
+  requestedAmount: string | number;
+  requestedTermMonths: number;
+  currencyCode: string;
+  businessAcceptance: string | null;
+  submittedAt: string;
+}
+
+export interface ExpedientePropio {
+  partnerId: string;
+  legalName: string | null;
+  tradeName: string | null;
+  status: string;
+}
+
+/**
+ * Las compras que el cliente pidió en el local y el motor aprobó.
+ *
+ * No hay ningún método para MODIFICAR una solicitud, y es deliberado: el importe y el esquema de
+ * pagos los fijó el motor de decisión al aprobarla. Si el comercio pudiera cambiarlos estaría
+ * deshaciendo desde el mostrador la decisión que sostiene el riesgo de la operación.
+ */
+export const merchantCreditService = {
+  /** Cuál es mi expediente. El portal no lo sabía: sólo lo conocía justo tras crearlo. */
+  misExpedientes() {
+    return apiRequest<{ profiles: ExpedientePropio[] }>('/partner-onboarding/mine');
+  },
+
+  listar(partnerId: string, soloPendientes = true) {
+    return apiRequest<{ partnerProfileId: string; applications: SolicitudDeCompra[] }>(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/applications`,
+      { query: { onlyPending: soloPendientes ? 'true' : 'false' } },
+    );
+  },
+
+  /** `accepted: false` exige motivo: rechazar algo que el motor aprobó tiene que quedar explicado. */
+  decidir(partnerId: string, applicationId: string, body: JsonObject) {
+    return apiRequest<JsonObject>(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/applications/${encodeURIComponent(applicationId)}/acceptance`,
+      { method: 'POST', body },
+    );
+  },
+};
