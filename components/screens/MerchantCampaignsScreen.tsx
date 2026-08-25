@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { portalService } from '@/services/portalService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useMerchantScope } from '@/hooks/useMerchantScope';
@@ -35,6 +35,20 @@ export function MerchantCampaignsScreen() {
   );
 
   const [advertiserId, setAdvertiserId] = useState('');
+
+  /*
+   * El comercio ES el anunciante. No hay a quien elegir.
+   *
+   * Esta pantalla ofrecia un desplegable de anunciantes, y para un comercio ese desplegable tiene
+   * exactamente una opcion: el mismo. Pedirle que la elija es un paso que solo puede salir mal —o
+   * quedarse sin elegir y ver la pantalla vacia sin saber por que—. Se selecciona solo y el
+   * selector desaparece; queda visible unicamente para el staff interno, que si puede tener varios
+   * porque entra en nombre de comercios distintos.
+   */
+  const unicoAnunciante = advertiserOptions.length === 1 ? advertiserOptions[0] : undefined;
+  useEffect(() => {
+    if (unicoAnunciante && !advertiserId) setAdvertiserId(unicoAnunciante.value);
+  }, [unicoAnunciante, advertiserId]);
   const campaigns = useAsyncResource(
     useCallback(() => (advertiserId ? portalService.listCampaigns(advertiserId) : Promise.resolve([] as ResourceRow[])), [advertiserId]),
     Boolean(advertiserId),
@@ -73,7 +87,9 @@ export function MerchantCampaignsScreen() {
           {scope.isMerchant ? null : (
             <FormField kind="select" label="Comercio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]} />
           )}
-          <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: ready ? '— Seleccione un anunciante —' : '— Elija primero el comercio —', value: '' }, ...advertiserOptions]} />
+          {advertiserOptions.length > 1 ? (
+            <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Elija el anunciante —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
+          ) : null}
         </div>
       </Panel>
 

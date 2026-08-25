@@ -50,7 +50,9 @@ export function MultiActionWorkspace(props: MultiActionWorkspaceProps) {
               ))}
             </ol>
           </Panel>
-          <InlineNotice tone="info" title="Integridad referencial">Utilice UUID existentes para entidades relacionadas. El backend valida claves foráneas y revierte la operación si la referencia no es válida.</InlineNotice>
+          {/* Ya no se teclean identificadores: todo lo relacionado se elige de su catálogo. El aviso
+              pedía «utilice UUID existentes», que era la instrucción de cuando había que copiarlos a mano. */}
+          <InlineNotice tone="info" title="Integridad referencial">Lo que se relaciona con otra entidad se elige de su lista. El backend vuelve a validar la referencia y revierte la operación si no es válida.</InlineNotice>
         </aside>
       </div>
     </div>

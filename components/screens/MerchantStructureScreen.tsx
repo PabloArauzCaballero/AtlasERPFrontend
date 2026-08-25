@@ -43,6 +43,48 @@ export function MerchantStructureScreen() {
   );
   const branchRows = (branches.data ?? []) as ResourceRow[];
 
+  /*
+   * Editar y dar de baja una sucursal. Antes solo se podian CREAR: una sucursal con la direccion
+   * mal escrita se quedaba asi para siempre, y una que cerraba seguia figurando como abierta y
+   * habilitada para originar BNPL.
+   *
+   * No hay borrado a proposito. Una sucursal borrada se lleva por delante el historial de las
+   * ventas que origino, y esas cuotas siguen venciendo: lo que se necesita es que deje de operar,
+   * no que deje de haber existido.
+   */
+  const [editando, setEditando] = useState<ResourceRow | null>(null);
+  const [ocupada, setOcupada] = useState<string | null>(null);
+  const editMutation = useAtlasMutation(useCallback(({ id, body }: { id: string; body: JsonObject }) => b2bService.updateBranch(id, body), []));
+  const statusMutation = useAtlasMutation(useCallback(({ id, body }: { id: string; body: JsonObject }) => b2bService.setBranchStatus(id, body), []));
+
+  async function guardarEdicion(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editando) return;
+    const form = new FormData(event.currentTarget);
+    try {
+      await editMutation.execute({
+        id: String(editando.id),
+        body: {
+          name: String(form.get('name') ?? ''),
+          city: String(form.get('city') ?? ''),
+          address: String(form.get('address') ?? ''),
+          canOriginateBnpl: form.get('canOriginateBnpl') === 'true',
+        },
+      });
+      setEditando(null);
+      await branches.reload();
+    } catch { /* shown inline */ }
+  }
+
+  async function cambiarEstado(branch: ResourceRow) {
+    const activa = String(branch.status) === 'ACTIVE';
+    setOcupada(String(branch.id));
+    try {
+      await statusMutation.execute({ id: String(branch.id), body: { status: activa ? 'INACTIVE' : 'ACTIVE' } });
+      await branches.reload();
+    } catch { /* shown inline */ } finally { setOcupada(null); }
+  }
+
   async function submitBranch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try { await branchMutation.execute(formDataToPayload(new FormData(event.currentTarget), [{ name: 'accountId' }, { name: 'name' }, { name: 'city' }, { name: 'address', optional: true }])); event.currentTarget.reset(); if (queryAccountId) await branches.reload(); } catch { /* shown inline */ }
@@ -63,6 +105,25 @@ export function MerchantStructureScreen() {
         <form onSubmit={submitUser}><Panel title="Asociar usuario" description="Conceda acceso operativo al personal autorizado del comercio." icon="person_add"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" value={userAccountId} onChange={(e) => setUserAccountId(e.target.value)} options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField kind="select" label="Sucursal" name="branchId" options={[{ label: userAccountId ? '— Alcance global —' : '— Elija primero el comercio —', value: '' }, ...userBranchOptions]} hint="Opcional para usuarios con alcance global." /><FormField label="Nombre completo" name="fullName" required placeholder="Nombre del responsable" /><FormField label="Correo corporativo" name="email" type="email" required placeholder="usuario@empresa.com" /><FormField kind="select" label="Rol principal" name="roleCode" required defaultValue="MERCHANT_OPERATOR" options={[{ label: 'Administrador merchant', value: 'MERCHANT_ADMIN' }, { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' }, { label: 'Operador estándar', value: 'MERCHANT_OPERATOR' }, { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' }]} /></div>{userMutation.error ? <InlineNotice className="mt-4" tone="danger">{userMutation.error}</InlineNotice> : null}{userMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Usuario merchant asociado correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="person_add" loading={userMutation.isLoading}>Asociar usuario</AtlasButton></div></Panel></form>
       </div>
 
+      {editando ? (
+        <form onSubmit={guardarEdicion}>
+          <Panel title={`Editar ${String(editando.name ?? 'sucursal')}`} description="La sucursal no cambia de comercio: eso movería sus ventas de cuenta." icon="edit_location">
+            <div className="grid gap-3 md:grid-cols-2">
+              <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
+              <FormField label="Ciudad" name="city" required defaultValue={String(editando.city ?? '')} />
+              <FormField label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
+              <FormField kind="select" label="Puede originar BNPL" name="canOriginateBnpl" defaultValue={editando.canOriginateBnpl ? 'true' : 'false'} options={[{ label: 'Sí', value: 'true' }, { label: 'No', value: 'false' }]} hint="Una sucursal dada de baja no origina, aunque esto diga que sí." />
+            </div>
+            {editMutation.error ? <InlineNotice className="mt-4" tone="danger">{editMutation.error}</InlineNotice> : null}
+            <div className="mt-5 flex justify-end gap-2">
+              <AtlasButton variant="secondary" type="button" onClick={() => setEditando(null)}>Cancelar</AtlasButton>
+              <AtlasButton type="submit" icon="save" loading={editMutation.isLoading}>Guardar cambios</AtlasButton>
+            </div>
+          </Panel>
+        </form>
+      ) : null}
+      {statusMutation.error ? <InlineNotice tone="danger" title="No se pudo cambiar el estado">{statusMutation.error}</InlineNotice> : null}
+
       <Panel title="Sucursales registradas" description="Listado de sucursales del comercio seleccionado." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>}>
         {scope.isMerchant ? null : (
           <div className="mb-3 max-w-md">
@@ -75,7 +136,7 @@ export function MerchantStructureScreen() {
         ) : branchRows.length ? (
           <div className="table-scroll rounded-lg border border-slate-200">
             <table className="w-full min-w-[680px] text-left text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Sucursal</th><th className="p-2.5">Ciudad</th><th className="p-2.5">Dirección</th><th className="p-2.5">BNPL</th><th className="p-2.5">Estado</th></tr></thead>
+              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Sucursal</th><th className="p-2.5">Ciudad</th><th className="p-2.5">Dirección</th><th className="p-2.5">BNPL</th><th className="p-2.5">Estado</th><th className="p-2.5 text-right">Acciones</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {branchRows.map((branch) => (
                   <tr key={String(branch.id)}>
@@ -84,6 +145,14 @@ export function MerchantStructureScreen() {
                     <td className="p-2.5 text-slate-600">{String(branch.address ?? '—')}</td>
                     <td className="p-2.5">{branch.canOriginateBnpl ? <StatusPill tone="success" dot={false}>Sí</StatusPill> : <StatusPill tone="neutral" dot={false}>No</StatusPill>}</td>
                     <td className="p-2.5"><StatusPill tone={String(branch.status) === 'ACTIVE' ? 'success' : 'warning'}>{String(branch.status ?? '—')}</StatusPill></td>
+                    <td className="p-2.5">
+                      <div className="flex justify-end gap-1.5">
+                        <AtlasButton variant="secondary" icon="edit" onClick={() => setEditando(branch)}>Editar</AtlasButton>
+                        <AtlasButton variant={String(branch.status) === 'ACTIVE' ? 'danger' : 'success'} icon={String(branch.status) === 'ACTIVE' ? 'block' : 'check'} loading={ocupada === String(branch.id)} onClick={() => void cambiarEstado(branch)}>
+                          {String(branch.status) === 'ACTIVE' ? 'Dar de baja' : 'Reactivar'}
+                        </AtlasButton>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

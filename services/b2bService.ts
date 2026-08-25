@@ -108,6 +108,15 @@ export const b2bService = {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
     return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}`);
   },
+  updateBranch(branchId: string, body: JsonObject) {
+    const id = requireUuidPathParam(branchId, 'el UUID de la sucursal');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/branches/${id}`, { method: 'PATCH', body });
+  },
+  /** Alta y baja. No hay borrado: una sucursal cerrada tiene que seguir siendo consultable. */
+  setBranchStatus(branchId: string, body: JsonObject) {
+    const id = requireUuidPathParam(branchId, 'el UUID de la sucursal');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/branches/${id}/status`, { method: 'PATCH', body });
+  },
   createBranch(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/onboarding/branches', { method: 'POST', body });
   },
