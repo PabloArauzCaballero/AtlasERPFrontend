@@ -58,9 +58,9 @@ export function MerchantPlansScreen() {
   return (
     <div className="space-y-5">
       <WorkspaceHeader
-        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Planes' }]}
-        title="Planes y suscripción"
-        description="Elija el plan que mejor se ajusta a su comercio. La selección activa la suscripción y habilita las funciones incluidas."
+        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Tarifas' }]}
+        title="Tarifas de publicidad"
+        description="Usted paga por lo que la plataforma entrega: personas alcanzadas y clics recibidos. Sin cuota mensual y sin límite de sucursales."
       />
 
       <Panel compact>
@@ -93,7 +93,14 @@ export function MerchantPlansScreen() {
         {plans.map((plan) => {
           const planId = String(plan.id);
           const isCurrent = planId === currentPlanId;
-          const price = Number(plan.monthlyPrice ?? 0);
+          /*
+           * La tarifa, no una cuota. El comercio paga por lo que la plataforma le ENTREGA —personas
+           * alcanzadas y clics recibidos—, asi que el precio que decide una compra son estas dos
+           * cifras. Antes aqui se mostraba un importe mensual, que era lo unico que separaba a un
+           * plan de otro junto con un tope de sucursales que ningun codigo aplicaba.
+           */
+          const cpm = Number(plan.cpmPrice ?? 0);
+          const cpc = Number(plan.cpcPrice ?? 0);
           const features = Array.isArray(plan.features) ? (plan.features as string[]) : [];
           return (
             <section key={planId} className={`flex flex-col rounded-xl border bg-white p-5 shadow-sm ${isCurrent ? 'border-emerald-400 ring-2 ring-emerald-100' : 'border-slate-200'}`}>
@@ -102,10 +109,19 @@ export function MerchantPlansScreen() {
                 <StatusPill tone={tierTone[String(plan.tier)] ?? 'neutral'} dot={false}>{String(plan.tier)}</StatusPill>
               </div>
               <p className="mt-1 min-h-8 text-xs text-slate-500">{String(plan.description ?? '')}</p>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-2xl font-extrabold text-slate-900">{price === 0 ? 'Gratis' : formatBob(price)}</span>
-                {price > 0 ? <span className="text-xs text-slate-500">/ mes</span> : null}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Alcance</p>
+                  <p className="mt-1 text-xl font-extrabold text-slate-900">{formatBob(cpm)}</p>
+                  <p className="text-[11px] leading-4 text-slate-500">por cada 1.000 personas</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Clics</p>
+                  <p className="mt-1 text-xl font-extrabold text-slate-900">{formatBob(cpc)}</p>
+                  <p className="text-[11px] leading-4 text-slate-500">por clic recibido</p>
+                </div>
               </div>
+              <p className="mt-2 text-[11px] leading-4 text-slate-500">Sin cuota mensual. Usted fija el presupuesto de cada campana.</p>
               <ul className="mt-4 flex-1 space-y-2">
                 {features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-xs text-slate-700">

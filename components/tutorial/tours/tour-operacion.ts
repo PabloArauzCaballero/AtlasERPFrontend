@@ -256,36 +256,4 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
       },
     ],
   },
-
-  {
-    id: 'portal-bnpl',
-    title: 'Registrar una venta a crédito',
-    intro: 'El reparto 60/40 y el calendario de cuotas, paso a paso.',
-    version: 1,
-    steps: [
-      {
-        id: 'importe',
-        route: '/portal-comercio/compras-bnpl',
-        target: '[data-tutorial-id="workspace-header"]',
-        title: 'Sólo escribes el total de la compra',
-        content:
-          'El sistema calcula el 60 % que el cliente paga en el momento y el 40 % que se financia. No hace falta que hagas la cuenta.',
-      },
-      {
-        id: 'calendario',
-        target: '[data-tutorial-id="bnpl-schedule"]',
-        title: 'Revisa el calendario con el cliente delante',
-        content:
-          'Las fechas y los importes de cada cuota se muestran antes de registrar nada. Es exactamente lo que va a pagar, así que éste es el momento de comprobarlo.',
-        optional: true,
-      },
-      {
-        id: 'confirmar',
-        target: '[data-tutorial-id="workspace-header"]',
-        title: 'Una vez registrada, queda en firme',
-        content:
-          'Genera el compromiso de cobro. Corregir un error implica un ajuste, no una edición: merece la pena mirar dos veces antes de confirmar.',
-      },
-    ],
-  },
 ];

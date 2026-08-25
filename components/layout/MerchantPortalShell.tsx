@@ -18,7 +18,6 @@ const links = [
   { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
   { href: '/portal-comercio/campanas', label: 'Campañas', icon: 'campaign' },
   { href: '/portal-comercio/sucursales-usuarios', label: 'Sucursales', icon: 'storefront' },
-  { href: '/portal-comercio/compras-bnpl', label: 'Registro BNPL', icon: 'point_of_sale' },
   { href: '/portal-comercio/tutoriales', label: 'Centro de Tutoriales', icon: 'school' },
 ];
 

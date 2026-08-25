@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { b2bService } from '@/services/b2bService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
@@ -24,7 +24,30 @@ export function OpportunityPipelineScreen() {
   const accounts = useOptions(loadB2BAccounts);
   const owners = useOptions(loadInternalUsers);
   const [cards, setCards] = useState<ResourceRow[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [errorLectura, setErrorLectura] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
+  /*
+   * El tablero se lee del backend, que SI expone el pipeline (`GET /b2b/opportunities`).
+   *
+   * Antes el estado vivia solo en esta pantalla: al recargar, el tablero volvia a cero y las
+   * oportunidades creadas en sesiones anteriores no aparecian. Se veia como una herramienta vacia
+   * cuando en realidad los datos estaban guardados; nadie podia retomar el trabajo de ayer.
+   */
+  const recargar = useCallback(async () => {
+    setCargando(true);
+    try {
+      setCards(await b2bService.listOpportunities());
+      setErrorLectura(null);
+    } catch (fallo) {
+      setErrorLectura(fallo instanceof Error ? fallo.message : 'No fue posible leer el pipeline.');
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => { void recargar(); }, [recargar]);
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createOpportunity(payload), []));
   const moveMutation = useAtlasMutation(useCallback(({ id, body }: { id: string; body: JsonObject }) => b2bService.moveOpportunity(id, body), []));
   const totalVolume = useMemo(() => cards.reduce((sum, card) => sum + Number(card.expectedMonthlyVolume ?? 0), 0), [cards]);
@@ -38,7 +61,7 @@ export function OpportunityPipelineScreen() {
       expectedMonthlyVolume: Number(form.get('expectedMonthlyVolume') ?? 0), expectedMdrRate: Number(form.get('expectedMdrRate') ?? 0),
       probability: Number(form.get('probability') ?? 0), expectedCloseDate: String(form.get('expectedCloseDate') ?? '') || undefined,
     };
-    try { const created = await createMutation.execute(payload); setCards((current) => [created, ...current]); setShowCreate(false); } catch { /* controlled */ }
+    try { await createMutation.execute(payload); setShowCreate(false); await recargar(); } catch { /* controlled */ }
   }
 
   async function moveCard(event: React.FormEvent<HTMLFormElement>) {
@@ -48,8 +71,8 @@ export function OpportunityPipelineScreen() {
     const stage = String(form.get('stage') ?? 'DISCOVERY');
     const lossReason = String(form.get('lossReason') ?? '').trim();
     try {
-      const updated = await moveMutation.execute({ id, body: { stage, ...(lossReason ? { lossReason } : {}) } });
-      setCards((current) => current.map((card) => String(card.id) === id ? { ...card, ...updated } : card));
+      await moveMutation.execute({ id, body: { stage, ...(lossReason ? { lossReason } : {}) } });
+      await recargar();
     } catch { /* controlled */ }
   }
 
@@ -57,7 +80,7 @@ export function OpportunityPipelineScreen() {
     <div className="space-y-5">
       <WorkspaceHeader title="Opportunity Pipeline" description="Tablero comercial por etapa, probabilidad, volumen mensual y fecha estimada de cierre." breadcrumbs={[{ label: 'CRM' }, { label: 'Pipeline' }]} actions={<><AtlasButton variant="secondary" icon="file_download">Exportar</AtlasButton><AtlasButton icon="add" onClick={() => setShowCreate((value) => !value)}>Crear oportunidad</AtlasButton></>} />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Oportunidades en sesión" value={cards.length} detail="Creadas o actualizadas en esta sesión" icon="view_kanban" /><MetricCard label="Volumen proyectado" value={formatBob(totalVolume)} detail="Suma de oportunidades visibles" icon="payments" tone="teal" /><MetricCard label="En propuesta" value={cards.filter((card) => card.stage === 'PROPOSAL').length} detail="Requieren seguimiento" icon="request_quote" tone="amber" /><MetricCard label="Ganadas" value={cards.filter((card) => card.stage === 'CLOSED_WON').length} detail="Conversión de la sesión" icon="emoji_events" tone="purple" /></div>
-      <InlineNotice tone="info" title="Contrato backend actual">El backend permite crear y mover oportunidades, pero todavía no expone un GET del pipeline. El tablero conserva únicamente las operaciones realizadas durante esta sesión; no inventa registros históricos.</InlineNotice>
+      {errorLectura ? <InlineNotice tone="danger" title="No se pudo leer el pipeline">{errorLectura}</InlineNotice> : null}
 
       {showCreate ? <Panel title="Nueva oportunidad" icon="add_business" action={<button className="text-slate-500 hover:text-slate-900" onClick={() => setShowCreate(false)}><Icon name="close" /></button>}><form onSubmit={createOpportunity} className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Cuenta B2B" name="accountId" required options={[{ label: '— Elija la cuenta —', value: '' }, ...accounts]} /><FormField kind="select" label="Ejecutivo responsable" name="ownerUserId" required options={[{ label: '— Elija responsable —', value: '' }, ...owners]} /><FormField label="Nombre" name="name" required className="md:col-span-2" /><FormField kind="select" label="Tipo" name="opportunityType" options={[{ label: 'Nuevo comercio', value: 'NEW_MERCHANT' }, { label: 'Expansión', value: 'EXPANSION' }, { label: 'Renovación', value: 'RENEWAL' }]} /><FormField label="Volumen mensual" name="expectedMonthlyVolume" type="number" defaultValue="0" /><FormField label="MDR esperado (%)" name="expectedMdrRate" type="number" defaultValue="0" /><FormField label="Probabilidad (%)" name="probability" type="number" defaultValue="0" /><FormField label="Cierre esperado" name="expectedCloseDate" type="date" /><div className="flex items-end md:col-span-2 xl:col-span-3"><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Crear oportunidad</AtlasButton></div></form>{createMutation.error ? <div className="mt-3"><InlineNotice tone="danger">{createMutation.error}</InlineNotice></div> : null}</Panel> : null}
 

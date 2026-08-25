@@ -38,23 +38,28 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
 
   '/portal-comercio/planes': {
     eyebrow: 'Portal del comercio',
-    title: 'Planes y suscripción',
-    intro: 'El plan que tienes contratado y los que puedes contratar.',
+    title: 'Tarifas de publicidad',
+    intro: 'Lo que cuesta que la plataforma muestre tu comercio: por personas alcanzadas y por clics.',
     sections: [
       {
-        title: 'Elegir un plan lo activa',
-        body: 'No es una solicitud que alguien revisa después: al confirmar, la suscripción queda activa y las funciones incluidas se habilitan. Lo que cambia se refleja en tu facturación del período.',
+        title: 'Pagas por entrega, no por mes',
+        body: 'No hay cuota fija. Cada tarifa dice dos cosas: cuánto cuesta llegar a mil personas y cuánto cuesta un clic. Si una campaña no se entrega, no se cobra.',
       },
       {
-        title: 'Qué mirar antes de cambiar',
-        body: 'Cada plan lista lo que incluye. Si dependes de algo que el plan nuevo no trae, dejarás de tenerlo al cambiar.',
+        title: 'Las sucursales no cuentan',
+        body: 'Ningún plan limita cuántos locales tienes, y nunca los limitó de verdad. Un comercio con veinte sucursales no consume más plataforma: consume más alcance, y el alcance ya se cobra por alcance.',
       },
       {
-        title: 'Si algo no cuadra',
-        body: 'Habla con tu ejecutivo comercial antes de cambiar. Deshacer una suscripción no es inmediato.',
+        title: 'Qué cambia entre una tarifa y otra',
+        body: 'El precio por millar y por clic, que baja con el compromiso de inversión, y las herramientas de segmentación. Nada de esto te da o te quita funciones de operación: eso lo decide tu expediente, no lo que pagas por publicidad.',
+      },
+      {
+        title: 'El presupuesto lo pones tú',
+        body: 'La tarifa es el precio unitario; el gasto lo fijas en cada campaña con su presupuesto total y diario. Lo consumido se ve en «Consumo y facturación».',
       },
     ],
-    tutorialId: 'portal-primeros-pasos',
+    backend: 'GET /portal/plans · POST /portal/subscriptions',
+    tutorialId: 'portal-planes',
   },
 
   '/portal-comercio/facturacion': {
@@ -115,27 +120,6 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Retirar a alguien no borra lo que hizo: su historial se conserva, simplemente deja de poder entrar.',
       },
     ],
-  },
-
-  '/portal-comercio/compras-bnpl': {
-    eyebrow: 'Portal del comercio',
-    title: 'Registro de compras BNPL',
-    intro: 'Registra una venta a crédito con el esquema 60/40 y su calendario de cuotas. Es el canal para lo que NO nació de un QR: si el cliente escaneó, la venta te llega ya resuelta a «Solicitudes de compra» y ahí sólo se acepta o se rechaza.',
-    sections: [
-      {
-        title: 'Cómo se reparte el importe',
-        body: 'El cliente paga el 60 % en el momento y el 40 % restante se financia en cuotas. La pantalla calcula ambas partes: tú sólo escribes el total de la compra.',
-      },
-      {
-        title: 'Revisa el calendario antes de confirmar',
-        body: 'Las fechas y los importes de las cuotas se muestran antes de registrar. Es lo que el cliente va a pagar, así que es el momento de comprobarlo con él delante.',
-      },
-      {
-        title: 'Una vez registrada',
-        body: 'La operación queda en firme y genera el compromiso de cobro. Corregir un error implica un ajuste, no una edición: registra con cuidado.',
-      },
-    ],
-    tutorialId: 'portal-bnpl',
   },
 
   '/portal-comercio/expediente': {

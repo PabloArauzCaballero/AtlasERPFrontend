@@ -54,7 +54,8 @@ export function MerchantBillingScreen() {
       {ready && !billing.error ? (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Plan actual" value={String(summary.planName ?? 'Sin plan')} detail={summary.monthlyPlanPrice ? `${formatBob(Number(summary.monthlyPlanPrice))}/mes` : 'Sin costo mensual'} icon="workspace_premium" />
+            {/* La tarifa, no una cuota: desde que se cobra por entrega, el precio mensual es cero en todos los planes y anunciarlo como «sin costo mensual» hacia creer que el plan era gratis. */}
+            <MetricCard label="Tarifa actual" value={String(summary.planName ?? 'Sin tarifa')} detail="Se cobra por alcance y por clics" icon="workspace_premium" />
             <MetricCard label="Facturas emitidas" value={String(summary.invoiceCount ?? 0)} detail="Total histórico" icon="receipt_long" tone="teal" />
             <MetricCard label="Facturado" value={formatBob(Number(summary.invoicedTotal ?? 0))} detail="Monto acumulado" icon="payments" tone="purple" />
             <MetricCard label="Saldo pendiente" value={formatBob(Number(summary.openTotal ?? 0))} detail={`${String(summary.openReceivableCount ?? 0)} cobros abiertos`} icon="account_balance_wallet" tone="amber" />

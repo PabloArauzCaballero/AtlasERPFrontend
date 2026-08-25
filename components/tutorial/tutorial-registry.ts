@@ -109,14 +109,6 @@ const META: readonly TutorialMeta[] = [
     recommended: true,
     essential: true,
   },
-  {
-    id: 'portal-bnpl',
-    category: 'portal',
-    level: 'basico',
-    route: '/portal-comercio/compras-bnpl',
-    estimatedMinutes: 3,
-    prerequisites: ['portal-primeros-pasos'],
-  },
 ];
 
 export const TUTORIAL_META: Readonly<Record<string, TutorialMeta>> = Object.fromEntries(
