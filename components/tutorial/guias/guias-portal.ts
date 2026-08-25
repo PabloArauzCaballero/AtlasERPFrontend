@@ -36,6 +36,32 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     tutorialId: 'portal-solicitudes',
   },
 
+  '/portal-comercio/comprobantes': {
+    eyebrow: 'Portal del comercio',
+    title: 'Comprobantes por verificar',
+    intro: 'Lo que tus clientes dicen haber transferido a tu cuenta, esperando que lo confirmes.',
+    sections: [
+      {
+        title: 'Por qué lo confirmas tú',
+        body: 'El cliente transfiere al QR bancario de tu comercio, así que ese dinero entra en tu cuenta y no en la de Atlas. Nadie más puede mirar tu extracto: por eso la cuota se salda cuando tú dices que llegó.',
+      },
+      {
+        title: 'Un comprobante no es un pago',
+        body: 'Es evidencia de que alguien hizo una transferencia, no de que tú la recibiste. Comprueba el importe y la referencia contra tu extracto antes de confirmar; al confirmar, la cuota queda pagada de verdad.',
+      },
+      {
+        title: 'Rechazar exige un motivo',
+        body: 'No aparece en tu cuenta, el importe no cuadra, el comprobante no se lee. El motivo es lo que le permite al cliente corregirlo: sin él sólo sabe que le dijiste que no.',
+      },
+      {
+        title: 'Confirmar dos veces no cobra dos veces',
+        body: 'Cada aviso lleva su propio código y ese código es lo que impide el doble cobro. Si dudas de si ya lo confirmaste, míralo: lo confirmado desaparece de esta lista.',
+      },
+    ],
+    backend: 'GET/POST /merchant-credit/:partnerId/payment-claims',
+    tutorialId: 'portal-comprobantes',
+  },
+
   '/portal-comercio/planes': {
     eyebrow: 'Portal del comercio',
     title: 'Tarifas de publicidad',

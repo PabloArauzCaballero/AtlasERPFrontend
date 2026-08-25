@@ -85,8 +85,29 @@ test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) =>
   await expect(nombre).not.toHaveValue('');
 });
 
+test('los comprobantes de transferencia los verifica el comercio', async ({ page }) => {
+  await page.goto('/portal-comercio/comprobantes');
+  await expect(page.getByRole('heading', { name: /comprobantes por verificar/i })).toBeVisible({ timeout: 45_000 });
+
+  // El expediente se resuelve solo, igual que en solicitudes.
+  await expect(page.getByText(/expediente \d+/i)).toBeVisible();
+  // Y la pantalla dice de quién es la decisión y por qué.
+  await expect(page.getByText(/el dinero entra en su cuenta/i)).toBeVisible();
+  await expect(page.getByText(/por qué lo confirma usted/i)).toBeVisible();
+
+  // Lee del backend: o hay comprobantes, o dice que no hay ninguno. Nunca un error.
+  const vacio = page.getByText(/no hay comprobantes esperando/i);
+  const cola = page.locator('article').filter({ hasText: /por verificar/i });
+  await expect(vacio.or(cola.first())).toBeVisible({ timeout: 30_000 });
+});
+
+test('el menú ofrece verificar comprobantes', async ({ page }) => {
+  const menu = page.getByRole('navigation').first();
+  await expect(menu.getByText(/comprobantes por verificar/i)).toBeVisible();
+});
+
 test('ninguna pantalla del portal pide escribir un UUID', async ({ page }) => {
-  for (const ruta of ['/portal-comercio/solicitudes', '/portal-comercio/planes', '/portal-comercio/sucursales-usuarios', '/portal-comercio/facturacion']) {
+  for (const ruta of ['/portal-comercio/solicitudes', '/portal-comercio/comprobantes', '/portal-comercio/planes', '/portal-comercio/sucursales-usuarios', '/portal-comercio/facturacion']) {
     await page.goto(ruta);
     await page.waitForLoadState('networkidle');
     await expect(page.getByText(/\bUUID\b/i), `«UUID» visible en ${ruta}`).toHaveCount(0);

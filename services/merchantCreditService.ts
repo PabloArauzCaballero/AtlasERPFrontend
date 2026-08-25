@@ -27,6 +27,20 @@ export interface ExpedientePropio {
  * pagos los fijó el motor de decisión al aprobarla. Si el comercio pudiera cambiarlos estaría
  * deshaciendo desde el mostrador la decisión que sostiene el riesgo de la operación.
  */
+/** Un comprobante de transferencia esperando la palabra del comercio. */
+export interface ComprobanteDePago {
+  claimId: string;
+  claimCode: string;
+  installmentId: string;
+  claimedAmount: string | number;
+  currencyCode: string;
+  payerReference: string | null;
+  proofEvidenceId: string | null;
+  status: string;
+  submittedAt: string;
+  decidedAt: string | null;
+}
+
 export const merchantCreditService = {
   /** Cuál es mi expediente. El portal no lo sabía: sólo lo conocía justo tras crearlo. */
   misExpedientes() {
@@ -37,6 +51,27 @@ export const merchantCreditService = {
     return apiRequest<{ partnerProfileId: string; applications: SolicitudDeCompra[] }>(
       `/merchant-credit/${encodeURIComponent(partnerId)}/applications`,
       { query: { onlyPending: soloPendientes ? 'true' : 'false' } },
+    );
+  },
+
+  /**
+   * Los comprobantes que esperan mi confirmación.
+   *
+   * El dinero de una transferencia entra en la cuenta del comercio, no en la de Atlas: es el único
+   * que puede decir si llegó.
+   */
+  listarComprobantes(partnerId: string, soloPendientes = true) {
+    return apiRequest<{ partnerProfileId: string; claims: ComprobanteDePago[] }>(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/payment-claims`,
+      { query: { onlyPending: soloPendientes ? 'true' : 'false' } },
+    );
+  },
+
+  /** Confirmar registra el pago del préstamo. Rechazar exige motivo. */
+  verificarComprobante(partnerId: string, claimId: string, body: JsonObject) {
+    return apiRequest<JsonObject>(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/payment-claims/${encodeURIComponent(claimId)}/verification`,
+      { method: 'POST', body },
     );
   },
 

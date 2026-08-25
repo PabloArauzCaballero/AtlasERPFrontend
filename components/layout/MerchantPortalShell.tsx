@@ -14,6 +14,8 @@ import { isActivePath } from './navigation';
 const links = [
   /* Lo primero del menu: es la pantalla donde el comercio responde a sus clientes. */
   { href: '/portal-comercio/solicitudes', label: 'Solicitudes de compra', icon: 'inbox' },
+  /* Justo debajo: son los dos momentos en que el comercio tiene que responder algo. */
+  { href: '/portal-comercio/comprobantes', label: 'Comprobantes por verificar', icon: 'receipt_long' },
   { href: '/portal-comercio/planes', label: 'Planes y suscripción', icon: 'workspace_premium' },
   { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
   { href: '/portal-comercio/campanas', label: 'Campañas', icon: 'campaign' },
