@@ -31,7 +31,35 @@ export function parseCsv(text: string): Record<string, string>[] {
 }
 
 export function downloadCsvTemplate(filename: string, headers: string[]): void {
-  const blob = new Blob([`${headers.join(',')}\n`], { type: 'text/csv;charset=utf-8' });
+  triggerCsvDownload(filename, `${headers.join(',')}\n`);
+}
+
+/** Escapa un valor para CSV: comillas dobladas y envuelto si trae coma, comilla o salto de línea. */
+function escapeCsvCell(value: unknown): string {
+  const text = value === null || value === undefined ? '' : String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+/**
+ * Exporta filas ya cargadas a un CSV descargable. `columns` fija el orden y las cabeceras
+ * legibles; `render` (opcional) da el texto plano de cada celda para no volcar objetos crudos.
+ */
+export function downloadCsv(
+  filename: string,
+  columns: Array<{ key: string; label: string }>,
+  rows: Array<Record<string, unknown>>,
+  render?: (row: Record<string, unknown>, key: string) => unknown,
+): void {
+  const header = columns.map((column) => escapeCsvCell(column.label)).join(',');
+  const body = rows
+    .map((row) => columns.map((column) => escapeCsvCell(render ? render(row, column.key) : row[column.key])).join(','))
+    .join('\n');
+  // El BOM inicial hace que Excel abra los acentos (UTF-8) sin pedir el asistente de importación.
+  triggerCsvDownload(filename, `﻿${header}\n${body}\n`);
+}
+
+function triggerCsvDownload(filename: string, content: string): void {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;

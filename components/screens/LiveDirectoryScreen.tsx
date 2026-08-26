@@ -13,6 +13,9 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { formatBob, formatDate, maskPii } from '@/lib/formatters';
+import { downloadCsv } from '@/lib/csv';
+import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
+import { toast } from '@/lib/toast';
 
 export interface DirectoryColumn {
   key: string;
@@ -41,9 +44,11 @@ export interface RowAction {
   key: string;
   label: string;
   href?: string;
-  onClick?: (row: ResourceRow) => void;
+  onClick?: (row: ResourceRow) => void | Promise<void>;
   icon?: string;
   tone?: 'default' | 'danger';
+  /** Si se define, pide confirmación en un modal antes de ejecutar `onClick`. */
+  confirm?: { title: string; message: string; confirmLabel?: string; tone?: 'danger' | 'primary'; successMessage?: string };
 }
 
 interface LiveDirectoryScreenProps {
@@ -67,6 +72,17 @@ interface LiveDirectoryScreenProps {
 
 function rowsFrom(data: PaginatedResult<ResourceRow> | null): ResourceRow[] {
   return data?.items ?? data?.rows ?? [];
+}
+
+/** Texto plano de una celda para el CSV: mismos formatos que la tabla, sin nodos de React. */
+function cellText(row: ResourceRow, column: DirectoryColumn): string {
+  const raw = row[column.key];
+  if (column.kind === 'status') return String(raw ?? 'SIN ESTADO').replaceAll('_', ' ');
+  if (column.kind === 'money') return formatBob(Number(raw ?? 0));
+  if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);
+  if (column.kind === 'pii') return maskPii(raw, column.key);
+  if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join('; ') : '';
+  return raw === null || raw === undefined ? '' : String(raw);
 }
 
 function renderCell(row: ResourceRow, column: DirectoryColumn) {
@@ -134,6 +150,29 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
   const pageSize = query.limit ?? query.pageSize ?? 25;
   const loading = resource.status === 'loading' || isPending;
 
+  const exportCsv = useCallback(() => {
+    if (!rows.length) return;
+    const slug = props.title.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    downloadCsv(`${slug || 'export'}.csv`, props.columns.map((column) => ({ key: column.key, label: column.label })), rows, (row, key) => {
+      const column = props.columns.find((item) => item.key === key);
+      return column ? cellText(row as ResourceRow, column) : '';
+    });
+  }, [rows, props.columns, props.title]);
+
+  const [pending, setPending] = useState<{ action: RowAction; row: ResourceRow } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const runAction = useCallback(async (action: RowAction, row: ResourceRow) => {
+    try {
+      await action.onClick?.(row);
+      if (action.confirm?.successMessage) toast.success(action.confirm.successMessage);
+    } catch (error) {
+      toast.error('No se pudo completar la acción', error instanceof Error ? error.message : undefined);
+    } finally {
+      resource.reload();
+    }
+  }, [resource]);
+
   return (
     <div className="space-y-5" aria-busy={loading}>
       <WorkspaceHeader
@@ -142,7 +181,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         description={props.description}
         actions={
           <>
-            <AtlasButton variant="secondary" icon="download">Exportar CSV</AtlasButton>
+            <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>Exportar CSV</AtlasButton>
             {props.createHref ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link> : null}
           </>
         }
@@ -201,7 +240,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                               const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold ${toneClass}`;
                               return action.href
                                 ? <Link key={action.key} className={className} href={action.href}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
-                                : <button key={action.key} type="button" className={className} onClick={() => action.onClick?.(row)}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
+                                : <button key={action.key} type="button" className={className} onClick={() => { if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
                             })}
                           </div>
                         ) : href ? (
@@ -225,6 +264,19 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <span>Página <b>{page}</b> · {rows.length} visibles · <b>{total}</b> registros</span>
         <div className="flex gap-2"><AtlasButton variant="secondary" disabled={page <= 1 || loading} onClick={() => setQuery((current) => ({ ...current, page: page - 1 }))}>Anterior</AtlasButton><AtlasButton variant="secondary" disabled={page * pageSize >= total || loading} onClick={() => setQuery((current) => ({ ...current, page: page + 1 }))}>Siguiente</AtlasButton></div>
       </div>
+
+      {pending ? (
+        <ConfirmDialog
+          open
+          title={pending.action.confirm!.title}
+          message={pending.action.confirm!.message}
+          confirmLabel={pending.action.confirm!.confirmLabel}
+          tone={pending.action.confirm!.tone}
+          loading={busy}
+          onCancel={() => { if (!busy) setPending(null); }}
+          onConfirm={async () => { setBusy(true); await runAction(pending.action, pending.row); setBusy(false); setPending(null); }}
+        />
+      ) : null}
     </div>
   );
 }

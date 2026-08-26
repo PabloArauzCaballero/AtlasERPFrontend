@@ -41,6 +41,23 @@ export const countryOptions: CatalogOption[] = [
 ];
 
 /** IANA time zones — lista corta LatAm-first. */
+/** Ciudades de Bolivia (capitales de departamento y plazas comerciales relevantes). */
+export const cityOptions: CatalogOption[] = [
+  { label: 'Santa Cruz de la Sierra', value: 'Santa Cruz de la Sierra' },
+  { label: 'La Paz', value: 'La Paz' },
+  { label: 'El Alto', value: 'El Alto' },
+  { label: 'Cochabamba', value: 'Cochabamba' },
+  { label: 'Sucre', value: 'Sucre' },
+  { label: 'Oruro', value: 'Oruro' },
+  { label: 'Potosí', value: 'Potosí' },
+  { label: 'Tarija', value: 'Tarija' },
+  { label: 'Trinidad', value: 'Trinidad' },
+  { label: 'Cobija', value: 'Cobija' },
+  { label: 'Montero', value: 'Montero' },
+  { label: 'Quillacollo', value: 'Quillacollo' },
+  { label: 'Otra', value: 'Otra' },
+];
+
 export const timezoneOptions: CatalogOption[] = [
   { label: 'La Paz (GMT-4)', value: 'America/La_Paz' },
   { label: 'Buenos Aires (GMT-3)', value: 'America/Argentina/Buenos_Aires' },
@@ -149,6 +166,36 @@ export const riskTierOptions: CatalogOption[] = [
   { label: 'Medio', value: 'MEDIUM' },
   { label: 'Alto', value: 'HIGH' },
   { label: 'Crítico', value: 'CRITICAL' },
+];
+
+/**
+ * Cargo del contacto principal de la cuenta. Catálogo cerrado para que la cartera se pueda
+ * agrupar y filtrar por tipo de interlocutor, en vez de recibir texto libre irrepetible.
+ */
+export const contactRoleTitleOptions: CatalogOption[] = [
+  { label: 'Propietario / Dueño', value: 'PROPIETARIO' },
+  { label: 'Gerente general', value: 'GERENTE_GENERAL' },
+  { label: 'Gerente comercial', value: 'GERENTE_COMERCIAL' },
+  { label: 'Gerente de finanzas', value: 'GERENTE_FINANZAS' },
+  { label: 'Gerente de operaciones', value: 'GERENTE_OPERACIONES' },
+  { label: 'Administrador', value: 'ADMINISTRADOR' },
+  { label: 'Contador', value: 'CONTADOR' },
+  { label: 'Encargado de sucursal', value: 'ENCARGADO_SUCURSAL' },
+  { label: 'Vendedor / Cajero', value: 'VENDEDOR' },
+  { label: 'Otro', value: 'OTRO' },
+];
+
+/**
+ * Peso del contacto en la decisión de compra. Vocabulario clásico de venta B2B: sirve para que
+ * el ejecutivo sepa a quién convencer y quién solo influye.
+ */
+export const decisionRoleOptions: CatalogOption[] = [
+  { label: 'Decisor final', value: 'DECISOR' },
+  { label: 'Influenciador', value: 'INFLUENCIADOR' },
+  { label: 'Aprobador de presupuesto', value: 'APROBADOR' },
+  { label: 'Usuario del servicio', value: 'USUARIO' },
+  { label: 'Contacto de gestión', value: 'GESTOR' },
+  { label: 'Bloqueador / Portero', value: 'BLOQUEADOR' },
 ];
 
 export const industryOptions: CatalogOption[] = [

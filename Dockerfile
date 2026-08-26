@@ -12,6 +12,11 @@ RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
   yarn install --frozen-lockfile
 
 FROM base AS builder
+# `next.config.ts` hornea `ERP_API_ORIGIN` en el rewrite AL CONSTRUIR. Dentro del contenedor,
+# `127.0.0.1:3007` (el default del `.env.local`) es el propio contenedor, no el host; por eso el
+# origen del proxy se inyecta como build-arg y una variable de entorno real gana sobre el `.env.local`.
+ARG ERP_API_ORIGIN=http://host.docker.internal:3007
+ENV ERP_API_ORIGIN=$ERP_API_ORIGIN
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 # Las `NEXT_PUBLIC_*` se incrustan en el paquete del navegador AL CONSTRUIR, no al arrancar: cambiar

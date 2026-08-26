@@ -254,7 +254,7 @@ export default function CampaignsPage() {
         actions={[
           {
             id: 'status',
-            title: 'Update Campaign Status',
+            title: 'Actualizar estado de campaña',
             icon: 'published_with_changes',
             description: 'Aplica una transición permitida por el backend.',
             submitLabel: 'Actualizar estado',

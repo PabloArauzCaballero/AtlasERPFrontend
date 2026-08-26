@@ -12,7 +12,7 @@ export default function BranchesFiscalYearsPage() {
       description="Defina sucursales contables y años fiscales vinculados a una entidad legal previamente registrada."
       actions={[
         {
-          id: 'branch', title: 'Create Accounting Branch', description: 'Unidad operativa que emitirá y contabilizará documentos.', icon: 'account_balance', submitLabel: 'Crear sucursal', onSubmit: accountingService.createBranch,
+          id: 'branch', title: 'Crear sucursal contable', description: 'Unidad operativa que emitirá y contabilizará documentos.', icon: 'account_balance', submitLabel: 'Crear sucursal', onSubmit: accountingService.createBranch,
           fields: [
             { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
             { name: 'code', label: 'Código', required: true, placeholder: 'SCZ-CENTRAL' },
@@ -21,7 +21,7 @@ export default function BranchesFiscalYearsPage() {
           ],
         },
         {
-          id: 'fiscal-year', title: 'Create Fiscal Year', description: 'Período anual que agrupa los períodos contables.', icon: 'calendar_month', submitLabel: 'Crear año fiscal', onSubmit: accountingService.createFiscalYear,
+          id: 'fiscal-year', title: 'Crear año fiscal', description: 'Período anual que agrupa los períodos contables.', icon: 'calendar_month', submitLabel: 'Crear año fiscal', onSubmit: accountingService.createFiscalYear,
           fields: [
             { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
             { name: 'yearLabel', label: 'Etiqueta', required: true, defaultValue: '2026' },

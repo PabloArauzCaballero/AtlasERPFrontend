@@ -22,6 +22,7 @@ export default function B2BAccountsPage() {
         { key: 'category', label: 'Categoría', kind: 'text', placeholder: 'Filtrar categoría' },
         { key: 'businessLine', label: 'Rubro', kind: 'text', placeholder: 'Filtrar rubro' },
         { key: 'tag', label: 'Tag', kind: 'text', placeholder: 'Filtrar tag' },
+        { key: 'includeArchived', label: 'Archivadas', kind: 'select', options: [{ label: 'Ver archivadas', value: 'true' }] },
       ]}
       columns={[
         { key: 'tradeName', label: 'Cuenta comercial' },
@@ -42,6 +43,39 @@ export default function B2BAccountsPage() {
         { label: 'Riesgo observado', value: (rows) => rows.filter((row) => String(row.riskTier ?? '').toUpperCase().includes('HIGH')).length, detail: 'Revisión manual', icon: 'shield', tone: 'red' },
       ]}
       detailHref={(row) => row.id ? `/operaciones/crm/cuentas/detalle?id=${String(row.id)}` : undefined}
+      rowActions={(row) => {
+        const id = row.id ? String(row.id) : '';
+        const name = String(row.tradeName ?? row.legalName ?? 'esta empresa');
+        const archived = Boolean(row.archivedAt);
+        const actions = id
+          ? [{ key: 'ver', label: 'Ver', icon: 'chevron_right', href: `/operaciones/crm/cuentas/detalle?id=${id}` }]
+          : [];
+        if (!id) return actions;
+        return [
+          ...actions,
+          archived
+            ? {
+                key: 'restaurar', label: 'Restaurar', icon: 'unarchive',
+                onClick: async () => { await b2bService.restoreAccount(id); },
+                confirm: {
+                  title: 'Restaurar empresa',
+                  message: `«${name}» volverá a aparecer en los listados con su estado intacto.`,
+                  confirmLabel: 'Restaurar', tone: 'primary' as const,
+                  successMessage: 'Empresa restaurada',
+                },
+              }
+            : {
+                key: 'archivar', label: 'Archivar', icon: 'archive', tone: 'danger' as const,
+                onClick: async () => { await b2bService.archiveAccount(id); },
+                confirm: {
+                  title: 'Archivar empresa',
+                  message: `«${name}» saldrá de los listados operativos. Podrás restaurarla cuando quieras y su historial se conserva.`,
+                  confirmLabel: 'Archivar', tone: 'danger' as const,
+                  successMessage: 'Empresa archivada',
+                },
+              },
+        ];
+      }}
     />
   );
 }

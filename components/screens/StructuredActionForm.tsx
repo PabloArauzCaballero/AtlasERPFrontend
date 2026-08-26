@@ -3,19 +3,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
+import { ChipsField } from '@/components/atlas/ChipsField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
-import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { Icon } from '@/components/atlas/Icon';
 import { formDataToPayload, type FieldValueKind } from '@/lib/formPayload';
+import { toast } from '@/lib/toast';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 export interface ActionField {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'date' | 'url' | 'textarea' | 'select';
+  type?: 'text' | 'email' | 'number' | 'date' | 'url' | 'textarea' | 'select' | 'chips';
   valueKind?: FieldValueKind | undefined;
   required?: boolean | undefined;
   optional?: boolean | undefined;
@@ -54,6 +55,12 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
   const definitions = props.sections.flatMap((section) => section.fields.map((field) => ({ name: field.name, valueKind: field.valueKind, optional: field.optional })));
 
   const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
+  // Las secciones se muestran como pestañas para no saturar la vista; TODAS quedan montadas
+  // (solo se ocultan las inactivas) para que el envío capture sus campos igual.
+  const [activeTab, setActiveTab] = useState(0);
+  const tabbed = props.sections.length > 1;
+  const requiredFields = props.sections.flatMap((section, sectionIndex) =>
+    section.fields.filter((field) => field.required).map((field) => ({ name: field.name, label: field.label, sectionIndex })));
   useEffect(() => {
     let cancelled = false;
     props.sections
@@ -72,8 +79,23 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const payload = formDataToPayload(new FormData(event.currentTarget), definitions);
-    try { await mutation.execute(payload); } catch { /* state already exposes the controlled error */ }
+    const data = new FormData(event.currentTarget);
+    // En modo pestañas el `required` nativo no valida campos ocultos: se comprueba a mano y, si
+    // falta uno, se salta a su pestaña y se avisa con un toast (en vez de fallar en silencio).
+    if (tabbed) {
+      const missing = requiredFields.find((field) => !String(data.get(field.name) ?? '').trim());
+      if (missing) {
+        setActiveTab(missing.sectionIndex);
+        toast.warning('Faltan datos obligatorios', `Completa «${missing.label}» antes de guardar.`);
+        return;
+      }
+    }
+    try {
+      await mutation.execute(formDataToPayload(data, definitions));
+      toast.success('Guardado', 'El registro se creó correctamente.');
+    } catch (error) {
+      toast.error('No se pudo guardar', error instanceof Error ? error.message : 'Revisa los datos e intenta de nuevo.');
+    }
   }
 
   return (
@@ -86,50 +108,41 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
       />
 
       {props.warning ? <InlineNotice tone="warning" title="Validación requerida">{props.warning}</InlineNotice> : null}
-      {mutation.status === 'success' ? <InlineNotice tone="success" title="Operación registrada">El backend aceptó el registro. Se conservaron los identificadores y la trazabilidad devuelta por la API.</InlineNotice> : null}
       {mutation.error ? <InlineNotice tone="danger" title="No se pudo completar la operación">{mutation.error}</InlineNotice> : null}
 
-      <div className="grid items-start gap-5 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-4">
-          {props.sections.map((section) => (
-            <Panel key={section.title} title={section.title} description={section.description} icon={section.icon}>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {section.fields.map((field) => {
-                  const fieldClass = field.span === 3 ? 'md:col-span-2 xl:col-span-3' : field.span === 2 ? 'md:col-span-2' : '';
-                  if (field.type === 'select') return <FormField key={field.name} kind="select" name={field.name} label={field.label} required={field.required} defaultValue={field.defaultValue} hint={field.hint} options={field.options ?? dynamicOptions[field.name] ?? []} className={fieldClass} />;
-                  if (field.type === 'textarea') return <FormField key={field.name} kind="textarea" name={field.name} label={field.label} required={field.required} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
-                  return <FormField key={field.name} name={field.name} label={field.label} required={field.required} type={field.type ?? 'text'} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
-                })}
-              </div>
-            </Panel>
-          ))}
-        </div>
-
-        <aside data-tutorial-id="action-summary" className="space-y-4 xl:sticky xl:top-20">
-          <Panel title={props.summaryTitle ?? 'Control de registro'} icon="fact_check">
-            <div className="space-y-3">
-              {(props.summaryItems ?? [
-                { label: 'Validación de entrada', value: 'Zod backend', tone: 'success' as const },
-                { label: 'Trazabilidad', value: 'Business Action Log', tone: 'success' as const },
-                { label: 'Estado', value: 'Borrador', tone: 'warning' as const },
-              ]).map((item) => (
-                <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 last:border-0 last:pb-0" key={item.label}>
-                  <span className="text-xs text-slate-500">{item.label}</span>
-                  <StatusPill tone={item.tone ?? 'neutral'} dot={false}>{item.value}</StatusPill>
-                </div>
-              ))}
+      <Panel className="!p-0 overflow-hidden">
+        {tabbed ? (
+          <div className="flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50/70 px-2 pt-2">
+            {props.sections.map((section, index) => (
+              <button
+                key={section.title}
+                type="button"
+                onClick={() => setActiveTab(index)}
+                className={`inline-flex items-center gap-1.5 rounded-t-md px-3 py-2 text-xs font-bold transition ${index === activeTab ? 'bg-white text-primary shadow-[inset_0_-2px_0_0_#006a61]' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {section.icon ? <Icon name={section.icon} className="text-[16px]" /> : null}
+                {section.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {props.sections.map((section, index) => (
+          <div key={section.title} className={`p-5 ${tabbed && index !== activeTab ? 'hidden' : ''}`}>
+            {section.description ? <p className="mb-4 text-xs text-slate-500">{section.description}</p> : null}
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {section.fields.map((field) => {
+                const fieldClass = field.span === 3 ? 'md:col-span-2 xl:col-span-3' : field.span === 2 ? 'md:col-span-2' : '';
+                const nativeRequired = tabbed ? undefined : field.required;
+                const softRequired = tabbed ? field.required : undefined;
+                if (field.type === 'chips') return <ChipsField key={field.name} name={field.name} label={field.label} required={field.required} defaultValue={typeof field.defaultValue === 'string' ? field.defaultValue : undefined} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
+                if (field.type === 'select') return <FormField key={field.name} kind="select" name={field.name} label={field.label} required={nativeRequired} softRequired={softRequired} defaultValue={field.defaultValue} hint={field.hint} options={field.options ?? dynamicOptions[field.name] ?? []} className={fieldClass} />;
+                if (field.type === 'textarea') return <FormField key={field.name} kind="textarea" name={field.name} label={field.label} required={nativeRequired} softRequired={softRequired} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
+                return <FormField key={field.name} name={field.name} label={field.label} required={nativeRequired} softRequired={softRequired} type={field.type ?? 'text'} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
+              })}
             </div>
-          </Panel>
-          <Panel title="Actividad de la operación" icon="history_edu">
-            <ol className="space-y-4 text-xs">
-              <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-wash text-primary"><Icon name="edit" className="text-[14px]" /></span><div><b>Preparación</b><p className="mt-0.5 text-slate-500">Complete los campos obligatorios y confirme referencias.</p></div></li>
-              <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700"><Icon name="rule" className="text-[14px]" /></span><div><b>Validación</b><p className="mt-0.5 text-slate-500">La API aplica esquema, permisos y reglas de negocio.</p></div></li>
-              <li className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700"><Icon name="verified" className="text-[14px]" /></span><div><b>Confirmación</b><p className="mt-0.5 text-slate-500">La operación queda registrada con correlación auditable.</p></div></li>
-            </ol>
-          </Panel>
-
-        </aside>
-      </div>
+          </div>
+        ))}
+      </Panel>
     </form>
   );
 }

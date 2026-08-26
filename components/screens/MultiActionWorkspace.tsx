@@ -6,7 +6,9 @@ import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { Icon } from '@/components/atlas/Icon';
 import { formDataToPayload } from '@/lib/formPayload';
+import { toast } from '@/lib/toast';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
 import type { ActionField } from './StructuredActionForm';
@@ -32,28 +34,35 @@ interface MultiActionWorkspaceProps {
 }
 
 export function MultiActionWorkspace(props: MultiActionWorkspaceProps) {
+  // Cada acción es un paso independiente; se muestran como pestañas para no amontonar varios
+  // formularios en una sola vista. Cada tarjeta es su propio <form>, así que ocultar las
+  // inactivas no afecta el envío de la activa.
+  const [active, setActive] = useState(0);
+  const multiple = props.actions.length > 1;
   return (
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]} title={props.title} description={props.description} />
-      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div data-tutorial-id="workspace-action-cards" className="grid gap-4 lg:grid-cols-2">
-          {props.actions.map((action) => <ActionCard key={action.id} action={action} />)}
+      {multiple ? (
+        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1">
+          {props.actions.map((action, index) => (
+            <button
+              key={action.id}
+              type="button"
+              onClick={() => setActive(index)}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition ${index === active ? 'bg-primary-wash text-primary' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+            >
+              <Icon name={action.icon} className="text-[16px]" />
+              {action.title}
+            </button>
+          ))}
         </div>
-        <aside data-tutorial-id="workspace-sequence" className="space-y-4 xl:sticky xl:top-20">
-          <Panel title={props.sideTitle ?? 'Secuencia recomendada'} icon="account_tree">
-            <ol className="space-y-4">
-              {(props.sideItems ?? props.actions.map((action) => ({ label: action.title, detail: action.description, icon: action.icon }))).map((item, index) => (
-                <li className="flex gap-3" key={item.label}>
-                  <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#006a61] text-[10px] font-bold text-white">{index + 1}</span>
-                  <div><p className="text-xs font-bold text-slate-800">{item.label}</p><p className="mt-0.5 text-[11px] leading-4 text-slate-500">{item.detail}</p></div>
-                </li>
-              ))}
-            </ol>
-          </Panel>
-          {/* Ya no se teclean identificadores: todo lo relacionado se elige de su catálogo. El aviso
-              pedía «utilice UUID existentes», que era la instrucción de cuando había que copiarlos a mano. */}
-          <InlineNotice tone="info" title="Integridad referencial">Lo que se relaciona con otra entidad se elige de su lista. El backend vuelve a validar la referencia y revierte la operación si no es válida.</InlineNotice>
-        </aside>
+      ) : null}
+      <div data-tutorial-id="workspace-action-cards">
+        {props.actions.map((action, index) => (
+          <div key={action.id} className={multiple && index !== active ? 'hidden' : ''}>
+            <ActionCard action={action} />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -80,11 +89,15 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setShowResult(false);
+    const form = event.currentTarget;
     try {
-      await mutation.execute(formDataToPayload(new FormData(event.currentTarget), definitions));
+      await mutation.execute(formDataToPayload(new FormData(form), definitions));
       setShowResult(true);
-      event.currentTarget.reset();
-    } catch { /* controlled by mutation state */ }
+      form.reset();
+      toast.success('Operación registrada', `${action.title} se completó correctamente.`);
+    } catch (error) {
+      toast.error('No se pudo completar', error instanceof Error ? error.message : 'Revisa los datos e intenta de nuevo.');
+    }
   }
 
   return (

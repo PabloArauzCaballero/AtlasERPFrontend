@@ -12,7 +12,7 @@ export default function PeriodsLedgersPage() {
       description="Configure períodos operativos y libros paralelos para contabilidad local, gerencial e IFRS."
       actions={[
         {
-          id: 'period', title: 'Create Accounting Period', description: 'Ventana habilitada para fechas de contabilización.', icon: 'date_range', submitLabel: 'Crear período', onSubmit: accountingService.createPeriod,
+          id: 'period', title: 'Crear período contable', description: 'Ventana habilitada para fechas de contabilización.', icon: 'date_range', submitLabel: 'Crear período', onSubmit: accountingService.createPeriod,
           fields: [
             { name: 'fiscalYearId', label: 'Año fiscal', type: 'select', required: true, span: 2, optionsLoader: loadFiscalYears },
             { name: 'periodNo', label: 'Número de período', type: 'number', valueKind: 'number', required: true, defaultValue: 1 },
@@ -21,7 +21,7 @@ export default function PeriodsLedgersPage() {
           ],
         },
         {
-          id: 'ledger', title: 'Create Ledger', description: 'Libro contable por base normativa o propósito gerencial.', icon: 'menu_book', submitLabel: 'Crear ledger', onSubmit: accountingService.createLedger,
+          id: 'ledger', title: 'Crear libro mayor (ledger)', description: 'Libro contable por base normativa o propósito gerencial.', icon: 'menu_book', submitLabel: 'Crear ledger', onSubmit: accountingService.createLedger,
           fields: [
             { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
             { name: 'code', label: 'Código', required: true, placeholder: 'LOCAL-BO' },

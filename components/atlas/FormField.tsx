@@ -6,6 +6,9 @@ interface BaseFieldProps {
   name: string;
   hint?: string | undefined;
   required?: boolean | undefined;
+  /** Muestra el asterisco de obligatorio SIN poner `required` nativo (para campos en pestañas
+   *  ocultas, donde el `required` del navegador lanzaría «not focusable» y bloquearía el envío). */
+  softRequired?: boolean | undefined;
   className?: string | undefined;
 }
 
@@ -27,10 +30,10 @@ type FormFieldProps = InputFieldProps | SelectFieldProps | TextareaFieldProps;
 const controlClass = 'h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100';
 
 export function FormField(props: FormFieldProps) {
-  const requiredMark = props.required ? <span className="ml-1 text-red-600">*</span> : null;
+  const requiredMark = (props.required || props.softRequired) ? <span className="ml-1 text-red-600">*</span> : null;
 
   if (props.kind === 'select') {
-    const { label, name, hint, required, className, options, kind: _kind, ...selectProps } = props;
+    const { label, name, hint, required, softRequired: _sr, className, options, kind: _kind, ...selectProps } = props;
     const isEmpty = options.length === 0;
     return (
       <label className={cn('block min-w-0', className)}>
@@ -46,7 +49,7 @@ export function FormField(props: FormFieldProps) {
   }
 
   if (props.kind === 'textarea') {
-    const { label, name, hint, required, className, kind: _kind, ...textareaProps } = props;
+    const { label, name, hint, required, softRequired: _sr, className, kind: _kind, ...textareaProps } = props;
     return (
       <label className={cn('block min-w-0', className)}>
         <span className="mb-1.5 block text-xs font-bold text-slate-700">{label}{requiredMark}</span>
@@ -56,7 +59,7 @@ export function FormField(props: FormFieldProps) {
     );
   }
 
-  const { label, name, hint, required, className, kind: _kind, ...inputProps } = props;
+  const { label, name, hint, required, softRequired: _sr, className, kind: _kind, ...inputProps } = props;
   return (
     <label className={cn('block min-w-0', className)}>
       <span className="mb-1.5 block text-xs font-bold text-slate-700">{label}{requiredMark}</span>

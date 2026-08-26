@@ -2,7 +2,7 @@
 
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { b2bService } from '@/services/b2bService';
-import { businessLineOptions, countryOptions, industryOptions, merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
+import { businessLineOptions, cityOptions, contactRoleTitleOptions, countryOptions, decisionRoleOptions, industryOptions, merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
 import { loadInternalUsers } from '@/services/optionLoaders';
 
 const optionalSelect = <T extends { label: string; value: string }>(options: T[]) => [
@@ -14,14 +14,14 @@ export default function CreateB2BAccountPage() {
   return (
     <StructuredActionForm
       moduleLabel="CRM"
-      title="Registrar cuenta comercial B2B"
-      description="Registre la identidad corporativa, clasificación comercial, volumen esperado y contacto principal de la nueva cuenta B2B."
-      submitLabel="Crear cuenta B2B"
+      title="Registrar una empresa nueva"
+      description="Da de alta una empresa en el directorio comercial. Con los datos marcados con asterisco basta para crearla; el resto se puede completar después. La empresa entra como «lead» (posible cliente) y avanza desde su ficha."
+      submitLabel="Crear empresa"
       submitIcon="domain_add"
       onSubmit={b2bService.createAccount}
       sections={[
         {
-          title: 'Account Details', icon: 'domain', description: 'Identificación legal y segmentación comercial.', fields: [
+          title: 'Datos de la empresa', icon: 'domain', description: 'Quién es la empresa y a qué se dedica.', fields: [
             { name: 'legalName', label: 'Razón social', required: true, placeholder: 'Empresa Ejemplo S.R.L.', span: 2 },
             { name: 'tradeName', label: 'Nombre comercial', required: true, placeholder: 'Marca Ejemplo' },
             { name: 'taxId', label: 'NIT', optional: true, placeholder: 'Número de identificación tributaria' },
@@ -32,10 +32,10 @@ export default function CreateB2BAccountPage() {
             { name: 'category', label: 'Categoría comercial', type: 'select', required: true, options: merchantCategoryOptions, hint: 'Catálogo cerrado: es lo que agrupa la cartera por tipo de comercio.' },
             { name: 'businessLine', label: 'Rubro / actividad principal', type: 'select', required: true, options: businessLineOptions, hint: 'Qué vende exactamente el comercio.' },
             { name: 'businessDescription', label: 'Descripción del negocio', type: 'textarea', optional: true, placeholder: 'Actividad, propuesta de valor y mercado objetivo...', span: 3 },
-            { name: 'tags', label: 'Tags de clasificación', valueKind: 'stringList', optional: true, placeholder: 'mayorista, omnicanal, pyme', hint: 'Separe los tags con comas.' },
+            { name: 'tags', label: 'Tags de clasificación', type: 'chips', valueKind: 'stringList', optional: true, placeholder: 'mayorista, omnicanal, pyme', hint: 'Escribe cada tag y pulsa Enter.' },
             { name: 'websiteUrl', label: 'Sitio web', type: 'url', optional: true, placeholder: 'https://empresa.com' },
             { name: 'countryCode', label: 'País', type: 'select', required: true, defaultValue: 'BO', options: countryOptions },
-            { name: 'city', label: 'Ciudad', optional: true },
+            { name: 'city', label: 'Ciudad', type: 'select', optional: true, options: optionalSelect(cityOptions) },
             { name: 'address', label: 'Dirección comercial', optional: true, span: 2 },
             { name: 'employeeCount', label: 'Cantidad de empleados', type: 'number', valueKind: 'number', optional: true },
             { name: 'foundedYear', label: 'Año de fundación', type: 'number', valueKind: 'number', optional: true },
@@ -48,20 +48,20 @@ export default function CreateB2BAccountPage() {
           ],
         },
         {
-          title: 'Primary Contact Details', icon: 'contact_page', description: 'Persona responsable para coordinación comercial y contractual.', fields: [
+          title: 'Persona de contacto', icon: 'contact_page', description: 'Con quién se coordina en la empresa.', fields: [
             { name: 'primaryContact.fullName', label: 'Nombre completo', required: true, placeholder: 'Nombre y apellido', span: 2 },
-            { name: 'primaryContact.roleTitle', label: 'Cargo', optional: true, placeholder: 'Gerente comercial' },
-            { name: 'primaryContact.email', label: 'Correo corporativo', type: 'email', optional: true, placeholder: 'contacto@empresa.com' },
+            { name: 'primaryContact.roleTitle', label: 'Cargo', type: 'select', optional: true, options: optionalSelect(contactRoleTitleOptions), hint: 'Qué puesto ocupa en la empresa.' },
+            { name: 'primaryContact.email', label: 'Correo', type: 'email', optional: true, placeholder: 'contacto@empresa.com' },
             { name: 'primaryContact.phone', label: 'Teléfono', optional: true, placeholder: '+591 7...' },
-            { name: 'primaryContact.decisionRole', label: 'Rol en la decisión', optional: true, placeholder: 'Decisor / Influenciador' },
+            { name: 'primaryContact.decisionRole', label: 'Peso en la decisión', type: 'select', optional: true, options: optionalSelect(decisionRoleOptions), hint: 'Si decide la compra o solo influye. Ayuda a saber a quién convencer.' },
           ],
         },
       ]}
-      summaryTitle="Control de alta comercial"
+      summaryTitle="Qué pasa al crearla"
       summaryItems={[
-        { label: 'Estado inicial', value: 'LEAD', tone: 'warning' },
-        { label: 'Validación KYB', value: 'Posterior', tone: 'neutral' },
-        { label: 'Moneda operativa', value: 'BOB', tone: 'success' },
+        { label: 'Entra como', value: 'Posible cliente', tone: 'warning' },
+        { label: 'Verificación legal', value: 'Queda pendiente', tone: 'neutral' },
+        { label: 'Moneda', value: 'Bolivianos (BOB)', tone: 'success' },
       ]}
     />
   );

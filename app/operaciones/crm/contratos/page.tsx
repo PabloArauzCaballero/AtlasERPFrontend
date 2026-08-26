@@ -1,6 +1,7 @@
 'use client';
 
 import { MultiActionWorkspace } from '@/components/screens/MultiActionWorkspace';
+import { RecordsPanel } from '@/components/screens/RecordsPanel';
 import { b2bService } from '@/services/b2bService';
 import type { JsonObject } from '@/services/types';
 import { loadContracts2, loadInternalUsers, loadProposals } from '@/services/optionLoaders';
@@ -12,6 +13,8 @@ export default function CommercialContractsPage() {
     return b2bService.signAndActivateContract(contractId, body);
   }
   return (
+    <div className="space-y-5">
+      <RecordsPanel title="Contratos comerciales" load={b2bService.listContracts} emptyHint="Genera el primer contrato desde una propuesta aceptada, abajo." />
     <MultiActionWorkspace
       moduleLabel="CRM"
       title="Generar contrato comercial"
@@ -19,7 +22,7 @@ export default function CommercialContractsPage() {
       sideTitle="Flujo contractual"
       actions={[
         {
-          id: 'create', title: 'Primary Identification', description: 'Cabecera contractual heredada de una propuesta.', icon: 'description', submitLabel: 'Generar contrato', onSubmit: b2bService.createContractFromProposal,
+          id: 'create', title: 'Datos del contrato', description: 'Cabecera contractual heredada de una propuesta.', icon: 'description', submitLabel: 'Generar contrato', onSubmit: b2bService.createContractFromProposal,
           fields: [
             { name: 'proposalId', label: 'Propuesta aceptada', type: 'select', required: true, span: 2, optionsLoader: loadProposals },
             { name: 'contractNumber', label: 'Número de contrato', required: true, placeholder: 'CTR-2026-001' },
@@ -31,7 +34,7 @@ export default function CommercialContractsPage() {
           ],
         },
         {
-          id: 'sign', title: 'Signature & Activation', description: 'Confirmación institucional y activación del contrato.', icon: 'draw', submitLabel: 'Firmar y activar', submitIcon: 'verified', onSubmit: sign,
+          id: 'sign', title: 'Firma y activación', description: 'Confirmación institucional y activación del contrato.', icon: 'draw', submitLabel: 'Firmar y activar', submitIcon: 'verified', onSubmit: sign,
           fields: [
             { name: 'contractId', label: 'Contrato', type: 'select', required: true, span: 2, optionsLoader: loadContracts2 },
             { name: 'approvedByUserId', label: 'Aprobador', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
@@ -45,5 +48,6 @@ export default function CommercialContractsPage() {
         { label: 'Firma y activación', detail: 'Se registra aprobador y marca temporal.', icon: 'verified' },
       ]}
     />
+    </div>
   );
 }

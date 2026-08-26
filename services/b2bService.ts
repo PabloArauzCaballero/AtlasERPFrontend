@@ -3,7 +3,7 @@ import { apiRequest } from '@/lib/apiClient';
 import { buildBackendQuery } from './query';
 import type { JsonObject, PageQuery, PaginatedResult, ResourceRow } from './types';
 
-const b2bListKeys = ['status', 'search', 'category', 'businessLine', 'tag', 'sortBy', 'sortOrder'] as const;
+const b2bListKeys = ['status', 'search', 'category', 'businessLine', 'tag', 'includeArchived', 'sortBy', 'sortOrder'] as const;
 const b2bQuery = (query: PageQuery) =>
   buildBackendQuery(query, { pageSizeKey: 'limit', defaultPageSize: 25, allowedKeys: b2bListKeys });
 
@@ -34,6 +34,15 @@ export const b2bService = {
   qualifyAccount(accountId: string, body: JsonObject) {
     const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
     return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/qualify`, { method: 'POST', body });
+  },
+  /** Archivado reversible: la cuenta sale de los listados pero no se borra. */
+  archiveAccount(accountId: string) {
+    const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/archive`, { method: 'PATCH' });
+  },
+  restoreAccount(accountId: string) {
+    const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/restore`, { method: 'PATCH' });
   },
   listMerchantInvoices() {
     return apiRequest<ResourceRow[]>('/b2b/billing/invoices');
