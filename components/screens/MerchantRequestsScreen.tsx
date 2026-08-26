@@ -152,6 +152,15 @@ export function MerchantRequestsScreen() {
                     <p className="mt-1 text-[11px] text-slate-500">
                       Pedida el {new Date(solicitud.submittedAt).toLocaleString('es-BO')} · aprobada por el motor
                     </p>
+                    {solicitud.branchName ? (
+                      <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-600">
+                        <span className="material-symbols-rounded text-[14px] text-[#006a61]">store</span>
+                        {solicitud.branchName}
+                        {solicitud.terminalAlias ? ` · ${solicitud.terminalAlias}` : ''}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-[11px] italic text-slate-400">Sin sucursal registrada en la compra</p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Importe</p>

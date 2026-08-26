@@ -10,7 +10,6 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
-import { portalService } from '@/services/portalService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
 
 type Vista = 'panel' | 'creditos' | 'calendario' | 'comision';
@@ -36,18 +35,6 @@ export function MerchantPortfolioScreen() {
   const [error, setError] = useState<string | null>(null);
   const [vista, setVista] = useState<Vista>('panel');
   const [abierto, setAbierto] = useState<string | null>(null);
-  /* Lo que el comercio le debe a Atlas por usar el servicio: la comision de cada venta. */
-  const [comision, setComision] = useState<Awaited<ReturnType<typeof portalService.commissions>> | null>(null);
-
-  useEffect(() => {
-    let cancelado = false;
-    portalService
-      .commissions()
-      .then((resultado) => { if (!cancelado) setComision(resultado); })
-      .catch(() => { if (!cancelado) setComision(null); });
-    return () => { cancelado = true; };
-  }, []);
-
   const cargar = useCallback(async (partnerId: string) => {
     setCargando(true);
     try {
@@ -105,7 +92,7 @@ export function MerchantPortfolioScreen() {
         <MetricCard label="Por cobrar" value={cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0))} detail={`${resumen?.activeCredits ?? 0} créditos activos`} icon="account_balance_wallet" />
         <MetricCard label="Vencido" value={cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0))} detail={`${resumen?.overdueInstallments ?? 0} cuotas en mora`} icon="running_with_errors" tone={Number(resumen?.overdueAmount ?? 0) > 0 ? 'amber' : 'teal'} />
         <MetricCard label="Cobrado" value={cargando ? '…' : formatBob(Number(resumen?.collected ?? 0))} detail="Acumulado de la cartera" icon="payments" tone="teal" />
-        <MetricCard label="Debe a Atlas" value={formatBob(Number(comision?.summary.owedToAtlas ?? 0))} detail={`Comisión de ${comision?.summary.salesCharged ?? 0} venta(s)`} icon="percent" tone="purple" />
+        <MetricCard label="Comisión a Atlas" value={cargando ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0))} detail={`${resumen?.mdrRatePercent ?? '0'} % sobre lo cobrado`} icon="percent" tone="purple" />
       </div>
 
       {vista === 'panel' ? (
@@ -204,45 +191,47 @@ export function MerchantPortfolioScreen() {
       ) : null}
 
       {vista === 'comision' ? (
-        <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por usar el servicio, venta a venta." icon="percent">
+        <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
           <div className="mb-4 grid gap-3 sm:grid-cols-3">
             <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Cobrado en total</p>
-              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(comision?.summary.chargedTotal ?? 0))}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Tasa de comisión</p>
+              <p className="mt-1 text-xl font-extrabold">{resumen?.mdrRatePercent ?? '0'} %</p>
+              <p className="text-[11px] text-slate-500">Sobre cada venta financiada</p>
             </div>
             <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Debe a Atlas</p>
-              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(comision?.summary.owedToAtlas ?? 0))}</p>
-              <p className="text-[11px] text-slate-500">Lo que sigue abierto</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Cobrado (base)</p>
+              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.collected ?? 0))}</p>
+              <p className="text-[11px] text-slate-500">Lo que sus clientes ya pagaron</p>
             </div>
             <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Ya saldado</p>
-              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(comision?.summary.settled ?? 0))}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Comisión a Atlas</p>
+              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.commissionAccrued ?? 0))}</p>
+              <p className="text-[11px] text-slate-500">Devengada sobre lo cobrado</p>
             </div>
           </div>
-          {(comision?.commissions ?? []).length === 0 ? (
-            <p className="py-6 text-center text-xs text-slate-500">Todavía no se le cobró comisión por ninguna venta.</p>
+          {(cartera?.credits ?? []).length === 0 ? (
+            <p className="py-6 text-center text-xs text-slate-500">Todavía no hay ventas financiadas en su comercio.</p>
           ) : (
             <div className="table-scroll rounded-lg border border-slate-200">
-              <table className="w-full min-w-[620px] text-left text-xs">
-                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Emitida</th><th className="p-2.5">Vence</th><th className="p-2.5 text-right">Comisión</th><th className="p-2.5 text-right">Abierto</th><th className="p-2.5">Estado</th></tr></thead>
+              <table className="w-full min-w-[560px] text-left text-xs">
+                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Crédito</th><th className="p-2.5 text-right">Cobrado</th><th className="p-2.5 text-right">Comisión ({resumen?.mdrRatePercent ?? '0'} %)</th><th className="p-2.5">Estado</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
-                  {(comision?.commissions ?? []).map((fila) => (
-                    <tr key={fila.id}>
-                      <td className="p-2.5 text-slate-600">{new Date(fila.issuedAt).toLocaleDateString('es-BO')}</td>
-                      <td className="p-2.5 text-slate-600">{fila.dueDate ? new Date(`${String(fila.dueDate).slice(0, 10)}T12:00:00`).toLocaleDateString('es-BO') : '—'}</td>
-                      <td className="p-2.5 text-right font-bold">{formatBob(Number(fila.amountCharged))}</td>
-                      <td className="p-2.5 text-right">{formatBob(Number(fila.amountOpen))}</td>
-                      <td className="p-2.5"><StatusPill tone={Number(fila.amountOpen) === 0 ? 'success' : 'warning'}>{fila.status}</StatusPill></td>
+                  {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => (
+                    <tr key={credito.loanId}>
+                      <td className="p-2.5 font-semibold text-slate-700">{credito.loanCode}</td>
+                      <td className="p-2.5 text-right text-slate-600">{formatBob(Number(credito.collected))}</td>
+                      <td className="p-2.5 text-right font-bold">{formatBob(Number(credito.commissionAccrued))}</td>
+                      <td className="p-2.5"><StatusPill tone={Number(credito.outstanding) === 0 ? 'success' : 'neutral'}>{credito.status}</StatusPill></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <InlineNotice className="mt-4" tone="info" title="De dónde sale este porcentaje">
-            La comisión se pactó en su alta y puede variar por categoría de producto, sucursal o
-            segmento de riesgo: cada venta paga la regla que le correspondía en ese momento.
+          <InlineNotice className="mt-4" tone="info" title="Cómo se cobra">
+            La comisión se devenga a medida que sus clientes pagan: un crédito aprobado que aún no
+            cobra no genera comisión, y una venta pagada al 100 % la genera completa. La tasa se pactó
+            en su alta desde el ERP interno de Atlas.
           </InlineNotice>
         </Panel>
       ) : null}

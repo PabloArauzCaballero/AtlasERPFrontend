@@ -11,6 +11,11 @@ export interface SolicitudDeCompra {
   currencyCode: string;
   businessAcceptance: string | null;
   submittedAt: string;
+  /* En qué local y caja nació la compra. Null si no vino de un QR físico. */
+  branchName: string | null;
+  branchCode: string | null;
+  terminalAlias: string | null;
+  terminalSerial: string | null;
 }
 
 export interface ExpedientePropio {
@@ -60,6 +65,9 @@ export interface CreditoDeCartera {
   principalAmount: string;
   status: string;
   outstanding: string;
+  /* Lo cobrado de este crédito y la comisión de Atlas devengada sobre ello. */
+  collected: string;
+  commissionAccrued: string;
   installments: CuotaDeCartera[];
 }
 
@@ -73,6 +81,9 @@ export interface Cartera {
     overdueInstallments: number;
     collected: string;
     proofsAwaitingVerification: number;
+    /* La comisión: su tasa (%) y lo devengado a Atlas sobre lo cobrado. */
+    mdrRatePercent: string;
+    commissionAccrued: string;
   };
   credits: CreditoDeCartera[];
   calendar: { date: string; installments: number; amount: string; overdue: boolean }[];
