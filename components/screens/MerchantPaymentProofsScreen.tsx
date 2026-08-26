@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
@@ -21,6 +21,90 @@ const MOTIVOS = [
   { label: 'La transferencia es de otra operación', value: 'OTRA_OPERACION' },
   { label: 'Otro', value: 'OTRO' },
 ];
+
+/**
+ * El comprobante, en pantalla.
+ *
+ * Sin esto el comercio decidía a ciegas: la tarjeta enseñaba el importe que el cliente DECLARÓ y la
+ * referencia que el cliente ESCRIBIÓ —las dos las teclea la parte interesada— y ninguna prueba de
+ * la transferencia. «Verificar y dar por pagado» registra un pago real contra el préstamo, así que
+ * pulsarlo sin ver el papel no es verificar: es creer.
+ *
+ * La imagen se trae por `fetch` autenticado y se pinta desde un blob local. Un `<img src>` apuntando
+ * a la ruta del backend daría 401 —una etiqueta `<img>` no manda `Authorization` y el token de este
+ * portal vive en memoria, no en cookie— y se vería como una imagen rota, que es exactamente el fallo
+ * que se lee como «el cliente no subió nada».
+ */
+function ComprobanteImagen({ partnerId, claimId }: Readonly<{ partnerId: string; claimId: string }>) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [fallo, setFallo] = useState<string | null>(null);
+  const [ampliado, setAmpliado] = useState(false);
+  /* La URL viva, para revocarla al desmontar sin que el efecto dependa del estado que él mismo fija. */
+  const vigente = useRef<string | null>(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    setUrl(null);
+    setFallo(null);
+    merchantCreditService
+      .comprobanteImagen(partnerId, claimId)
+      .then((blobUrl) => {
+        if (cancelado) {
+          URL.revokeObjectURL(blobUrl);
+          return;
+        }
+        vigente.current = blobUrl;
+        setUrl(blobUrl);
+      })
+      .catch((error: unknown) => {
+        if (!cancelado) setFallo(error instanceof Error ? error.message : 'No se pudo cargar el comprobante.');
+      });
+    return () => {
+      cancelado = true;
+      if (vigente.current) {
+        URL.revokeObjectURL(vigente.current);
+        vigente.current = null;
+      }
+    };
+  }, [partnerId, claimId]);
+
+  if (fallo) {
+    return (
+      <div data-testid={`comprobante-error-${claimId}`}>
+        <InlineNotice tone="warning" title="No se pudo mostrar el comprobante">
+          {fallo} Puede rechazarlo indicando que el comprobante no se lee.
+        </InlineNotice>
+      </div>
+    );
+  }
+
+  if (!url) {
+    return <div className="h-40 animate-pulse rounded-md bg-slate-100" aria-label="Cargando comprobante" />;
+  }
+
+  return (
+    <figure className="space-y-2">
+      <button
+        type="button"
+        onClick={() => setAmpliado((valor) => !valor)}
+        className="block w-full overflow-hidden rounded-md border border-slate-200 bg-slate-50 p-2 text-left transition hover:border-slate-400"
+        title={ampliado ? 'Reducir' : 'Ampliar'}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- es un blob local: `next/image` exige una URL que el optimizador pueda buscar. */}
+        <img
+          src={url}
+          alt={`Comprobante de transferencia ${claimId}`}
+          data-testid={`comprobante-imagen-${claimId}`}
+          className={ampliado ? 'mx-auto max-h-[36rem] w-auto' : 'mx-auto max-h-56 w-auto'}
+        />
+      </button>
+      <figcaption className="text-[11px] text-slate-500">
+        {ampliado ? 'Pulse la imagen para reducirla.' : 'Pulse la imagen para ampliarla.'} Compruebe el monto, la fecha y la
+        cuenta de destino antes de confirmar.
+      </figcaption>
+    </figure>
+  );
+}
 
 /**
  * Los comprobantes de transferencia que esperan la palabra del comercio.
@@ -159,6 +243,19 @@ export function MerchantPaymentProofsScreen() {
                     <p className="text-[11px] text-slate-500">{comprobante.currencyCode}</p>
                   </div>
                 </div>
+
+                {comprobante.proofEvidenceId ? (
+                  <div className="mt-4">
+                    <ComprobanteImagen partnerId={partnerId} claimId={comprobante.claimId} />
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <InlineNotice tone="warning" title="Sin comprobante adjunto">
+                      El cliente avisó del pago pero no subió ninguna imagen. Búsquelo en su extracto por la referencia
+                      antes de confirmar.
+                    </InlineNotice>
+                  </div>
+                )}
 
                 {rechazando === comprobante.claimId ? (
                   <div className="mt-4 space-y-3 rounded-md bg-slate-50 p-3">

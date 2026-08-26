@@ -1,4 +1,4 @@
-import { apiRequest } from '@/lib/apiClient';
+import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
 import type { JsonObject } from './types';
 
 /** Una solicitud esperando la respuesta del comercio. Sin identidad del cliente, a propósito. */
@@ -118,6 +118,20 @@ export const merchantCreditService = {
   /** Qué me deben, quién y cuándo. Una sola lectura para créditos, calendario y panel. */
   cartera(partnerId: string) {
     return apiRequest<Cartera>(`/merchant-credit/${encodeURIComponent(partnerId)}/portfolio`);
+  },
+
+  /**
+   * La imagen del comprobante, como URL de blob lista para un `<img>`.
+   *
+   * La cola enseñaba el importe declarado y la referencia del banco, pero no el papel: el comercio
+   * confirmaba o rechazaba sin ver nada, y confirmar registra un pago real contra el préstamo.
+   *
+   * Quien la pida tiene que revocarla al desmontar.
+   */
+  comprobanteImagen(partnerId: string, claimId: string) {
+    return apiBlobUrl(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/payment-claims/${encodeURIComponent(claimId)}/proof`,
+    );
   },
 
   /** Confirmar registra el pago del préstamo. Rechazar exige motivo. */

@@ -256,3 +256,35 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 
   return parseResponse<T>(response);
 }
+
+/**
+ * Descarga un medio AUTENTICADO y lo deja como URL de blob, lista para un `<img src>`.
+ *
+ * Hace falta porque una etiqueta `<img>` **no puede mandar la cabecera `Authorization`**: sólo
+ * tiene una URL. Apuntarla directo a una ruta del backend da 401 y una imagen vacía, que en
+ * pantalla se lee como «la imagen no existe» cuando lo que pasa es que nadie la pidió con sesión.
+ * El token de este portal vive en `localStorage`, no en una cookie, así que la navegación del
+ * navegador no lo lleva sola.
+ *
+ * Lo que devuelve hay que revocarlo (`URL.revokeObjectURL`) al desmontar: un blob no revocado se
+ * queda en memoria del navegador hasta que se recarga la página.
+ *
+ * Reintenta una vez tras renovar la sesión, igual que `apiRequest`: sin eso, la primera imagen que
+ * se pide con el token caducado falla mientras el resto de la pantalla se recupera sola.
+ */
+export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}): Promise<string> {
+  let response = await performFetch(path, options);
+
+  if (response.status === 401 && !options.skipAuthRetry) {
+    const refreshed = await tryRefreshSession();
+    if (refreshed) response = await performFetch(path, options);
+  }
+
+  if (!response.ok) {
+    // El cuerpo del error SÍ es JSON aunque lo pedido sean bytes: se lee para conservar el motivo.
+    const payload = await readPayload<unknown>(response);
+    throw new Error(extractErrorMessage(response, payload));
+  }
+
+  return URL.createObjectURL(await response.blob());
+}

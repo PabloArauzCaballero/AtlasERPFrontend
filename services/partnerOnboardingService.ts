@@ -1,4 +1,4 @@
-import { apiRequest } from '@/lib/apiClient';
+import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
 import type { JsonObject } from '@/services/types';
 
 /**
@@ -135,8 +135,25 @@ export const partnerOnboardingService = {
       body,
     });
   },
+  /** Los QR del comercio con su historial de reemplazos. Lectura suelta: la pantalla del QR de
+   *  cobro no necesita el expediente entero —requisitos, sucursales, terminales— para enseñarlos. */
+  listQrCodes(partnerId: string) {
+    return apiRequest<PartnerQrCode[]>(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes`);
+  },
   registerQr(partnerId: string, body: JsonObject) {
     return apiRequest<PartnerQrCode>(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes`, { method: 'POST', body });
+  },
+  /**
+   * La imagen del QR, como URL de blob lista para un `<img>`.
+   *
+   * Se subía el QR y no había forma de volver a verlo: la tabla enseñaba el prefijo del hash, que
+   * prueba que el archivo existe pero no deja comprobar que sea el QR correcto. Un comercio que se
+   * equivoca de imagen no se entera hasta que un cliente transfiere a la cuenta de otro.
+   *
+   * Quien la pida tiene que revocarla al desmontar.
+   */
+  qrImageUrl(partnerId: string, qrId: string) {
+    return apiBlobUrl(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes/${encodeURIComponent(qrId)}/content`);
   },
   registerPosTerminal(partnerId: string, branchId: string, body: JsonObject) {
     return apiRequest<PartnerPosTerminal>(
