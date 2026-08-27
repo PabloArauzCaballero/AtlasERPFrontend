@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import type { PaginatedResult, ResourceRow } from '@/services/types';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
@@ -11,6 +11,7 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { formatBob, formatDate, maskPii } from '@/lib/formatters';
 import { downloadCsv } from '@/lib/csv';
+import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 
 /**
  * Panel de «lo que ya existe»: un resumen (KPIs) más una tabla de los registros de la pantalla.
@@ -143,6 +144,45 @@ export function RecordsPanel(props: RecordsPanelProps) {
     });
   }, [rows, columns, props.title]);
 
+  const [generandoPdf, setGenerandoPdf] = useState(false);
+  const [errorPdf, setErrorPdf] = useState('');
+
+  /*
+   * El panel, en PDF. Imprime hasta 2.000 filas aunque la tabla muestre 50: en pantalla el tope es
+   * para no ahogar el desplazamiento, en un documento el tope es el del contrato del generador.
+   */
+  const exportarPdf = useCallback(async () => {
+    setGenerandoPdf(true);
+    setErrorPdf('');
+    try {
+      await descargarPdf(
+        {
+          title: props.title,
+          subtitle: `${rows.length.toLocaleString('es-BO')} registro(s)`,
+          summary: [{ label: 'Registros', value: rows.length }],
+          sections: [
+            {
+              title: props.title,
+              table: tablaPdf(
+                columns.map((column) => ({ key: column.key, label: column.label })),
+                rows,
+                (row, key) => {
+                  const column = columns.find((item) => item.key === key);
+                  return column ? cellText(row as ResourceRow, column) : '';
+                },
+              ),
+            },
+          ],
+        },
+        nombreArchivoPdf(props.title),
+      );
+    } catch (error) {
+      setErrorPdf(error instanceof Error ? error.message : 'No se pudo generar el PDF.');
+    } finally {
+      setGenerandoPdf(false);
+    }
+  }, [rows, columns, props.title]);
+
   const tones = ['teal', 'amber', 'purple'] as const;
 
   return (
@@ -159,12 +199,14 @@ export function RecordsPanel(props: RecordsPanelProps) {
         icon="table_view"
         action={
           <div className="flex items-center gap-2">
-            <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>Exportar CSV</AtlasButton>
+            <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="records-pdf" loading={generandoPdf} disabled={!rows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
+            <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>CSV</AtlasButton>
             <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
           </div>
         }
       >
         {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar el listado">{resource.error}</InlineNotice> : null}
+        {errorPdf ? <InlineNotice tone="danger" title="No se pudo generar el PDF">{errorPdf}</InlineNotice> : null}
         <div className="overflow-x-auto rounded-md border border-slate-200">
           <table className="w-full min-w-[720px] border-collapse text-left text-xs">
             <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.08em] text-slate-500">

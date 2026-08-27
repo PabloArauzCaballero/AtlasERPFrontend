@@ -9,8 +9,11 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import { partnerOnboardingService, uploadQrFile, type PartnerQrCode } from '@/services/partnerOnboardingService';
+import { AVISO_SIN_QR, imagenTieneQr } from '@/lib/qrImagen';
 
 /**
  * El QR de cobro del comercio: el que ve el cliente cuando pulsa «pagar».
@@ -114,6 +117,16 @@ export function MerchantPaymentQrScreen() {
     setSubiendo(true);
     setAviso(null);
     try {
+      /*
+       * Se comprueba ANTES de subir. El servidor vuelve a comprobarlo y es el que manda —esto se
+       * puede saltar—, pero avisar aquí ahorra el viaje entero al almacenamiento y no deja allí un
+       * objeto que nadie va a registrar. Donde el navegador no sepa leer códigos, esto no bloquea.
+       */
+      if ((await imagenTieneQr(file)) === 'sin-codigo') {
+        setAviso({ tono: 'danger', texto: AVISO_SIN_QR });
+        return;
+      }
+
       const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
         qrKind: 'bank',
         contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
@@ -149,9 +162,50 @@ export function MerchantPaymentQrScreen() {
         title="Mi QR de cobro"
         description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Atlas."
         actions={
-          <AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>
-            Actualizar
-          </AtlasButton>
+          <>
+            <BotonPdf
+              label="Descargar PDF"
+              data-testid="pdf-qr"
+              disabled={cargando || !codigos.length}
+              documento={() => ({
+                title: 'Mi QR de cobro',
+                subtitle: nombre ? `Portal del comercio · ${nombre}` : 'Portal del comercio',
+                summary: [{ label: 'Códigos registrados', value: codigos.length }],
+                notices: [
+                  {
+                    level: 'caution' as const,
+                    title: 'La imagen del QR no va en este PDF',
+                    text:
+                      'Se listan los códigos registrados y su huella, no la imagen: un QR impreso desde un ' +
+                      'informe puede acabar pegado en una caja sin que nadie compruebe que es el vigente. ' +
+                      'La imagen se descarga desde esta misma pantalla.',
+                  },
+                ],
+                sections: [
+                  {
+                    title: 'Códigos registrados',
+                    fields: [
+                      { label: 'Comercio', value: nombre || '—' },
+                      { label: 'Estado del expediente', value: estadoExpediente || '—' },
+                    ],
+                    table: tablaPdf(
+                      [
+                        { key: 'qrKind', label: 'Tipo' },
+                        { key: 'bankInstitutionCode', label: 'Entidad' },
+                        { key: 'accountNumberMasked', label: 'Cuenta' },
+                        { key: 'status', label: 'Estado' },
+                        { key: 'registeredAt', label: 'Registrado' },
+                      ],
+                      codigos as unknown as Array<Record<string, unknown>>,
+                    ),
+                  },
+                ],
+              })}
+            />
+            <AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>
+              Actualizar
+            </AtlasButton>
+          </>
         }
       />
 

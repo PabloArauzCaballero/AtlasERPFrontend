@@ -46,7 +46,12 @@ const classificationTone: Record<string, 'success' | 'warning' | 'danger' | 'neu
   EXPENSE: 'danger',
 };
 
-export function AccountGroupsScreen() {
+interface AccountGroupsScreenProps {
+  /** Dentro de una pestaña: sin cabecera de pantalla propia. */
+  embedded?: boolean | undefined;
+}
+
+export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenProps = {}) {
   const coaOptions = useOptions(loadChartsOfAccounts);
   const groupOptions = useOptions(loadAccountGroups);
   const [coaFilter, setCoaFilter] = useState('');
@@ -83,12 +88,14 @@ export function AccountGroupsScreen() {
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader
-        breadcrumbs={[{ label: 'Contabilidad' }, { label: 'Grupos de cuenta' }]}
-        title="Grupos de cuenta (árbol contable)"
-        description="Taxonomía de reporte para estados financieros: Balance General, Activo, Corriente y subgrupos. Independiente de la jerarquía cuenta-a-cuenta."
-        actions={<AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>}
-      />
+      {embedded ? null : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: 'Contabilidad' }, { label: 'Grupos de cuenta' }]}
+          title="Grupos de cuenta (árbol contable)"
+          description="Taxonomía de reporte para estados financieros: Balance General, Activo, Corriente y subgrupos. Independiente de la jerarquía cuenta-a-cuenta."
+          actions={<AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>}
+        />
+      )}
 
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,.8fr)]">
         <Panel title="Estructura jerárquica" description="Árbol de grupos ordenado por statement / clasificación." icon="account_tree">

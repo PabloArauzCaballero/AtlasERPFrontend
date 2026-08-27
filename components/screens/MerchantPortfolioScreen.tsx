@@ -8,6 +8,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
@@ -76,7 +78,45 @@ export function MerchantPortfolioScreen() {
         title="Mi cartera"
         description={`Lo que le deben${nombre ? ` a ${nombre}` : ''}, con su detalle cuota a cuota y el calendario de cobros.`}
         actions={
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
+            <BotonPdf
+              label="Descargar PDF"
+              data-testid="pdf-cartera"
+              disabled={cargando || !cartera}
+              documento={() => ({
+                title: 'Mi cartera',
+                subtitle: nombre ? `Portal del comercio · ${nombre}` : 'Portal del comercio',
+                summary: [
+                  { label: 'Por cobrar', value: formatBob(Number(resumen?.outstanding ?? 0)) },
+                  { label: 'Vencido', value: formatBob(Number(resumen?.overdueAmount ?? 0)) },
+                  { label: 'Cobrado', value: formatBob(Number(resumen?.collected ?? 0)) },
+                  { label: 'Comisión a Atlas', value: formatBob(Number(resumen?.commissionAccrued ?? 0)) },
+                ],
+                sections: [
+                  {
+                    title: 'Resumen de la cartera',
+                    fields: [
+                      { label: 'Créditos activos', value: String(resumen?.activeCredits ?? 0) },
+                      { label: 'Cuotas en mora', value: String(resumen?.overdueInstallments ?? 0) },
+                      { label: 'MDR aplicado', value: `${String(resumen?.mdrRatePercent ?? '0')} %` },
+                    ],
+                  },
+                  {
+                    title: 'Próximos cobros',
+                    description: 'Calendario de cuotas por vencer tal y como se ve en pantalla.',
+                    table: tablaPdf(
+                      [
+                        { key: 'dueDate', label: 'Vence' },
+                        { key: 'customerName', label: 'Cliente' },
+                        { key: 'amount', label: 'Importe' },
+                        { key: 'status', label: 'Estado' },
+                      ],
+                      proximos as unknown as Array<Record<string, unknown>>,
+                    ),
+                  },
+                ],
+              })}
+            />
             {(['panel', 'creditos', 'calendario', 'comision'] as Vista[]).map((opcion) => (
               <AtlasButton key={opcion} variant={vista === opcion ? 'primary' : 'secondary'} onClick={() => setVista(opcion)}>
                 {opcion === 'panel' ? 'Panel' : opcion === 'creditos' ? 'Créditos' : opcion === 'calendario' ? 'Calendario' : 'Comisión'}

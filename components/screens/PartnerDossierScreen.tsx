@@ -6,8 +6,12 @@ import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
+import { TabbedPanels } from '@/components/atlas/TabbedPanels';
+import { AVISO_SIN_QR, imagenTieneQr } from '@/lib/qrImagen';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { QrCanvas } from '@/components/atlas/QrCanvas';
 import { PosList, QrList, SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
 import { merchantCategoryOptions } from '@/lib/catalogs';
@@ -180,6 +184,16 @@ export function PartnerDossierScreen() {
       setFeedback({ tone: 'info', text: 'Elige primero la imagen del QR.' });
       return;
     }
+    /*
+     * Antes de subir: si el navegador sabe leer códigos y esta imagen no lleva ninguno, se para
+     * aquí. El servidor lo comprueba igual y es quien manda; esto sólo evita el viaje y el objeto
+     * huérfano en el almacenamiento.
+     */
+    if ((await imagenTieneQr(file)) === 'sin-codigo') {
+      setFeedback({ tone: 'danger', text: AVISO_SIN_QR });
+      return;
+    }
+
     const bankFields =
       kind === 'bank'
         ? {
@@ -207,6 +221,70 @@ export function PartnerDossierScreen() {
       <WorkspaceHeader
         title="Mi empresa"
         description="Los datos de tu negocio, dónde opera, con qué cobra y el QR que escanean tus clientes."
+        actions={
+          state ? (
+            <BotonPdf
+              label="Descargar PDF"
+              data-testid="pdf-mi-empresa"
+              documento={() => ({
+                title: 'Mi empresa',
+                subtitle: `${state.profile.legalName} · NIT ${state.profile.taxId}`,
+                summary: [
+                  { label: 'Estado', value: state.profile.onboardingStatus },
+                  { label: 'Sucursales', value: branches.length },
+                  { label: 'Terminales', value: (state.posTerminals ?? []).length },
+                  { label: 'QR registrados', value: (state.qrCodes ?? []).length },
+                ],
+                ...(state.gaps.length
+                  ? {
+                      notices: [
+                        {
+                          level: 'caution' as const,
+                          title: 'Expediente incompleto',
+                          text: `Faltan ${state.gaps.length} requisito(s) por cubrir antes de poder enviarlo a revisión.`,
+                        },
+                      ],
+                    }
+                  : {}),
+                sections: [
+                  {
+                    title: 'Ficha comercial',
+                    fields: [
+                      { label: 'Razón social', value: state.profile.legalName },
+                      { label: 'Nombre comercial', value: state.profile.tradeName ?? '—' },
+                      { label: 'NIT', value: state.profile.taxId },
+                      { label: 'Rubro', value: state.profile.businessCategory ?? '—' },
+                      { label: 'Correo de contacto', value: state.profile.contactEmail },
+                      { label: 'Teléfono', value: state.profile.contactPhone ?? '—' },
+                    ],
+                  },
+                  {
+                    title: 'Sucursales',
+                    table: tablaPdf(
+                      [
+                        { key: 'branchCode', label: 'Código' },
+                        { key: 'name', label: 'Sucursal' },
+                        { key: 'addressLine', label: 'Dirección' },
+                      ],
+                      branches as unknown as Array<Record<string, unknown>>,
+                    ),
+                  },
+                  {
+                    title: 'Terminales POS',
+                    table: tablaPdf(
+                      [
+                        { key: 'terminalSerial', label: 'Serial' },
+                        { key: 'terminalAlias', label: 'Alias' },
+                        { key: 'status', label: 'Estado' },
+                      ],
+                      (state.posTerminals ?? []) as unknown as Array<Record<string, unknown>>,
+                    ),
+                  },
+                ],
+              })}
+            />
+          ) : null
+        }
       />
 
       {feedback ? (
@@ -260,237 +338,271 @@ export function PartnerDossierScreen() {
       ) : null}
 
       {state ? (
-        <>
-          <Panel
-            title={state.profile.legalName}
-            description={`NIT ${state.profile.taxId} · expediente ${state.profile.partnerId}`}
-            icon="badge"
-            action={<StatusPill tone={state.profile.onboardingStatus === 'approved' ? 'success' : 'info'}>{state.profile.onboardingStatus}</StatusPill>}
-          >
-            <SubmissionGaps gaps={state.gaps} ready={state.readyToSubmit} />
-            <div className="mt-3">
-              <AtlasButton
-                type="button"
-                disabled={busy || !state.readyToSubmit}
-                data-testid="btn-enviar-revision"
-                onClick={() => void run('Envío a revisión', () => partnerOnboardingService.submit(partnerId))}
+        <TabbedPanels
+          keepMounted
+          tabs={[
+            {
+              id: 'estado',
+              label: 'Estado del expediente',
+              icon: 'fact_check',
+              content: (
+              <Panel
+                title={state.profile.legalName}
+                description={`NIT ${state.profile.taxId} · expediente ${state.profile.partnerId}`}
+                icon="badge"
+                action={<StatusPill tone={state.profile.onboardingStatus === 'approved' ? 'success' : 'info'}>{state.profile.onboardingStatus}</StatusPill>}
               >
-                <Icon name="send" className="text-[18px]" /> Enviar a revisión
-              </AtlasButton>
-            </div>
-          </Panel>
-
-          <Panel
-            title="Ficha comercial"
-            description="Cómo se presenta tu negocio. La razón social, el NIT y la matrícula no se editan aquí: son los datos con los que Atlas verificó tu expediente."
-            icon="edit_note"
-          >
-            <form
-              className="grid gap-3 md:grid-cols-3"
-              data-testid="form-ficha-comercial"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const payload = camposEscritos(new FormData(event.currentTarget));
-                void run('Ficha comercial', () => partnerOnboardingService.updateCommercialProfile(partnerId, payload));
-              }}
-            >
-              <FormField
-                label="Nombre comercial"
-                name="tradeName"
-                defaultValue={state.profile.tradeName ?? ''}
-                data-testid="campo-tradeName"
-                hint="El nombre de la fachada, el que ve tu cliente."
-              />
-              <FormField
-                kind="select"
-                label="Rubro del negocio"
-                name="businessCategory"
-                defaultValue={state.profile.businessCategory ?? ''}
-                data-testid="campo-rubro"
-                options={opcionesDeRubro(state.profile.businessCategory)}
-              />
-              <FormField
-                label="Teléfono de contacto"
-                name="contactPhone"
-                defaultValue={state.profile.contactPhone ?? ''}
-                data-testid="campo-contactPhone"
-              />
-              <div className="md:col-span-3">
-                <AtlasButton type="submit" disabled={busy} data-testid="btn-guardar-ficha">
-                  <Icon name="save" className="text-[18px]" /> Guardar ficha
-                </AtlasButton>
-              </div>
-            </form>
-            <dl className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-xs md:grid-cols-3">
-              <div>
-                <dt className="font-bold text-slate-500">Razón social</dt>
-                <dd className="text-slate-800">{state.profile.legalName}</dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-500">NIT</dt>
-                <dd className="text-slate-800">{state.profile.taxId}</dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-500">Matrícula de comercio</dt>
-                <dd className="text-slate-800">{state.profile.commercialRegistry ?? 'Sin declarar'}</dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-500">Correo verificado</dt>
-                <dd className="text-slate-800">
-                  {state.profile.contactEmail} {state.profile.emailVerified ? '· verificado' : '· sin verificar'}
-                </dd>
-              </div>
-            </dl>
-          </Panel>
-
-          <Panel title="Sucursales" icon="store" description="Dónde opera el negocio. De la sucursal cuelgan el QR y los terminales.">
-            <form
-              className="grid gap-3 md:grid-cols-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const payload = camposEscritos(new FormData(event.currentTarget));
-                void run('Sucursal', () => partnerOnboardingService.registerBranch(partnerId, payload));
-                event.currentTarget.reset();
-              }}
-            >
-              <FormField label="Código" name="branchCode" required data-testid="campo-branchCode" />
-              <FormField label="Nombre" name="name" required data-testid="campo-branchName" />
-              <FormField label="Dirección" name="addressLine" />
-              <div className="flex items-end">
-                <AtlasButton type="submit" disabled={busy} data-testid="btn-registrar-sucursal">
-                  Registrar sucursal
-                </AtlasButton>
-              </div>
-            </form>
-            {/*
-              * Al abrir una sucursal se ve SU QR: el que hay que imprimir y pegar en ese mostrador.
-              *
-              * El QR es por terminal y no por sucursal, y esa diferencia importa cuando algo va
-              * mal: si un local tiene dos cajas, poder retirar el codigo de una sin cerrar la otra
-              * es la diferencia entre suspender un equipo y cerrar la tienda.
-              */}
-            <ul className="mt-3 space-y-2 text-xs" data-testid="lista-sucursales">
-              {branches.map((branch) => {
-                const abierta = sucursalAbierta === branch.branchId;
-                const terminales = (state.posTerminals ?? []).filter((pos) => pos.branchId === branch.branchId);
-                return (
-                  <li key={branch.branchId} className="rounded-lg border border-slate-200">
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-slate-50"
-                      data-testid={`sucursal-${branch.branchCode}`}
-                      onClick={() => setSucursalAbierta(abierta ? null : branch.branchId)}
-                    >
-                      <span>
-                        <strong>{branch.branchCode}</strong> · {branch.name}
-                        {branch.city ? ` · ${branch.city}` : ''}
-                      </span>
-                      <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-slate-500">
-                        {terminales.length} {terminales.length === 1 ? 'terminal' : 'terminales'}
-                        <Icon name={abierta ? 'expand_less' : 'qr_code_2'} className="text-[18px]" />
-                      </span>
-                    </button>
-
-                    {abierta ? (
-                      <div className="border-t border-slate-100 bg-slate-50/60 p-3" data-testid={`qr-sucursal-${branch.branchCode}`}>
-                        {terminales.length === 0 ? (
-                          <p className="text-slate-600">
-                            Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que imprimir.
-                            Regístrala abajo, en <strong>Terminales POS</strong>.
-                          </p>
-                        ) : (
-                          <div className="flex flex-wrap gap-4">
-                            {terminales.map((pos) => (
-                              <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
-                                <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
-                                <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
-                                <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
-                                <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
-                                {pos.status !== 'active' ? (
-                                  <p className="text-[10px] text-slate-500">
-                                    Mientras no esté activo, el teléfono del cliente rechaza este código.
-                                  </p>
-                                ) : null}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
-
-          <Panel title="Cobro por QR" icon="qr_code_2" description="Se guarda la imagen y su huella, no el número transcrito. Un QR no se edita: se reemplaza.">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-700">QR del negocio</p>
-                <input ref={businessQrInput} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-negocio" />
-                <AtlasButton type="button" disabled={busy} onClick={() => void subirQr('business', businessQrInput.current)} data-testid="btn-subir-qr-negocio">
-                  Subir QR del negocio
-                </AtlasButton>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-700">QR bancario</p>
-                <input ref={bankQrInput} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-bancario" />
-                <div className="grid grid-cols-2 gap-2">
-                  {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y
-                      frenar un cobro contra una entidad sin licencia vigente. */}
-                  <FormField label="Entidad (sigla ASFI)" name="bankInstitutionCode" id="bankInstitutionCode" hint="BNB, BME, BCR…" />
-                  <FormField label="Cuenta enmascarada" name="accountNumberMasked" id="accountNumberMasked" hint="****7890" />
+                <SubmissionGaps gaps={state.gaps} ready={state.readyToSubmit} />
+                <div className="mt-3">
+                  <AtlasButton
+                    type="button"
+                    disabled={busy || !state.readyToSubmit}
+                    data-testid="btn-enviar-revision"
+                    onClick={() => void run('Envío a revisión', () => partnerOnboardingService.submit(partnerId))}
+                  >
+                    <Icon name="send" className="text-[18px]" /> Enviar a revisión
+                  </AtlasButton>
                 </div>
-                <AtlasButton type="button" disabled={busy} onClick={() => void subirQr('bank', bankQrInput.current)} data-testid="btn-subir-qr-bancario">
-                  Subir QR bancario
-                </AtlasButton>
-              </div>
-            </div>
-            <div className="mt-4">
-              <QrList codes={state.qrCodes} />
-            </div>
-          </Panel>
+              </Panel>
+              ),
+            },
+            {
+              id: 'ficha',
+              label: 'Ficha comercial',
+              icon: 'edit_note',
+              content: (
+              <Panel
+                title="Ficha comercial"
+                description="Cómo se presenta tu negocio. La razón social, el NIT y la matrícula no se editan aquí: son los datos con los que Atlas verificó tu expediente."
+                icon="edit_note"
+              >
+                <form
+                  className="grid gap-3 md:grid-cols-3"
+                  data-testid="form-ficha-comercial"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const payload = camposEscritos(new FormData(event.currentTarget));
+                    void run('Ficha comercial', () => partnerOnboardingService.updateCommercialProfile(partnerId, payload));
+                  }}
+                >
+                  <FormField
+                    label="Nombre comercial"
+                    name="tradeName"
+                    defaultValue={state.profile.tradeName ?? ''}
+                    data-testid="campo-tradeName"
+                    hint="El nombre de la fachada, el que ve tu cliente."
+                  />
+                  <FormField
+                    kind="select"
+                    label="Rubro del negocio"
+                    name="businessCategory"
+                    defaultValue={state.profile.businessCategory ?? ''}
+                    data-testid="campo-rubro"
+                    options={opcionesDeRubro(state.profile.businessCategory)}
+                  />
+                  <FormField
+                    label="Teléfono de contacto"
+                    name="contactPhone"
+                    defaultValue={state.profile.contactPhone ?? ''}
+                    data-testid="campo-contactPhone"
+                  />
+                  <div className="md:col-span-3">
+                    <AtlasButton type="submit" disabled={busy} data-testid="btn-guardar-ficha">
+                      <Icon name="save" className="text-[18px]" /> Guardar ficha
+                    </AtlasButton>
+                  </div>
+                </form>
+                <dl className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-xs md:grid-cols-3">
+                  <div>
+                    <dt className="font-bold text-slate-500">Razón social</dt>
+                    <dd className="text-slate-800">{state.profile.legalName}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-bold text-slate-500">NIT</dt>
+                    <dd className="text-slate-800">{state.profile.taxId}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-bold text-slate-500">Matrícula de comercio</dt>
+                    <dd className="text-slate-800">{state.profile.commercialRegistry ?? 'Sin declarar'}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-bold text-slate-500">Correo verificado</dt>
+                    <dd className="text-slate-800">
+                      {state.profile.contactEmail} {state.profile.emailVerified ? '· verificado' : '· sin verificar'}
+                    </dd>
+                  </div>
+                </dl>
+              </Panel>
+              ),
+            },
+            {
+              id: 'sucursales',
+              label: 'Sucursales',
+              icon: 'store',
+              content: (
+              <Panel title="Sucursales" icon="store" description="Dónde opera el negocio. De la sucursal cuelgan el QR y los terminales.">
+                <form
+                  className="grid gap-3 md:grid-cols-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const payload = camposEscritos(new FormData(event.currentTarget));
+                    void run('Sucursal', () => partnerOnboardingService.registerBranch(partnerId, payload));
+                    event.currentTarget.reset();
+                  }}
+                >
+                  <FormField label="Código" name="branchCode" required data-testid="campo-branchCode" />
+                  <FormField label="Nombre" name="name" required data-testid="campo-branchName" />
+                  <FormField label="Dirección" name="addressLine" />
+                  <div className="flex items-end">
+                    <AtlasButton type="submit" disabled={busy} data-testid="btn-registrar-sucursal">
+                      Registrar sucursal
+                    </AtlasButton>
+                  </div>
+                </form>
+                {/*
+                  * Al abrir una sucursal se ve SU QR: el que hay que imprimir y pegar en ese mostrador.
+                  *
+                  * El QR es por terminal y no por sucursal, y esa diferencia importa cuando algo va
+                  * mal: si un local tiene dos cajas, poder retirar el codigo de una sin cerrar la otra
+                  * es la diferencia entre suspender un equipo y cerrar la tienda.
+                  */}
+                <ul className="mt-3 space-y-2 text-xs" data-testid="lista-sucursales">
+                  {branches.map((branch) => {
+                    const abierta = sucursalAbierta === branch.branchId;
+                    const terminales = (state.posTerminals ?? []).filter((pos) => pos.branchId === branch.branchId);
+                    return (
+                      <li key={branch.branchId} className="rounded-lg border border-slate-200">
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-slate-50"
+                          data-testid={`sucursal-${branch.branchCode}`}
+                          onClick={() => setSucursalAbierta(abierta ? null : branch.branchId)}
+                        >
+                          <span>
+                            <strong>{branch.branchCode}</strong> · {branch.name}
+                            {branch.city ? ` · ${branch.city}` : ''}
+                          </span>
+                          <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-slate-500">
+                            {terminales.length} {terminales.length === 1 ? 'terminal' : 'terminales'}
+                            <Icon name={abierta ? 'expand_less' : 'qr_code_2'} className="text-[18px]" />
+                          </span>
+                        </button>
 
-          <Panel title="Terminales POS" icon="point_of_sale" description="El terminal pertenece a una sucursal: un cobro ocurre en un lugar.">
-            <form
-              className="grid gap-3 md:grid-cols-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const form = new FormData(event.currentTarget);
-                const branchId = String(form.get('branchId') ?? '');
-                const payload = camposEscritos(form);
-                delete payload.branchId;
-                void run('Terminal', () => partnerOnboardingService.registerPosTerminal(partnerId, branchId, payload));
-                event.currentTarget.reset();
-              }}
-            >
-              <FormField
-                kind="select"
-                label="Sucursal"
-                name="branchId"
-                required
-                data-testid="campo-pos-sucursal"
-                options={branches.map((branch) => ({ label: `${branch.branchCode} · ${branch.name}`, value: branch.branchId }))}
-              />
-              <FormField label="Serial" name="terminalSerial" required data-testid="campo-pos-serial" />
-              <FormField label="Alias" name="terminalAlias" />
-              <div className="flex items-end">
-                <AtlasButton type="submit" disabled={busy || branches.length === 0} data-testid="btn-registrar-pos">
-                  Registrar terminal
-                </AtlasButton>
-              </div>
-            </form>
-            <div className="mt-3">
-              <PosList
-                terminals={state.posTerminals}
-                branches={branches}
-                onChangeStatus={(terminalId, status) =>
-                  void run('Estado del terminal', () => partnerOnboardingService.changePosStatus(partnerId, terminalId, { status }))
-                }
-              />
-            </div>
-          </Panel>
-        </>
+                        {abierta ? (
+                          <div className="border-t border-slate-100 bg-slate-50/60 p-3" data-testid={`qr-sucursal-${branch.branchCode}`}>
+                            {terminales.length === 0 ? (
+                              <p className="text-slate-600">
+                                Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que imprimir.
+                                Regístrala abajo, en <strong>Terminales POS</strong>.
+                              </p>
+                            ) : (
+                              <div className="flex flex-wrap gap-4">
+                                {terminales.map((pos) => (
+                                  <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
+                                    <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
+                                    <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
+                                    <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
+                                    <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
+                                    {pos.status !== 'active' ? (
+                                      <p className="text-[10px] text-slate-500">
+                                        Mientras no esté activo, el teléfono del cliente rechaza este código.
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Panel>
+              ),
+            },
+            {
+              id: 'qr',
+              label: 'Cobro por QR',
+              icon: 'qr_code_2',
+              content: (
+              <Panel title="Cobro por QR" icon="qr_code_2" description="Se guarda la imagen y su huella, no el número transcrito. Un QR no se edita: se reemplaza.">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-slate-700">QR del negocio</p>
+                    <input ref={businessQrInput} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-negocio" />
+                    <AtlasButton type="button" disabled={busy} onClick={() => void subirQr('business', businessQrInput.current)} data-testid="btn-subir-qr-negocio">
+                      Subir QR del negocio
+                    </AtlasButton>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-slate-700">QR bancario</p>
+                    <input ref={bankQrInput} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-bancario" />
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y
+                          frenar un cobro contra una entidad sin licencia vigente. */}
+                      <FormField label="Entidad (sigla ASFI)" name="bankInstitutionCode" id="bankInstitutionCode" hint="BNB, BME, BCR…" />
+                      <FormField label="Cuenta enmascarada" name="accountNumberMasked" id="accountNumberMasked" hint="****7890" />
+                    </div>
+                    <AtlasButton type="button" disabled={busy} onClick={() => void subirQr('bank', bankQrInput.current)} data-testid="btn-subir-qr-bancario">
+                      Subir QR bancario
+                    </AtlasButton>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <QrList codes={state.qrCodes} />
+                </div>
+              </Panel>
+              ),
+            },
+            {
+              id: 'pos',
+              label: 'Terminales POS',
+              icon: 'point_of_sale',
+              content: (
+              <Panel title="Terminales POS" icon="point_of_sale" description="El terminal pertenece a una sucursal: un cobro ocurre en un lugar.">
+                <form
+                  className="grid gap-3 md:grid-cols-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const form = new FormData(event.currentTarget);
+                    const branchId = String(form.get('branchId') ?? '');
+                    const payload = camposEscritos(form);
+                    delete payload.branchId;
+                    void run('Terminal', () => partnerOnboardingService.registerPosTerminal(partnerId, branchId, payload));
+                    event.currentTarget.reset();
+                  }}
+                >
+                  <FormField
+                    kind="select"
+                    label="Sucursal"
+                    name="branchId"
+                    required
+                    data-testid="campo-pos-sucursal"
+                    options={branches.map((branch) => ({ label: `${branch.branchCode} · ${branch.name}`, value: branch.branchId }))}
+                  />
+                  <FormField label="Serial" name="terminalSerial" required data-testid="campo-pos-serial" />
+                  <FormField label="Alias" name="terminalAlias" />
+                  <div className="flex items-end">
+                    <AtlasButton type="submit" disabled={busy || branches.length === 0} data-testid="btn-registrar-pos">
+                      Registrar terminal
+                    </AtlasButton>
+                  </div>
+                </form>
+                <div className="mt-3">
+                  <PosList
+                    terminals={state.posTerminals}
+                    branches={branches}
+                    onChangeStatus={(terminalId, status) =>
+                      void run('Estado del terminal', () => partnerOnboardingService.changePosStatus(partnerId, terminalId, { status }))
+                    }
+                  />
+                </div>
+              </Panel>
+              ),
+            },
+          ]}
+        />
       ) : null}
     </div>
   );

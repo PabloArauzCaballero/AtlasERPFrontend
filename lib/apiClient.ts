@@ -5,6 +5,12 @@ export interface ApiRequestOptions {
   timeoutMs?: number;
   /** Omite el reintento automático de refresh-token en 401 (usado por /auth/login, /auth/refresh, /auth/logout mismos). */
   skipAuthRetry?: boolean;
+  /**
+   * Cabeceras extra. Existe para `Accept`: hay rutas que devuelven el archivo o su ficha JSON
+   * según lo que se pida, y sin poder decirlo se recibe la ficha y se guarda como si fuera el
+   * archivo. No sirve para sobrescribir `Authorization`, que lo pone siempre la sesión.
+   */
+  headers?: Record<string, string>;
 }
 
 interface ApiEnvelope<T> {
@@ -178,6 +184,10 @@ function buildHeaders(options: ApiRequestOptions): Record<string, string> {
   const headers: Record<string, string> = { Accept: 'application/json' };
 
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  for (const [nombre, valor] of Object.entries(options.headers ?? {})) {
+    if (nombre.toLowerCase() === 'authorization') continue;
+    headers[nombre] = valor;
+  }
   if (token) headers.Authorization = `Bearer ${token}`;
 
   return headers;
@@ -272,6 +282,66 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
  * Reintenta una vez tras renovar la sesión, igual que `apiRequest`: sin eso, la primera imagen que
  * se pide con el token caducado falla mientras el resto de la pantalla se recupera sola.
  */
+export interface ArchivoDescargado {
+  blob: Blob;
+  fileName: string;
+}
+
+/**
+ * Descarga un ARCHIVO autenticado, con el nombre que propone el servidor.
+ *
+ * No vale `<a href="/api/v1/…" download>`: seguir un enlace es una navegación del navegador y ahí
+ * no viaja el `Authorization` —el token de este portal vive en `localStorage`, no en una cookie—,
+ * así que lo que se guardaría en disco sería el 401 en JSON con extensión de PDF.
+ *
+ * Se distingue de `apiBlobUrl` en que conserva el nombre: una imagen para un `<img>` no necesita
+ * nombre, un documento que el usuario guarda sí.
+ */
+export async function apiFileDownload(
+  path: string,
+  fallbackFileName: string,
+  options: ApiRequestOptions = {},
+): Promise<ArchivoDescargado> {
+  let response = await performFetch(path, options);
+
+  if (response.status === 401 && !options.skipAuthRetry) {
+    const refreshed = await tryRefreshSession();
+    if (refreshed) response = await performFetch(path, options);
+  }
+
+  if (!response.ok) {
+    const payload = await readPayload<unknown>(response);
+    throw new Error(extractErrorMessage(response, payload));
+  }
+
+  return {
+    blob: await response.blob(),
+    fileName: fileNameFromDisposition(response) ?? fallbackFileName,
+  };
+}
+
+/** Nombre propuesto por el servidor, saneado a algo que sólo puede ser un nombre de archivo. */
+function fileNameFromDisposition(response: Response): string | null {
+  const raw = response.headers.get('content-disposition');
+  if (!raw) return null;
+  const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(raw);
+  if (!match?.[1]) return null;
+
+  let candidato: string;
+  try {
+    candidato = decodeURIComponent(match[1]);
+  } catch {
+    candidato = match[1];
+  }
+  const seguro = [...candidato]
+    .filter((char) => (char.codePointAt(0) ?? 0) > 0x1f && (char.codePointAt(0) ?? 0) !== 0x7f)
+    .filter((char) => char !== '/' && char !== '\\')
+    .join('')
+    .replaceAll('..', '')
+    .trim();
+  return seguro ? seguro.slice(0, 255) : null;
+}
+
 export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}): Promise<string> {
   let response = await performFetch(path, options);
 

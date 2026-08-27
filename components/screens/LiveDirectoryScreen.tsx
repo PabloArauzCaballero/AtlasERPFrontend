@@ -14,6 +14,7 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { formatBob, formatDate, maskPii } from '@/lib/formatters';
 import { downloadCsv } from '@/lib/csv';
+import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { toast } from '@/lib/toast';
 
@@ -159,6 +160,65 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
     });
   }, [rows, props.columns, props.title]);
 
+  /*
+   * El mismo directorio, en PDF.
+   *
+   * Imprime la PÁGINA que se está viendo, y lo dice: este listado es paginado en el servidor, así
+   * que «todo» no está en pantalla. Callarlo produciría un informe que parece el censo completo y
+   * son veinticinco filas.
+   */
+  const [generandoPdf, setGenerandoPdf] = useState(false);
+  const [errorPdf, setErrorPdf] = useState('');
+
+  const exportarPdf = useCallback(async () => {
+    setGenerandoPdf(true);
+    setErrorPdf('');
+    try {
+      await descargarPdf(
+        {
+          title: props.title,
+          subtitle: `${props.moduleLabel} · ${rows.length.toLocaleString('es-BO')} de ${total.toLocaleString('es-BO')} registro(s)`,
+          summary: [
+            { label: 'Registros impresos', value: rows.length },
+            { label: 'Registros en total', value: total },
+          ],
+          ...(rows.length < total
+            ? {
+                notices: [
+                  {
+                    level: 'caution' as const,
+                    title: 'Sólo la página actual',
+                    text:
+                      `Este documento contiene los ${rows.length} registros de la página que se estaba viendo, ` +
+                      `de ${total} en total. Ajusta los filtros o la página para imprimir otros.`,
+                  },
+                ],
+              }
+            : {}),
+          sections: [
+            {
+              title: props.title,
+              description: props.description,
+              table: tablaPdf(
+                props.columns.map((column) => ({ key: column.key, label: column.label })),
+                rows,
+                (row, key) => {
+                  const column = props.columns.find((item) => item.key === key);
+                  return column ? cellText(row as ResourceRow, column) : '';
+                },
+              ),
+            },
+          ],
+        },
+        nombreArchivoPdf(props.title),
+      );
+    } catch (error) {
+      setErrorPdf(error instanceof Error ? error.message : 'No se pudo generar el PDF.');
+    } finally {
+      setGenerandoPdf(false);
+    }
+  }, [rows, total, props.title, props.description, props.moduleLabel, props.columns]);
+
   const [pending, setPending] = useState<{ action: RowAction; row: ResourceRow } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -181,7 +241,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         description={props.description}
         actions={
           <>
-            <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>Exportar CSV</AtlasButton>
+            <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="directorio-pdf" loading={generandoPdf} disabled={!rows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
+            <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>CSV</AtlasButton>
             {props.createHref ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link> : null}
           </>
         }
@@ -216,6 +277,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
       </Panel>
 
       {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar la información">{resource.error}</InlineNotice> : null}
+      {errorPdf ? <InlineNotice tone="danger" title="No se pudo generar el PDF">{errorPdf}</InlineNotice> : null}
 
       <section data-tutorial-id="resource-table" className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
         {loading && !rows.length ? <TableSkeleton columns={props.columns.length + 1} /> : (

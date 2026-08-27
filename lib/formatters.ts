@@ -20,8 +20,28 @@ export function formatMicrosAsBob(value: number | string | null | undefined): st
     : '—';
 }
 
+/** `AAAA-MM-DD` a secas: lo que devuelven las columnas `DATE` del ERP (vigencias, vencimientos). */
+const SOLO_FECHA = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return '—';
+
+  /*
+   * Una fecha sin hora no tiene zona horaria, y tratarla como si la tuviera la mueve un día.
+   *
+   * `new Date('2026-01-01')` es medianoche UTC, y este formateador pinta en `America/La_Paz`
+   * (UTC-4): el inicio de un contrato guardado el 1 de enero salía en pantalla como «31 dic de
+   * 2025». En un vencimiento o en el cierre de una vigencia ese día de menos no es un detalle
+   * cosmético. Se ancla a mediodía UTC, que queda fuera del alcance de cualquier desplazamiento.
+   */
+  if (typeof value === 'string') {
+    const partes = SOLO_FECHA.exec(value);
+    if (partes) {
+      const [, anio, mes, dia] = partes;
+      return dateFormatter.format(new Date(Date.UTC(Number(anio), Number(mes) - 1, Number(dia), 12)));
+    }
+  }
+
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : dateFormatter.format(date);
 }

@@ -52,6 +52,8 @@ test.describe('expediente del negocio', () => {
     await expect(page.getByTestId('btn-enviar-revision')).toBeDisabled();
 
     // --- Sucursal --------------------------------------------------------------------------
+    // El expediente se reorganizó en pestañas, así que cada paso empieza abriendo la suya.
+    await page.getByTestId('tab-sucursales').click();
     await page.getByTestId('campo-branchCode').fill('SC-01');
     await page.getByTestId('campo-branchName').fill('Sucursal Centro');
     await page.getByTestId('btn-registrar-sucursal').click();
@@ -59,6 +61,7 @@ test.describe('expediente del negocio', () => {
     await expect(pendientes.locator('[data-requirement="branch"]')).toHaveCount(0);
 
     // --- Los dos QR ------------------------------------------------------------------------
+    await page.getByTestId('tab-qr').click();
     await page.getByTestId('input-qr-negocio').setInputFiles({ name: 'qr.png', mimeType: 'image/png', buffer: PNG });
     await page.getByTestId('btn-subir-qr-negocio').click();
     await expect(page.getByTestId('tabla-qr').locator('[data-qr-kind="business"]')).toBeVisible();
@@ -78,6 +81,7 @@ test.describe('expediente del negocio', () => {
     await page.screenshot({ path: `${EVIDENCIA}/03-qr.png`, fullPage: true });
 
     // --- Terminal POS ----------------------------------------------------------------------
+    await page.getByTestId('tab-pos').click();
     await page.getByTestId('campo-pos-serial').fill('SN-00042');
     await page.getByTestId('btn-registrar-pos').click();
     await expect(page.getByTestId('tabla-pos')).toContainText('SN-00042');
@@ -89,6 +93,7 @@ test.describe('expediente del negocio', () => {
     // --- Envío ------------------------------------------------------------------------------
     // Queda un requisito que esta pantalla todavía no cubre —el representante legal—, así que el
     // envío sigue apagado. Se afirma en vez de disimularlo: la pantalla está diciendo la verdad.
+    await page.getByTestId('tab-estado').click();
     await expect(pendientes.locator('[data-requirement="legal_representative"]')).toBeVisible();
     await expect(page.getByTestId('btn-enviar-revision')).toBeDisabled();
     await page.screenshot({ path: `${EVIDENCIA}/05-estado-final.png`, fullPage: true });
@@ -104,11 +109,13 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('campo-contactEmail').fill('contacto@andina.test');
     await page.getByTestId('btn-abrir-expediente').click();
 
+    await page.getByTestId('tab-sucursales').click();
     await page.getByTestId('campo-branchCode').fill('SC-01');
     await page.getByTestId('campo-branchName').fill('Sucursal Centro');
     await page.getByTestId('btn-registrar-sucursal').click();
     await expect(page.getByTestId('lista-sucursales')).toContainText('SC-01');
 
+    await page.getByTestId('tab-pos').click();
     await page.getByTestId('campo-pos-serial').fill('SN-DUP');
     await page.getByTestId('btn-registrar-pos').click();
     await expect(page.getByTestId('tabla-pos')).toContainText('SN-DUP');

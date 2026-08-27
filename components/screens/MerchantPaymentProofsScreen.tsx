@@ -9,6 +9,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import type { ComprobanteDePago } from '@/services/merchantCreditService';
@@ -194,7 +196,38 @@ export function MerchantPaymentProofsScreen() {
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Comprobantes' }]}
         title="Comprobantes por verificar"
         description="Sus clientes avisaron que transfirieron a su cuenta. Confirme lo que ya vio entrar; la cuota se da por pagada sólo entonces."
-        actions={<AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>Actualizar</AtlasButton>}
+        actions={
+          <>
+            <BotonPdf
+              label="Descargar PDF"
+              data-testid="pdf-comprobantes"
+              disabled={cargando || !comprobantes.length}
+              documento={() => ({
+                title: 'Comprobantes por verificar',
+                subtitle: 'Portal del comercio',
+                summary: [{ label: 'Comprobantes', value: comprobantes.length }],
+                sections: [
+                  {
+                    title: 'Comprobantes recibidos',
+                    description: 'Transferencias que los clientes declaran haber hecho a la cuenta del comercio.',
+                    table: tablaPdf(
+                      [
+                        { key: 'claimCode', label: 'Código' },
+                        { key: 'submittedAt', label: 'Avisado' },
+                        { key: 'claimedAmount', label: 'Importe' },
+                        { key: 'payerReference', label: 'Referencia' },
+                        { key: 'status', label: 'Estado' },
+                        { key: 'decidedAt', label: 'Resuelto' },
+                      ],
+                      comprobantes as unknown as Array<Record<string, unknown>>,
+                    ),
+                  },
+                ],
+              })}
+            />
+            <AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>Actualizar</AtlasButton>
+          </>
+        }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

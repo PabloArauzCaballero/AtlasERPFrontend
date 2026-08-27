@@ -26,7 +26,13 @@ interface JournalLine {
 }
 const createLine = (id: string, index: number): JournalLine => ({ id, glAccountId: '', debit: index === 0 ? '0' : '', credit: index === 1 ? '0' : '', description: '', partnerId: '', costCenterId: '' });
 
-export function AccountingDocumentScreen() {
+interface AccountingDocumentScreenProps {
+  /** Dentro de una pestaña: sin cabecera de pantalla, con las acciones al pie del formulario. */
+  embedded?: boolean | undefined;
+  onDone?: (() => void | Promise<void>) | undefined;
+}
+
+export function AccountingDocumentScreen({ embedded = false, onDone }: AccountingDocumentScreenProps = {}) {
   /* Los documentos se ELIGEN: el backend los expone y nadie recuerda un uuid. */
   const documentos = useOptions(loadAccountingDocuments);
   const [lines, setLines] = useState<JournalLine[]>([createLine('journal-0', 0), createLine('journal-1', 1)]);
@@ -74,14 +80,16 @@ export function AccountingDocumentScreen() {
         ...(line.description ? { description: line.description } : {}),
       })),
     };
-    try { const created = await createMutation.execute(payload); if (created.id) setDocumentId(String(created.id)); } catch { /* controlled */ }
+    try { const created = await createMutation.execute(payload); if (created.id) setDocumentId(String(created.id)); await onDone?.(); } catch { /* controlled */ }
   }
 
-  async function postDocument() { if (!documentId) return; try { await postMutation.execute(documentId); } catch { /* controlled */ } }
+  async function postDocument() { if (!documentId) return; try { await postMutation.execute(documentId); await onDone?.(); } catch { /* controlled */ } }
+
+  const acciones = <><AtlasButton variant="secondary" icon="close" type="reset">Cancelar</AtlasButton><AtlasButton variant="secondary" icon="rule" disabled={!balanced}>Validar cuadre</AtlasButton><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar borrador</AtlasButton></>;
 
   return (
     <form className="space-y-5" onSubmit={createDocument}>
-      <WorkspaceHeader breadcrumbs={[{ label: 'Contabilidad' }, { label: 'Documentos' }]} title="Crear Documento Contable" description="Prepare un asiento balanceado, valide dimensiones y contabilícelo en el ledger correspondiente." actions={<><AtlasButton variant="secondary" icon="close" type="reset">Cancelar</AtlasButton><AtlasButton variant="secondary" icon="rule" disabled={!balanced}>Validar cuadre</AtlasButton><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar borrador</AtlasButton></>} />
+      {embedded ? null : <WorkspaceHeader breadcrumbs={[{ label: 'Contabilidad' }, { label: 'Documentos' }]} title="Crear Documento Contable" description="Prepare un asiento balanceado, valide dimensiones y contabilícelo en el ledger correspondiente." actions={acciones} />}
       {(createMutation.error || postMutation.error) ? <InlineNotice tone="danger">{createMutation.error ?? postMutation.error}</InlineNotice> : null}
       {postMutation.status === 'success' ? <InlineNotice tone="success" title="Documento contabilizado">El documento fue posteado y ya no debe modificarse directamente.</InlineNotice> : null}
 
@@ -94,6 +102,7 @@ export function AccountingDocumentScreen() {
         </div>
         <aside className="space-y-4 xl:sticky xl:top-20"><Panel title="Posting Control" icon="fact_check"><div className="space-y-3 text-xs"><Control label="Documento balanceado" ok={balanced} /><Control label="Mínimo dos líneas" ok={lines.length >= 2} /><Control label="Borrador persistido" ok={Boolean(documentId)} /></div><FormField kind="select" label="Documento en curso" name="documentId" value={documentId} onChange={(event) => setDocumentId(event.target.value)} options={opcionesDocumento} className="mt-4" hint="Elija un documento o guarde un borrador: el recién guardado queda seleccionado." /><AtlasButton className="mt-4 w-full" variant="success" icon="verified" disabled={!documentId || !balanced} loading={postMutation.isLoading} onClick={postDocument}>Contabilizar</AtlasButton></Panel><InlineNotice tone="warning">Contabilizar es una transición de estado. Las correcciones posteriores deben realizarse mediante reversión, no edición directa.</InlineNotice></aside>
       </div>
+      {embedded ? <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">{acciones}</div> : null}
     </form>
   );
 }

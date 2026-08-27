@@ -47,6 +47,10 @@ interface StructuredActionFormProps {
   summaryTitle?: string;
   summaryItems?: Array<{ label: string; value: string; tone?: 'success' | 'warning' | 'neutral' }>;
   warning?: string;
+  /** Dentro de una pestaña: sin cabecera de pantalla, con las acciones al pie. */
+  embedded?: boolean | undefined;
+  /** Se llama tras un envío correcto (para recargar la tabla que acompaña al formulario). */
+  onDone?: (() => void | Promise<void>) | undefined;
 }
 
 export function StructuredActionForm(props: StructuredActionFormProps) {
@@ -93,19 +97,24 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
     try {
       await mutation.execute(formDataToPayload(data, definitions));
       toast.success('Guardado', 'El registro se creó correctamente.');
+      await props.onDone?.();
     } catch (error) {
       toast.error('No se pudo guardar', error instanceof Error ? error.message : 'Revisa los datos e intenta de nuevo.');
     }
   }
 
+  const acciones = <><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>;
+
   return (
     <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit}>
-      <WorkspaceHeader
-        breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}
-        title={props.title}
-        description={props.description}
-        actions={<><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>}
-      />
+      {props.embedded ? null : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}
+          title={props.title}
+          description={props.description}
+          actions={acciones}
+        />
+      )}
 
       {props.warning ? <InlineNotice tone="warning" title="Validación requerida">{props.warning}</InlineNotice> : null}
       {mutation.error ? <InlineNotice tone="danger" title="No se pudo completar la operación">{mutation.error}</InlineNotice> : null}
@@ -143,6 +152,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
           </div>
         ))}
       </Panel>
+      {props.embedded ? <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">{acciones}</div> : null}
     </form>
   );
 }

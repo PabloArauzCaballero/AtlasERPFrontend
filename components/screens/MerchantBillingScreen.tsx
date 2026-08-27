@@ -10,6 +10,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { formatBob, formatDate } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
@@ -31,10 +33,62 @@ export function MerchantBillingScreen() {
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Consumo y facturación' }]}
         title="Consumo y facturación"
         description="Resumen del plan contratado, facturas emitidas y saldos pendientes del comercio."
+        actions={
+          <BotonPdf
+            label="Descargar PDF"
+            data-testid="pdf-facturacion"
+            disabled={!ready}
+            documento={() => ({
+              title: 'Consumo y facturación',
+              subtitle: `Portal del comercio · ${invoices.length} factura(s) · ${receivables.length} saldo(s)`,
+              summary: [
+                { label: 'Facturado', value: String(summary.invoicedTotal ?? '—') },
+                { label: 'Saldo abierto', value: String(summary.openTotal ?? '—') },
+                { label: 'Facturas', value: invoices.length },
+                { label: 'Saldos abiertos', value: receivables.length },
+              ],
+              sections: [
+                {
+                  title: 'Facturas emitidas',
+                  table: tablaPdf(
+                    [
+                      { key: 'invoiceNumber', label: 'Factura' },
+                      { key: 'invoiceDate', label: 'Emisión' },
+                      { key: 'dueDate', label: 'Vencimiento' },
+                      { key: 'totalAmount', label: 'Importe' },
+                      { key: 'status', label: 'Estado' },
+                    ],
+                    invoices,
+                  ),
+                },
+                {
+                  title: 'Saldos pendientes',
+                  table: tablaPdf(
+                    [
+                      { key: 'concept', label: 'Concepto' },
+                      { key: 'dueDate', label: 'Vencimiento' },
+                      { key: 'openAmount', label: 'Saldo' },
+                      { key: 'status', label: 'Estado' },
+                    ],
+                    receivables,
+                  ),
+                },
+              ],
+            })}
+          />
+        }
       />
 
-      {/* El comercio no elige comercio: su alcance lo deriva el backend de sus membresías. */}
-      {scope.isMerchant ? null : (
+      {/*
+        Quién elige comercio lo decide el SERVIDOR (`/portal/scope`), no esta pantalla.
+
+        Antes se pintaba según `isMerchant` deducido en el navegador, y cuando esa deducción no
+        coincidía con lo que veía el backend la pantalla se quedaba sin salida: no ofrecía el
+        selector y el backend exigía la cuenta que el selector habría dado. `requiresSelection`
+        también cubre al comercio con VARIAS cuentas, que antes recibía «indica cuál» y tampoco
+        tenía dónde indicarlo.
+      */}
+      {scope.requiresSelection ? (
         <Panel compact>
           <FormField
             kind="select"
@@ -46,8 +100,11 @@ export function MerchantBillingScreen() {
             options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]}
           />
         </Panel>
-      )}
+      ) : null}
 
+      {/* Un fallo al resolver el alcance se dice como lo que es, y no como «no se pudo cargar la
+          facturación»: la facturación ni siquiera se llegó a pedir. */}
+      {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu comercio">{scope.error}</InlineNotice> : null}
       {billing.error ? <InlineNotice tone="danger" title="No se pudo cargar la facturación">{billing.error}</InlineNotice> : null}
       {!ready ? <InlineNotice tone="info" title="Seleccione un comercio">Elija un comercio para ver su consumo y facturación.</InlineNotice> : null}
 

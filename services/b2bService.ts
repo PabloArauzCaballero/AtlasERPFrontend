@@ -76,6 +76,23 @@ export const b2bService = {
   listContracts() {
     return apiRequest<ResourceRow[]>('/b2b/contracts');
   },
+  // ---- Tags de clasificación de cuentas ----
+  /*
+   * El catálogo de tags dejó de ser un efecto secundario del alta de cuentas: hasta que existieron
+   * estos endpoints, un tag sólo nacía al teclearlo en el formulario de una cuenta y no había forma
+   * de verlos todos, corregir uno mal escrito ni retirar el que ya nadie usa.
+   */
+  listAccountTags() { return apiRequest<ResourceRow[]>('/b2b/tags'); },
+  createAccountTag(body: JsonObject) { return apiRequest<ResourceRow>('/b2b/tags', { method: 'POST', body }); },
+  updateAccountTag(tagId: string, body: JsonObject) {
+    const id = requireUuidPathParam(tagId, 'el UUID del tag');
+    return apiRequest<ResourceRow>(`/b2b/tags/${id}`, { method: 'PATCH', body });
+  },
+  /** `force` confirma que se acepta quitar el tag de las cuentas que lo llevaban. */
+  deleteAccountTag(tagId: string, force = false) {
+    const id = requireUuidPathParam(tagId, 'el UUID del tag');
+    return apiRequest<ResourceRow>(`/b2b/tags/${id}`, { method: 'DELETE', query: force ? { force: 'true' } : {} });
+  },
   listOpportunities(query?: { accountId?: string; stage?: string }) {
     return apiRequest<ResourceRow[]>('/b2b/opportunities', query ? { query } : {});
   },

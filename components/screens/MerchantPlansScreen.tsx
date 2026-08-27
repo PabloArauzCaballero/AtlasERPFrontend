@@ -11,6 +11,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { formatBob, formatDate } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
@@ -61,12 +63,38 @@ export function MerchantPlansScreen() {
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Tarifas' }]}
         title="Tarifas de publicidad"
         description="Usted paga por lo que la plataforma entrega: personas alcanzadas y clics recibidos. Sin cuota mensual y sin límite de sucursales."
+        actions={
+          <BotonPdf
+            label="Descargar PDF"
+            data-testid="pdf-planes"
+            disabled={!plans.length}
+            documento={() => ({
+              title: 'Tarifas de publicidad',
+              subtitle: current ? `Plan contratado: ${String(current.planName ?? current.planId ?? '—')}` : 'Sin plan contratado',
+              summary: [{ label: 'Tarifas disponibles', value: plans.length }],
+              sections: [
+                {
+                  title: 'Tarifas',
+                  table: tablaPdf(
+                    [
+                      { key: 'name', label: 'Tarifa' },
+                      { key: 'code', label: 'Código' },
+                      { key: 'currencyCode', label: 'Moneda' },
+                      { key: 'status', label: 'Estado' },
+                    ],
+                    plans,
+                  ),
+                },
+              ],
+            })}
+          />
+        }
       />
 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           {/* El comercio no elige comercio: su alcance sale de sus membresías. */}
-          {scope.isMerchant ? null : (
+          {scope.requiresSelection ? (
             <FormField
               kind="select"
               label="Comercio"
@@ -76,7 +104,7 @@ export function MerchantPlansScreen() {
               onChange={(e) => scope.setAccountId(e.target.value)}
               options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]}
             />
-          )}
+          ) : null}
           {current ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs">
               <span className="font-bold text-emerald-800">Plan actual: {String((current.plan as ResourceRow | undefined)?.name ?? '—')}</span>

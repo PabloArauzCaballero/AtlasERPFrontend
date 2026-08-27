@@ -123,6 +123,25 @@ export async function installPartnerDossierBackend(page: Page) {
     const method = request.method();
     const body = request.postData() ? (JSON.parse(request.postData() as string) as Record<string, string>) : {};
 
+    /*
+     * «¿Cuál es MI expediente?», que es lo primero que pregunta la pantalla.
+     *
+     * El simulador no lo implementaba —es posterior a él— y su respuesta por defecto era un 404.
+     * La pantalla trata ese fallo como «no pude preguntar» y NO como «no tiene expediente» (a
+     * propósito: confundirlos empuja a abrir uno duplicado), así que se quedaba en «Comprobando…»
+     * para siempre y la batería entera moría en su primera aserción.
+     *
+     * Devuelve la lista vacía mientras no se haya abierto ninguno, que es el estado en el que
+     * empieza cada prueba, y el expediente en curso una vez creado.
+     */
+    if (method === 'GET' && path === '/mine') {
+      return json(route, 200, {
+        profiles: state.partnerId
+          ? [{ partnerId: state.partnerId, legalName: state.legalName, onboardingStatus: state.onboardingStatus }]
+          : [],
+      });
+    }
+
     if (method === 'POST' && path === '/start') {
       state.partnerId = next();
       state.legalName = body.legalName ?? '';

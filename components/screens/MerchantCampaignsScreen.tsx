@@ -11,6 +11,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { formatBob } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
@@ -37,23 +39,46 @@ export function MerchantCampaignsScreen() {
   const [advertiserId, setAdvertiserId] = useState('');
 
   /*
-   * El comercio ES el anunciante. No hay a quien elegir.
+   * El comercio NO elige anunciante. Ve sus campañas, todas.
    *
-   * Esta pantalla ofrecia un desplegable de anunciantes, y para un comercio ese desplegable tiene
-   * exactamente una opcion: el mismo. Pedirle que la elija es un paso que solo puede salir mal —o
-   * quedarse sin elegir y ver la pantalla vacia sin saber por que—. Se selecciona solo y el
-   * selector desaparece; queda visible unicamente para el staff interno, que si puede tener varios
-   * porque entra en nombre de comercios distintos.
+   * Un comercio no sabe qué es un «anunciante»: es una entidad interna de la plataforma de ads, y
+   * suya puede haber más de una (una por marca, por ejemplo). Pedirle que elija una para poder ver
+   * sus campañas convertía la pantalla en un desplegable delante de una lista vacía. Ahora, cuando
+   * quien mira es el comercio, se piden las campañas de TODOS sus anunciantes y se juntan en una
+   * sola lista; el selector queda sólo para el staff interno, que entra en nombre de comercios
+   * distintos y ahí sí es una decisión real.
    */
+  const eligeAnunciante = !scope.isMerchant && advertiserOptions.length > 1;
   const unicoAnunciante = advertiserOptions.length === 1 ? advertiserOptions[0] : undefined;
   useEffect(() => {
-    if (unicoAnunciante && !advertiserId) setAdvertiserId(unicoAnunciante.value);
-  }, [unicoAnunciante, advertiserId]);
+    if (!eligeAnunciante && unicoAnunciante && !advertiserId) setAdvertiserId(unicoAnunciante.value);
+  }, [eligeAnunciante, unicoAnunciante, advertiserId]);
+
+  /** Anunciantes cuyas campañas hay que pedir: los elegidos, o todos los del comercio. */
+  const anunciantesAConsultar = useMemo(() => {
+    if (eligeAnunciante) return advertiserId ? [advertiserId] : [];
+    if (advertiserId) return [advertiserId];
+    return advertiserOptions.map((option) => option.value);
+  }, [eligeAnunciante, advertiserId, advertiserOptions]);
+  const clave = anunciantesAConsultar.join(',');
+
   const campaigns = useAsyncResource(
-    useCallback(() => (advertiserId ? portalService.listCampaigns(advertiserId) : Promise.resolve([] as ResourceRow[])), [advertiserId]),
-    Boolean(advertiserId),
+    useCallback(async () => {
+      if (!clave) return [] as ResourceRow[];
+      const nombrePorId = new Map(advertiserOptions.map((option) => [option.value, option.label]));
+      const listas = await Promise.all(clave.split(',').map(async (id) => {
+        const propias = await portalService.listCampaigns(id);
+        // El nombre del anunciante viaja con la campaña: al juntar varias listas, sin él no se
+        // sabría de cuál de las marcas del comercio es cada campaña.
+        return propias.map((campaign) => ({ ...campaign, advertiserName: nombrePorId.get(id) ?? '' }));
+      }));
+      return listas.flat();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [clave]),
+    Boolean(clave),
   );
   const rows = useMemo(() => (campaigns.data ?? []) as ResourceRow[], [campaigns.data]);
+  const variosAnunciantes = anunciantesAConsultar.length > 1;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,16 +104,51 @@ export function MerchantCampaignsScreen() {
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Campañas' }]}
         title="Campañas publicitarias"
         description="Encienda o pause las campañas de su comercio. La creación y edición de segmentos se gestiona con su ejecutivo comercial."
+        actions={
+          <BotonPdf
+            label="Descargar PDF"
+            data-testid="pdf-campanas"
+            disabled={!rows.length}
+            documento={() => ({
+              title: 'Campañas publicitarias',
+              subtitle: 'Portal del comercio',
+              summary: [
+                { label: 'Campañas', value: rows.length },
+                { label: 'Activas', value: rows.filter((fila) => String(fila.status) === 'ACTIVE').length },
+              ],
+              sections: [
+                {
+                  title: 'Campañas',
+                  table: tablaPdf(
+                    [
+                      { key: 'name', label: 'Campaña' },
+                      { key: 'advertiserName', label: 'Anunciante' },
+                      { key: 'objective', label: 'Objetivo' },
+                      { key: 'gastado', label: 'Gastado' },
+                      { key: 'presupuesto', label: 'Presupuesto' },
+                      { key: 'status', label: 'Estado' },
+                    ],
+                    rows.map((fila) => ({
+                      ...fila,
+                      gastado: formatBob(micros(fila.spendTotalMicros)),
+                      presupuesto: formatBob(micros(fila.budgetTotalMicros)),
+                    })),
+                  ),
+                },
+              ],
+            })}
+          />
+        }
       />
 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row">
           {/* El comercio no elige comercio: el backend deriva sus anunciantes de sus membresías. */}
-          {scope.isMerchant ? null : (
+          {scope.requiresSelection ? (
             <FormField kind="select" label="Comercio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]} />
-          )}
-          {advertiserOptions.length > 1 ? (
-            <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Elija el anunciante —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
+          ) : null}
+          {eligeAnunciante ? (
+            <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Todos los anunciantes —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
           ) : null}
         </div>
       </Panel>
@@ -96,9 +156,13 @@ export function MerchantCampaignsScreen() {
       {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
       {campaigns.error ? <InlineNotice tone="danger" title="No se pudieron cargar las campañas">{campaigns.error}</InlineNotice> : null}
       {advertisers.error ? <InlineNotice tone="danger" title="No se pudieron cargar los anunciantes">{advertisers.error}</InlineNotice> : null}
-      {!advertiserId ? <InlineNotice tone="info" title="Seleccione un anunciante">Elija un anunciante para ver sus campañas.</InlineNotice> : null}
+      {!clave && ready && advertisers.status !== 'loading' ? (
+        <InlineNotice tone="info" title="Todavía no hay anunciantes">
+          Este comercio aún no tiene ninguna cuenta de anunciante creada, así que no hay campañas que mostrar. Tu ejecutivo comercial es quien la da de alta.
+        </InlineNotice>
+      ) : null}
 
-      {advertiserId && !campaigns.error ? (
+      {clave && !campaigns.error ? (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {rows.map((campaign) => {
             const id = String(campaign.id);
@@ -110,7 +174,7 @@ export function MerchantCampaignsScreen() {
             return (
               <section key={id} className="flex flex-col rounded-xl border border-slate-200 bg-white/80 backdrop-blur-[2px] p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{String(campaign.name)}</p><p className="text-[10px] uppercase tracking-wide text-slate-500">{String(campaign.objective ?? '')}</p></div>
+                  <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{String(campaign.name)}</p><p className="text-[10px] uppercase tracking-wide text-slate-500">{variosAnunciantes && campaign.advertiserName ? `${String(campaign.advertiserName)} · ` : ''}{String(campaign.objective ?? '')}</p></div>
                   <StatusPill tone={status === 'ACTIVE' ? 'success' : status === 'PAUSED' ? 'warning' : 'neutral'}>{status}</StatusPill>
                 </div>
                 <div className="mt-3 text-[11px] text-slate-600">
@@ -133,7 +197,7 @@ export function MerchantCampaignsScreen() {
               </section>
             );
           })}
-          {!rows.length && campaigns.status !== 'loading' ? <Panel><p className="py-6 text-center text-xs text-slate-500">Este anunciante no tiene campañas.</p></Panel> : null}
+          {!rows.length && campaigns.status !== 'loading' ? <Panel><p className="py-6 text-center text-xs text-slate-500">Todavía no hay campañas creadas. Las crea tu ejecutivo comercial junto con los segmentos.</p></Panel> : null}
         </div>
       ) : null}
     </div>

@@ -9,6 +9,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useMerchantScope } from '@/hooks/useMerchantScope';
@@ -20,7 +22,23 @@ import { partnerOnboardingService, type PartnerOnboardingState } from '@/service
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 export function MerchantStructureScreen() {
-  const branchMutation = useAtlasMutation(useCallback((body: JsonObject) => b2bService.createBranch(body), []));
+  const scope = useMerchantScope();
+  const esComercio = scope.isMerchant;
+
+  /*
+   * El comercio administra sus propias sucursales.
+   *
+   * Antes esta pantalla era de solo lectura para el: los formularios de alta y los botones de
+   * editar/dar de baja llamaban a `/b2b/*`, el canal interno de Atlas, que a un usuario de comercio
+   * le responde 403. Por eso el alta estaba directamente escondida para el —ensenar un formulario
+   * que solo puede fallar es peor que no ensenarlo— y editar reventaba al pulsarlo. Ahora hay dos
+   * caminos: el comercio va por `/portal/*`, donde el backend deriva su cuenta de sus membresias, y
+   * el staff interno sigue por `/b2b/*` eligiendo a que comercio entra.
+   */
+  const branchMutation = useAtlasMutation(useCallback(
+    (body: JsonObject) => (esComercio ? portalService.createBranch(body) : b2bService.createBranch(body)),
+    [esComercio],
+  ));
   const userMutation = useAtlasMutation(useCallback((body: JsonObject) => b2bService.createMerchantUser(body), []));
 
   const accountOptions = useOptions(useCallback(async () => {
@@ -37,7 +55,6 @@ export function MerchantStructureScreen() {
   );
   const userBranchOptions = ((userBranches.data ?? []) as ResourceRow[]).map((b) => ({ value: String(b.id), label: String(b.name ?? 'Sucursal') }));
 
-  const scope = useMerchantScope();
   const { accountId: queryAccountId, ready } = scope;
   const branches = useAsyncResource(
     useCallback(() => (ready ? portalService.listBranches(queryAccountId) : Promise.resolve([] as ResourceRow[])), [queryAccountId, ready]),
@@ -56,8 +73,16 @@ export function MerchantStructureScreen() {
    */
   const [editando, setEditando] = useState<ResourceRow | null>(null);
   const [ocupada, setOcupada] = useState<string | null>(null);
-  const editMutation = useAtlasMutation(useCallback(({ id, body }: { id: string; body: JsonObject }) => b2bService.updateBranch(id, body), []));
-  const statusMutation = useAtlasMutation(useCallback(({ id, body }: { id: string; body: JsonObject }) => b2bService.setBranchStatus(id, body), []));
+  const editMutation = useAtlasMutation(useCallback(
+    ({ id, body }: { id: string; body: JsonObject }) => (esComercio ? portalService.updateBranch(id, body) : b2bService.updateBranch(id, body)),
+    [esComercio],
+  ));
+  const statusMutation = useAtlasMutation(useCallback(
+    ({ id, body }: { id: string; body: JsonObject }) => (esComercio
+      ? portalService.setBranchStatus(id, String(body.status) === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE')
+      : b2bService.setBranchStatus(id, body)),
+    [esComercio],
+  ));
 
   async function guardarEdicion(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,7 +95,8 @@ export function MerchantStructureScreen() {
           name: String(form.get('name') ?? ''),
           city: String(form.get('city') ?? ''),
           address: String(form.get('address') ?? ''),
-          canOriginateBnpl: form.get('canOriginateBnpl') === 'true',
+          // Vender a credito en un local lo autoriza Atlas, no el comercio desde su propio portal.
+          ...(esComercio ? {} : { canOriginateBnpl: form.get('canOriginateBnpl') === 'true' }),
         },
       });
       setEditando(null);
@@ -122,7 +148,11 @@ export function MerchantStructureScreen() {
 
   async function submitBranch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    try { await branchMutation.execute(formDataToPayload(new FormData(event.currentTarget), [{ name: 'accountId' }, { name: 'name' }, { name: 'city' }, { name: 'address', optional: true }])); event.currentTarget.reset(); if (queryAccountId) await branches.reload(); } catch { /* shown inline */ }
+    const campos = esComercio
+      ? [{ name: 'name' }, { name: 'city', optional: true }, { name: 'address', optional: true }]
+      : [{ name: 'accountId' }, { name: 'name' }, { name: 'city' }, { name: 'address', optional: true }];
+    const form = event.currentTarget;
+    try { await branchMutation.execute(formDataToPayload(new FormData(form), campos)); form.reset(); if (ready) await branches.reload(); } catch { /* shown inline */ }
   }
 
   async function submitUser(event: React.FormEvent<HTMLFormElement>) {
@@ -132,12 +162,48 @@ export function MerchantStructureScreen() {
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Sucursales' }]} title="Sucursales del comercio" description="Configure ubicaciones físicas y otorgue acceso al personal del comercio sin mezclar permisos administrativos." />
-      {/* Alta de sucursales y de usuarios son operaciones INTERNAS (`/b2b/*`): el comercio no
-          tiene permiso sobre ellas, así que no se le pintan formularios que sólo darían 403. */}
-      <div className={`grid gap-5 xl:grid-cols-2 ${scope.isMerchant ? 'hidden' : ''}`}>
-        <form onSubmit={submitBranch}><Panel title="Agregar sucursal" description="Registre una nueva ubicación comercial vinculada a la cuenta merchant." icon="add_location"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" /><FormField label="Ciudad" name="city" required placeholder="Santa Cruz de la Sierra" /><FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" /></div>{branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}{branchMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Sucursal registrada correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading}>Registrar sucursal</AtlasButton></div></Panel></form>
-        <form onSubmit={submitUser}><Panel title="Asociar usuario" description="Conceda acceso operativo al personal autorizado del comercio." icon="person_add"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" value={userAccountId} onChange={(e) => setUserAccountId(e.target.value)} options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField kind="select" label="Sucursal" name="branchId" options={[{ label: userAccountId ? '— Alcance global —' : '— Elija primero el comercio —', value: '' }, ...userBranchOptions]} hint="Opcional para usuarios con alcance global." /><FormField label="Nombre completo" name="fullName" required placeholder="Nombre del responsable" /><FormField label="Correo corporativo" name="email" type="email" required placeholder="usuario@empresa.com" /><FormField kind="select" label="Rol principal" name="roleCode" required defaultValue="MERCHANT_OPERATOR" options={[{ label: 'Administrador merchant', value: 'MERCHANT_ADMIN' }, { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' }, { label: 'Operador estándar', value: 'MERCHANT_OPERATOR' }, { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' }]} /></div>{userMutation.error ? <InlineNotice className="mt-4" tone="danger">{userMutation.error}</InlineNotice> : null}{userMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Usuario merchant asociado correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="person_add" loading={userMutation.isLoading}>Asociar usuario</AtlasButton></div></Panel></form>
+      <WorkspaceHeader
+        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Sucursales' }]}
+        title="Sucursales del comercio"
+        description="Configure ubicaciones físicas y otorgue acceso al personal del comercio sin mezclar permisos administrativos."
+        actions={
+          <BotonPdf
+            label="Descargar PDF"
+            data-testid="pdf-sucursales"
+            disabled={!branchRows.length}
+            documento={() => ({
+              title: 'Sucursales del comercio',
+              subtitle: `Portal del comercio · ${branchRows.length} sucursal(es)`,
+              summary: [
+                { label: 'Sucursales', value: branchRows.length },
+                { label: 'Activas', value: branchRows.filter((fila) => String(fila.status) === 'ACTIVE').length },
+                { label: 'Originan BNPL', value: branchRows.filter((fila) => Boolean(fila.canOriginateBnpl)).length },
+              ],
+              sections: [
+                {
+                  title: 'Sucursales registradas',
+                  table: tablaPdf(
+                    [
+                      { key: 'name', label: 'Sucursal' },
+                      { key: 'city', label: 'Ciudad' },
+                      { key: 'address', label: 'Dirección' },
+                      { key: 'bnpl', label: 'BNPL' },
+                      { key: 'status', label: 'Estado' },
+                    ],
+                    branchRows.map((fila) => ({ ...fila, bnpl: fila.canOriginateBnpl ? 'Sí' : 'No' })),
+                  ),
+                },
+              ],
+            })}
+          />
+        }
+      />
+      {/* El alta de SUCURSALES ya es del comercio (canal `/portal/*`). El alta de USUARIOS sigue
+          siendo interna (`/b2b/*`): no hay endpoint de portal para ella, así que a un comercio ese
+          formulario sólo le daría 403 y por eso no se le pinta. */}
+      <div className={`grid gap-5 ${esComercio ? '' : 'xl:grid-cols-2'}`}>
+        <form onSubmit={submitBranch}><Panel title="Agregar sucursal" description={esComercio ? 'Registra un local nuevo de tu comercio. Nace activo; vender a crédito en él lo habilita Atlas aparte.' : 'Registre una nueva ubicación comercial vinculada a la cuenta merchant.'} icon="add_location"><div className="grid gap-3 md:grid-cols-2">{esComercio ? null : <FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} />}<FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" /><FormField label="Ciudad" name="city" required={!esComercio} placeholder="Santa Cruz de la Sierra" /><FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" /></div>{branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}{branchMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Sucursal registrada correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading}>Registrar sucursal</AtlasButton></div></Panel></form>
+        {esComercio ? null : <form onSubmit={submitUser}><Panel title="Asociar usuario" description="Conceda acceso operativo al personal autorizado del comercio." icon="person_add"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" value={userAccountId} onChange={(e) => setUserAccountId(e.target.value)} options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField kind="select" label="Sucursal" name="branchId" options={[{ label: userAccountId ? '— Alcance global —' : '— Elija primero el comercio —', value: '' }, ...userBranchOptions]} hint="Opcional para usuarios con alcance global." /><FormField label="Nombre completo" name="fullName" required placeholder="Nombre del responsable" /><FormField label="Correo corporativo" name="email" type="email" required placeholder="usuario@empresa.com" /><FormField kind="select" label="Rol principal" name="roleCode" required defaultValue="MERCHANT_OPERATOR" options={[{ label: 'Administrador merchant', value: 'MERCHANT_ADMIN' }, { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' }, { label: 'Operador estándar', value: 'MERCHANT_OPERATOR' }, { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' }]} /></div>{userMutation.error ? <InlineNotice className="mt-4" tone="danger">{userMutation.error}</InlineNotice> : null}{userMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Usuario merchant asociado correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="person_add" loading={userMutation.isLoading}>Asociar usuario</AtlasButton></div></Panel></form>}
       </div>
 
       {editando ? (
@@ -147,7 +213,7 @@ export function MerchantStructureScreen() {
               <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
               <FormField label="Ciudad" name="city" required defaultValue={String(editando.city ?? '')} />
               <FormField label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
-              <FormField kind="select" label="Puede originar BNPL" name="canOriginateBnpl" defaultValue={editando.canOriginateBnpl ? 'true' : 'false'} options={[{ label: 'Sí', value: 'true' }, { label: 'No', value: 'false' }]} hint="Una sucursal dada de baja no origina, aunque esto diga que sí." />
+              {esComercio ? null : <FormField kind="select" label="Puede originar BNPL" name="canOriginateBnpl" defaultValue={editando.canOriginateBnpl ? 'true' : 'false'} options={[{ label: 'Sí', value: 'true' }, { label: 'No', value: 'false' }]} hint="Una sucursal dada de baja no origina, aunque esto diga que sí." />}
             </div>
             {editMutation.error ? <InlineNotice className="mt-4" tone="danger">{editMutation.error}</InlineNotice> : null}
             <div className="mt-5 flex justify-end gap-2">
@@ -160,11 +226,11 @@ export function MerchantStructureScreen() {
       {statusMutation.error ? <InlineNotice tone="danger" title="No se pudo cambiar el estado">{statusMutation.error}</InlineNotice> : null}
 
       <Panel title="Sucursales registradas" description="Listado de sucursales del comercio seleccionado." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>}>
-        {scope.isMerchant ? null : (
+        {scope.requiresSelection ? (
           <div className="mb-3 max-w-md">
             <FormField kind="select" label="Comercio a consultar" name="queryAccountId" value={queryAccountId ?? ''} onChange={(e) => scope.setAccountId(e.target.value)} options={[{ label: '— Seleccione un comercio —', value: '' }, ...accountOptions]} />
           </div>
-        )}
+        ) : null}
         {branches.error ? <InlineNotice tone="danger" title="No se pudo consultar">{branches.error}</InlineNotice> : null}
         {!ready ? (
           <p className="py-6 text-center text-xs text-slate-500">Seleccione un comercio para ver sus sucursales.</p>

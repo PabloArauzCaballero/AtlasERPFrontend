@@ -9,6 +9,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonPdf } from '@/components/atlas/BotonPdf';
+import { tablaPdf } from '@/lib/pdf';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import type { SolicitudDeCompra } from '@/services/merchantCreditService';
@@ -113,7 +115,38 @@ export function MerchantRequestsScreen() {
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Solicitudes' }]}
         title="Solicitudes de compra"
         description="Lo que sus clientes pidieron escaneando el QR del local. Usted acepta o rechaza; el importe y las cuotas los fijó el motor de decisión."
-        actions={<AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>Actualizar</AtlasButton>}
+        actions={
+          <>
+            <BotonPdf
+              label="Descargar PDF"
+              data-testid="pdf-solicitudes"
+              disabled={cargando || !solicitudes.length}
+              documento={() => ({
+                title: 'Solicitudes de compra',
+                subtitle: nombre ? `Portal del comercio · ${nombre}` : 'Portal del comercio',
+                summary: [{ label: 'Solicitudes', value: solicitudes.length }],
+                sections: [
+                  {
+                    title: 'Solicitudes recibidas',
+                    description: 'Lo que los clientes pidieron escaneando el QR del local.',
+                    table: tablaPdf(
+                      [
+                        { key: 'applicationCode', label: 'Código' },
+                        { key: 'submittedAt', label: 'Recibida' },
+                        { key: 'requestedAmount', label: 'Importe' },
+                        { key: 'requestedTermMonths', label: 'Cuotas' },
+                        { key: 'branchName', label: 'Sucursal' },
+                        { key: 'status', label: 'Estado' },
+                      ],
+                      solicitudes as unknown as Array<Record<string, unknown>>,
+                    ),
+                  },
+                ],
+              })}
+            />
+            <AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>Actualizar</AtlasButton>
+          </>
+        }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

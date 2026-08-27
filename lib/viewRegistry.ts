@@ -26,6 +26,7 @@ export const atlasViewLinks: AtlasViewLink[] = [
   { area: 'Portal comercio', phase: 'Comercio', title: 'Mi empresa', href: '/portal-comercio/expediente', status: 'integrada', backend: 'GET /partner-onboarding/mine | :id/status · PATCH :id/commercial-profile' },
   { area: 'Portal comercio', phase: 'Comercio', title: 'Mi QR de cobro', href: '/portal-comercio/qr-cobro', status: 'integrada', backend: 'GET /partner-onboarding/:id/qr-codes | :id/qr-codes/:qrId/content · POST :id/qr-codes' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Facturación B2B', href: '/operaciones/crm/facturacion', status: 'solo-accion', backend: 'POST /b2b/billing/*' },
+  { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Tarifas y pricing', href: '/operaciones/crm/tarifas', status: 'integrada', backend: 'GET/POST/PATCH /portal/plans · GET /portal/billing-products' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Conciliación y cobertura', href: '/operaciones/crm/conciliacion-cobertura', status: 'solo-accion', backend: 'POST/PATCH /b2b/coverage | reconciliation' },
   { area: 'Panel operaciones', phase: 'Contabilidad', title: 'Estructura financiera', href: '/operaciones/contabilidad/estructura', status: 'solo-accion', backend: 'POST /accounting/financial-structure/*' },
   { area: 'Panel operaciones', phase: 'Contabilidad', title: 'Cuentas GL', href: '/operaciones/contabilidad/cuentas-gl', status: 'integrada', backend: 'GET/POST /accounting/financial-structure/gl-accounts' },

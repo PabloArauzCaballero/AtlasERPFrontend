@@ -47,6 +47,8 @@ test('Mi empresa reconoce el expediente ya existente y no ofrece abrir otro', as
   // La cabecera lleva la RAZON SOCIAL: es el nombre con el que Atlas verificó el expediente.
   await expect(page.getByRole('heading', { name: /Centro de Preparacion Academica CPA/i })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId('btn-abrir-expediente')).toHaveCount(0);
+  // La pantalla se reorganizó en pestañas: la ficha vive en la suya.
+  await page.getByTestId('tab-ficha').click();
   await expect(page.getByTestId('form-ficha-comercial')).toBeVisible();
   await sinErrores(page, 'mi empresa');
   await page.screenshot({ path: `${EVIDENCIA}/mi-empresa-ficha.png`, fullPage: true });
@@ -54,6 +56,7 @@ test('Mi empresa reconoce el expediente ya existente y no ofrece abrir otro', as
 
 test('el rubro es un catálogo y muestra el que el comercio tiene guardado', async ({ page }) => {
   await page.goto('/portal-comercio/expediente');
+  await page.getByTestId('tab-ficha').click();
   // `FormField` pasa el testid al propio <select>, no a un contenedor.
   const rubro = page.getByTestId('campo-rubro');
   await expect(rubro).toBeVisible({ timeout: 30_000 });
@@ -70,6 +73,7 @@ test('el rubro es un catálogo y muestra el que el comercio tiene guardado', asy
 test('al abrir la sucursal aparece su QR y el QR lleva el serial del terminal', async ({ page }) => {
   await page.goto('/portal-comercio/expediente');
 
+  await page.getByTestId('tab-sucursales').click();
   const sucursal = page.getByTestId('sucursal-CPA-CENTRAL');
   await expect(sucursal).toBeVisible({ timeout: 30_000 });
   await sucursal.click();
