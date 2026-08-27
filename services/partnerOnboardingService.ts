@@ -123,6 +123,32 @@ export const partnerOnboardingService = {
       body,
     });
   },
+  /*
+   * Los tres que el expediente pedía y ninguna pantalla ofrecía.
+   *
+   * Existían en AtlasBackend desde el principio; lo que faltaba era el tramo del medio —la
+   * pasarela del ERP no los reenviaba— y, con él, el formulario. Sin esto, «falta la matrícula de
+   * comercio» era un aviso que el comercio no podía resolver desde ningún sitio.
+   */
+  setCommercialRegistry(partnerId: string, commercialRegistry: string) {
+    return apiRequest<PartnerProfile>(`${RUTA}/${encodeURIComponent(partnerId)}/commercial-registry`, {
+      method: 'POST',
+      body: { commercialRegistry },
+    });
+  },
+  addLegalRepresentative(partnerId: string, body: JsonObject) {
+    return apiRequest<{ id: string }>(`${RUTA}/${encodeURIComponent(partnerId)}/legal-representative`, {
+      method: 'POST',
+      body,
+    });
+  },
+  /** Permiso de subida del poder notarial: la ruta del objeto la impone el servidor. */
+  createDocumentUploadUrl(partnerId: string, body: JsonObject) {
+    return apiRequest<QrUploadTicket>(`${RUTA}/${encodeURIComponent(partnerId)}/documents/upload-url`, {
+      method: 'POST',
+      body,
+    });
+  },
   submit(partnerId: string) {
     return apiRequest<PartnerProfile>(`${RUTA}/${encodeURIComponent(partnerId)}/submit`, { method: 'POST' });
   },
@@ -186,7 +212,7 @@ export async function uploadQrFile(ticket: QrUploadTicket, file: File): Promise<
     body: file,
   });
   if (!response.ok) {
-    throw new Error(`El almacenamiento rechazó la subida del QR (${response.status}).`);
+    throw new Error(`El almacenamiento rechazó la subida del archivo (${response.status}).`);
   }
 }
 

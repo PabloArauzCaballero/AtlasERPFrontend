@@ -1,24 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
-import { AVISO_SIN_QR, imagenTieneQr } from '@/lib/qrImagen';
+import { PartnerRequirementsPanel } from './PartnerRequirementsPanel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { QrCanvas } from '@/components/atlas/QrCanvas';
-import { QrList, SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
+import { SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
 import { merchantCategoryOptions } from '@/lib/catalogs';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import {
   partnerOnboardingService,
-  uploadQrFile,
   type PartnerOnboardingState,
 } from '@/services/partnerOnboardingService';
 import type { JsonObject } from '@/services/types';
@@ -83,8 +82,6 @@ export function PartnerDossierScreen() {
   const [sucursalAbierta, setSucursalAbierta] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'danger' | 'info'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const businessQrInput = useRef<HTMLInputElement>(null);
-  const bankQrInput = useRef<HTMLInputElement>(null);
 
   const dossier = useAsyncResource<PartnerOnboardingState | null>(
     useCallback(async () => (partnerId ? partnerOnboardingService.getState(partnerId) : null), [partnerId]),
@@ -171,47 +168,6 @@ export function PartnerDossierScreen() {
     }
   }
 
-  /**
-   * Subida del QR en dos pasos: se pide el permiso, se sube al almacenamiento y se registra.
-   *
-   * El binario NO pasa por la API: el ticket firma tipo y tamaño, así que el bucket rechaza lo que
-   * no coincida con lo autorizado. Y el servidor mira el objeto antes de escribir la fila, de modo
-   * que el expediente nunca afirma tener una evidencia que no existe.
-   */
-  async function subirQr(kind: 'business' | 'bank', input: HTMLInputElement | null) {
-    const file = input?.files?.[0];
-    if (!file) {
-      setFeedback({ tone: 'info', text: 'Elige primero la imagen del QR.' });
-      return;
-    }
-    /*
-     * Antes de subir: si el navegador sabe leer códigos y esta imagen no lleva ninguno, se para
-     * aquí. El servidor lo comprueba igual y es quien manda; esto sólo evita el viaje y el objeto
-     * huérfano en el almacenamiento.
-     */
-    if ((await imagenTieneQr(file)) === 'sin-codigo') {
-      setFeedback({ tone: 'danger', text: AVISO_SIN_QR });
-      return;
-    }
-
-    const bankFields =
-      kind === 'bank'
-        ? {
-            bankInstitutionCode: (document.querySelector<HTMLInputElement>('#bankInstitutionCode')?.value ?? '').toUpperCase(),
-            accountNumberMasked: document.querySelector<HTMLInputElement>('#accountNumberMasked')?.value ?? '',
-          }
-        : {};
-
-    await run(kind === 'bank' ? 'QR bancario' : 'QR del negocio', async () => {
-      const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
-        qrKind: kind,
-        contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
-        sizeBytes: file.size,
-      });
-      await uploadQrFile(ticket, file);
-      await partnerOnboardingService.registerQr(partnerId, { qrKind: kind, storageKey: ticket.storageKey, ...bankFields });
-    });
-  }
 
   const state = dossier.data;
   const branches = state?.branches ?? [];
@@ -353,6 +309,15 @@ export function PartnerDossierScreen() {
                 action={<StatusPill tone={state.profile.onboardingStatus === 'approved' ? 'success' : 'info'}>{state.profile.onboardingStatus}</StatusPill>}
               >
                 <SubmissionGaps gaps={state.gaps} ready={state.readyToSubmit} />
+                {/* El formulario de cada requisito, junto al aviso que lo reclama. */}
+                <div className="mt-4">
+                  <PartnerRequirementsPanel
+                    partnerId={partnerId}
+                    pendientes={state.gaps.map((hueco) => hueco.requirement)}
+                    ocupado={busy}
+                    run={run}
+                  />
+                </div>
                 <div className="mt-3">
                   <AtlasButton
                     type="button"
@@ -568,40 +533,6 @@ export function PartnerDossierScreen() {
                     );
                   })}
                 </ul>
-              </Panel>
-              ),
-            },
-            {
-              id: 'qr',
-              label: 'Cobro por QR',
-              icon: 'qr_code_2',
-              content: (
-              <Panel title="Cobro por QR" icon="qr_code_2" description="Se guarda la imagen y su huella, no el número transcrito. Un QR no se edita: se reemplaza.">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-slate-700">QR del negocio</p>
-                    <input ref={businessQrInput} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-negocio" />
-                    <AtlasButton type="button" disabled={busy} onClick={() => void subirQr('business', businessQrInput.current)} data-testid="btn-subir-qr-negocio">
-                      Subir QR del negocio
-                    </AtlasButton>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-slate-700">QR bancario</p>
-                    <input ref={bankQrInput} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-bancario" />
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y
-                          frenar un cobro contra una entidad sin licencia vigente. */}
-                      <FormField label="Entidad (sigla ASFI)" name="bankInstitutionCode" id="bankInstitutionCode" hint="BNB, BME, BCR…" />
-                      <FormField label="Cuenta enmascarada" name="accountNumberMasked" id="accountNumberMasked" hint="****7890" />
-                    </div>
-                    <AtlasButton type="button" disabled={busy} onClick={() => void subirQr('bank', bankQrInput.current)} data-testid="btn-subir-qr-bancario">
-                      Subir QR bancario
-                    </AtlasButton>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <QrList codes={state.qrCodes} />
-                </div>
               </Panel>
               ),
             },
