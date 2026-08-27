@@ -56,6 +56,16 @@ export function MerchantPaymentQrScreen() {
   const [entidad, setEntidad] = useState('');
   const [cuenta, setCuenta] = useState('');
   const archivo = useRef<HTMLInputElement>(null);
+  /*
+   * El QR del NEGOCIO, que hasta ahora sólo se podía subir dentro del expediente.
+   *
+   * Son dos códigos distintos y por eso tienen su propio archivo y su propio aviso: el bancario es
+   * con el que le pagan —lleva entidad y cuenta— y el del negocio es evidencia del alta. Compartir
+   * un solo `input` obligaría a elegir cuál se está subiendo, que es justo la confusión que hacía
+   * falta quitar.
+   */
+  const archivoNegocio = useRef<HTMLInputElement>(null);
+  const [subiendoNegocio, setSubiendoNegocio] = useState(false);
 
   const recargar = useCallback(async (id: string) => {
     setCargando(true);
@@ -152,7 +162,52 @@ export function MerchantPaymentQrScreen() {
     }
   }
 
+  /**
+   * El QR del negocio: mismo camino que el bancario, sin datos de banco.
+   *
+   * Vive aquí y ya no en el expediente por lo mismo que el bancario: el backend cierra la edición
+   * del expediente al aprobarlo, así que el comercio que ya opera era el único que no podía
+   * reemplazar su propio código. Y tenerlos en dos pantallas distintas obligaba a recordar cuál se
+   * subía dónde.
+   */
+  async function subirNegocio() {
+    const file = archivoNegocio.current?.files?.[0];
+    if (!file) {
+      setAviso({ tono: 'info', texto: 'Elija primero la imagen del QR de su negocio.' });
+      return;
+    }
+
+    setSubiendoNegocio(true);
+    setAviso(null);
+    try {
+      if ((await imagenTieneQr(file)) === 'sin-codigo') {
+        setAviso({ tono: 'danger', texto: AVISO_SIN_QR });
+        return;
+      }
+      const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
+        qrKind: 'business',
+        contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
+        sizeBytes: file.size,
+      });
+      await uploadQrFile(ticket, file);
+      await partnerOnboardingService.registerQr(partnerId, {
+        qrKind: 'business',
+        storageKey: ticket.storageKey,
+      });
+      setAviso({ tono: 'success', texto: 'QR del negocio actualizado.' });
+      if (archivoNegocio.current) archivoNegocio.current.value = '';
+      await recargar(partnerId);
+    } catch (fallo) {
+      setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR del negocio.' });
+    } finally {
+      setSubiendoNegocio(false);
+    }
+  }
+
   const vigente = codigos.find((codigo) => codigo.qrKind === 'bank' && codigo.status !== 'replaced' && codigo.status !== 'rejected');
+  const negocioVigente = codigos.find(
+    (codigo) => codigo.qrKind === 'business' && codigo.status !== 'replaced' && codigo.status !== 'rejected',
+  );
   const historial = codigos.filter((codigo) => codigo.qrKind === 'bank' && codigo !== vigente);
 
   return (
@@ -305,6 +360,68 @@ export function MerchantPaymentQrScreen() {
           </div>
         </Panel>
       </div>
+
+      {/*
+        El QR del NEGOCIO, debajo del bancario y no al lado.
+        
+        El orden es la jerarquía: el bancario es con el que le pagan y es lo que esta pantalla viene a
+        resolver; el del negocio es evidencia del alta. Ponerlos en paralelo diría que valen lo mismo
+        y haría dudar de cuál es el que escanea el cliente — que es exactamente la duda que había
+        cuando los dos vivían juntos en una pestaña del expediente.
+      */}
+      <Panel
+        title={negocioVigente ? 'QR del negocio' : 'Subir el QR del negocio'}
+        description="Es evidencia de tu alta, no el código con el que te pagan. Se reemplaza igual que el bancario: el anterior queda archivado."
+        icon="storefront"
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-bold text-slate-700">Imagen del QR (PNG o JPG)</span>
+              <input
+                ref={archivoNegocio}
+                type="file"
+                accept="image/png,image/jpeg"
+                className="text-xs"
+                data-testid="input-qr-negocio"
+              />
+            </label>
+            <AtlasButton
+              type="button"
+              icon="upload"
+              loading={subiendoNegocio}
+              disabled={!partnerId}
+              onClick={() => void subirNegocio()}
+              data-testid="btn-subir-qr-negocio"
+            >
+              {negocioVigente ? 'Reemplazar QR del negocio' : 'Subir QR del negocio'}
+            </AtlasButton>
+          </div>
+          <div className="text-xs">
+            {negocioVigente ? (
+              <dl className="space-y-1" data-testid="qr-negocio-vigente">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-slate-500">Huella</dt>
+                  <dd className="font-mono text-[11px]">{negocioVigente.fingerprint}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-slate-500">Estado</dt>
+                  <dd>
+                    <StatusPill tone={negocioVigente.status === 'active' ? 'success' : 'warning'}>
+                      {negocioVigente.status}
+                    </StatusPill>
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="text-slate-500">
+                Todavía no lo has subido. Falta como requisito del alta, y mientras falte el expediente no
+                se puede enviar a revisión.
+              </p>
+            )}
+          </div>
+        </div>
+      </Panel>
 
       {historial.length > 0 ? (
         <Panel title="QR anteriores" description="Se conservan para poder reconstruir contra qué QR se cobró cada día." icon="history">

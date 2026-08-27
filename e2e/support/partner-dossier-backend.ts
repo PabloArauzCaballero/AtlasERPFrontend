@@ -14,6 +14,7 @@ import type { Page, Route } from '@playwright/test';
  */
 
 interface Branch {
+  erpBranchId: string | null;
   branchId: string;
   branchCode: string;
   name: string;
@@ -116,6 +117,20 @@ export async function installPartnerDossierBackend(page: Page) {
   // Sesión de comercio: sin ella `RequireAuth audience="merchant"` devuelve al login.
   await page.route('**/api/v1/auth/merchant/me', (route) => json(route, 200, { user: MERCHANT }));
 
+  /*
+   * Las sucursales del ERP: la lista donde un local se da de alta de verdad.
+   *
+   * El expediente ya no las inventa, las DECLARA, así que sin esta ruta el desplegable saldría vacío
+   * y el paso de la sucursal no se podría hacer. Son dos para que la prueba distinga: al declarar la
+   * primera, la segunda tiene que seguir ofreciéndose y la primera no.
+   */
+  await page.route('**/api/v1/portal/branches*', (route) =>
+    json(route, 200, [
+      { id: 'erp-branch-1', name: 'Sucursal Centro', city: 'Santa Cruz', address: 'Av. Monseñor Rivero 100', status: 'ACTIVE' },
+      { id: 'erp-branch-2', name: 'Sucursal Norte', city: 'Santa Cruz', address: 'Av. Banzer 2000', status: 'ACTIVE' },
+    ]),
+  );
+
   await page.route('**/api/v1/partner-onboarding/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -202,9 +217,23 @@ export async function installPartnerDossierBackend(page: Page) {
         addressLine: body.addressLine ?? null,
         city: body.city ?? null,
         status: 'active',
+        // El puente con el ERP. Se guarda tal como llega para que la prueba pueda AFIRMAR que la
+        // pantalla lo mandó: sin él vuelven a existir dos verdades sobre el mismo local.
+        erpBranchId: body.erpBranchId ?? null,
       };
       state.branches.push(branch);
       return json(route, 201, branch);
+    }
+
+    /*
+     * La lista de QR por su cuenta, que es como la pide «Mi QR de cobro».
+     *
+     * El expediente los leía dentro de su estado completo y por eso esta ruta no hacía falta.
+     * Desde que los dos códigos se suben en su propia pantalla, sí: sin ella la pantalla recibe un
+     * 404 y enseña «todavía no lo has subido» justo después de subirlo.
+     */
+    if (method === 'GET' && path.endsWith('/qr-codes')) {
+      return json(route, 200, state.qrCodes);
     }
 
     if (method === 'POST' && path.endsWith('/qr-codes/upload-url')) {

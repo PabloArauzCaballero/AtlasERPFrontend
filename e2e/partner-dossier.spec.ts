@@ -59,32 +59,27 @@ test.describe('expediente del negocio', () => {
 
     // --- Sucursal --------------------------------------------------------------------------
     // El expediente se reorganizó en pestañas, así que cada paso empieza abriendo la suya.
+    /*
+     * La sucursal ya no se escribe aquí: se ELIGE una de las que el comercio tiene dadas de alta en
+     * «Sucursales». El expediente dejó de ser un segundo sitio donde inventar locales.
+     */
     await page.getByTestId('tab-sucursales').click();
+    await page.getByTestId('campo-sucursal-erp').selectOption('erp-branch-1');
     await page.getByTestId('campo-branchCode').fill('SC-01');
-    await page.getByTestId('campo-branchName').fill('Sucursal Centro');
     await page.getByTestId('btn-registrar-sucursal').click();
     await expect(page.getByTestId('lista-sucursales')).toContainText('SC-01');
     await expect(pendientes.locator('[data-requirement="branch"]')).toHaveCount(0);
 
-    // --- Los dos QR ------------------------------------------------------------------------
-    await page.getByTestId('tab-qr').click();
-    await page.getByTestId('input-qr-negocio').setInputFiles({ name: 'qr.png', mimeType: 'image/png', buffer: PNG });
-    await page.getByTestId('btn-subir-qr-negocio').click();
-    await expect(page.getByTestId('tabla-qr').locator('[data-qr-kind="business"]')).toBeVisible();
-
-    await page.locator('#bankInstitutionCode').fill('BNB');
-    await page.locator('#accountNumberMasked').fill('****7890');
-    await page.getByTestId('input-qr-bancario').setInputFiles({ name: 'qr-bank.png', mimeType: 'image/png', buffer: PNG });
-    await page.getByTestId('btn-subir-qr-bancario').click();
-    await expect(page.getByTestId('tabla-qr').locator('[data-qr-kind="bank"]')).toBeVisible();
-
     /*
-     * La sigla ASFI llegó al backend. Se comprueba sobre lo que el backend RECIBIÓ y no sobre lo
-     * que la tabla pinta: es lo que permite cruzar el QR con el padrón del regulador, y si se
-     * perdiera por el camino la pantalla seguiría viéndose igual.
+     * El puente viajó. Es LA afirmación de este paso: sin `erpBranchId` vuelven a existir dos listas
+     * de sucursales que nadie puede cruzar, y el QR de un mostrador podría acabar enseñándose en
+     * otro. Se comprueba sobre lo que el backend recibió, no sobre lo que la lista pinta.
      */
-    expect(backend.qrCodes.find((qr) => qr.qrKind === 'bank')?.bankInstitutionCode).toBe('BNB');
-    await page.screenshot({ path: `${EVIDENCIA}/03-qr.png`, fullPage: true });
+    expect(backend.branches[0]?.erpBranchId).toBe('erp-branch-1');
+
+    // Y la que ya se declaró deja de ofrecerse: dos declaraciones del mismo local serían dos QR.
+    await expect(page.getByTestId('campo-sucursal-erp').locator('option[value="erp-branch-1"]')).toHaveCount(0);
+    await expect(page.getByTestId('campo-sucursal-erp').locator('option[value="erp-branch-2"]')).toHaveCount(1);
 
     // --- Terminal POS, dentro de su sucursal -------------------------------------------------
     /*
@@ -103,7 +98,45 @@ test.describe('expediente del negocio', () => {
     expect(backend.posTerminals[0]?.branchId).toBe(backend.branches[0]?.branchId);
     await page.screenshot({ path: `${EVIDENCIA}/04-pos.png`, fullPage: true });
 
+    // --- Los dos QR, que ya NO viven en el expediente -----------------------------------------
+    /*
+     * Se sale de esta pantalla a propósito. Los dos códigos se subían aquí dentro, y ahí el
+     * expediente aprobado cerraba la edición: el comercio que ya cobraba era el único que no podía
+     * reemplazar su propio QR. Ahora los dos se suben en «Mi QR de cobro», que es un dato vivo del
+     * negocio y no un trámite de alta.
+     *
+     * La prueba los sube DESDE ALLÍ y vuelve al expediente a comprobar que el embudo encogió: es la
+     * forma de afirmar que las dos pantallas hablan del mismo expediente y no de dos cosas
+     * parecidas.
+     */
+    await page.goto('/portal-comercio/qr-cobro');
+
+    await page.getByTestId('input-qr-negocio').setInputFiles({ name: 'qr.png', mimeType: 'image/png', buffer: PNG });
+    await page.getByTestId('btn-subir-qr-negocio').click();
+    await expect(page.getByTestId('qr-negocio-vigente')).toBeVisible();
+
+    await page.getByTestId('campo-entidad').fill('BNB');
+    await page.getByTestId('campo-cuenta').fill('****7890');
+    await page.getByTestId('input-qr-cobro').setInputFiles({ name: 'qr-bank.png', mimeType: 'image/png', buffer: PNG });
+    await page.getByTestId('btn-subir-qr-cobro').click();
+
+    /*
+     * La sigla ASFI llegó al backend. Se comprueba sobre lo que el backend RECIBIÓ y no sobre lo
+     * que la pantalla pinta: es lo que permite cruzar el QR con el padrón del regulador, y si se
+     * perdiera por el camino la pantalla seguiría viéndose igual.
+     */
+    await expect
+      .poll(() => backend.qrCodes.find((qr) => qr.qrKind === 'bank')?.bankInstitutionCode)
+      .toBe('BNB');
+    await page.screenshot({ path: `${EVIDENCIA}/03-qr.png`, fullPage: true });
+
     // --- Envío ------------------------------------------------------------------------------
+    // Los dos QR dejaron de faltar, y se comprueba en el embudo del expediente: es lo que prueba
+    // que subirlos en otra pantalla cuenta para el mismo trámite.
+    await page.goto('/portal-comercio/expediente');
+    await expect(pendientes.locator('[data-requirement="business_qr"]')).toHaveCount(0);
+    await expect(pendientes.locator('[data-requirement="bank_qr"]')).toHaveCount(0);
+
     // Queda un requisito que esta pantalla todavía no cubre —el representante legal—, así que el
     // envío sigue apagado. Se afirma en vez de disimularlo: la pantalla está diciendo la verdad.
     await page.getByTestId('tab-estado').click();
@@ -123,8 +156,8 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('btn-abrir-expediente').click();
 
     await page.getByTestId('tab-sucursales').click();
+    await page.getByTestId('campo-sucursal-erp').selectOption('erp-branch-1');
     await page.getByTestId('campo-branchCode').fill('SC-01');
-    await page.getByTestId('campo-branchName').fill('Sucursal Centro');
     await page.getByTestId('btn-registrar-sucursal').click();
     await expect(page.getByTestId('lista-sucursales')).toContainText('SC-01');
 

@@ -16,6 +16,7 @@ import { QrCanvas } from '@/components/atlas/QrCanvas';
 import { SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
 import { merchantCategoryOptions } from '@/lib/catalogs';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { portalService } from '@/services/portalService';
 import {
   partnerOnboardingService,
   type PartnerOnboardingState,
@@ -80,6 +81,16 @@ export function PartnerDossierScreen() {
   const [expedientePropio, setExpedientePropio] = useState<'buscando' | 'sin-expediente' | 'encontrado'>('buscando');
   /** La sucursal cuyo QR se esta mirando. Solo afecta a lo que se pinta. */
   const [sucursalAbierta, setSucursalAbierta] = useState<string | null>(null);
+  /*
+   * Las sucursales del ERP: la ÚNICA lista donde un local se da de alta.
+   *
+   * Es la que referencian las ventas y los usuarios del comercio, así que es la que manda. El
+   * expediente no crea locales: declara cuáles de éstos entran, y guarda el puente `erpBranchId`.
+   */
+  const sucursalesDelErp = useAsyncResource(
+    useCallback(() => portalService.listBranches(), []),
+    true,
+  );
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'danger' | 'info'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -171,6 +182,17 @@ export function PartnerDossierScreen() {
 
   const state = dossier.data;
   const branches = state?.branches ?? [];
+  /*
+   * Lo que queda por declarar: las del ERP que todavía no tienen su reflejo en el expediente.
+   *
+   * Se cruza por `erpBranchId` y no por nombre — dos locales pueden llamarse igual — y así el
+   * desplegable no ofrece dos veces el mismo mostrador, que era la forma de acabar con dos
+   * sucursales del expediente apuntando al mismo sitio.
+   */
+  const declaradas = new Set(branches.map((sucursal) => sucursal.erpBranchId).filter(Boolean));
+  const sucursalesPorDeclarar = (sucursalesDelErp.data ?? []).filter(
+    (fila) => !declaradas.has(String(fila.id)),
+  );
 
   return (
     <div className="space-y-4">
@@ -407,20 +429,70 @@ export function PartnerDossierScreen() {
               content: (
               <Panel title="Sucursales" icon="store" description="Dónde opera el negocio. De la sucursal cuelgan el QR y los terminales.">
                 <form
-                  className="grid gap-3 md:grid-cols-4"
+                  className="grid gap-3 md:grid-cols-3"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    const payload = camposEscritos(new FormData(event.currentTarget));
-                    void run('Sucursal', () => partnerOnboardingService.registerBranch(partnerId, payload));
+                    const form = new FormData(event.currentTarget);
+                    const erpBranchId = String(form.get('erpBranchId') ?? '');
+                    const sucursal = (sucursalesDelErp.data ?? []).find((fila) => String(fila.id) === erpBranchId);
+                    if (!sucursal) {
+                      setFeedback({ tone: 'info', text: 'Elige la sucursal que quieres declarar en el expediente.' });
+                      return;
+                    }
+                    /*
+                     * Se declara la sucursal QUE YA EXISTE, y se guarda con qué local del ERP se
+                     * corresponde. `erpBranchId` es el puente, y se manda siempre: el campo estaba
+                     * previsto desde el principio —«para que no haya dos verdades sobre el mismo
+                     * local»— pero nadie lo rellenaba, así que en la práctica había dos.
+                     *
+                     * El cruce va por identificador y nunca por nombre: dos locales pueden llamarse
+                     * igual, y enseñar el QR equivocado manda el dinero a otra caja.
+                     */
+                    void run('Sucursal', () =>
+                      partnerOnboardingService.registerBranch(partnerId, {
+                        erpBranchId,
+                        branchCode: String(form.get('branchCode') ?? '').trim(),
+                        name: String(sucursal.name ?? ''),
+                        ...(sucursal.city ? { city: String(sucursal.city) } : {}),
+                        ...(sucursal.address ? { addressLine: String(sucursal.address) } : {}),
+                      }),
+                    );
                     event.currentTarget.reset();
                   }}
                 >
-                  <FormField label="Código" name="branchCode" required data-testid="campo-branchCode" />
-                  <FormField label="Nombre" name="name" required data-testid="campo-branchName" />
-                  <FormField label="Dirección" name="addressLine" />
-                  <div className="flex items-end">
-                    <AtlasButton type="submit" disabled={busy} data-testid="btn-registrar-sucursal">
-                      Registrar sucursal
+                  {/*
+                    * Ya no se escribe una sucursal aquí: se ELIGE una de las del comercio.
+                    *
+                    * Registrar el local en dos sitios distintos producía dos listas que no se podían
+                    * cruzar —el ERP es donde se le asignan usuarios y donde se sitúa cada venta; el
+                    * expediente es de donde cuelgan las cajas y sus QR—, y nada garantizaba que
+                    * hablaran del mismo mostrador. Un solo sitio para darla de alta, «Sucursales», y
+                    * aquí sólo se declara cuál de ellas entra en el expediente.
+                    */}
+                  <FormField
+                    kind="select"
+                    label="Sucursal del comercio"
+                    name="erpBranchId"
+                    required
+                    className="md:col-span-2"
+                    data-testid="campo-sucursal-erp"
+                    hint={
+                      sucursalesPorDeclarar.length === 0
+                        ? 'Todas tus sucursales ya están declaradas. Las nuevas se dan de alta en «Sucursales».'
+                        : 'Se dan de alta en «Sucursales»; aquí sólo se declaran.'
+                    }
+                    options={[
+                      { label: '— Elige una sucursal —', value: '' },
+                      ...sucursalesPorDeclarar.map((fila) => ({
+                        label: `${String(fila.name ?? 'Sucursal')}${fila.city ? ` · ${String(fila.city)}` : ''}`,
+                        value: String(fila.id),
+                      })),
+                    ]}
+                  />
+                  <FormField label="Código" name="branchCode" required data-testid="campo-branchCode" hint="El que usas tú: SC-01…" />
+                  <div className="md:col-span-3 flex justify-end">
+                    <AtlasButton type="submit" disabled={busy || sucursalesPorDeclarar.length === 0} data-testid="btn-registrar-sucursal">
+                      Declarar en el expediente
                     </AtlasButton>
                   </div>
                 </form>
