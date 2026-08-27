@@ -189,9 +189,9 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         tip: 'El rubro no es decorativo: agrupa tu cartera y entra en el cálculo de tu comisión.',
       },
       {
-        title: 'Abre una sucursal para ver su QR',
-        body: 'Al pulsar sobre una sucursal se despliega el código de cada una de sus cajas. Ese es el QR que hay que imprimir y dejar en el mostrador: es lo que tu cliente apunta con el teléfono para pedir su compra en cuotas.',
-        tip: 'Si la sucursal no tiene ninguna caja dada de alta todavía, no hay QR que imprimir: regístrala en «Terminales POS».',
+        title: 'Abre una sucursal para ver y dar de alta sus cajas',
+        body: 'Al pulsar sobre una sucursal se despliega el código de cada una de sus cajas. Ese es el QR que hay que imprimir y dejar en el mostrador: es lo que tu cliente apunta con el teléfono para pedir su compra en cuotas. Ahí mismo das de alta una caja nueva o suspendes una que ya no debe cobrar.',
+        tip: 'La caja se registra dentro de su sucursal y no en una lista aparte: así no hay forma de darla de alta en el local equivocado.',
       },
       {
         title: 'El QR lleva el código de la caja, no tu nombre',

@@ -4,14 +4,17 @@ import { Icon } from '@/components/atlas/Icon';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import {
   REQUIREMENT_LABELS,
-  type PartnerBranch,
-  type PartnerPosTerminal,
   type PartnerQrCode,
   type SubmissionGap,
 } from '@/services/partnerOnboardingService';
 
 /**
- * Las piezas de lectura del expediente: lo que falta, los QR y los terminales.
+ * Las piezas de lectura del expediente: lo que falta y los QR registrados.
+ *
+ * Los terminales ya no se pintan aquí. Vivían en una tabla propia —serial, alias, sucursal— y esa
+ * columna «sucursal» era la señal de que estaban en el sitio equivocado: un terminal no se entiende
+ * suelto, se entiende dentro del local donde está enchufado. Ahora cuelgan de su sucursal, en
+ * `PartnerDossierScreen`.
  *
  * Viven aparte de la pantalla porque son lo que se MIRA, no lo que se opera, y separarlas deja la
  * pantalla con una sola responsabilidad: los formularios y su estado.
@@ -94,63 +97,6 @@ export function QrList({ codes }: Readonly<{ codes: PartnerQrCode[] }>) {
             <td className="py-1.5 font-mono text-slate-500">{qr.fingerprint}</td>
             <td className="py-1.5">
               <StatusPill tone={toneForStatus(qr.status)}>{qr.status}</StatusPill>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-/** Los terminales, agrupados por la sucursal donde están físicamente. */
-export function PosList({
-  terminals,
-  branches,
-  onChangeStatus,
-}: Readonly<{
-  terminals: PartnerPosTerminal[];
-  branches: PartnerBranch[];
-  onChangeStatus: (terminalId: string, status: 'active' | 'suspended') => void;
-}>) {
-  if (terminals.length === 0) {
-    return <p className="text-xs text-slate-500">Todavía no hay terminales registrados.</p>;
-  }
-
-  const branchName = (branchId: string) =>
-    branches.find((branch) => branch.branchId === branchId)?.name ?? `Sucursal ${branchId}`;
-
-  return (
-    <table className="w-full text-left text-xs" data-testid="tabla-pos">
-      <thead className="text-[10px] uppercase tracking-wide text-slate-500">
-        <tr>
-          <th className="py-1">Serial</th>
-          <th className="py-1">Alias</th>
-          <th className="py-1">Sucursal</th>
-          <th className="py-1">Estado</th>
-          <th className="py-1">Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        {terminals.map((terminal) => (
-          <tr key={terminal.terminalId} className="border-t border-slate-100">
-            <td className="py-1.5 font-mono font-semibold">{terminal.terminalSerial}</td>
-            <td className="py-1.5">{terminal.terminalAlias ?? '—'}</td>
-            <td className="py-1.5">{branchName(terminal.branchId)}</td>
-            <td className="py-1.5">
-              <StatusPill tone={toneForStatus(terminal.status)}>{terminal.status}</StatusPill>
-            </td>
-            <td className="py-1.5">
-              {/*
-               * Suspender está disponible aunque el expediente ya esté aprobado: es una medida de
-               * contención, y negársela al comercio que sí puede cobrar sería exactamente al revés.
-               */}
-              <button
-                type="button"
-                className="rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                onClick={() => onChangeStatus(terminal.terminalId, terminal.status === 'active' ? 'suspended' : 'active')}
-              >
-                {terminal.status === 'active' ? 'Suspender' : 'Activar'}
-              </button>
             </td>
           </tr>
         ))}

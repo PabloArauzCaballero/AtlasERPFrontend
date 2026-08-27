@@ -13,7 +13,7 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { QrCanvas } from '@/components/atlas/QrCanvas';
-import { PosList, QrList, SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
+import { QrList, SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
 import { merchantCategoryOptions } from '@/lib/catalogs';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import {
@@ -492,8 +492,8 @@ export function PartnerDossierScreen() {
                           <div className="border-t border-slate-100 bg-slate-50/60 p-3" data-testid={`qr-sucursal-${branch.branchCode}`}>
                             {terminales.length === 0 ? (
                               <p className="text-slate-600">
-                                Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que imprimir.
-                                Regístrala abajo, en <strong>Terminales POS</strong>.
+                                Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que
+                                imprimir. Regístrala aquí abajo.
                               </p>
                             ) : (
                               <div className="flex flex-wrap gap-4">
@@ -508,10 +508,60 @@ export function PartnerDossierScreen() {
                                         Mientras no esté activo, el teléfono del cliente rechaza este código.
                                       </p>
                                     ) : null}
+                                    {/*
+                                      * Suspender se hace DESDE el terminal y no desde una tabla aparte.
+                                      *
+                                      * Es una medida de contención —una caja que se pierde o que cobra lo que
+                                      * no debe— y quien la toma está mirando ese mostrador, no una lista de
+                                      * seriales donde hay que acertar la fila.
+                                      */}
+                                    <button
+                                      type="button"
+                                      className="w-full rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                      disabled={busy}
+                                      data-testid={`btn-estado-pos-${pos.terminalSerial}`}
+                                      onClick={() =>
+                                        void run('Estado del terminal', () =>
+                                          partnerOnboardingService.changePosStatus(partnerId, pos.terminalId, {
+                                            status: pos.status === 'active' ? 'suspended' : 'active',
+                                          }),
+                                        )
+                                      }
+                                    >
+                                      {pos.status === 'active' ? 'Suspender' : 'Reactivar'}
+                                    </button>
                                   </div>
                                 ))}
                               </div>
                             )}
+
+                            {/*
+                              * El alta del terminal vive DENTRO de su sucursal, y por eso ya no pregunta a
+                              * cuál pertenece: la sucursal es el sitio donde estás, no un campo que rellenar.
+                              *
+                              * Antes esto era una pestaña aparte con un desplegable de sucursales, y ahí el
+                              * error fácil era dar de alta la caja en el local equivocado —el formulario no
+                              * enseñaba en ningún momento de qué local hablaba—.
+                              */}
+                            <form
+                              className="mt-4 grid gap-2 border-t border-slate-200 pt-3 md:grid-cols-3"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                const payload = camposEscritos(new FormData(event.currentTarget));
+                                void run('Terminal', () =>
+                                  partnerOnboardingService.registerPosTerminal(partnerId, branch.branchId, payload),
+                                );
+                                event.currentTarget.reset();
+                              }}
+                            >
+                              <FormField label="Serial" name="terminalSerial" required data-testid={`campo-pos-serial-${branch.branchCode}`} />
+                              <FormField label="Alias" name="terminalAlias" hint="Caja 1, Mostrador…" />
+                              <div className="flex items-end">
+                                <AtlasButton type="submit" disabled={busy} data-testid={`btn-registrar-pos-${branch.branchCode}`}>
+                                  Registrar terminal aquí
+                                </AtlasButton>
+                              </div>
+                            </form>
                           </div>
                         ) : null}
                       </li>
@@ -551,52 +601,6 @@ export function PartnerDossierScreen() {
                 </div>
                 <div className="mt-4">
                   <QrList codes={state.qrCodes} />
-                </div>
-              </Panel>
-              ),
-            },
-            {
-              id: 'pos',
-              label: 'Terminales POS',
-              icon: 'point_of_sale',
-              content: (
-              <Panel title="Terminales POS" icon="point_of_sale" description="El terminal pertenece a una sucursal: un cobro ocurre en un lugar.">
-                <form
-                  className="grid gap-3 md:grid-cols-4"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const form = new FormData(event.currentTarget);
-                    const branchId = String(form.get('branchId') ?? '');
-                    const payload = camposEscritos(form);
-                    delete payload.branchId;
-                    void run('Terminal', () => partnerOnboardingService.registerPosTerminal(partnerId, branchId, payload));
-                    event.currentTarget.reset();
-                  }}
-                >
-                  <FormField
-                    kind="select"
-                    label="Sucursal"
-                    name="branchId"
-                    required
-                    data-testid="campo-pos-sucursal"
-                    options={branches.map((branch) => ({ label: `${branch.branchCode} · ${branch.name}`, value: branch.branchId }))}
-                  />
-                  <FormField label="Serial" name="terminalSerial" required data-testid="campo-pos-serial" />
-                  <FormField label="Alias" name="terminalAlias" />
-                  <div className="flex items-end">
-                    <AtlasButton type="submit" disabled={busy || branches.length === 0} data-testid="btn-registrar-pos">
-                      Registrar terminal
-                    </AtlasButton>
-                  </div>
-                </form>
-                <div className="mt-3">
-                  <PosList
-                    terminals={state.posTerminals}
-                    branches={branches}
-                    onChangeStatus={(terminalId, status) =>
-                      void run('Estado del terminal', () => partnerOnboardingService.changePosStatus(partnerId, terminalId, { status }))
-                    }
-                  />
                 </div>
               </Panel>
               ),

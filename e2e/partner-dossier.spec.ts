@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { installPartnerDossierBackend, seedMerchantSession } from './support/partner-dossier-backend';
+import { pngConQr } from './support/qr-png';
 
 /**
  * El expediente del negocio, de punta a punta y desde la pantalla del comercio.
@@ -15,11 +16,16 @@ import { installPartnerDossierBackend, seedMerchantSession } from './support/par
 
 const EVIDENCIA = 'docs/visual-evidence/expediente';
 
-/** Un PNG mínimo real: el flujo sube un archivo de verdad, no un `Buffer` cualquiera. */
-const PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-  'base64',
-);
+/*
+ * Un PNG con un QR DE VERDAD dentro.
+ *
+ * Antes esto era un PNG blanco de 1x1 y bastaba, porque la pantalla subía cualquier imagen. Ya no:
+ * comprueba en el navegador que la imagen lleve un código antes de gastar la subida
+ * (`lib/qrImagen.ts`), así que un cuadrado blanco es exactamente lo que rechaza — y el recorrido se
+ * caía ahí, sin llegar a nada de lo que venía después. Se genera con el mismo codificador que dibuja
+ * los QR de cada caja, así que la prueba sube lo que un comercio subiría.
+ */
+const PNG = pngConQr('https://atlas.test/qr/prueba');
 
 test.describe('expediente del negocio', () => {
   test('recorre el trámite completo y el embudo encoge en cada paso', async ({ page }) => {
@@ -80,13 +86,20 @@ test.describe('expediente del negocio', () => {
     expect(backend.qrCodes.find((qr) => qr.qrKind === 'bank')?.bankInstitutionCode).toBe('BNB');
     await page.screenshot({ path: `${EVIDENCIA}/03-qr.png`, fullPage: true });
 
-    // --- Terminal POS ----------------------------------------------------------------------
-    await page.getByTestId('tab-pos').click();
-    await page.getByTestId('campo-pos-serial').fill('SN-00042');
-    await page.getByTestId('btn-registrar-pos').click();
-    await expect(page.getByTestId('tabla-pos')).toContainText('SN-00042');
+    // --- Terminal POS, dentro de su sucursal -------------------------------------------------
+    /*
+     * El terminal ya no se da de alta en una pestaña propia con un desplegable de sucursales: se
+     * abre la sucursal y se registra ahí. Por eso la prueba entra por la sucursal — si algún día
+     * volviera a existir un alta suelta, este recorrido dejaría de pasar, que es lo que se quiere.
+     */
+    await page.getByTestId('tab-sucursales').click();
+    await page.getByTestId('sucursal-SC-01').click();
+    await page.getByTestId('campo-pos-serial-SC-01').fill('SN-00042');
+    await page.getByTestId('btn-registrar-pos-SC-01').click();
+    await expect(page.getByTestId('qr-sucursal-SC-01')).toContainText('SN-00042');
 
-    // El terminal cuelga de la sucursal elegida: sin esto, un cobro no se puede situar en un local.
+    // El terminal cuelga de la sucursal desde la que se dio de alta: sin esto, un cobro no se
+    // puede situar en un local.
     expect(backend.posTerminals[0]?.branchId).toBe(backend.branches[0]?.branchId);
     await page.screenshot({ path: `${EVIDENCIA}/04-pos.png`, fullPage: true });
 
@@ -115,13 +128,14 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('btn-registrar-sucursal').click();
     await expect(page.getByTestId('lista-sucursales')).toContainText('SC-01');
 
-    await page.getByTestId('tab-pos').click();
-    await page.getByTestId('campo-pos-serial').fill('SN-DUP');
-    await page.getByTestId('btn-registrar-pos').click();
-    await expect(page.getByTestId('tabla-pos')).toContainText('SN-DUP');
+    await page.getByTestId('tab-sucursales').click();
+    await page.getByTestId('sucursal-SC-01').click();
+    await page.getByTestId('campo-pos-serial-SC-01').fill('SN-DUP');
+    await page.getByTestId('btn-registrar-pos-SC-01').click();
+    await expect(page.getByTestId('qr-sucursal-SC-01')).toContainText('SN-DUP');
 
-    await page.getByTestId('campo-pos-serial').fill('SN-DUP');
-    await page.getByTestId('btn-registrar-pos').click();
+    await page.getByTestId('campo-pos-serial-SC-01').fill('SN-DUP');
+    await page.getByTestId('btn-registrar-pos-SC-01').click();
 
     /*
      * El mensaje del backend llega ENTERO hasta la pantalla, con la sucursal donde ya está ese
