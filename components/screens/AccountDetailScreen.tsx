@@ -13,6 +13,7 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { AccountActivitiesPanel } from '@/components/screens/AccountActivitiesPanel';
+import { ActionFormModal } from '@/components/screens/ActionFormModal';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { formatBob, maskPii } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
@@ -28,6 +29,10 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
   const resource = useAsyncResource(load, Boolean(requestedId));
   const account = resource.data ?? {};
   const name = String(account.tradeName ?? account.legalName ?? 'Detalle de cuenta');
+  /* Alta de contacto: el endpoint y su método en el servicio existían, y la ficha sólo sabía
+   * ENSEÑAR los contactos. Una cuenta recién creada se quedaba sin interlocutor y no había forma
+   * de añadirle uno desde la consola. */
+  const [nuevoContacto, setNuevoContacto] = useState(false);
 
   return (
     <div className="space-y-5">
@@ -78,7 +83,12 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
                   <Detail label="Territorio" value={account.territoryId} mono />
                 </dl>
               </Panel>
-              <Panel title="Contacts List" description="Contactos asociados devueltos por el agregado de cuenta" icon="groups">
+              <Panel
+                title="Contactos"
+                description="Con quién se habla en esta cuenta. El principal es el interlocutor por defecto."
+                icon="groups"
+                action={requestedId ? <AtlasButton variant="secondary" icon="person_add" onClick={() => setNuevoContacto(true)}>Añadir contacto</AtlasButton> : null}
+              >
                 <ContactList contacts={Array.isArray(account.contacts) ? account.contacts : []} />
               </Panel>
             </div>
@@ -99,6 +109,36 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
           <AccountActivitiesPanel accountId={requestedId} />
           <FileAttachmentsPanel ownerType="B2B_ACCOUNT" ownerId={requestedId} title="Documentos de la cuenta" />
         </>
+      ) : null}
+      {nuevoContacto ? (
+        <ActionFormModal
+          open
+          icon="person_add"
+          title={`Nuevo contacto en ${name}`}
+          description="El correo y el teléfono se guardan completos y se muestran enmascarados: la ficha no es el sitio donde se leen datos personales."
+          submitLabel="Añadir contacto"
+          fields={[
+            { name: 'fullName', label: 'Nombre completo', required: true, span: 2 },
+            { name: 'roleTitle', label: 'Cargo', optional: true },
+            { name: 'email', label: 'Correo', type: 'email', optional: true, span: 2 },
+            { name: 'phone', label: 'Teléfono', optional: true },
+            { name: 'decisionRole', label: 'Rol en la decisión', optional: true, placeholder: 'Decisor, influyente, usuario' },
+            {
+              name: 'isPrimary',
+              label: 'Es el contacto principal',
+              type: 'select',
+              valueKind: 'boolean',
+              defaultValue: 'false',
+              options: [{ label: 'Sí', value: 'true' }, { label: 'No', value: 'false' }],
+            },
+          ]}
+          onClose={() => setNuevoContacto(false)}
+          onSubmit={async (payload) => {
+            await b2bService.addContact(requestedId, payload);
+            setNuevoContacto(false);
+            await resource.reload();
+          }}
+        />
       ) : null}
     </div>
   );

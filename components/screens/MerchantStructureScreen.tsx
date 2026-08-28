@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { QrCanvas } from '@/components/atlas/QrCanvas';
 import { FormField } from '@/components/atlas/FormField';
@@ -14,48 +14,49 @@ import { tablaPdf } from '@/lib/pdf';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useMerchantScope } from '@/hooks/useMerchantScope';
-import { useOptions } from '@/hooks/useOptions';
 import { formDataToPayload } from '@/lib/formPayload';
-import { b2bService } from '@/services/b2bService';
 import { portalService } from '@/services/portalService';
 import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
+/**
+ * El código con el que el expediente nombra a una sucursal del ERP.
+ *
+ * Se DERIVA del identificador de la sucursal en vez de pedírselo a nadie: es único por
+ * construcción —el identificador ya lo es—, así que declarar dos veces el mismo local no puede
+ * producir dos entradas, y volver a intentarlo después de un fallo de red produce el mismo código
+ * y choca con un 409 en vez de duplicar. Pedirlo en un formulario era, además, la mitad del
+ * trámite que sobraba: el comercio ya había escrito el nombre del local en «Sucursales».
+ *
+ * Se usa el identificador ENTERO y no un prefijo. Los de este ERP se emiten en serie
+ * —`d9000000-…-9001`, `d9000000-…-9002`— y sólo se diferencian en la cola: cortando por delante,
+ * dos locales distintos del mismo comercio recibían el MISMO código y el segundo se rechazaba con
+ * `BRANCH_CODE_ALREADY_REGISTERED`, o sea que el comercio no podía abrir su segunda tienda.
+ * Un UUID sin guiones son 32 caracteres y el contrato admite 40.
+ */
+function codigoDeExpediente(erpBranchId: string): string {
+  return `SUC-${erpBranchId.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(-36)}`;
+}
+
+/**
+ * Las sucursales del comercio: el ÚNICO sitio donde un local se da de alta y se administra.
+ *
+ * Aquí cuelga todo lo que es de la sucursal —su gente, su estado, sus cajas y el QR que se imprime
+ * y se pega en cada mostrador—. El expediente («Mi empresa») ya no tiene una segunda lista de
+ * sucursales con su propio formulario: tener dos altas para el mismo local producía dos verdades
+ * que nada garantizaba que hablaran del mismo mostrador, y obligaba al comercio a registrar su
+ * tienda dos veces para poder imprimir un código.
+ *
+ * El puente entre las dos vistas —la del ERP, donde se sitúa cada venta; la del expediente, de
+ * donde cuelgan las cajas— sigue existiendo porque son dos bases distintas, pero ya no lo teclea
+ * nadie: se declara solo al crear la sucursal, y para las que venían de antes basta un botón.
+ */
 export function MerchantStructureScreen() {
   const scope = useMerchantScope();
-  const esComercio = scope.isMerchant;
-
-  /*
-   * El comercio administra sus propias sucursales.
-   *
-   * Antes esta pantalla era de solo lectura para el: los formularios de alta y los botones de
-   * editar/dar de baja llamaban a `/b2b/*`, el canal interno de Atlas, que a un usuario de comercio
-   * le responde 403. Por eso el alta estaba directamente escondida para el —ensenar un formulario
-   * que solo puede fallar es peor que no ensenarlo— y editar reventaba al pulsarlo. Ahora hay dos
-   * caminos: el comercio va por `/portal/*`, donde el backend deriva su cuenta de sus membresias, y
-   * el staff interno sigue por `/b2b/*` eligiendo a que comercio entra.
-   */
-  const branchMutation = useAtlasMutation(useCallback(
-    (body: JsonObject) => (esComercio ? portalService.createBranch(body) : b2bService.createBranch(body)),
-    [esComercio],
-  ));
-  const userMutation = useAtlasMutation(useCallback((body: JsonObject) => b2bService.createMerchantUser(body), []));
-
-  const accountOptions = useOptions(useCallback(async () => {
-    const result = await b2bService.listAccounts({ page: 1, limit: 100 });
-    const rows = (result.items ?? result.rows ?? []) as ResourceRow[];
-    return rows.map((row) => ({ value: String(row.id), label: String(row.tradeName ?? row.legalName ?? 'Comercio') }));
-  }, []));
-
-  // Cuenta seleccionada en el formulario de usuario: define qué sucursales se pueden elegir.
-  const [userAccountId, setUserAccountId] = useState('');
-  const userBranches = useAsyncResource(
-    useCallback(() => (userAccountId ? portalService.listBranches(userAccountId) : Promise.resolve([] as ResourceRow[])), [userAccountId]),
-    Boolean(userAccountId),
-  );
-  const userBranchOptions = ((userBranches.data ?? []) as ResourceRow[]).map((b) => ({ value: String(b.id), label: String(b.name ?? 'Sucursal') }));
-
   const { accountId: queryAccountId, ready } = scope;
+
+  const [feedback, setFeedback] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
+
   const branches = useAsyncResource(
     useCallback(() => (ready ? portalService.listBranches(queryAccountId) : Promise.resolve([] as ResourceRow[])), [queryAccountId, ready]),
     ready,
@@ -63,25 +64,96 @@ export function MerchantStructureScreen() {
   const branchRows = (branches.data ?? []) as ResourceRow[];
 
   /*
-   * Editar y dar de baja una sucursal. Antes solo se podian CREAR: una sucursal con la direccion
-   * mal escrita se quedaba asi para siempre, y una que cerraba seguia figurando como abierta y
-   * habilitada para originar BNPL.
+   * El expediente del propio comercio, que es de donde cuelgan las cajas y sus QR.
    *
-   * No hay borrado a proposito. Una sucursal borrada se lleva por delante el historial de las
-   * ventas que origino, y esas cuotas siguen venciendo: lo que se necesita es que deje de operar,
-   * no que deje de haber existido.
+   * Vive en AtlasBackend y no en el ERP, así que hay que cruzarlo. El cruce va por `erpBranchId`
+   * —el campo con el que el expediente declara a qué sucursal del ERP corresponde cada local— y
+   * NUNCA por el nombre: dos locales pueden llamarse «Sucursal Centro», y enseñar el QR de la otra
+   * tienda manda el cobro a la caja equivocada.
    */
-  const [editando, setEditando] = useState<ResourceRow | null>(null);
+  const [partnerId, setPartnerId] = useState('');
+  useEffect(() => {
+    let cancelado = false;
+    partnerOnboardingService
+      .mine()
+      .then((resultado) => {
+        if (cancelado) return;
+        const propio = resultado.profiles?.[0];
+        if (propio) setPartnerId(propio.partnerId);
+      })
+      .catch(() => {
+        // Sin expediente no hay QR que enseñar, y se dice en la fila; no es un fallo de la pantalla.
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
+  const expediente = useAsyncResource<PartnerOnboardingState | null>(
+    useCallback(async () => (partnerId ? partnerOnboardingService.getState(partnerId) : null), [partnerId]),
+    false,
+  );
+  const { reload: recargarExpediente } = expediente;
+  useEffect(() => {
+    if (partnerId) void recargarExpediente();
+  }, [partnerId, recargarExpediente]);
+  const datosExpediente = expediente.data;
+
+  /** El local del expediente enlazado con ESTA sucursal del ERP, si ya se declaró. */
+  const localDe = useCallback(
+    (erpBranchId: string) => datosExpediente?.branches.find((local) => local.erpBranchId === erpBranchId) ?? null,
+    [datosExpediente],
+  );
+
+  /** Toda acción sobre el expediente termina releyéndolo: la fila refleja lo que acaba de pasar. */
   const [ocupada, setOcupada] = useState<string | null>(null);
+  const enExpediente = useCallback(
+    async (etiqueta: string, clave: string, accion: () => Promise<unknown>) => {
+      setOcupada(clave);
+      setFeedback(null);
+      try {
+        await accion();
+        await recargarExpediente();
+        setFeedback({ tone: 'success', text: `${etiqueta}: listo.` });
+      } catch (error) {
+        setFeedback({ tone: 'danger', text: error instanceof Error ? error.message : `${etiqueta}: no se pudo completar.` });
+      } finally {
+        setOcupada(null);
+      }
+    },
+    [recargarExpediente],
+  );
+
+  /**
+   * Declara en el expediente una sucursal que ya existe en el ERP.
+   *
+   * Es lo que habilita su QR. Se hace solo al crear la sucursal; este camino queda para las que
+   * venían de antes —y para cuando el expediente todavía no estaba abierto en ese momento—.
+   */
+  const declarar = useCallback(
+    (branch: ResourceRow) => {
+      const id = String(branch.id);
+      return partnerOnboardingService.registerBranch(partnerId, {
+        erpBranchId: id,
+        branchCode: codigoDeExpediente(id),
+        name: String(branch.name ?? 'Sucursal'),
+        ...(branch.city ? { city: String(branch.city) } : {}),
+        ...(branch.address ? { addressLine: String(branch.address) } : {}),
+      });
+    },
+    [partnerId],
+  );
+
+  const branchMutation = useAtlasMutation(useCallback((body: JsonObject) => portalService.createBranch(body), []));
+
+  const [editando, setEditando] = useState<ResourceRow | null>(null);
   const editMutation = useAtlasMutation(useCallback(
-    ({ id, body }: { id: string; body: JsonObject }) => (esComercio ? portalService.updateBranch(id, body) : b2bService.updateBranch(id, body)),
-    [esComercio],
+    ({ id, body }: { id: string; body: JsonObject }) => portalService.updateBranch(id, body),
+    [],
   ));
   const statusMutation = useAtlasMutation(useCallback(
-    ({ id, body }: { id: string; body: JsonObject }) => (esComercio
-      ? portalService.setBranchStatus(id, String(body.status) === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE')
-      : b2bService.setBranchStatus(id, body)),
-    [esComercio],
+    ({ id, status }: { id: string; status: 'ACTIVE' | 'INACTIVE' }) => portalService.setBranchStatus(id, status),
+    [],
   ));
 
   async function guardarEdicion(event: React.FormEvent<HTMLFormElement>) {
@@ -95,8 +167,6 @@ export function MerchantStructureScreen() {
           name: String(form.get('name') ?? ''),
           city: String(form.get('city') ?? ''),
           address: String(form.get('address') ?? ''),
-          // Vender a credito en un local lo autoriza Atlas, no el comercio desde su propio portal.
-          ...(esComercio ? {} : { canOriginateBnpl: form.get('canOriginateBnpl') === 'true' }),
         },
       });
       setEditando(null);
@@ -108,56 +178,55 @@ export function MerchantStructureScreen() {
     const activa = String(branch.status) === 'ACTIVE';
     setOcupada(String(branch.id));
     try {
-      await statusMutation.execute({ id: String(branch.id), body: { status: activa ? 'INACTIVE' : 'ACTIVE' } });
+      await statusMutation.execute({ id: String(branch.id), status: activa ? 'INACTIVE' : 'ACTIVE' });
       await branches.reload();
     } catch { /* shown inline */ } finally { setOcupada(null); }
   }
 
-  /*
-   * El QR que se imprime para una sucursal.
-   *
-   * Vive en el expediente del comercio (AtlasBackend) y no en el ERP, asi que hay que cruzarlo. El
-   * cruce es por `erpBranchId` —el campo con el que el expediente declara a que sucursal del ERP
-   * corresponde cada local— y NUNCA por el nombre: dos locales pueden llamarse «Sucursal Centro», y
-   * enseñar el QR de la otra tienda manda el cobro a la caja equivocada. Si no hay declaracion, se
-   * dice que no la hay.
-   */
   const [qrAbierto, setQrAbierto] = useState<string | null>(null);
-  const red = useAsyncResource<PartnerOnboardingState | null>(
-    useCallback(async () => {
-      // `mine` responde sobre la sesion de un COMERCIO. Un usuario interno de Atlas mirando esta
-      // pantalla no tiene expediente propio, y preguntarlo solo produciria un error que no
-      // significa nada para el.
-      if (!scope.isMerchant) return null;
-      const propios = await partnerOnboardingService.mine();
-      const propio = propios.profiles?.[0];
-      if (!propio) return null;
-      return partnerOnboardingService.getState(propio.partnerId);
-    }, [scope.isMerchant]),
-    true,
-  );
-  const redDatos = red.data ?? null;
-
-  /** Los terminales del local del expediente enlazado con ESTA sucursal del ERP. */
-  function terminalesDe(erpBranchId: string) {
-    if (!redDatos) return null;
-    const local = redDatos.branches.find((branch) => branch.erpBranchId === erpBranchId);
-    if (!local) return null;
-    return redDatos.posTerminals.filter((pos) => pos.branchId === local.branchId);
-  }
+  /*
+   * Cuál de los locales YA declarados es esta sucursal, cuando hay alguno sin enlazar.
+   *
+   * No es un desplegable de comercios disfrazado: pregunta por los locales del propio negocio, y
+   * sólo aparece si hay alguno huérfano. Sin él, la única forma de enlazar una sucursal declarada
+   * antes de que el puente existiera era declararla otra vez, y las cajas se quedaban colgando de
+   * la fila vieja mientras el ERP miraba la nueva.
+   */
+  const [adoptar, setAdoptar] = useState('');
+  const sinEnlazar = (datosExpediente?.branches ?? []).filter((local) => !local.erpBranchId);
 
   async function submitBranch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const campos = esComercio
-      ? [{ name: 'name' }, { name: 'city', optional: true }, { name: 'address', optional: true }]
-      : [{ name: 'accountId' }, { name: 'name' }, { name: 'city' }, { name: 'address', optional: true }];
     const form = event.currentTarget;
-    try { await branchMutation.execute(formDataToPayload(new FormData(form), campos)); form.reset(); if (ready) await branches.reload(); } catch { /* shown inline */ }
-  }
-
-  async function submitUser(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    try { await userMutation.execute(formDataToPayload(new FormData(event.currentTarget), [{ name: 'accountId' }, { name: 'branchId', optional: true }, { name: 'email' }, { name: 'fullName' }, { name: 'roleCode' }])); event.currentTarget.reset(); setUserAccountId(''); } catch { /* shown inline */ }
+    setFeedback(null);
+    try {
+      const creada = await branchMutation.execute(
+        formDataToPayload(new FormData(form), [{ name: 'name' }, { name: 'city', optional: true }, { name: 'address', optional: true }]),
+      );
+      form.reset();
+      if (ready) await branches.reload();
+      /*
+       * La sucursal se declara sola en el expediente.
+       *
+       * Antes esto era un segundo formulario en «Mi empresa», y mientras nadie lo rellenara la
+       * sucursal existía pero no tenía forma de tener QR: la pantalla decía «no está enlazada con
+       * ningún local del expediente» y el comercio no tenía por qué saber qué significaba eso.
+       *
+       * Si falla, la sucursal YA está creada —no se deshace— y se ofrece reintentarlo desde su
+       * fila: perder el local por no poder enlazarlo sería peor que quedarse sin QR un rato.
+       */
+      if (partnerId && creada?.id) {
+        try {
+          await declarar(creada);
+          await recargarExpediente();
+        } catch (error) {
+          setFeedback({
+            tone: 'danger',
+            text: `La sucursal se registró, pero no se pudo enlazar con tu expediente (${error instanceof Error ? error.message : 'error desconocido'}). Ábrela en la lista y pulsa «Habilitar QR».`,
+          });
+        }
+      }
+    } catch { /* shown inline */ }
   }
 
   return (
@@ -165,7 +234,7 @@ export function MerchantStructureScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Sucursales' }]}
         title="Sucursales del comercio"
-        description="Configure ubicaciones físicas y otorgue acceso al personal del comercio sin mezclar permisos administrativos."
+        description="Dónde opera tu negocio. De cada sucursal cuelgan sus cajas y el QR que se imprime para ese mostrador."
         actions={
           <BotonPdf
             label="Descargar PDF"
@@ -198,22 +267,58 @@ export function MerchantStructureScreen() {
           />
         }
       />
-      {/* El alta de SUCURSALES ya es del comercio (canal `/portal/*`). El alta de USUARIOS sigue
-          siendo interna (`/b2b/*`): no hay endpoint de portal para ella, así que a un comercio ese
-          formulario sólo le daría 403 y por eso no se le pinta. */}
-      <div className={`grid gap-5 ${esComercio ? '' : 'xl:grid-cols-2'}`}>
-        <form onSubmit={submitBranch}><Panel title="Agregar sucursal" description={esComercio ? 'Registra un local nuevo de tu comercio. Nace activo; vender a crédito en él lo habilita Atlas aparte.' : 'Registre una nueva ubicación comercial vinculada a la cuenta merchant.'} icon="add_location"><div className="grid gap-3 md:grid-cols-2">{esComercio ? null : <FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} />}<FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" /><FormField label="Ciudad" name="city" required={!esComercio} placeholder="Santa Cruz de la Sierra" /><FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" /></div>{branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}{branchMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Sucursal registrada correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading}>Registrar sucursal</AtlasButton></div></Panel></form>
-        {esComercio ? null : <form onSubmit={submitUser}><Panel title="Asociar usuario" description="Conceda acceso operativo al personal autorizado del comercio." icon="person_add"><div className="grid gap-3 md:grid-cols-2"><FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" value={userAccountId} onChange={(e) => setUserAccountId(e.target.value)} options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} /><FormField kind="select" label="Sucursal" name="branchId" options={[{ label: userAccountId ? '— Alcance global —' : '— Elija primero el comercio —', value: '' }, ...userBranchOptions]} hint="Opcional para usuarios con alcance global." /><FormField label="Nombre completo" name="fullName" required placeholder="Nombre del responsable" /><FormField label="Correo corporativo" name="email" type="email" required placeholder="usuario@empresa.com" /><FormField kind="select" label="Rol principal" name="roleCode" required defaultValue="MERCHANT_OPERATOR" options={[{ label: 'Administrador merchant', value: 'MERCHANT_ADMIN' }, { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' }, { label: 'Operador estándar', value: 'MERCHANT_OPERATOR' }, { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' }]} /></div>{userMutation.error ? <InlineNotice className="mt-4" tone="danger">{userMutation.error}</InlineNotice> : null}{userMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Usuario merchant asociado correctamente.</InlineNotice> : null}<div className="mt-5 flex justify-end"><AtlasButton type="submit" icon="person_add" loading={userMutation.isLoading}>Asociar usuario</AtlasButton></div></Panel></form>}
-      </div>
+
+      {/*
+        * El negocio es el que inició sesión: aquí no se elige comercio.
+        *
+        * Lo único que se pregunta —y sólo a quien administra VARIOS negocios propios— es con cuál
+        * de los suyos sigue.
+        */}
+      {scope.requiresSelection ? (
+        <Panel compact>
+          <div className="max-w-md">
+            <FormField
+              kind="select"
+              label="Negocio"
+              name="queryAccountId"
+              value={queryAccountId ?? ''}
+              onChange={(e) => scope.setAccountId(e.target.value)}
+              hint="Administras varios negocios: elige de cuál quieres ver las sucursales."
+              options={[{ label: '— Elige uno de tus negocios —', value: '' }, ...scope.accountOptions]}
+            />
+          </div>
+        </Panel>
+      ) : null}
+
+      {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu negocio">{scope.error}</InlineNotice> : null}
+      {feedback ? (
+        <div data-testid="sucursales-feedback">
+          <InlineNotice tone={feedback.tone} title={feedback.tone === 'danger' ? 'No se pudo completar' : 'Listo'}>{feedback.text}</InlineNotice>
+        </div>
+      ) : null}
+
+      <form onSubmit={submitBranch}>
+        <Panel title="Agregar sucursal" description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte." icon="add_location">
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
+            <FormField label="Ciudad" name="city" placeholder="Santa Cruz de la Sierra" />
+            <FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
+          </div>
+          {branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}
+          {branchMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Sucursal registrada correctamente.</InlineNotice> : null}
+          <div className="mt-5 flex justify-end">
+            <AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading} disabled={!ready}>Registrar sucursal</AtlasButton>
+          </div>
+        </Panel>
+      </form>
 
       {editando ? (
         <form onSubmit={guardarEdicion}>
-          <Panel title={`Editar ${String(editando.name ?? 'sucursal')}`} description="La sucursal no cambia de comercio: eso movería sus ventas de cuenta." icon="edit_location">
+          <Panel title={`Editar ${String(editando.name ?? 'sucursal')}`} description="La sucursal no cambia de negocio: eso movería sus ventas de cuenta." icon="edit_location">
             <div className="grid gap-3 md:grid-cols-2">
               <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
               <FormField label="Ciudad" name="city" required defaultValue={String(editando.city ?? '')} />
               <FormField label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
-              {esComercio ? null : <FormField kind="select" label="Puede originar BNPL" name="canOriginateBnpl" defaultValue={editando.canOriginateBnpl ? 'true' : 'false'} options={[{ label: 'Sí', value: 'true' }, { label: 'No', value: 'false' }]} hint="Una sucursal dada de baja no origina, aunque esto diga que sí." />}
             </div>
             {editMutation.error ? <InlineNotice className="mt-4" tone="danger">{editMutation.error}</InlineNotice> : null}
             <div className="mt-5 flex justify-end gap-2">
@@ -225,15 +330,12 @@ export function MerchantStructureScreen() {
       ) : null}
       {statusMutation.error ? <InlineNotice tone="danger" title="No se pudo cambiar el estado">{statusMutation.error}</InlineNotice> : null}
 
-      <Panel title="Sucursales registradas" description="Listado de sucursales del comercio seleccionado." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>}>
-        {scope.requiresSelection ? (
-          <div className="mb-3 max-w-md">
-            <FormField kind="select" label="Comercio a consultar" name="queryAccountId" value={queryAccountId ?? ''} onChange={(e) => scope.setAccountId(e.target.value)} options={[{ label: '— Seleccione un comercio —', value: '' }, ...accountOptions]} />
-          </div>
-        ) : null}
+      <Panel title="Sucursales registradas" description="Abre una sucursal para ver sus cajas y el QR que se imprime en ese mostrador." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>}>
         {branches.error ? <InlineNotice tone="danger" title="No se pudo consultar">{branches.error}</InlineNotice> : null}
         {!ready ? (
-          <p className="py-6 text-center text-xs text-slate-500">Seleccione un comercio para ver sus sucursales.</p>
+          <p className="py-6 text-center text-xs text-slate-500">
+            {scope.error ? 'No hay nada que mostrar hasta resolver lo de arriba.' : 'Elige uno de tus negocios para ver sus sucursales.'}
+          </p>
         ) : branchRows.length ? (
           <div className="table-scroll rounded-lg border border-slate-200">
             <table className="w-full min-w-[680px] text-left text-xs">
@@ -242,7 +344,8 @@ export function MerchantStructureScreen() {
                 {branchRows.map((branch) => {
                   const id = String(branch.id);
                   const abierto = qrAbierto === id;
-                  const terminales = abierto ? terminalesDe(id) : null;
+                  const local = localDe(id);
+                  const terminales = local ? (datosExpediente?.posTerminals ?? []).filter((pos) => pos.branchId === local.branchId) : [];
                   return (
                   <Fragment key={id}>
                   <tr>
@@ -253,11 +356,11 @@ export function MerchantStructureScreen() {
                     <td className="p-2.5"><StatusPill tone={String(branch.status) === 'ACTIVE' ? 'success' : 'warning'}>{String(branch.status ?? '—')}</StatusPill></td>
                     <td className="p-2.5">
                       <div className="flex justify-end gap-1.5">
-                        <AtlasButton variant="secondary" icon="qr_code_2" data-testid={`ver-qr-${id}`} onClick={() => setQrAbierto(abierto ? null : id)}>
-                          {abierto ? 'Ocultar QR' : 'Ver QR'}
+                        <AtlasButton variant="secondary" icon="qr_code_2" data-testid={`ver-qr-${id}`} onClick={() => { setAdoptar(''); setQrAbierto(abierto ? null : id); }}>
+                          {abierto ? 'Ocultar cajas' : 'Cajas y QR'}
                         </AtlasButton>
                         <AtlasButton variant="secondary" icon="edit" onClick={() => setEditando(branch)}>Editar</AtlasButton>
-                        <AtlasButton variant={String(branch.status) === 'ACTIVE' ? 'danger' : 'success'} icon={String(branch.status) === 'ACTIVE' ? 'block' : 'check'} loading={ocupada === String(branch.id)} onClick={() => void cambiarEstado(branch)}>
+                        <AtlasButton variant={String(branch.status) === 'ACTIVE' ? 'danger' : 'success'} icon={String(branch.status) === 'ACTIVE' ? 'block' : 'check'} loading={ocupada === id} onClick={() => void cambiarEstado(branch)}>
                           {String(branch.status) === 'ACTIVE' ? 'Dar de baja' : 'Reactivar'}
                         </AtlasButton>
                       </div>
@@ -266,29 +369,135 @@ export function MerchantStructureScreen() {
                   {abierto ? (
                     <tr>
                       <td colSpan={6} className="bg-slate-50/70 p-3" data-testid={`qr-de-${id}`}>
-                        {red.status === 'loading' ? (
-                          <p className="text-slate-600">Buscando el QR de esta sucursal…</p>
-                        ) : terminales === null ? (
+                        {expediente.status === 'loading' ? (
+                          <p className="text-slate-600">Buscando las cajas de esta sucursal…</p>
+                        ) : !partnerId ? (
                           <p className="text-slate-600">
-                            Esta sucursal no está enlazada con ningún local del expediente, así que no se puede saber
-                            cuál es su QR sin arriesgarse a mostrar el de otra tienda. Regístrala en{' '}
-                            <strong>Mi empresa</strong> indicando esta sucursal.
+                            Todavía no has abierto el expediente de tu empresa, y el QR cuelga de él. Ábrelo en{' '}
+                            <strong>Mi empresa</strong> y vuelve aquí.
                           </p>
-                        ) : terminales.length === 0 ? (
-                          <p className="text-slate-600">
-                            El local existe en el expediente pero todavía no tiene ninguna caja dada de alta, así que
-                            no hay QR que imprimir.
-                          </p>
-                        ) : (
-                          <div className="flex flex-wrap gap-4">
-                            {terminales.map((pos) => (
-                              <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
-                                <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
-                                <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
-                                <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
-                                <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
+                        ) : !local ? (
+                          /*
+                           * Sucursal anterior a que el enlace se hiciera solo. Es un botón y no un
+                           * formulario a propósito: no hay nada que preguntar —el nombre, la ciudad
+                           * y la dirección ya están escritos en esta misma fila—.
+                           */
+                          <div className="space-y-2">
+                            <p className="text-slate-600">Esta sucursal todavía no está enlazada con tu expediente, así que no puede tener QR.</p>
+                            {sinEnlazar.length ? (
+                              <div className="max-w-md">
+                                <FormField
+                                  kind="select"
+                                  label="¿Es uno de los locales que ya declaraste?"
+                                  name="adoptar"
+                                  value={adoptar}
+                                  onChange={(e) => setAdoptar(e.target.value)}
+                                  data-testid={`adoptar-local-${id}`}
+                                  hint="Si es el mismo mostrador, enlázalo en vez de declararlo otra vez: dos filas para un local son dos QR."
+                                  options={[
+                                    { label: '— Es un local nuevo —', value: '' },
+                                    ...sinEnlazar.map((local) => ({
+                                      label: `${local.branchCode} · ${local.name}`,
+                                      value: local.branchId,
+                                    })),
+                                  ]}
+                                />
                               </div>
-                            ))}
+                            ) : null}
+                            <AtlasButton
+                              icon="link"
+                              data-testid={`habilitar-qr-${id}`}
+                              loading={ocupada === `declarar-${id}`}
+                              onClick={() =>
+                                void enExpediente('Sucursal enlazada', `declarar-${id}`, () =>
+                                  adoptar
+                                    ? partnerOnboardingService.linkBranch(partnerId, adoptar, id)
+                                    : declarar(branch),
+                                ).then(() => setAdoptar(''))
+                              }
+                            >
+                              Habilitar QR en esta sucursal
+                            </AtlasButton>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {terminales.length === 0 ? (
+                              <p className="text-slate-600">Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que imprimir. Regístrala aquí abajo.</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-4">
+                                {terminales.map((pos) => (
+                                  <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
+                                    <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
+                                    <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
+                                    <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
+                                    <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
+                                    {pos.status !== 'active' ? (
+                                      <p className="text-[10px] text-slate-500">Mientras no esté activo, el teléfono del cliente rechaza este código.</p>
+                                    ) : null}
+                                    {/*
+                                      * Suspender se hace DESDE el terminal y no desde una tabla aparte.
+                                      *
+                                      * Es una medida de contención —una caja que se pierde o que cobra lo
+                                      * que no debe— y quien la toma está mirando ese mostrador, no una
+                                      * lista de seriales donde hay que acertar la fila.
+                                      */}
+                                    <button
+                                      type="button"
+                                      className="w-full rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                      disabled={ocupada === `pos-${pos.terminalId}`}
+                                      data-testid={`btn-estado-pos-${pos.terminalSerial}`}
+                                      onClick={() =>
+                                        void enExpediente('Estado del terminal', `pos-${pos.terminalId}`, () =>
+                                          partnerOnboardingService.changePosStatus(partnerId, pos.terminalId, {
+                                            status: pos.status === 'active' ? 'suspended' : 'active',
+                                          }),
+                                        )
+                                      }
+                                    >
+                                      {pos.status === 'active' ? 'Suspender' : 'Reactivar'}
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/*
+                              * El alta de la caja vive DENTRO de su sucursal, y por eso no pregunta a
+                              * cuál pertenece: la sucursal es el sitio donde estás, no un campo que
+                              * rellenar.
+                              */}
+                            <form
+                              className="grid gap-2 border-t border-slate-200 pt-3 md:grid-cols-3"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                const form = event.currentTarget;
+                                const datos = new FormData(form);
+                                const serial = String(datos.get('terminalSerial') ?? '').trim();
+                                const alias = String(datos.get('terminalAlias') ?? '').trim();
+                                /*
+                                 * Se limpia YA, no al terminar.
+                                 *
+                                 * La recarga del expediente vuelve a montar esta fila, así que un
+                                 * `reset()` diferido puede caer sobre un formulario que ya no está
+                                 * en la página y dejar el serial anterior escrito para el siguiente.
+                                 */
+                                form.reset();
+                                void enExpediente('Terminal', `alta-pos-${id}`, () =>
+                                  partnerOnboardingService.registerPosTerminal(partnerId, local.branchId, {
+                                    terminalSerial: serial,
+                                    ...(alias ? { terminalAlias: alias } : {}),
+                                  }),
+                                );
+                              }}
+                            >
+                              <FormField label="Serial de la caja" name="terminalSerial" required data-testid={`campo-pos-serial-${id}`} />
+                              <FormField label="Alias" name="terminalAlias" hint="Caja 1, Mostrador…" />
+                              <div className="flex items-end">
+                                <AtlasButton type="submit" loading={ocupada === `alta-pos-${id}`} data-testid={`btn-registrar-pos-${id}`}>
+                                  Registrar caja aquí
+                                </AtlasButton>
+                              </div>
+                            </form>
                           </div>
                         )}
                       </td>
@@ -301,7 +510,7 @@ export function MerchantStructureScreen() {
             </table>
           </div>
         ) : branches.status !== 'loading' ? (
-          <div className="grid min-h-32 place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center"><div><Icon name="inventory_2" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-600">Este comercio aún no tiene sucursales registradas.</p></div></div>
+          <div className="grid min-h-32 place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center"><div><Icon name="inventory_2" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-600">Tu negocio aún no tiene sucursales registradas.</p></div></div>
         ) : null}
       </Panel>
     </div>

@@ -6,6 +6,7 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { AccountingDocumentScreen } from '@/components/screens/AccountingDocumentScreen';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
+import { loadAccountingPeriods } from '@/services/optionLoaders';
 
 export default function AccountingDocumentsPage() {
   const [tab, setTab] = useState('listado');
@@ -55,6 +56,30 @@ export default function AccountingDocumentsPage() {
                 }}
                 create={{ label: 'Crear documento', onClick: () => setTab('nuevo') }}
                 extraActions={[
+                  {
+                    /*
+                     * La reversión: el aviso de esta misma pantalla decía «lo que corresponde es
+                     * contabilizarlo o reversarlo» y sólo estaba lo primero. El endpoint y el
+                     * método del servicio existían; faltaba el botón, así que un asiento
+                     * contabilizado por error no tenía salida desde la consola.
+                     */
+                    key: 'reversar',
+                    label: 'Reversar',
+                    icon: 'undo',
+                    enabled: (row) => String(row.status ?? '').toUpperCase() === 'POSTED',
+                    form: {
+                      title: (row) => `Reversar ${String(row.documentNo ?? '')}`,
+                      description: 'Se crea un asiento CONTRARIO; el original no se toca. El período de la reversión puede ser distinto al del asiento: si aquél ya está cerrado, la reversión va al abierto.',
+                      fields: [
+                        { name: 'reversalDocumentNo', label: 'Número del asiento de reversión', required: true, span: 2 },
+                        { name: 'reversalDate', label: 'Fecha de reversión', type: 'date', required: true },
+                        { name: 'accountingPeriodId', label: 'Período contable', type: 'select', required: true, span: 2, optionsLoader: loadAccountingPeriods },
+                        { name: 'reason', label: 'Motivo', required: true, span: 3, placeholder: 'Documento cargado con la cuenta equivocada' },
+                      ],
+                      submit: (row, payload) => accountingService.reverseDocument(String(row.id ?? ''), payload),
+                      submitLabel: 'Reversar',
+                    },
+                  },
                   {
                     key: 'contabilizar',
                     label: 'Contabilizar',

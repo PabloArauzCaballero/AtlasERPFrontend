@@ -60,3 +60,26 @@ export function maskPii(value: unknown, fieldName: string): string {
   if (normalized.includes('tax') || normalized.includes('nit')) return `${text.slice(0, 2)}***`;
   return text;
 }
+
+export type StatusTone = 'neutral' | 'success' | 'warning' | 'danger';
+
+/**
+ * Color de una etiqueta de estado, a partir de su propio texto.
+ *
+ * Cada tabla tenía su cadena de expresiones regulares, y todas empezaban preguntando por lo
+ * aprobado. Con eso `PENDING_APPROVAL` salía en VERDE —la subcadena «APPROV» gana antes de que
+ * nadie mire «PEND»—, o sea que una propuesta que está esperando permiso se leía como concedida.
+ * `CLOSED_WON` salía en rojo por la misma razón al revés: «CLOSED» disparaba el rechazo.
+ *
+ * Aquí el orden es el que importa: primero lo que se cerró bien, luego lo que se cerró mal, luego
+ * lo que sigue en curso, y solo al final lo que está concedido. Un estado desconocido queda gris,
+ * que es lo honesto: no se inventa un color para algo que no se sabe leer.
+ */
+export function statusTone(value: unknown): StatusTone {
+  const upper = String(value ?? '').toUpperCase();
+  if (/(^|_)(WON|GANADA)(_|$)/.test(upper)) return 'success';
+  if (/REJECT|BLOCK|FAIL|CANCEL|CLOSED|VOID|REVERS|LOST|OVERDUE|DEFAULT|SUSPEND|DISQUALIF/.test(upper)) return 'danger';
+  if (/PEND|REVIEW|DRAFT|PROGRESS|PARTIAL|SCHEDULED|WAITING|HOLD/.test(upper)) return 'warning';
+  if (/ACTIVE|APPROV|ACCEPT|SUCCESS|PAID|SIGNED|POSTED|COMPLET|OPEN|ISSUED|SETTLED|RECOVERED|CONFIRMED|VERIFIED|CUSTOMER/.test(upper)) return 'success';
+  return 'neutral';
+}

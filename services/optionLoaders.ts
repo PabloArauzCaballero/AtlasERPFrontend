@@ -69,6 +69,28 @@ export const loadBillingEvents = async (): Promise<Option[]> =>
 export const loadInternalUsers = async (): Promise<Option[]> =>
   toOptions(await b2bService.listInternalUsers(), (r) => `${s(r.fullName)} (${s(r.roleCode)})`);
 
+/**
+ * Los atributos que un segmento comercial puede mirar, prefijados por su sujeto.
+ *
+ * El prefijo es lo que evita el error que este desplegable invita a cometer: elegir «Cuotas en
+ * mora» en un segmento de partners. El backend lo rechaza igual —el vocabulario es por sujeto—,
+ * pero verlo antes de enviar ahorra el viaje.
+ */
+export const loadSegmentAttributes = async (): Promise<Option[]> => {
+  const vocabulary = await b2bService.listCrmSegmentVocabulary();
+  return vocabulary.flatMap((entry) => {
+    const attributes = Array.isArray(entry.attributes) ? entry.attributes : [];
+    return (attributes as ResourceRow[]).map((attribute) => ({
+      value: s(attribute.name),
+      label: `${s(entry.subjectName)} · ${s(attribute.label)}`,
+    }));
+  });
+};
+
+/** Sucursales de comercio, para elegir dónde se origina una venta a plazos. */
+export const loadMerchantBranches = async (): Promise<Option[]> =>
+  toOptions(await b2bService.listBranches(), (r) => `${s(r.name)} — ${s(r.city) || 'sin ciudad'}`);
+
 export const loadB2BAccounts = async (): Promise<Option[]> =>
   toOptions(rowsOf(await b2bService.listAccounts({ page: 1, limit: 100 })), (r) => `${s(r.tradeName || r.legalName)}`);
 

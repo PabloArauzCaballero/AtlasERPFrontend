@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { ChipsField } from '@/components/atlas/ChipsField';
-import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
+import { fieldSpanClasses } from '@/lib/formLayout';
 import { formDataToPayload } from '@/lib/formPayload';
 import { toast } from '@/lib/toast';
+import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject } from '@/services/types';
 
@@ -37,6 +37,7 @@ export function InlineActionForm(props: InlineActionFormProps) {
   const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const spanClasses = fieldSpanClasses(fields.map((field) => field.span));
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +51,7 @@ export function InlineActionForm(props: InlineActionFormProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const definitions = fields.map((field) => ({ name: field.name, valueKind: field.valueKind, optional: field.optional }));
+    const definitions = payloadDefinitions(fields);
     setSaving(true);
     setError('');
     try {
@@ -69,13 +70,9 @@ export function InlineActionForm(props: InlineActionFormProps) {
     <Panel title={props.title} description={props.description} icon={props.icon}>
       <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {fields.map((field) => {
-            const span = field.span === 3 ? 'sm:col-span-2 xl:col-span-3' : field.span === 2 ? 'sm:col-span-2' : '';
-            if (field.type === 'chips') return <ChipsField key={field.name} name={field.name} label={field.label} required={field.required} defaultValue={typeof field.defaultValue === 'string' ? field.defaultValue : undefined} placeholder={field.placeholder} hint={field.hint} className={span} />;
-            if (field.type === 'select') return <FormField key={field.name} kind="select" name={field.name} label={field.label} required={field.required} defaultValue={field.defaultValue} hint={field.hint} options={field.options ?? dynamicOptions[field.name] ?? []} className={span} />;
-            if (field.type === 'textarea') return <FormField key={field.name} kind="textarea" name={field.name} label={field.label} required={field.required} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={span} />;
-            return <FormField key={field.name} name={field.name} label={field.label} required={field.required} type={field.type ?? 'text'} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={span} />;
-          })}
+          {fields.map((field, index) => (
+            <ActionFieldControl key={field.name} field={field} className={spanClasses[index] ?? ''} dynamicOptions={dynamicOptions} />
+          ))}
         </div>
         {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
         <div className="flex justify-end border-t border-slate-100 pt-3">

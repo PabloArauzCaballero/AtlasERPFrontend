@@ -71,6 +71,30 @@ export interface CreditoDeCartera {
   installments: CuotaDeCartera[];
 }
 
+/**
+ * Un cobro ya recibido, con la comisión que devengó ESE pago.
+ *
+ * `appliedAmount` es lo que el pago imputó a cuotas y `amount` lo que se declaró: coinciden salvo
+ * en un pago revertido, donde lo imputado vuelve a cero y con ello su comisión.
+ */
+export interface PagoDeCartera {
+  paymentId: string;
+  paymentCode: string;
+  loanId: string;
+  loanCode: string;
+  receivedAt: string;
+  amount: string;
+  appliedAmount: string;
+  currencyCode: string;
+  paymentMethod: string;
+  externalReference: string | null;
+  status: string;
+  reversed: boolean;
+  mdrRatePercent: string;
+  commissionAccrued: string;
+  installmentNumbers: number[];
+}
+
 export interface Cartera {
   partnerProfileId: string;
   summary: {
@@ -80,12 +104,18 @@ export interface Cartera {
     overdueAmount: string;
     overdueInstallments: number;
     collected: string;
+    /* Lo que aún no vence, y el reparto de cuotas por estado: mora / pendiente / pagado. */
+    pendingAmount: string;
+    pendingInstallments: number;
+    paidInstallments: number;
+    paymentsCount: number;
     proofsAwaitingVerification: number;
     /* La comisión: su tasa (%) y lo devengado a Atlas sobre lo cobrado. */
     mdrRatePercent: string;
     commissionAccrued: string;
   };
   credits: CreditoDeCartera[];
+  payments: PagoDeCartera[];
   calendar: { date: string; installments: number; amount: string; overdue: boolean }[];
 }
 

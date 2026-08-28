@@ -38,17 +38,45 @@ test.beforeEach(async ({ page }) => {
   test.skip(!entro, 'El login interno exige segundo factor en este entorno.');
 });
 
-test('la cola de aprobaciones se lee del backend', async ({ page }) => {
+test('la cola de aprobaciones muestra TODAS las solicitudes, no solo las pendientes', async ({ page }) => {
   await page.goto('/operaciones/crm/aprobaciones');
-  await expect(page.getByRole('heading', { name: /excepciones de mdr/i })).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole('heading', { name: /excepciones comerciales/i })).toBeVisible({ timeout: 120_000 });
 
-  // Ya no admite carecer de lectura, y la métrica sale de la propia cola.
+  // Ya no admite carecer de lectura.
   await expect(page.getByText(/sin lectura disponible/i)).toHaveCount(0);
   await expect(page.getByText(/no existe endpoint para listar/i)).toHaveCount(0);
-  await expect(page.getByText(/^pendientes$/i).first()).toBeVisible();
 
-  // La solicitud se elige, no se teclea.
-  await expect(page.locator('select[name="approvalId"]')).toBeVisible();
+  /*
+   * La tabla abre la vista, con filtro por estado. Antes esta pantalla pedía solo `onlyPending`,
+   * así que una solicitud ya decidida desaparecía y la vista quedaba vacía sin explicar por qué.
+   */
+  await expect(page.locator('[data-tutorial-id="crud-tabla"]')).toBeVisible();
+  await expect(page.locator('select[name="filtro-status"]')).toBeVisible();
+
+  /*
+   * La decisión se toma DESDE la fila: ya no hay pestaña que vuelva a pedir en un desplegable la
+   * solicitud que se está mirando. El icono solo aparece en las que siguen pendientes.
+   */
+  const pendiente = page.locator('tr', { has: page.getByText('PENDING') }).first();
+  if (await pendiente.count()) {
+    await pendiente.getByRole('button', { name: /registrar decisi/i }).click();
+    await expect(page.locator('select[name="status"]')).toBeVisible();
+    await expect(page.locator('textarea[name="reason"]')).toBeVisible();
+  }
+});
+
+test('las propuestas se leen, se filtran y se pueden corregir desde la propia fila', async ({ page }) => {
+  await page.goto('/operaciones/crm/propuestas');
+  await expect(page.getByRole('heading', { name: /propuestas comerciales/i })).toBeVisible({ timeout: 120_000 });
+
+  // La tabla es la pantalla: el alta es un botón, no lo primero que se ve.
+  await expect(page.locator('[data-tutorial-id="crud-tabla"]')).toBeVisible();
+  await expect(page.getByTestId('crud-buscar')).toBeVisible();
+  await expect(page.getByTestId('crud-crear')).toBeVisible();
+
+  // Y el constructor sigue estando, en su pestaña.
+  await page.getByTestId('tab-nueva').click();
+  await expect(page.locator('select[name="opportunityId"]')).toBeVisible();
 });
 
 test('el tablero de oportunidades se lee del servidor', async ({ page }) => {
@@ -63,7 +91,11 @@ test('la activación muestra controles reales, no un 100 % dibujado', async ({ p
   await page.goto('/operaciones/crm/activacion-comercio');
   await expect(page.getByRole('heading', { name: /activaci/i }).first()).toBeVisible({ timeout: 120_000 });
 
-  // Sin caso elegido no se afirma nada: antes decía 100 % siempre.
+  // Lo primero es qué casos hay y cuántos requisitos les faltan.
+  await expect(page.locator('[data-tutorial-id="crud-tabla"]')).toBeVisible();
+
+  // El control vive en su pestaña. Sin caso elegido no se afirma nada: antes decía 100 % siempre.
+  await page.getByTestId('tab-activar').click();
   await expect(page.getByText(/sin caso elegido/i)).toBeVisible();
   await expect(page.getByText(/^100%$/)).toHaveCount(0);
   await expect(page.locator('select[name="caseId"]')).toBeVisible();
@@ -71,6 +103,8 @@ test('la activación muestra controles reales, no un 100 % dibujado', async ({ p
 
 test('la comisión por venta se configura en el alta, por segmento', async ({ page }) => {
   await page.goto('/operaciones/crm/onboarding');
+  // El alta se repartió en pestañas; las reglas de comisión tienen la suya.
+  await page.getByTestId('tab-mdr').click();
   const panel = page.locator('[data-tutorial-id="mdr-reglas"]');
   await expect(panel).toBeVisible({ timeout: 120_000 });
 
@@ -90,6 +124,7 @@ test('ninguna pantalla interna pide escribir un UUID', async ({ page }) => {
     '/operaciones/crm/contratos',
     '/operaciones/crm/facturacion',
     '/operaciones/crm/conciliacion-cobertura',
+    '/operaciones/crm/propuestas',
     '/operaciones/ads/campanas',
   ];
   for (const ruta of rutas) {

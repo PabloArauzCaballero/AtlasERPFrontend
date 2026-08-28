@@ -27,7 +27,14 @@ interface ProposalLine {
 
 const emptyLine = (id: string): ProposalLine => ({ id, termType: 'MDR', description: '', ratePercent: '', fixedAmount: '', billingTiming: 'PER_TRANSACTION', minimumMonthlyAmount: '' });
 
-export function ProposalManagerScreen() {
+interface ProposalManagerScreenProps {
+  /** Dentro de una pestaña: sin cabecera de pantalla, que la pone la vista que lo contiene. */
+  embedded?: boolean | undefined;
+  /** Se llama tras guardar o enviar: sirve para recargar la tabla de propuestas de la misma vista. */
+  onDone?: (() => void | Promise<void>) | undefined;
+}
+
+export function ProposalManagerScreen({ embedded = false, onDone }: ProposalManagerScreenProps = {}) {
   /* Las oportunidades se ELIGEN: el backend las expone y nadie se sabe un uuid. */
   const oportunidades = useOptions(loadOpportunities);
   const [lines, setLines] = useState<ProposalLine[]>([emptyLine('line-0')]);
@@ -60,19 +67,32 @@ export function ProposalManagerScreen() {
     try {
       const created = await createMutation.execute(payload);
       if (created.id) setProposalId(String(created.id));
+      await onDone?.();
     } catch { /* controlled */ }
   }
 
   async function sendProposal() {
     if (!proposalId) return;
-    try { await sendMutation.execute(proposalId); } catch { /* controlled */ }
+    try { await sendMutation.execute(proposalId); await onDone?.(); } catch { /* controlled */ }
   }
+
+  const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal}>Enviar propuesta</AtlasButton>;
 
   return (
     <form className="space-y-5" onSubmit={submit}>
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Gestor de propuestas comerciales" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><AtlasButton variant="secondary" icon="history">Audit Log</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar PDF</AtlasButton><AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal}>Enviar propuesta</AtlasButton></>} />
+      {embedded ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-900">Nueva propuesta comercial</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente.</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">{enviar}</div>
+        </div>
+      ) : (
+        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Gestor de propuestas comerciales" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><AtlasButton variant="secondary" icon="history">Audit Log</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar PDF</AtlasButton>{enviar}</>} />
+      )}
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
-      {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">El UUID generado quedó listo para envío. Revise el resumen antes de continuar.</InlineNotice> : null}
+      {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya aparece en la pestaña «Propuestas» y queda lista para enviarse al cliente.</InlineNotice> : null}
 
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">

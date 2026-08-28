@@ -46,8 +46,20 @@ interface PosTerminal {
   activatedAt: string | null;
 }
 
+/** Una sucursal en el ERP: la lista donde un local se da de alta de verdad. */
+interface ErpBranch {
+  id: string;
+  name: string;
+  city: string | null;
+  address: string | null;
+  status: string;
+  canOriginateBnpl: boolean;
+}
+
 interface DossierState {
   partnerId: string;
+  /** Las del ERP, con estado: el alta de «Sucursales» tiene que verse en la lista de al lado. */
+  erpBranches: ErpBranch[];
   legalName: string;
   taxId: string;
   commercialRegistry: string | null;
@@ -107,6 +119,23 @@ export async function installPartnerDossierBackend(page: Page) {
     taxId: '',
     commercialRegistry: null,
     onboardingStatus: 'draft',
+    /*
+     * Una sucursal que ya existía ANTES de que el enlace con el expediente se hiciera solo.
+     *
+     * Está aquí para que la prueba recorra los dos caminos: el de la sucursal nueva —que se declara
+     * sola al crearla— y el de la vieja, que necesita el botón «Habilitar QR». Sin ella, las
+     * sucursales anteriores al cambio se quedarían sin QR y nadie se enteraría.
+     */
+    erpBranches: [
+      {
+        id: 'b0000000-0000-4000-8000-00000000ee01',
+        name: 'Sucursal Centro',
+        city: 'Santa Cruz',
+        address: 'Av. Monseñor Rivero 100',
+        status: 'ACTIVE',
+        canOriginateBnpl: false,
+      },
+    ],
     branches: [],
     qrCodes: [],
     posTerminals: [],
@@ -118,18 +147,43 @@ export async function installPartnerDossierBackend(page: Page) {
   await page.route('**/api/v1/auth/merchant/me', (route) => json(route, 200, { user: MERCHANT }));
 
   /*
-   * Las sucursales del ERP: la lista donde un local se da de alta de verdad.
+   * Sobre qué negocio opera quien mira. Una sola cuenta: el comercio no elige comercio.
    *
-   * El expediente ya no las inventa, las DECLARA, así que sin esta ruta el desplegable saldría vacío
-   * y el paso de la sucursal no se podría hacer. Son dos para que la prueba distinga: al declarar la
-   * primera, la segunda tiene que seguir ofreciéndose y la primera no.
+   * Sin esta ruta el alcance no se resuelve y las pantallas del portal se quedan sin nada que
+   * pedir, que es exactamente lo que hacen cuando no saben de quién hablan.
    */
-  await page.route('**/api/v1/portal/branches*', (route) =>
-    json(route, 200, [
-      { id: 'erp-branch-1', name: 'Sucursal Centro', city: 'Santa Cruz', address: 'Av. Monseñor Rivero 100', status: 'ACTIVE' },
-      { id: 'erp-branch-2', name: 'Sucursal Norte', city: 'Santa Cruz', address: 'Av. Banzer 2000', status: 'ACTIVE' },
-    ]),
+  await page.route('**/api/v1/portal/scope', (route) =>
+    json(route, 200, {
+      isInternalOperator: false,
+      requiresAccountSelection: false,
+      accounts: [{ id: 'a0000000-0000-4000-8000-0000000000aa', name: 'Comercial Andina' }],
+    }),
   );
+
+  /*
+   * Las sucursales del ERP: la ÚNICA lista donde un local se da de alta.
+   *
+   * Tiene estado porque el alta de «Sucursales» tiene que verse acto seguido en la lista, y porque
+   * la prueba afirma que crear una sucursal la declara SOLA en el expediente: con una respuesta
+   * fija, la pantalla parecería avanzar sin que nada avanzara.
+   */
+  await page.route('**/api/v1/portal/branches*', async (route) => {
+    const request = route.request();
+    if (request.method() === 'POST') {
+      const body = JSON.parse(request.postData() ?? '{}') as Record<string, string>;
+      const branch: ErpBranch = {
+        id: `b0000000-0000-4000-8000-0000000000${String(state.erpBranches.length + 10)}`,
+        name: body.name ?? '',
+        city: body.city ?? null,
+        address: body.address ?? null,
+        status: 'ACTIVE',
+        canOriginateBnpl: false,
+      };
+      state.erpBranches.push(branch);
+      return json(route, 201, branch);
+    }
+    return json(route, 200, state.erpBranches);
+  });
 
   await page.route('**/api/v1/partner-onboarding/**', async (route) => {
     const request = route.request();
@@ -210,6 +264,13 @@ export async function installPartnerDossierBackend(page: Page) {
     }
 
     if (method === 'POST' && path.endsWith('/branches')) {
+      if (state.branches.some((item) => item.branchCode === body.branchCode)) {
+        return route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: false, error: { message: 'BRANCH_CODE_ALREADY_REGISTERED' } }),
+        });
+      }
       const branch: Branch = {
         branchId: next(),
         branchCode: body.branchCode ?? '',
@@ -223,6 +284,25 @@ export async function installPartnerDossierBackend(page: Page) {
       };
       state.branches.push(branch);
       return json(route, 201, branch);
+    }
+
+    /*
+     * Enlazar una sucursal YA declarada con la del ERP: el camino de las que venían de antes de que
+     * el puente se rellenara solo. Se enlaza, no se duplica.
+     */
+    if (method === 'PATCH' && /\/branches\/[^/]+$/.test(path)) {
+      const branchId = path.split('/branches/')[1] ?? '';
+      const branch = state.branches.find((item) => item.branchId === branchId);
+      if (!branch) return json(route, 404, {});
+      if (branch.erpBranchId && branch.erpBranchId !== body.erpBranchId) {
+        return route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: false, error: { message: 'PARTNER_BRANCH_ALREADY_LINKED' } }),
+        });
+      }
+      branch.erpBranchId = body.erpBranchId ?? null;
+      return json(route, 200, branch);
     }
 
     /*

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Icon } from '@/components/atlas/Icon';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import {
@@ -13,8 +14,8 @@ import {
  *
  * Los terminales ya no se pintan aquí. Vivían en una tabla propia —serial, alias, sucursal— y esa
  * columna «sucursal» era la señal de que estaban en el sitio equivocado: un terminal no se entiende
- * suelto, se entiende dentro del local donde está enchufado. Ahora cuelgan de su sucursal, en
- * `PartnerDossierScreen`.
+ * suelto, se entiende dentro del local donde está enchufado. Hoy cuelgan de su sucursal, y la
+ * sucursal vive en `MerchantStructureScreen` («Sucursales»): un local se da de alta una sola vez.
  *
  * Viven aparte de la pantalla porque son lo que se MIRA, no lo que se opera, y separarlas deja la
  * pantalla con una sola responsabilidad: los formularios y su estado.
@@ -27,6 +28,20 @@ function toneForStatus(status: string): 'success' | 'warning' | 'danger' | 'neut
   if (status === 'rejected' || status === 'suspended') return 'danger';
   return 'neutral';
 }
+
+/**
+ * Dónde se resuelve cada requisito que NO se resuelve en esta pantalla.
+ *
+ * Un aviso que dice qué falta y no dice dónde darlo es medio aviso: el comercio lee «falta
+ * registrar al menos una sucursal», mira el expediente y no encuentra dónde. Las sucursales se
+ * dan de alta en su propia pantalla —una sola alta para el mismo local— y los QR en la suya, así
+ * que el hueco enlaza allí en vez de repetir aquí el formulario.
+ */
+const DONDE_SE_RESUELVE: Record<string, { href: string; label: string }> = {
+  branch: { href: '/portal-comercio/sucursales-usuarios', label: 'Sucursales' },
+  business_qr: { href: '/portal-comercio/qr-cobro', label: 'Mi QR de cobro' },
+  bank_qr: { href: '/portal-comercio/qr-cobro', label: 'Mi QR de cobro' },
+};
 
 /**
  * Lo que le falta al expediente.
@@ -55,11 +70,22 @@ export function SubmissionGaps({ gaps, ready }: Readonly<{ gaps: SubmissionGap[]
         Falta {gaps.length} {gaps.length === 1 ? 'requisito' : 'requisitos'} para enviar a revisión
       </p>
       <ul className="mt-2 space-y-1">
-        {gaps.map((gap) => (
-          <li key={gap.requirement} className="text-xs text-amber-800" data-requirement={gap.requirement}>
-            · <strong>{REQUIREMENT_LABELS[gap.requirement] ?? gap.requirement}</strong> — {gap.detail}
-          </li>
-        ))}
+        {gaps.map((gap) => {
+          const donde = DONDE_SE_RESUELVE[gap.requirement];
+          return (
+            <li key={gap.requirement} className="text-xs text-amber-800" data-requirement={gap.requirement}>
+              · <strong>{REQUIREMENT_LABELS[gap.requirement] ?? gap.requirement}</strong> — {gap.detail}
+              {donde ? (
+                <>
+                  {' '}
+                  <Link href={donde.href} className="font-bold underline underline-offset-2">
+                    Resuélvelo en «{donde.label}»
+                  </Link>
+                </>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

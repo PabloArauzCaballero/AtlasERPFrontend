@@ -1,0 +1,20 @@
+# Lo que NO tiene que viajar al build.
+#
+# Sin este archivo el contexto eran 288 MB —`node_modules` y `.next` del anfitrión— y el `docker
+# build` se pasaba diez minutos transfiriéndolos antes de empezar. Ninguna de las dos cosas se usa:
+# las dependencias las instala la etapa `dependencies` dentro de la imagen y `.next` lo produce
+# `yarn build` allí mismo. Mandar la copia local, además de lento, arriesga hornear un build viejo.
+node_modules
+.next
+dist
+.git
+.turbo
+test-results
+playwright-report
+docs/visual-evidence
+*.log
+
+# `.env.local` SÍ viaja, y es deliberado: declara `NEXT_PUBLIC_ATLAS_API_BASE_URL` VACÍA, que es
+# como se le dice al front «habla con el mismo origen que te sirve» y usa el proxy de `next.config`.
+# Excluyéndolo la variable llegaría `undefined` y el cliente caería al origen por defecto — el
+# frontend seguiría compilando y apuntaría a otro sitio.

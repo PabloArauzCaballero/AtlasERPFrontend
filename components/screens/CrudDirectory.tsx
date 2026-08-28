@@ -3,20 +3,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { ChipsField } from '@/components/atlas/ChipsField';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { Modal } from '@/components/atlas/Modal';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { downloadCsv } from '@/lib/csv';
 import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
-import { formDataToPayload } from '@/lib/formPayload';
-import { formatBob, formatDate, maskPii } from '@/lib/formatters';
+import { ActionFormModal } from './ActionFormModal';
+import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject, PaginatedResult, ResourceRow } from '@/services/types';
@@ -42,11 +40,40 @@ export interface CrudExtraAction {
   label: string;
   icon: string;
   tone?: 'default' | 'danger' | 'success' | undefined;
-  /** Acción que llama al backend y recarga la tabla. Excluyente con `href`. */
+  /** Acción que llama al backend y recarga la tabla. Excluyente con `href` y con `form`. */
   run?: ((row: ResourceRow) => Promise<unknown>) | undefined;
   /** Enlace a otra pantalla (ficha, detalle). Excluyente con `run`. */
   href?: ((row: ResourceRow) => string) | undefined;
+  /**
+   * Acción que necesita datos antes de ejecutarse: abre un modal sobre la fila.
+   *
+   * Es lo que sustituye a las pestañas «registrar pago», «confirmar pago» o «postear al mayor»:
+   * la operación se lanza desde la fila a la que se aplica, y el formulario ya sabe sobre qué
+   * registro trabaja en vez de pedir su identificador en un desplegable.
+   */
+  form?: {
+    title?: ((row: ResourceRow) => string) | undefined;
+    description?: string | undefined;
+    /** Función cuando los valores por defecto salen de la propia fila (el saldo abierto, p. ej.). */
+    fields: ActionField[] | ((row: ResourceRow) => ActionField[]);
+    submit: (row: ResourceRow, payload: JsonObject) => Promise<unknown>;
+    submitLabel?: string | undefined;
+  } | undefined;
   confirm?: { title: string; message: string; confirmLabel?: string | undefined } | undefined;
+  /** Oculta la acción en las filas donde no aplica. */
+  enabled?: ((row: ResourceRow) => boolean) | undefined;
+}
+
+/** Acción de la barra superior que no cuelga de ninguna fila (un proceso del período, por ejemplo). */
+export interface CrudToolbarAction {
+  key: string;
+  label: string;
+  icon: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  fields: ActionField[];
+  submit: (payload: JsonObject) => Promise<unknown>;
+  submitLabel?: string | undefined;
 }
 
 interface CrudDirectoryProps {
@@ -86,6 +113,7 @@ interface CrudDirectoryProps {
     enabled?: ((row: ResourceRow) => boolean) | undefined;
   } | undefined;
   extraActions?: CrudExtraAction[] | undefined;
+  toolbarActions?: CrudToolbarAction[] | undefined;
   /** Aviso fijo bajo la cabecera: sirve para explicar qué NO permite el backend todavía. */
   notice?: { tone: 'info' | 'warning'; title: string; body: string } | undefined;
   pageSize?: number | undefined;
@@ -118,11 +146,7 @@ function renderCell(row: ResourceRow, column: CrudColumn) {
   const raw = row[column.key];
   if (column.kind === 'status') {
     const text = String(raw ?? 'SIN ESTADO');
-    const upper = text.toUpperCase();
-    const tone = /ACTIVE|APPROV|SUCCESS|PAID|SIGNED|POSTED|COMPLET|OPEN/.test(upper) ? 'success'
-      : /PEND|REVIEW|DRAFT|PROGRESS|PARTIAL/.test(upper) ? 'warning'
-        : /REJECT|BLOCK|FAIL|CANCEL|CLOSED|VOID|REVERS/.test(upper) ? 'danger' : 'neutral';
-    return <StatusPill tone={tone}>{text.replaceAll('_', ' ')}</StatusPill>;
+    return <StatusPill tone={statusTone(text)}>{text.replaceAll('_', ' ')}</StatusPill>;
   }
   if (column.kind === 'bool') return <StatusPill tone={raw ? 'success' : 'neutral'} dot={false}>{raw ? 'Sí' : 'No'}</StatusPill>;
   if (column.kind === 'money') return formatBob(Number(raw ?? 0));
@@ -130,22 +154,6 @@ function renderCell(row: ResourceRow, column: CrudColumn) {
   if (column.kind === 'pii') return maskPii(raw, column.key);
   if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join(', ') : '—';
   return <span className={column.kind === 'mono' ? 'font-mono text-[11px]' : ''}>{String(raw ?? '—')}</span>;
-}
-
-/** Valor de un campo del formulario a partir de la fila, soportando nombres anidados (`a.b`). */
-function valueOf(row: ResourceRow, name: string): string {
-  const segments = name.split('.');
-  let current: unknown = row;
-  for (const segment of segments) {
-    if (current === null || current === undefined || typeof current !== 'object') return '';
-    current = (current as Record<string, unknown>)[segment];
-  }
-  if (current === null || current === undefined) return '';
-  if (Array.isArray(current)) return current.join(', ');
-  if (typeof current === 'boolean') return current ? 'true' : 'false';
-  // Las fechas llegan en ISO completo y un <input type="date"> sólo acepta AAAA-MM-DD.
-  const text = String(current);
-  return /^\d{4}-\d{2}-\d{2}T/.test(text) ? text.slice(0, 10) : text;
 }
 
 /**
@@ -174,6 +182,8 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const [editingRow, setEditingRow] = useState<ResourceRow | null>(null);
   const [deletingRow, setDeletingRow] = useState<ResourceRow | null>(null);
   const [pendingExtra, setPendingExtra] = useState<{ action: CrudExtraAction; row: ResourceRow } | null>(null);
+  const [extraForm, setExtraForm] = useState<{ action: CrudExtraAction; row: ResourceRow } | null>(null);
+  const [toolbarForm, setToolbarForm] = useState<CrudToolbarAction | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState('');
 
@@ -335,6 +345,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   }
 
   async function launchExtra(action: CrudExtraAction, row: ResourceRow) {
+    if (action.form) { setActionError(''); setExtraForm({ action, row }); return; }
     if (!action.run) return;
     if (action.confirm) { setPendingExtra({ action, row }); return; }
     setActionError('');
@@ -355,6 +366,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="crud-pdf" loading={generandoPdf} disabled={!filteredRows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
       <AtlasButton variant="secondary" icon="download" disabled={!filteredRows.length} onClick={exportCsv}>CSV</AtlasButton>
       <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
+      {(props.toolbarActions ?? []).map((action) => (
+        <AtlasButton key={action.key} variant="secondary" icon={action.icon} data-testid={`crud-accion-${action.key}`} onClick={() => { setActionError(''); setToolbarForm(action); }}>{action.label}</AtlasButton>
+      ))}
       {create ? (
         <AtlasButton icon="add" data-testid="crud-crear" onClick={() => (create.onClick ? create.onClick() : setCreating(true))}>{create.label ?? 'Crear'}</AtlasButton>
       ) : null}
@@ -458,7 +472,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                     {hasRowActions ? (
                       <td className="px-3 py-2 text-right">
                         <div className="flex justify-end gap-1">
-                          {(props.extraActions ?? []).map((action) => {
+                          {(props.extraActions ?? []).filter((action) => (action.enabled ? action.enabled(row) : true)).map((action) => {
                             const clase = 'grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900';
                             return action.href ? (
                               <Link key={action.key} href={action.href(row)} title={action.label} aria-label={`${action.label}: ${labelFor(row)}`} data-testid={`accion-${action.key}-${id}`} className={clase}>
@@ -542,7 +556,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       {props.children}
 
       {create?.fields && create.submit ? (
-        <CrudFormModal
+        <ActionFormModal
           open={creating}
           icon="add"
           title={create.title ?? `Crear ${props.title.toLowerCase()}`}
@@ -560,7 +574,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       ) : null}
 
       {props.edit ? (
-        <CrudFormModal
+        <ActionFormModal
           open={Boolean(editingRow)}
           icon="edit"
           title={props.edit.title ?? `Modificar ${labelFor(editingRow)}`}
@@ -575,6 +589,44 @@ export function CrudDirectory(props: CrudDirectoryProps) {
             await props.edit!.submit(String(target[idKey] ?? ''), payload);
             setEditingRow(null);
             toast.success('Cambios guardados', `Se actualizó «${labelFor(target)}».`);
+            await resource.reload();
+          }}
+        />
+      ) : null}
+
+      {extraForm?.action.form ? (
+        <ActionFormModal
+          open
+          icon={extraForm.action.icon}
+          title={extraForm.action.form.title ? extraForm.action.form.title(extraForm.row) : `${extraForm.action.label}: ${labelFor(extraForm.row)}`}
+          description={extraForm.action.form.description}
+          fields={typeof extraForm.action.form.fields === 'function' ? extraForm.action.form.fields(extraForm.row) : extraForm.action.form.fields}
+          submitLabel={extraForm.action.form.submitLabel ?? extraForm.action.label}
+          onClose={() => setExtraForm(null)}
+          onSubmit={async (payload) => {
+            const { action, row } = extraForm;
+            await action.form!.submit(row, payload);
+            setExtraForm(null);
+            toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
+            await resource.reload();
+          }}
+        />
+      ) : null}
+
+      {toolbarForm ? (
+        <ActionFormModal
+          open
+          icon={toolbarForm.icon}
+          title={toolbarForm.title ?? toolbarForm.label}
+          description={toolbarForm.description}
+          fields={toolbarForm.fields}
+          submitLabel={toolbarForm.submitLabel ?? toolbarForm.label}
+          onClose={() => setToolbarForm(null)}
+          onSubmit={async (payload) => {
+            const action = toolbarForm;
+            await action.submit(payload);
+            setToolbarForm(null);
+            toast.success('Operación registrada', `${action.label} se completó correctamente.`);
             await resource.reload();
           }}
         />
@@ -602,86 +654,5 @@ export function CrudDirectory(props: CrudDirectoryProps) {
         onCancel={() => setPendingExtra(null)}
       />
     </div>
-  );
-}
-
-interface CrudFormModalProps {
-  open: boolean;
-  title: string;
-  description?: string | undefined;
-  icon: string;
-  fields: ActionField[];
-  row?: ResourceRow | null | undefined;
-  submitLabel: string;
-  onClose: () => void;
-  onSubmit: (payload: JsonObject) => Promise<void>;
-}
-
-/** Formulario de alta/edición dentro del modal, con los mismos campos declarativos del resto del ERP. */
-function CrudFormModal(props: CrudFormModalProps) {
-  const { open, fields } = props;
-  const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  // Los catálogos se piden al abrir, no al montar: si no se abre nunca, no se gasta la llamada.
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    fields.filter((field) => field.optionsLoader).forEach((field) => {
-      field.optionsLoader!()
-        .then((options) => { if (!cancelled) setDynamicOptions((current) => ({ ...current, [field.name]: options })); })
-        .catch(() => { /* el select queda vacío y el error real se ve al enviar */ });
-    });
-    return () => { cancelled = true; };
-  }, [open, fields]);
-
-  useEffect(() => { if (open) setError(''); }, [open]);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const definitions = fields.map((field) => ({ name: field.name, valueKind: field.valueKind, optional: field.optional }));
-    setSaving(true);
-    setError('');
-    try {
-      await props.onSubmit(formDataToPayload(new FormData(event.currentTarget), definitions) as JsonObject);
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'No se pudo guardar. Revisa los datos.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const row = props.row ?? null;
-  // Remontar el formulario por fila hace que los `defaultValue` se apliquen al cambiar de registro.
-  const formKey = row ? String(row.id ?? '') : 'nuevo';
-
-  return (
-    <Modal open={open} title={props.title} description={props.description} icon={props.icon} onClose={props.onClose}>
-      <form key={formKey} onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {fields.map((field) => {
-            const span = field.span === 3 ? 'sm:col-span-2' : field.span === 2 ? 'sm:col-span-2' : '';
-            const preset = row ? valueOf(row, field.name) : undefined;
-            const defaultValue = preset !== undefined && preset !== '' ? preset : field.defaultValue;
-            if (field.type === 'chips') {
-              return <ChipsField key={field.name} name={field.name} label={field.label} required={field.required} defaultValue={typeof defaultValue === 'string' ? defaultValue : undefined} placeholder={field.placeholder} hint={field.hint} className={span} />;
-            }
-            if (field.type === 'select') {
-              return <FormField key={field.name} kind="select" name={field.name} label={field.label} required={field.required} defaultValue={defaultValue} hint={field.hint} options={field.options ?? dynamicOptions[field.name] ?? []} className={span} />;
-            }
-            if (field.type === 'textarea') {
-              return <FormField key={field.name} kind="textarea" name={field.name} label={field.label} required={field.required} defaultValue={defaultValue} placeholder={field.placeholder} hint={field.hint} className={span} />;
-            }
-            return <FormField key={field.name} name={field.name} label={field.label} required={field.required} type={field.type ?? 'text'} defaultValue={defaultValue} placeholder={field.placeholder} hint={field.hint} className={span} />;
-          })}
-        </div>
-        {error ? <InlineNotice tone="danger" title="No se pudo guardar">{error}</InlineNotice> : null}
-        <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-          <AtlasButton variant="secondary" type="button" onClick={props.onClose}>Cancelar</AtlasButton>
-          <AtlasButton type="submit" icon="save" loading={saving}>{props.submitLabel}</AtlasButton>
-        </div>
-      </form>
-    </Modal>
   );
 }

@@ -47,6 +47,11 @@ export const b2bService = {
   listMerchantInvoices() {
     return apiRequest<ResourceRow[]>('/b2b/billing/invoices');
   },
+  /** Detalle con líneas y comercio: lo que hace falta para imprimir la factura. */
+  getMerchantInvoice(invoiceId: string) {
+    const id = requireUuidPathParam(invoiceId, 'el UUID de la factura merchant');
+    return apiRequest<ResourceRow>(`/b2b/billing/invoices/${id}`);
+  },
   listInstallments() {
     return apiRequest<ResourceRow[]>('/b2b/coverage/installments');
   },
@@ -93,6 +98,44 @@ export const b2bService = {
     const id = requireUuidPathParam(tagId, 'el UUID del tag');
     return apiRequest<ResourceRow>(`/b2b/tags/${id}`, { method: 'DELETE', query: force ? { force: 'true' } : {} });
   },
+  // ---- Calificación de riesgo de la cartera B2B ----
+  /** Distribución por categoría, con la política que la produjo. */
+  getRatingPortfolioSummary() { return apiRequest<ResourceRow>('/b2b/credit-rating/portfolio-summary'); },
+  /** Calificación vigente de una cuenta, con las deudas que la produjeron. */
+  getAccountRating(accountId: string) {
+    const id = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/credit-rating/accounts/${id}`);
+  },
+  getAccountRatingHistory(accountId: string, limit = 12) {
+    const id = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/credit-rating/accounts/${id}/history`, { query: { limit } });
+  },
+  rateAccount(accountId: string) {
+    const id = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/credit-rating/accounts/${id}/rate`, { method: 'POST' });
+  },
+  /** Recalifica toda la cartera. Finanzas lo necesita antes de un cierre. */
+  sweepRatings(limit?: number) {
+    return apiRequest<ResourceRow>('/b2b/credit-rating/sweep', { method: 'POST', body: limit ? { limit } : {} });
+  },
+  // ---- Segmentos comerciales (clientes solicitantes de crédito y partners) ----
+  /** No confundir con `adsService.listSegments`: aquello es audiencia publicitaria. */
+  listCrmSegments(query?: { subject?: string; status?: string }) {
+    return apiRequest<ResourceRow[]>('/b2b/segments', query ? { query } : {});
+  },
+  /** Qué atributos admite cada sujeto. Se pide al backend para que la pantalla no los duplique. */
+  listCrmSegmentVocabulary() { return apiRequest<ResourceRow[]>('/b2b/segments/vocabulary'); },
+  createCrmSegment(body: JsonObject) {
+    return apiRequest<ResourceRow>('/b2b/segments', { method: 'POST', body });
+  },
+  updateCrmSegment(segmentId: string, body: JsonObject) {
+    const id = requireUuidPathParam(segmentId, 'el UUID del segmento');
+    return apiRequest<ResourceRow>(`/b2b/segments/${id}`, { method: 'PATCH', body });
+  },
+  deleteCrmSegment(segmentId: string) {
+    const id = requireUuidPathParam(segmentId, 'el UUID del segmento');
+    return apiRequest<ResourceRow>(`/b2b/segments/${id}`, { method: 'DELETE' });
+  },
   listOpportunities(query?: { accountId?: string; stage?: string }) {
     return apiRequest<ResourceRow[]>('/b2b/opportunities', query ? { query } : {});
   },
@@ -114,9 +157,23 @@ export const b2bService = {
     const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
     return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/accept`, { method: 'PATCH' });
   },
-  rejectProposal(proposalId: string) {
+  /*
+   * El rechazo LLEVA MOTIVO. El backend valida `reason` (3..500) y esta llamada iba sin cuerpo:
+   * cada intento de rechazar una propuesta volvia como error de validacion sin decir de que campo.
+   */
+  rejectProposal(proposalId: string, reason: string) {
     const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
-    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/reject`, { method: 'PATCH' });
+    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/reject`, { method: 'PATCH', body: { reason } });
+  },
+  /** Correccion de la cabecera mientras la propuesta sigue siendo borrador. */
+  updateProposal(proposalId: string, body: JsonObject) {
+    const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
+    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}`, { method: 'PATCH', body });
+  },
+  /** Retirada de una propuesta que nunca se envio, o que ya fue rechazada. */
+  deleteProposal(proposalId: string) {
+    const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
+    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}`, { method: 'DELETE' });
   },
   decideApproval(id: string, body: JsonObject) {
     const approvalId = requireUuidPathParam(id, 'el UUID de la aprobación');
@@ -153,6 +210,10 @@ export const b2bService = {
   setBranchStatus(branchId: string, body: JsonObject) {
     const id = requireUuidPathParam(branchId, 'el UUID de la sucursal');
     return apiRequest<ResourceRow>(`/b2b/onboarding/branches/${id}/status`, { method: 'PATCH', body });
+  },
+  /** Faltaba: las sucursales se creaban y no se podían volver a leer desde el ERP. */
+  listBranches(query?: { accountId?: string; status?: string }) {
+    return apiRequest<ResourceRow[]>('/b2b/onboarding/branches', query ? { query } : {});
   },
   createBranch(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/onboarding/branches', { method: 'POST', body });

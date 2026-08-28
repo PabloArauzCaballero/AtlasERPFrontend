@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { Icon } from '@/components/atlas/Icon';
+import { fieldSpanClasses } from '@/lib/formLayout';
 import { formDataToPayload } from '@/lib/formPayload';
+import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import { toast } from '@/lib/toast';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
@@ -72,7 +73,8 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
   const [showResult, setShowResult] = useState(false);
   const mutationFunction = useCallback((payload: JsonObject) => action.onSubmit(payload), [action]);
   const mutation = useAtlasMutation(mutationFunction);
-  const definitions = action.fields.map((field) => ({ name: field.name, valueKind: field.valueKind, optional: field.optional }));
+  const definitions = payloadDefinitions(action.fields);
+  const spanClasses = fieldSpanClasses(action.fields.map((field) => field.span), { maxColumns: 2 });
 
   const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
   useEffect(() => {
@@ -104,12 +106,9 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
     <Panel title={action.title} description={action.description} icon={action.icon} className="h-fit">
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-3 sm:grid-cols-2">
-          {action.fields.map((field) => {
-            const span = field.span === 2 || field.span === 3 ? 'sm:col-span-2' : '';
-            if (field.type === 'select') return <FormField key={field.name} kind="select" name={field.name} label={field.label} required={field.required} defaultValue={field.defaultValue} hint={field.hint} options={field.options ?? dynamicOptions[field.name] ?? []} className={span} />;
-            if (field.type === 'textarea') return <FormField key={field.name} kind="textarea" name={field.name} label={field.label} required={field.required} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={span} />;
-            return <FormField key={field.name} name={field.name} label={field.label} required={field.required} type={field.type ?? 'text'} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={span} />;
-          })}
+          {action.fields.map((field, index) => (
+            <ActionFieldControl key={field.name} field={field} className={spanClasses[index] ?? ''} dynamicOptions={dynamicOptions} />
+          ))}
         </div>
         {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
         {showResult ? <InlineNotice tone="success">Registro creado correctamente.</InlineNotice> : null}

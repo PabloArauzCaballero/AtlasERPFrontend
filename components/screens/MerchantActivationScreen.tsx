@@ -44,7 +44,14 @@ function controles(readiness: { pendingChecklistItems?: number; hasActiveContrac
   ];
 }
 
-export function MerchantActivationScreen() {
+interface MerchantActivationScreenProps {
+  /** Dentro de una pestaña: sin cabecera de pantalla, que la pone la vista que lo contiene. */
+  embedded?: boolean | undefined;
+  /** Se llama tras activar: recarga la tabla de casos de la misma vista. */
+  onDone?: (() => void | Promise<void>) | undefined;
+}
+
+export function MerchantActivationScreen({ embedded = false, onDone }: MerchantActivationScreenProps = {}) {
   const [caseId, setCaseId] = useState('');
   /* El caso se ELIGE: la etiqueta trae el nombre del comercio y cuantos requisitos siguen pendientes,
      que es exactamente lo que decide si la activacion va a pasar o la va a frenar el backend. */
@@ -66,10 +73,17 @@ export function MerchantActivationScreen() {
   const superados = listaControles.filter((control) => control.ok).length;
   const porcentaje = listaControles.length ? Math.round((superados / listaControles.length) * 100) : 0;
   const mutation = useAtlasMutation(useCallback((id: string) => b2bService.activateOnboarding(id, {}), []));
-  async function activate() { try { await mutation.execute(caseId); } catch { /* controlled */ } }
+  async function activate() { try { await mutation.execute(caseId); await onDone?.(); } catch { /* controlled */ } }
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Activación' }]} title="Activación del contrato" description="Último control de preparación antes de habilitar al comercio para operar en ATLAS." actions={<><AtlasButton variant="secondary" icon="visibility">Previsualizar contrato</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar auditoría</AtlasButton></>} />
+      {embedded ? (
+        <div className="min-w-0">
+          <h2 className="text-sm font-bold text-slate-900">Control de activación</h2>
+          <p className="mt-0.5 text-xs text-slate-500">Último control de preparación antes de habilitar al comercio para operar en ATLAS.</p>
+        </div>
+      ) : (
+        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Activación' }]} title="Activación del contrato" description="Último control de preparación antes de habilitar al comercio para operar en ATLAS." actions={<><AtlasButton variant="secondary" icon="visibility">Previsualizar contrato</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar auditoría</AtlasButton></>} />
+      )}
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
       {mutation.status === 'success' ? <InlineNotice tone="success" title="Comercio activado">El caso fue activado por el backend y quedó disponible para operación.</InlineNotice> : null}
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_360px]">

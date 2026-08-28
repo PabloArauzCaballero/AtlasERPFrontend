@@ -44,7 +44,7 @@ export function MerchantPlansScreen() {
   async function selectPlan(planId: string) {
     // El staff debe decir en nombre de quién contrata; el comercio no, y por eso `ready` ya es
     // cierto para él sin haber elegido nada.
-    if (!ready) { setError('Seleccione primero el comercio.'); return; }
+    if (!ready) { setError('Elige primero sobre qué negocio quieres contratar.'); return; }
     setBusyPlan(planId);
     setError(null);
     try {
@@ -93,16 +93,24 @@ export function MerchantPlansScreen() {
 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          {/* El comercio no elige comercio: su alcance sale de sus membresías. */}
+          {/*
+            * El comercio no elige comercio: el negocio es el que inició sesión.
+            *
+            * Lo único que se pregunta —y sólo a quien administra varios— es con cuál de SUS
+            * negocios sigue. Antes aquí salía un desplegable con todos los comercios de la
+            * plataforma, porque la pantalla se creía el `requiresAccountSelection` que el backend
+            * también levanta para el staff interno.
+            */}
           {scope.requiresSelection ? (
             <FormField
               kind="select"
-              label="Comercio"
+              label="Negocio"
               name="merchantAccountId"
               className="flex-1"
               value={scope.accountId ?? ''}
               onChange={(e) => scope.setAccountId(e.target.value)}
-              options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]}
+              hint="Administras varios negocios: elige sobre cuál quieres ver el plan."
+              options={[{ label: '— Elige uno de tus negocios —', value: '' }, ...scope.accountOptions]}
             />
           ) : null}
           {current ? (
@@ -114,6 +122,7 @@ export function MerchantPlansScreen() {
         </div>
       </Panel>
 
+      {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu negocio">{scope.error}</InlineNotice> : null}
       {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
       {plansResource.error ? <InlineNotice tone="danger" title="No se pudieron cargar los planes">{plansResource.error}</InlineNotice> : null}
 

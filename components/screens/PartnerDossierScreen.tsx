@@ -12,11 +12,9 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
-import { QrCanvas } from '@/components/atlas/QrCanvas';
 import { SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
 import { merchantCategoryOptions } from '@/lib/catalogs';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
-import { portalService } from '@/services/portalService';
 import {
   partnerOnboardingService,
   type PartnerOnboardingState,
@@ -79,18 +77,6 @@ export function PartnerDossierScreen() {
    * segundo expediente compitiendo con el suyo.
    */
   const [expedientePropio, setExpedientePropio] = useState<'buscando' | 'sin-expediente' | 'encontrado'>('buscando');
-  /** La sucursal cuyo QR se esta mirando. Solo afecta a lo que se pinta. */
-  const [sucursalAbierta, setSucursalAbierta] = useState<string | null>(null);
-  /*
-   * Las sucursales del ERP: la ÚNICA lista donde un local se da de alta.
-   *
-   * Es la que referencian las ventas y los usuarios del comercio, así que es la que manda. El
-   * expediente no crea locales: declara cuáles de éstos entran, y guarda el puente `erpBranchId`.
-   */
-  const sucursalesDelErp = useAsyncResource(
-    useCallback(() => portalService.listBranches(), []),
-    true,
-  );
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'danger' | 'info'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -181,18 +167,16 @@ export function PartnerDossierScreen() {
 
 
   const state = dossier.data;
-  const branches = state?.branches ?? [];
   /*
-   * Lo que queda por declarar: las del ERP que todavía no tienen su reflejo en el expediente.
+   * Las sucursales SÓLO se leen aquí: se dan de alta, se editan y se enlazan en «Sucursales».
    *
-   * Se cruza por `erpBranchId` y no por nombre — dos locales pueden llamarse igual — y así el
-   * desplegable no ofrece dos veces el mismo mostrador, que era la forma de acabar con dos
-   * sucursales del expediente apuntando al mismo sitio.
+   * Esta pantalla llegó a tener su propio formulario de sucursales, y con él dos altas para el
+   * mismo local: la del ERP —donde se sitúa cada venta y se asigna el personal— y la del
+   * expediente —de donde cuelgan las cajas y su QR—. Nada garantizaba que hablaran del mismo
+   * mostrador, y el comercio tenía que registrar su tienda dos veces para poder imprimir un
+   * código. Hoy el enlace lo hace «Sucursales» al crear el local, y aquí sólo se resume.
    */
-  const declaradas = new Set(branches.map((sucursal) => sucursal.erpBranchId).filter(Boolean));
-  const sucursalesPorDeclarar = (sucursalesDelErp.data ?? []).filter(
-    (fila) => !declaradas.has(String(fila.id)),
-  );
+  const branches = state?.branches ?? [];
 
   return (
     <div className="space-y-4">
@@ -419,192 +403,6 @@ export function PartnerDossierScreen() {
                     </dd>
                   </div>
                 </dl>
-              </Panel>
-              ),
-            },
-            {
-              id: 'sucursales',
-              label: 'Sucursales',
-              icon: 'store',
-              content: (
-              <Panel title="Sucursales" icon="store" description="Dónde opera el negocio. De la sucursal cuelgan el QR y los terminales.">
-                <form
-                  className="grid gap-3 md:grid-cols-3"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const form = new FormData(event.currentTarget);
-                    const erpBranchId = String(form.get('erpBranchId') ?? '');
-                    const sucursal = (sucursalesDelErp.data ?? []).find((fila) => String(fila.id) === erpBranchId);
-                    if (!sucursal) {
-                      setFeedback({ tone: 'info', text: 'Elige la sucursal que quieres declarar en el expediente.' });
-                      return;
-                    }
-                    /*
-                     * Se declara la sucursal QUE YA EXISTE, y se guarda con qué local del ERP se
-                     * corresponde. `erpBranchId` es el puente, y se manda siempre: el campo estaba
-                     * previsto desde el principio —«para que no haya dos verdades sobre el mismo
-                     * local»— pero nadie lo rellenaba, así que en la práctica había dos.
-                     *
-                     * El cruce va por identificador y nunca por nombre: dos locales pueden llamarse
-                     * igual, y enseñar el QR equivocado manda el dinero a otra caja.
-                     */
-                    void run('Sucursal', () =>
-                      partnerOnboardingService.registerBranch(partnerId, {
-                        erpBranchId,
-                        branchCode: String(form.get('branchCode') ?? '').trim(),
-                        name: String(sucursal.name ?? ''),
-                        ...(sucursal.city ? { city: String(sucursal.city) } : {}),
-                        ...(sucursal.address ? { addressLine: String(sucursal.address) } : {}),
-                      }),
-                    );
-                    event.currentTarget.reset();
-                  }}
-                >
-                  {/*
-                    * Ya no se escribe una sucursal aquí: se ELIGE una de las del comercio.
-                    *
-                    * Registrar el local en dos sitios distintos producía dos listas que no se podían
-                    * cruzar —el ERP es donde se le asignan usuarios y donde se sitúa cada venta; el
-                    * expediente es de donde cuelgan las cajas y sus QR—, y nada garantizaba que
-                    * hablaran del mismo mostrador. Un solo sitio para darla de alta, «Sucursales», y
-                    * aquí sólo se declara cuál de ellas entra en el expediente.
-                    */}
-                  <FormField
-                    kind="select"
-                    label="Sucursal del comercio"
-                    name="erpBranchId"
-                    required
-                    className="md:col-span-2"
-                    data-testid="campo-sucursal-erp"
-                    hint={
-                      sucursalesPorDeclarar.length === 0
-                        ? 'Todas tus sucursales ya están declaradas. Las nuevas se dan de alta en «Sucursales».'
-                        : 'Se dan de alta en «Sucursales»; aquí sólo se declaran.'
-                    }
-                    options={[
-                      { label: '— Elige una sucursal —', value: '' },
-                      ...sucursalesPorDeclarar.map((fila) => ({
-                        label: `${String(fila.name ?? 'Sucursal')}${fila.city ? ` · ${String(fila.city)}` : ''}`,
-                        value: String(fila.id),
-                      })),
-                    ]}
-                  />
-                  <FormField label="Código" name="branchCode" required data-testid="campo-branchCode" hint="El que usas tú: SC-01…" />
-                  <div className="md:col-span-3 flex justify-end">
-                    <AtlasButton type="submit" disabled={busy || sucursalesPorDeclarar.length === 0} data-testid="btn-registrar-sucursal">
-                      Declarar en el expediente
-                    </AtlasButton>
-                  </div>
-                </form>
-                {/*
-                  * Al abrir una sucursal se ve SU QR: el que hay que imprimir y pegar en ese mostrador.
-                  *
-                  * El QR es por terminal y no por sucursal, y esa diferencia importa cuando algo va
-                  * mal: si un local tiene dos cajas, poder retirar el codigo de una sin cerrar la otra
-                  * es la diferencia entre suspender un equipo y cerrar la tienda.
-                  */}
-                <ul className="mt-3 space-y-2 text-xs" data-testid="lista-sucursales">
-                  {branches.map((branch) => {
-                    const abierta = sucursalAbierta === branch.branchId;
-                    const terminales = (state.posTerminals ?? []).filter((pos) => pos.branchId === branch.branchId);
-                    return (
-                      <li key={branch.branchId} className="rounded-lg border border-slate-200">
-                        <button
-                          type="button"
-                          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-slate-50"
-                          data-testid={`sucursal-${branch.branchCode}`}
-                          onClick={() => setSucursalAbierta(abierta ? null : branch.branchId)}
-                        >
-                          <span>
-                            <strong>{branch.branchCode}</strong> · {branch.name}
-                            {branch.city ? ` · ${branch.city}` : ''}
-                          </span>
-                          <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-slate-500">
-                            {terminales.length} {terminales.length === 1 ? 'terminal' : 'terminales'}
-                            <Icon name={abierta ? 'expand_less' : 'qr_code_2'} className="text-[18px]" />
-                          </span>
-                        </button>
-
-                        {abierta ? (
-                          <div className="border-t border-slate-100 bg-slate-50/60 p-3" data-testid={`qr-sucursal-${branch.branchCode}`}>
-                            {terminales.length === 0 ? (
-                              <p className="text-slate-600">
-                                Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que
-                                imprimir. Regístrala aquí abajo.
-                              </p>
-                            ) : (
-                              <div className="flex flex-wrap gap-4">
-                                {terminales.map((pos) => (
-                                  <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
-                                    <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
-                                    <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
-                                    <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
-                                    <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
-                                    {pos.status !== 'active' ? (
-                                      <p className="text-[10px] text-slate-500">
-                                        Mientras no esté activo, el teléfono del cliente rechaza este código.
-                                      </p>
-                                    ) : null}
-                                    {/*
-                                      * Suspender se hace DESDE el terminal y no desde una tabla aparte.
-                                      *
-                                      * Es una medida de contención —una caja que se pierde o que cobra lo que
-                                      * no debe— y quien la toma está mirando ese mostrador, no una lista de
-                                      * seriales donde hay que acertar la fila.
-                                      */}
-                                    <button
-                                      type="button"
-                                      className="w-full rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                                      disabled={busy}
-                                      data-testid={`btn-estado-pos-${pos.terminalSerial}`}
-                                      onClick={() =>
-                                        void run('Estado del terminal', () =>
-                                          partnerOnboardingService.changePosStatus(partnerId, pos.terminalId, {
-                                            status: pos.status === 'active' ? 'suspended' : 'active',
-                                          }),
-                                        )
-                                      }
-                                    >
-                                      {pos.status === 'active' ? 'Suspender' : 'Reactivar'}
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/*
-                              * El alta del terminal vive DENTRO de su sucursal, y por eso ya no pregunta a
-                              * cuál pertenece: la sucursal es el sitio donde estás, no un campo que rellenar.
-                              *
-                              * Antes esto era una pestaña aparte con un desplegable de sucursales, y ahí el
-                              * error fácil era dar de alta la caja en el local equivocado —el formulario no
-                              * enseñaba en ningún momento de qué local hablaba—.
-                              */}
-                            <form
-                              className="mt-4 grid gap-2 border-t border-slate-200 pt-3 md:grid-cols-3"
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                const payload = camposEscritos(new FormData(event.currentTarget));
-                                void run('Terminal', () =>
-                                  partnerOnboardingService.registerPosTerminal(partnerId, branch.branchId, payload),
-                                );
-                                event.currentTarget.reset();
-                              }}
-                            >
-                              <FormField label="Serial" name="terminalSerial" required data-testid={`campo-pos-serial-${branch.branchCode}`} />
-                              <FormField label="Alias" name="terminalAlias" hint="Caja 1, Mostrador…" />
-                              <div className="flex items-end">
-                                <AtlasButton type="submit" disabled={busy} data-testid={`btn-registrar-pos-${branch.branchCode}`}>
-                                  Registrar terminal aquí
-                                </AtlasButton>
-                              </div>
-                            </form>
-                          </div>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
               </Panel>
               ),
             },

@@ -13,6 +13,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useAuth } from '@/lib/authContext';
+import { ActionFormModal } from '@/components/screens/ActionFormModal';
 import { authService } from '@/services/authService';
 import type { InternalUserProfile, InternalUserStatus } from '@/services/authTypes';
 
@@ -36,6 +37,13 @@ export function SecurityAdministrationScreen() {
   const usersResource = useAsyncResource(loadUsers);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [statusChange, setStatusChange] = useState<{ row: InternalUserProfile; target: InternalUserStatus } | null>(null);
+  /*
+   * Cambiar los roles de una persona: `PATCH /auth/users/:id/roles` existía con su método en el
+   * servicio y ninguna pantalla lo llamaba. El directorio enseñaba los roles y no había forma de
+   * corregirlos, así que un alta con el rol equivocado se quedaba así —o se arreglaba por API—.
+   */
+  const [rolesChange, setRolesChange] = useState<InternalUserProfile | null>(null);
+  const rolesCatalog = useAsyncResource(useCallback(() => authService.listRoles(), []));
   const canManage = hasPermission('internal.users.manage');
 
   const mutation = useAtlasMutation((input: { internalUserId: string; status: InternalUserStatus; reason: string }) =>
@@ -119,6 +127,15 @@ export function SecurityAdministrationScreen() {
                       <span><StatusPill tone={statusTone[row.status] ?? 'neutral'}>{row.status}</StatusPill></span>
                       <span>{row.mfaEnabled ? <Icon name="check_circle" className="text-[18px] text-emerald-600" /> : <Icon name="remove_circle" className="text-[18px] text-slate-500" />}</span>
                       <span className="text-right">
+                        {canManage ? (
+                          <AtlasButton
+                            variant="secondary"
+                            className="mr-1 h-7 px-2 text-[10px]"
+                            onClick={() => setRolesChange(row)}
+                          >
+                            Roles
+                          </AtlasButton>
+                        ) : null}
                         {canManage && row.id !== currentUser?.id && nextStatus[row.status] ? (
                           <AtlasButton
                             variant="secondary"
@@ -156,6 +173,36 @@ export function SecurityAdministrationScreen() {
       </div>
       {!canManage ? <InlineNotice tone="info">Tu usuario no tiene el permiso internal.users.manage: puedes ver el directorio, pero no suspender/reactivar cuentas.</InlineNotice> : null}
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
+      {rolesChange ? (
+        <ActionFormModal
+          open
+          icon="admin_panel_settings"
+          title={`Roles de ${rolesChange.fullName}`}
+          description="Los roles se REEMPLAZAN por los que se elijan: lo que no se marque, se retira. El motivo queda en la auditoría porque un cambio de permisos es lo primero que se revisa tras un incidente."
+          submitLabel="Reemplazar roles"
+          fields={[
+            {
+              name: 'roles',
+              label: 'Roles',
+              type: 'chips',
+              required: true,
+              span: 2,
+              defaultValue: rolesChange.roles.join(', '),
+              hint: `Disponibles: ${(rolesCatalog.data?.items ?? []).map((role) => role.code).join(', ') || 'cargando…'}`,
+            },
+            { name: 'reason', label: 'Motivo', required: true, span: 2, placeholder: 'Cambio de puesto, rotación de equipo…' },
+          ]}
+          onClose={() => setRolesChange(null)}
+          onSubmit={async (payload) => {
+            const roles = Array.isArray(payload.roles)
+              ? (payload.roles as string[])
+              : String(payload.roles ?? '').split(',').map((item) => item.trim()).filter(Boolean);
+            await authService.replaceUserRoles(rolesChange.id, { roles, reason: String(payload.reason ?? '') });
+            setRolesChange(null);
+            await usersResource.reload();
+          }}
+        />
+      ) : null}
       {statusChange ? (
         <ConfirmDialog
           title={statusChange.target === 'suspended' ? 'Suspender el acceso' : 'Reactivar el acceso'}

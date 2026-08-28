@@ -50,9 +50,8 @@ export const authService = {
   listUsers() {
     return apiRequest<{ items: InternalUserProfile[] }>('auth/users');
   },
-  getUser(internalUserId: string) {
-    return apiRequest<{ user: InternalUserProfile }>(`auth/users/${internalUserId}`);
-  },
+  /* `getUser` retirado: `listUsers` ya devuelve el perfil completo de cada persona, así que pedirlo
+   * de uno en uno no lo llamaba nadie. El endpoint sigue en el backend. */
   updateUser(internalUserId: string, body: UpdateInternalUserInput) {
     return apiRequest<{ user: InternalUserProfile }>(`auth/users/${internalUserId}`, { method: 'PATCH', body });
   },

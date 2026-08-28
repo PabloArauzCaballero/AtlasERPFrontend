@@ -12,6 +12,7 @@ import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
+import { portalService } from '@/services/portalService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
 
 type Vista = 'panel' | 'creditos' | 'calendario' | 'comision';
@@ -30,8 +31,18 @@ const fecha = (valor: string) => new Date(`${valor}T12:00:00`).toLocaleDateStrin
  * operación suya vence el martes, no quién es la persona: darle el nombre convertiría su cartera en
  * un padrón de deudores que nadie autorizó.
  */
+/** Lo que el libro del ERP dice que se le ha facturado al comercio por comisión. */
+type ComisionFacturada = Awaited<ReturnType<typeof portalService.commissions>>;
+
 export function MerchantPortfolioScreen() {
   const [cartera, setCartera] = useState<Cartera | null>(null);
+  /*
+   * El SEGUNDO libro. Lo de arriba es lo devengado —lo que la comisión va generando según cobra el
+   * comercio, y lo calcula AtlasBackend—; esto es lo facturado y cobrado, que vive en las cuentas
+   * por cobrar del ERP. Son dos libros distintos y no cuadran solos: el comercio veía sólo el
+   * primero y no tenía dónde mirar cuánto le queda por pagarle a Atlas.
+   */
+  const [facturado, setFacturado] = useState<ComisionFacturada | null>(null);
   const [nombre, setNombre] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +52,8 @@ export function MerchantPortfolioScreen() {
     setCargando(true);
     try {
       setCartera(await merchantCreditService.cartera(partnerId));
+      /* Falla aparte: que el libro de facturación no cargue no puede esconder la cartera. */
+      setFacturado(await portalService.commissions().catch(() => null));
       setError(null);
     } catch (fallo) {
       setError(fallo instanceof Error ? fallo.message : 'No fue posible leer su cartera.');
@@ -273,6 +286,30 @@ export function MerchantPortfolioScreen() {
             cobra no genera comisión, y una venta pagada al 100 % la genera completa. La tasa se pactó
             en su alta desde el ERP interno de Atlas.
           </InlineNotice>
+          {facturado ? (
+            <div className="mt-4 rounded-lg border border-slate-200 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Lo que Atlas ya le facturó</p>
+              <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
+                  <p className="text-[11px] text-slate-500">Facturado ({Number(facturado.summary?.salesCharged ?? 0)} ventas)</p>
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.settled ?? 0))}</p>
+                  <p className="text-[11px] text-slate-500">Ya pagado por usted</p>
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
+                  <p className="text-[11px] text-slate-500">Pendiente de pago a Atlas</p>
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] leading-4 text-slate-500">
+                Devengado y facturado no son el mismo número y no tienen por qué coincidir: lo primero
+                crece con cada cobro suyo, lo segundo sólo cuando Atlas emite el cargo. La diferencia
+                es comisión ya generada que todavía no se le ha facturado.
+              </p>
+            </div>
+          ) : null}
         </Panel>
       ) : null}
 

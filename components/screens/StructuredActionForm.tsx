@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { FormField } from '@/components/atlas/FormField';
-import { ChipsField } from '@/components/atlas/ChipsField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { Icon } from '@/components/atlas/Icon';
 import { formDataToPayload, type FieldValueKind } from '@/lib/formPayload';
+import { fieldSpanClasses } from '@/lib/formLayout';
+import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import { toast } from '@/lib/toast';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
@@ -16,7 +16,7 @@ import type { JsonObject, ResourceRow } from '@/services/types';
 export interface ActionField {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'date' | 'url' | 'textarea' | 'select' | 'chips';
+  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'chips';
   valueKind?: FieldValueKind | undefined;
   required?: boolean | undefined;
   optional?: boolean | undefined;
@@ -56,7 +56,7 @@ interface StructuredActionFormProps {
 export function StructuredActionForm(props: StructuredActionFormProps) {
   const submitAction = useCallback((payload: JsonObject) => props.onSubmit(payload), [props]);
   const mutation = useAtlasMutation(submitAction);
-  const definitions = props.sections.flatMap((section) => section.fields.map((field) => ({ name: field.name, valueKind: field.valueKind, optional: field.optional })));
+  const definitions = props.sections.flatMap((section) => payloadDefinitions(section.fields));
 
   const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
   // Las secciones se muestran como pestañas para no saturar la vista; TODAS quedan montadas
@@ -139,15 +139,19 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
           <div key={section.title} className={`p-5 ${tabbed && index !== activeTab ? 'hidden' : ''}`}>
             {section.description ? <p className="mb-4 text-xs text-slate-500">{section.description}</p> : null}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {section.fields.map((field) => {
-                const fieldClass = field.span === 3 ? 'md:col-span-2 xl:col-span-3' : field.span === 2 ? 'md:col-span-2' : '';
-                const nativeRequired = tabbed ? undefined : field.required;
-                const softRequired = tabbed ? field.required : undefined;
-                if (field.type === 'chips') return <ChipsField key={field.name} name={field.name} label={field.label} required={field.required} defaultValue={typeof field.defaultValue === 'string' ? field.defaultValue : undefined} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
-                if (field.type === 'select') return <FormField key={field.name} kind="select" name={field.name} label={field.label} required={nativeRequired} softRequired={softRequired} defaultValue={field.defaultValue} hint={field.hint} options={field.options ?? dynamicOptions[field.name] ?? []} className={fieldClass} />;
-                if (field.type === 'textarea') return <FormField key={field.name} kind="textarea" name={field.name} label={field.label} required={nativeRequired} softRequired={softRequired} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
-                return <FormField key={field.name} name={field.name} label={field.label} required={nativeRequired} softRequired={softRequired} type={field.type ?? 'text'} defaultValue={field.defaultValue} placeholder={field.placeholder} hint={field.hint} className={fieldClass} />;
-              })}
+              {(() => {
+                const clases = fieldSpanClasses(section.fields.map((field) => field.span), { breakpoint: 'md' });
+                return section.fields.map((field, fieldIndex) => (
+                  <ActionFieldControl
+                    key={field.name}
+                    field={field}
+                    className={clases[fieldIndex] ?? ''}
+                    dynamicOptions={dynamicOptions}
+                    nativeRequired={tabbed ? undefined : field.required}
+                    softRequired={tabbed ? field.required : undefined}
+                  />
+                ));
+              })()}
             </div>
           </div>
         ))}

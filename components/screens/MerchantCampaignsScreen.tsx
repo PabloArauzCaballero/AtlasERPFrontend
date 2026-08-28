@@ -141,18 +141,25 @@ export function MerchantCampaignsScreen() {
         }
       />
 
-      <Panel compact>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          {/* El comercio no elige comercio: el backend deriva sus anunciantes de sus membresías. */}
-          {scope.requiresSelection ? (
-            <FormField kind="select" label="Comercio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} options={[{ label: '— Seleccione un comercio —', value: '' }, ...scope.accountOptions]} />
-          ) : null}
-          {eligeAnunciante ? (
-            <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Todos los anunciantes —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
-          ) : null}
-        </div>
-      </Panel>
+      {/*
+        * El negocio es el que inició sesión: aquí no se elige comercio, y sin nada que elegir la
+        * barra de filtros no se pinta —era una caja vacía encima de la lista—.
+        */}
+      {scope.requiresSelection || eligeAnunciante ? (
+        <Panel compact>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {/* Sólo a quien administra VARIOS negocios propios se le pregunta con cuál sigue. */}
+            {scope.requiresSelection ? (
+              <FormField kind="select" label="Negocio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} hint="Administras varios negocios: elige de cuál quieres ver las campañas." options={[{ label: '— Elige uno de tus negocios —', value: '' }, ...scope.accountOptions]} />
+            ) : null}
+            {eligeAnunciante ? (
+              <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Todos los anunciantes —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
+            ) : null}
+          </div>
+        </Panel>
+      ) : null}
 
+      {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu negocio">{scope.error}</InlineNotice> : null}
       {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
       {campaigns.error ? <InlineNotice tone="danger" title="No se pudieron cargar las campañas">{campaigns.error}</InlineNotice> : null}
       {advertisers.error ? <InlineNotice tone="danger" title="No se pudieron cargar los anunciantes">{advertisers.error}</InlineNotice> : null}

@@ -155,6 +155,20 @@ export const partnerOnboardingService = {
   registerBranch(partnerId: string, body: JsonObject) {
     return apiRequest<PartnerBranch>(`${RUTA}/${encodeURIComponent(partnerId)}/branches`, { method: 'POST', body });
   },
+  /**
+   * Enlaza una sucursal YA declarada con la del ERP que le corresponde.
+   *
+   * El puente `erpBranchId` sólo se escribía al declararla, así que las sucursales anteriores a
+   * eso se quedaban sin él y su QR no se podía enseñar: el ERP y el expediente hablaban del mismo
+   * mostrador sin poder demostrarlo. La única salida era declararla otra vez —duplicarla—, con las
+   * cajas colgando de la fila vieja y el ERP mirando la nueva.
+   */
+  linkBranch(partnerId: string, branchId: string, erpBranchId: string) {
+    return apiRequest<PartnerBranch>(
+      `${RUTA}/${encodeURIComponent(partnerId)}/branches/${encodeURIComponent(branchId)}`,
+      { method: 'PATCH', body: { erpBranchId } },
+    );
+  },
   createQrUploadUrl(partnerId: string, body: JsonObject) {
     return apiRequest<QrUploadTicket>(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes/upload-url`, {
       method: 'POST',

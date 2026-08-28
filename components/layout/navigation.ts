@@ -27,6 +27,11 @@ export interface NavGroup {
  * Vive aquí y no dentro de `AtlasSidebar` porque hay dos superficies que lo
  * pintan —la barra lateral fija del escritorio y el cajón deslizante del móvil—
  * y un menú que existe en dos copias se desincroniza a la primera pantalla nueva.
+ *
+ * Tres rótulos dicen a quién se refieren y no se pueden acortar: «Usuarios internos» son los del
+ * propio ERP —se administran, no se segmentan—, «Segmentos de audiencia» es a quién se le sirve un
+ * anuncio, y «Segmentos comerciales» es población de negocio (partners y clientes solicitantes de
+ * crédito). Llamando «Usuarios» y «Segmentos» a secas, las tres cosas se leían como la misma.
  */
 export const NAVIGATION: NavGroup[] = [
   {
@@ -40,6 +45,9 @@ export const NAVIGATION: NavGroup[] = [
       { label: 'Tarifas y pricing', href: '/operaciones/crm/tarifas', icon: 'sell' },
       { label: 'Conciliación', href: '/operaciones/crm/conciliacion-cobertura', icon: 'account_balance' },
       { label: 'Contratos', href: '/operaciones/crm/contratos', icon: 'description' },
+      { label: 'Sucursales', href: '/operaciones/crm/sucursales', icon: 'store' },
+      { label: 'Calificación de riesgo', href: '/operaciones/crm/calificacion-riesgo', icon: 'speed' },
+      { label: 'Segmentos comerciales', href: '/operaciones/crm/segmentos', icon: 'group_work' },
       { label: 'Tags de clasificación', href: '/operaciones/crm/tags', icon: 'sell' },
       { label: 'Carga masiva', href: '/operaciones/crm/bulk-cuentas', icon: 'upload_file' },
     ],
@@ -63,6 +71,8 @@ export const NAVIGATION: NavGroup[] = [
           { label: 'Impuestos y COA', href: '/operaciones/contabilidad/impuestos-coa', icon: 'receipt' },
           { label: 'Periodos y ledgers', href: '/operaciones/contabilidad/periodos-ledgers', icon: 'calendar_month' },
           { label: 'Sucursales y fiscales', href: '/operaciones/contabilidad/sucursales-fiscales', icon: 'store' },
+          { label: 'Condiciones de pago', href: '/operaciones/contabilidad/condiciones-pago', icon: 'handshake' },
+          { label: 'Vínculos multientidad', href: '/operaciones/contabilidad/vinculos', icon: 'link' },
         ],
       },
     ],
@@ -72,9 +82,12 @@ export const NAVIGATION: NavGroup[] = [
       { label: 'Dashboard', href: '/operaciones/ads/dashboard', icon: 'monitoring' },
       { label: 'Anunciantes', href: '/operaciones/ads/anunciantes', icon: 'business' },
       { label: 'Campañas', href: '/operaciones/ads/campanas', icon: 'campaign' },
-      { label: 'Segmentos', href: '/operaciones/ads/segmentos', icon: 'groups' },
+      { label: 'Segmentos de audiencia', href: '/operaciones/ads/segmentos', icon: 'groups' },
       { label: 'Moderación', href: '/operaciones/ads/moderacion', icon: 'verified' },
       { label: 'Delivery y fraude', href: '/operaciones/ads/delivery-monitor', icon: 'radar' },
+      { label: 'Inventario y políticas', href: '/operaciones/ads/inventario', icon: 'space_dashboard' },
+      { label: 'Facturación', href: '/operaciones/ads/facturacion', icon: 'receipt_long' },
+      { label: 'Correo de campaña', href: '/operaciones/ads/correo', icon: 'forward_to_inbox' },
       { label: 'Carga masiva', href: '/operaciones/ads/bulk-anunciantes', icon: 'upload_file' },
     ],
   },
@@ -82,7 +95,7 @@ export const NAVIGATION: NavGroup[] = [
     label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control', items: [
       { label: 'Business Action Log', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
       { label: 'Notificaciones', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' },
-      { label: 'Usuarios', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
+      { label: 'Usuarios internos', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
       { label: 'Centro de comando', href: '/operaciones/admin/busqueda-global', icon: 'travel_explore' },
       { label: 'Mapa del sistema', href: '/operaciones/admin/mapa-sitio', icon: 'account_tree' },
       { label: 'Roles y permisos', href: '/operaciones/admin/roles', icon: 'admin_panel_settings' },

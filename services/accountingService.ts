@@ -114,6 +114,38 @@ export const accountingService = {
     const id = requireUuidPathParam(linkId, 'el UUID del vínculo');
     return apiRequest<ResourceRow>(`/accounting/gl-account-links/${id}`, { method: 'DELETE' });
   },
+  /**
+   * Vínculos de un ASIENTO. El asiento no se lista por sí solo: se llega a él por el documento que
+   * lo generó (`getDocument` devuelve `{ document, journal, lines }`).
+   */
+  listJournalLinks(journalEntryId: string) {
+    const id = requireUuidPathParam(journalEntryId, 'el UUID del asiento');
+    return apiRequest<ResourceRow[]>(`/accounting/journal-entries/${id}/links`);
+  },
+  createJournalLink(journalEntryId: string, body: JsonObject) {
+    const id = requireUuidPathParam(journalEntryId, 'el UUID del asiento');
+    return apiRequest<ResourceRow>(`/accounting/journal-entries/${id}/links`, { method: 'POST', body });
+  },
+  // ---- Condiciones de pago a proveedor ----
+  /** El vocabulario con su explicación: modalidades, bases de cómputo, medios, frecuencias. */
+  getSupplierPaymentTermsCatalog() {
+    return apiRequest<ResourceRow>('/accounting/supplier-payment-terms/catalog');
+  },
+  listSupplierPaymentTerms(query?: { legalEntityId?: string; supplierBpId?: string; status?: string }) {
+    return apiRequest<ResourceRow[]>('/accounting/supplier-payment-terms', query ? { query } : {});
+  },
+  createSupplierPaymentTerms(body: JsonObject) {
+    return apiRequest<ResourceRow>('/accounting/supplier-payment-terms', { method: 'POST', body });
+  },
+  updateSupplierPaymentTerms(termsId: string, body: JsonObject) {
+    const id = requireUuidPathParam(termsId, 'el UUID de la condición de pago');
+    return apiRequest<ResourceRow>(`/accounting/supplier-payment-terms/${id}`, { method: 'PATCH', body });
+  },
+  /** Qué vencimiento produce esta condición para una factura concreta. No escribe nada. */
+  simulateSupplierPaymentSchedule(termsId: string, body: JsonObject) {
+    const id = requireUuidPathParam(termsId, 'el UUID de la condición de pago');
+    return apiRequest<ResourceRow>(`/accounting/supplier-payment-terms/${id}/simulate`, { method: 'POST', body });
+  },
   listBusinessPartners(query: PageQuery) {
     return apiRequest<PaginatedResult<ResourceRow>>('/accounting/business-partners', {
       query: accountingQuery(query),
@@ -190,6 +222,8 @@ export const accountingService = {
     return apiRequest<ResourceRow>('/accounting/billing/ar-invoices', { method: 'POST', body });
   },
   listArInvoices() { return apiRequest<PaginatedResult<ResourceRow>>('/accounting/billing/ar-invoices'); },
+  /** Detalle con líneas, cliente y entidad emisora: lo que se imprime al descargar la factura. */
+  getArInvoice(id: string) { return apiRequest<ResourceRow>(`/accounting/billing/ar-invoices/${requireUuidPathParam(id, 'factura')}`); },
   updateArInvoice(id: string, body: JsonObject) { return apiRequest<ResourceRow>(`/accounting/billing/ar-invoices/${requireUuidPathParam(id, 'factura')}`, { method: 'PATCH', body }); },
   deleteArInvoice(id: string) { return apiRequest<ResourceRow>(`/accounting/billing/ar-invoices/${requireUuidPathParam(id, 'factura')}`, { method: 'DELETE' }); },
   createReceipt(body: JsonObject) {

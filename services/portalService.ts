@@ -70,6 +70,12 @@ export const portalService = {
     const id = optionalUuid(merchantAccountId, 'el UUID de la cuenta merchant');
     return apiRequest<ResourceRow>('/portal/billing', { query: { merchantAccountId: id } });
   },
+  /** Una factura del comercio con sus líneas, para descargarla desde el portal. */
+  getBillingInvoice(invoiceId: string, merchantAccountId?: string) {
+    const id = requireUuidPathParam(invoiceId, 'el UUID de la factura');
+    const account = optionalUuid(merchantAccountId, 'el UUID de la cuenta merchant');
+    return apiRequest<ResourceRow>(`/portal/billing/invoices/${id}`, { query: { merchantAccountId: account } });
+  },
   /*
    * Alta, edición y baja de sucursales por el propio comercio.
    *

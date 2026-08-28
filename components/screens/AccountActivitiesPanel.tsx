@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { ActionFormModal } from '@/components/screens/ActionFormModal';
 import { b2bService } from '@/services/b2bService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useOptions } from '@/hooks/useOptions';
@@ -43,6 +44,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
 
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+  const [reprogramando, setReprogramando] = useState<ResourceRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const setField = (key: keyof typeof emptyForm) => (value: string) => setForm((c) => ({ ...c, [key]: value }));
 
@@ -73,6 +75,20 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
     try { await b2bService.completeActivity(String(id)); await resource.reload(); }
     catch (err) { setError(err instanceof Error ? err.message : 'No se pudo completar.'); }
   }
+  /**
+   * Reprogramar una tarea.
+   *
+   * `PATCH /b2b/activities/:id` existía con su método en el servicio y el panel sólo sabía crear,
+   * completar y borrar: una tarea con fecha equivocada había que borrarla y volver a escribirla,
+   * perdiendo su historia. Se corrige lo que de verdad cambia —cuándo vence— y no el asunto: cambiar
+   * el asunto de una actividad ya registrada reescribe lo que se dijo que pasó.
+   */
+  async function reprogramar(activity: ResourceRow, payload: JsonObject) {
+    await b2bService.updateActivity(String(activity.id), { dueAt: new Date(String(payload.dueAt)).toISOString() });
+    setReprogramando(null);
+    await resource.reload();
+  }
+
   async function remove(id: unknown) {
     try { await b2bService.deleteActivity(String(id)); await resource.reload(); }
     catch (err) { setError(err instanceof Error ? err.message : 'No se pudo eliminar.'); }
@@ -115,6 +131,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
                     {isTask ? <span>· Vence {formatDate(typeof activity.dueAt === 'string' ? activity.dueAt : undefined)}</span> : null}
                     <span className="ml-auto flex gap-2">
                       {isTask && !done ? <button className="font-bold text-emerald-700 hover:underline" onClick={() => complete(activity.id)}>Completar</button> : null}
+                      {isTask && !done ? <button className="font-bold text-slate-600 hover:underline" onClick={() => setReprogramando(activity)}>Reprogramar</button> : null}
                       <button className="font-bold text-red-600 hover:underline" onClick={() => remove(activity.id)}>Eliminar</button>
                     </span>
                   </div>
@@ -129,6 +146,18 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
           <p className="mt-2 text-xs font-bold text-slate-700">Sin actividad registrada</p>
           <p className="mt-1 text-[11px] text-slate-500">Registre la primera nota, llamada o tarea de esta cuenta.</p>
         </div>
+      ) : null}
+      {reprogramando ? (
+        <ActionFormModal
+          open
+          icon="event_repeat"
+          title={`Reprogramar «${String(reprogramando.subject ?? '')}»`}
+          description="Se cambia sólo el vencimiento. El asunto y el detalle no se tocan: reescribirlos cambiaría lo que se dijo que pasó."
+          submitLabel="Reprogramar"
+          fields={[{ name: 'dueAt', label: 'Nuevo vencimiento', type: 'datetime', required: true, span: 2, defaultValue: typeof reprogramando.dueAt === 'string' ? reprogramando.dueAt.slice(0, 16) : '' }]}
+          onClose={() => setReprogramando(null)}
+          onSubmit={(payload) => reprogramar(reprogramando, payload)}
+        />
       ) : null}
     </Panel>
   );

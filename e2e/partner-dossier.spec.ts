@@ -57,46 +57,67 @@ test.describe('expediente del negocio', () => {
     // Con requisitos pendientes, enviar está apagado: la pantalla no ofrece lo que va a fallar.
     await expect(page.getByTestId('btn-enviar-revision')).toBeDisabled();
 
-    // --- Sucursal --------------------------------------------------------------------------
-    // El expediente se reorganizó en pestañas, así que cada paso empieza abriendo la suya.
     /*
-     * La sucursal ya no se escribe aquí: se ELIGE una de las que el comercio tiene dadas de alta en
-     * «Sucursales». El expediente dejó de ser un segundo sitio donde inventar locales.
+     * El hueco de la sucursal DICE DÓNDE se resuelve, y no es un adorno: el expediente ya no tiene
+     * un formulario de sucursales, así que un aviso que sólo dijera «falta registrar al menos una»
+     * dejaría al comercio buscándolo en esta pantalla.
      */
-    await page.getByTestId('tab-sucursales').click();
-    await page.getByTestId('campo-sucursal-erp').selectOption('erp-branch-1');
-    await page.getByTestId('campo-branchCode').fill('SC-01');
-    await page.getByTestId('btn-registrar-sucursal').click();
-    await expect(page.getByTestId('lista-sucursales')).toContainText('SC-01');
-    await expect(pendientes.locator('[data-requirement="branch"]')).toHaveCount(0);
+    await expect(pendientes.locator('[data-requirement="branch"]')).toContainText('Sucursales');
+
+    // --- Sucursal, en «Sucursales» y en ningún otro sitio -------------------------------------
+    /*
+     * Un local se da de alta UNA vez. El expediente no lo vuelve a pedir: se entera solo.
+     *
+     * Antes había dos altas para el mismo mostrador —la del ERP, donde se sitúa cada venta, y la
+     * del expediente, de donde cuelga el QR— y nada garantizaba que hablaran del mismo sitio. La
+     * prueba recorre los dos caminos que quedan: la sucursal que ya existía, que se enlaza con un
+     * botón, y la nueva, que se enlaza sola.
+     */
+    await page.goto('/portal-comercio/sucursales-usuarios');
+
+    // Ni rastro del desplegable de comercios: el negocio es el que inició sesión.
+    await expect(page.getByLabel('Negocio')).toHaveCount(0);
+
+    const vieja = 'b0000000-0000-4000-8000-00000000ee01';
+    await page.getByTestId(`ver-qr-${vieja}`).click();
+    await page.getByTestId(`habilitar-qr-${vieja}`).click();
 
     /*
-     * El puente viajó. Es LA afirmación de este paso: sin `erpBranchId` vuelven a existir dos listas
-     * de sucursales que nadie puede cruzar, y el QR de un mostrador podría acabar enseñándose en
-     * otro. Se comprueba sobre lo que el backend recibió, no sobre lo que la lista pinta.
+     * El puente viajó. Es LA afirmación de este paso: sin `erpBranchId` vuelven a existir dos
+     * listas de sucursales que nadie puede cruzar, y el QR de un mostrador podría acabar
+     * enseñándose en otro. Se comprueba sobre lo que el backend recibió, no sobre lo que se pinta.
      */
-    expect(backend.branches[0]?.erpBranchId).toBe('erp-branch-1');
-
-    // Y la que ya se declaró deja de ofrecerse: dos declaraciones del mismo local serían dos QR.
-    await expect(page.getByTestId('campo-sucursal-erp').locator('option[value="erp-branch-1"]')).toHaveCount(0);
-    await expect(page.getByTestId('campo-sucursal-erp').locator('option[value="erp-branch-2"]')).toHaveCount(1);
+    await expect.poll(() => backend.branches[0]?.erpBranchId).toBe(vieja);
+    await page.screenshot({ path: `${EVIDENCIA}/04-sucursal-enlazada.png`, fullPage: true });
 
     // --- Terminal POS, dentro de su sucursal -------------------------------------------------
     /*
-     * El terminal ya no se da de alta en una pestaña propia con un desplegable de sucursales: se
-     * abre la sucursal y se registra ahí. Por eso la prueba entra por la sucursal — si algún día
-     * volviera a existir un alta suelta, este recorrido dejaría de pasar, que es lo que se quiere.
+     * El terminal se da de alta DENTRO de su sucursal, sin desplegable que preguntar a cuál
+     * pertenece: la sucursal es el sitio donde estás. Si algún día volviera a existir un alta
+     * suelta, este recorrido dejaría de pasar, que es lo que se quiere.
      */
-    await page.getByTestId('tab-sucursales').click();
-    await page.getByTestId('sucursal-SC-01').click();
-    await page.getByTestId('campo-pos-serial-SC-01').fill('SN-00042');
-    await page.getByTestId('btn-registrar-pos-SC-01').click();
-    await expect(page.getByTestId('qr-sucursal-SC-01')).toContainText('SN-00042');
+    await page.getByTestId(`campo-pos-serial-${vieja}`).fill('SN-00042');
+    await page.getByTestId(`btn-registrar-pos-${vieja}`).click();
+    await expect(page.getByTestId(`qr-de-${vieja}`)).toContainText('SN-00042');
 
     // El terminal cuelga de la sucursal desde la que se dio de alta: sin esto, un cobro no se
     // puede situar en un local.
     expect(backend.posTerminals[0]?.branchId).toBe(backend.branches[0]?.branchId);
     await page.screenshot({ path: `${EVIDENCIA}/04-pos.png`, fullPage: true });
+
+    // --- La sucursal NUEVA se declara sola ----------------------------------------------------
+    await page.getByLabel('Nombre de sucursal').fill('Sucursal Norte');
+    await page.getByLabel('Ciudad').fill('Santa Cruz');
+    await page.getByRole('button', { name: 'Registrar sucursal' }).click();
+
+    /*
+     * Dos sucursales en el expediente sin que nadie haya rellenado un segundo formulario. Es el
+     * cambio entero en una aserción: dar de alta el local es lo único que hay que hacer para que
+     * pueda tener QR.
+     */
+    await expect.poll(() => backend.branches.length).toBe(2);
+    await expect.poll(() => backend.branches[1]?.erpBranchId).toBe(backend.erpBranches[1]?.id);
+    await expect.poll(() => backend.branches[1]?.name).toBe('Sucursal Norte');
 
     // --- Los dos QR, que ya NO viven en el expediente -----------------------------------------
     /*
@@ -155,27 +176,24 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('campo-contactEmail').fill('contacto@andina.test');
     await page.getByTestId('btn-abrir-expediente').click();
 
-    await page.getByTestId('tab-sucursales').click();
-    await page.getByTestId('campo-sucursal-erp').selectOption('erp-branch-1');
-    await page.getByTestId('campo-branchCode').fill('SC-01');
-    await page.getByTestId('btn-registrar-sucursal').click();
-    await expect(page.getByTestId('lista-sucursales')).toContainText('SC-01');
+    await page.goto('/portal-comercio/sucursales-usuarios');
+    const sucursal = 'b0000000-0000-4000-8000-00000000ee01';
+    await page.getByTestId(`ver-qr-${sucursal}`).click();
+    await page.getByTestId(`habilitar-qr-${sucursal}`).click();
 
-    await page.getByTestId('tab-sucursales').click();
-    await page.getByTestId('sucursal-SC-01').click();
-    await page.getByTestId('campo-pos-serial-SC-01').fill('SN-DUP');
-    await page.getByTestId('btn-registrar-pos-SC-01').click();
-    await expect(page.getByTestId('qr-sucursal-SC-01')).toContainText('SN-DUP');
+    await page.getByTestId(`campo-pos-serial-${sucursal}`).fill('SN-DUP');
+    await page.getByTestId(`btn-registrar-pos-${sucursal}`).click();
+    await expect(page.getByTestId(`qr-de-${sucursal}`)).toContainText('SN-DUP');
 
-    await page.getByTestId('campo-pos-serial-SC-01').fill('SN-DUP');
-    await page.getByTestId('btn-registrar-pos-SC-01').click();
+    await page.getByTestId(`campo-pos-serial-${sucursal}`).fill('SN-DUP');
+    await page.getByTestId(`btn-registrar-pos-${sucursal}`).click();
 
     /*
      * El mensaje del backend llega ENTERO hasta la pantalla, con la sucursal donde ya está ese
      * serial. Es el dato que convierte el rechazo en algo accionable, y el que se perdería si la
      * pasarela reescribiera el error con un texto propio.
      */
-    await expect(page.getByTestId('expediente-feedback')).toContainText('POS_SERIAL_ALREADY_REGISTERED');
+    await expect(page.getByTestId('sucursales-feedback')).toContainText('POS_SERIAL_ALREADY_REGISTERED');
     await page.screenshot({ path: `${EVIDENCIA}/06-serial-repetido.png`, fullPage: true });
   });
 });

@@ -21,8 +21,16 @@ const STAGES = [
   { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-red-500' },
 ];
 
-export function OpportunityKanbanScreen() {
-  const load = useCallback(() => b2bService.listOpportunities(), []);
+interface OpportunityKanbanScreenProps {
+  /** Dentro de una pestaña: sin cabecera de pantalla, que la pone la vista que lo contiene. */
+  embedded?: boolean | undefined;
+  /** Cambia para forzar una relectura desde fuera (tras un alta en otra pestaña). */
+  version?: number | undefined;
+}
+
+export function OpportunityKanbanScreen({ embedded = false, version = 0 }: OpportunityKanbanScreenProps = {}) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const load = useCallback(() => b2bService.listOpportunities(), [version]);
   const resource = useAsyncResource(load);
   const opportunities = useMemo(() => (resource.data ?? []) as ResourceRow[], [resource.data]);
   const [error, setError] = useState<string | null>(null);
@@ -71,12 +79,24 @@ export function OpportunityKanbanScreen() {
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader
-        breadcrumbs={[{ label: 'CRM' }, { label: 'Pipeline' }]}
-        title="Pipeline de oportunidades"
-        description="Tablero kanban del embudo comercial. Cambie la etapa de cada oportunidad desde su tarjeta."
-        actions={<AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>}
-      />
+      {embedded ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-900">Tablero del embudo</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Cambie la etapa de cada oportunidad desde su tarjeta.</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>
+          </div>
+        </div>
+      ) : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: 'CRM' }, { label: 'Pipeline' }]}
+          title="Pipeline de oportunidades"
+          description="Tablero kanban del embudo comercial. Cambie la etapa de cada oportunidad desde su tarjeta."
+          actions={<AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>}
+        />
+      )}
 
       {error ? <InlineNotice tone="danger" title="No se pudo actualizar">{error}</InlineNotice> : null}
       {resource.error && !opportunities.length ? <InlineNotice tone="warning" title="No se pudo cargar el pipeline">{resource.error}</InlineNotice> : null}

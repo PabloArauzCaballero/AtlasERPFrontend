@@ -32,10 +32,6 @@ export const adsService = {
   bulkCreateAdvertisers(body: JsonObject) {
     return apiRequest<ResourceRow>('/admin/ads/advertisers/bulk', { method: 'POST', body });
   },
-  getAdvertiser(advertiserId: string) {
-    const safeAdvertiserId = requireUuidPathParam(advertiserId, 'el UUID del anunciante');
-    return apiRequest<ResourceRow>(`/admin/ads/advertisers/${safeAdvertiserId}`);
-  },
   createBillingProfile(advertiserId: string, body: JsonObject) {
     const safeAdvertiserId = requireUuidPathParam(advertiserId, 'el UUID del anunciante');
     return apiRequest<ResourceRow>(`/admin/ads/advertisers/${safeAdvertiserId}/billing-profiles`, {
@@ -54,10 +50,6 @@ export const adsService = {
     return apiRequest<PaginatedResult<ResourceRow>>('/admin/ads/campaigns', {
       query: adsQuery(query, campaignQueryKeys),
     });
-  },
-  getCampaign(campaignId: string) {
-    const safeCampaignId = requireUuidPathParam(campaignId, 'el UUID de la campaña');
-    return apiRequest<ResourceRow>(`/admin/ads/campaigns/${safeCampaignId}`);
   },
   /**
    * Alta de la cadena publicitaria. Hasta ahora el portal sólo sabía listar campañas y cambiarles
@@ -170,13 +162,34 @@ export const adsService = {
       query: adsQuery(query, auditQueryKeys),
     });
   },
-  selectDelivery(body: JsonObject) {
-    return apiRequest<ResourceRow>('/ads/delivery/select', { method: 'POST', body });
+  // ---- Correo de campaña ----
+  /**
+   * Encola el envío. `X-Idempotency-Key` es OBLIGATORIO en el backend y es lo que hace que
+   * reintentar el mismo envío devuelva el seguimiento del primero en vez de duplicar los correos.
+   */
+  sendCampaignEmail(body: JsonObject, idempotencyKey: string) {
+    return apiRequest<ResourceRow>('/admin/ads/email/send', {
+      method: 'POST',
+      body,
+      headers: { 'x-idempotency-key': idempotencyKey },
+    });
   },
-  trackEvent(body: JsonObject) {
-    return apiRequest<ResourceRow>('/ads/events', { method: 'POST', body });
+  getEmailTracking(trackingId: string) {
+    const id = requireUuidPathParam(trackingId, 'el UUID del seguimiento de correo');
+    return apiRequest<ResourceRow>(`/admin/ads/email/tracking/${id}`);
   },
-  bulkTrackEvents(body: JsonObject) {
-    return apiRequest<ResourceRow>('/ads/events/bulk', { method: 'POST', body });
+  listEmailSuppressions() { return apiRequest<ResourceRow[]>('/admin/ads/email/suppressions'); },
+  suppressEmail(body: JsonObject) {
+    return apiRequest<ResourceRow>('/admin/ads/email/suppressions', { method: 'POST', body });
   },
+  /*
+   * Aquí estaban `selectDelivery`, `trackEvent` y `bulkTrackEvents`, y ninguna pantalla las
+   * llamaba. No es un hueco que rellenar: `/ads/delivery/select` y `/ads/events` son la API del AD
+   * SERVER —rol `ADS_AD_SERVER`, una credencial de servicio— y su llamante es el que sirve el
+   * anuncio, no la consola. Tenerlas en el servicio del portal insinuaba que faltaba una pantalla
+   * que no debe existir; los endpoints siguen en pie para quien integra.
+   *
+   * Y también `getAdvertiser` y `getCampaign`: traían UN registro que el listado ya devuelve
+   * entero. Vuelven el día que haya una ficha que los necesite.
+   */
 };

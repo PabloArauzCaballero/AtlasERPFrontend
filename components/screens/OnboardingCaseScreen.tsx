@@ -11,7 +11,6 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
-import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
 import { useOptions } from '@/hooks/useOptions';
 import type { Option } from '@/services/optionLoaders';
 import { loadB2BAccounts, loadChecklistItems, loadInternalUsers, loadOnboardingCases } from '@/services/optionLoaders';
@@ -20,7 +19,14 @@ import type { JsonObject } from '@/services/types';
 interface ChecklistDraft { id: string; itemType: string; description: string }
 const newChecklistItem = (id: string): ChecklistDraft => ({ id, itemType: 'LEGAL', description: '' });
 
-export function OnboardingCaseScreen() {
+interface OnboardingCaseScreenProps {
+  /** Dentro de una pestaña: sin cabecera de pantalla, que la pone la vista que lo contiene. */
+  embedded?: boolean | undefined;
+  /** Se llama tras crear el caso o mover un requisito: recarga la tabla de la misma vista. */
+  onDone?: (() => void | Promise<void>) | undefined;
+}
+
+export function OnboardingCaseScreen({ embedded = false, onDone }: OnboardingCaseScreenProps = {}) {
   const [items, setItems] = useState<ChecklistDraft[]>([newChecklistItem('item-0')]);
   const [caseId, setCaseId] = useState('');
   /*
@@ -59,18 +65,28 @@ export function OnboardingCaseScreen() {
     try {
       const result = await createMutation.execute({ accountId: String(form.get('accountId') ?? ''), ownerUserId: String(form.get('ownerUserId') ?? ''), checklistItems: items.map(({ itemType, description }) => ({ itemType, description })) });
       if (result.id) setCaseId(String(result.id));
+      await onDone?.();
     } catch { /* controlled */ }
   }
 
   async function updateChecklist(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    try { await checklistMutation.execute({ id: String(form.get('caseId') ?? ''), body: { checklistItemId: String(form.get('checklistItemId') ?? ''), status: String(form.get('status') ?? 'COMPLETED') } }); } catch { /* controlled */ }
+    try { await checklistMutation.execute({ id: String(form.get('caseId') ?? ''), body: { checklistItemId: String(form.get('checklistItemId') ?? ''), status: String(form.get('status') ?? 'COMPLETED') } }); await onDone?.(); } catch { /* controlled */ }
   }
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Onboarding' }]} title="Casos de onboarding" description="Coordine requisitos legales, operativos y técnicos antes de activar un comercio en ATLAS." actions={<><AtlasButton variant="secondary" icon="share">Exportar caso</AtlasButton><AtlasButton icon="send" type="submit" form="create-onboarding-form" loading={createMutation.isLoading}>Enviar revisión</AtlasButton></>} />
+      {embedded ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-900">Nuevo caso de onboarding</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Coordine requisitos legales, operativos y técnicos antes de activar un comercio en ATLAS.</p>
+          </div>
+        </div>
+      ) : (
+        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Onboarding' }]} title="Casos de onboarding" description="Coordine requisitos legales, operativos y técnicos antes de activar un comercio en ATLAS." actions={<><AtlasButton variant="secondary" icon="share">Exportar caso</AtlasButton><AtlasButton icon="send" type="submit" form="create-onboarding-form" loading={createMutation.isLoading}>Enviar revisión</AtlasButton></>} />
+      )}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Caso actual" value={caseId ? 'CREADO' : 'BORRADOR'} detail={caseId ? caseId.slice(0, 18) : 'Aún no persistido'} icon="fact_check" /><MetricCard label="Requisitos" value={items.length} detail="Configurados en el borrador" icon="checklist" tone="teal" /><MetricCard label="Legal" value={items.filter((item) => item.itemType === 'LEGAL').length} detail="Documentación y cumplimiento" icon="gavel" tone="purple" /><MetricCard label="Bloqueos" value="0" detail="Sujeto a validación backend" icon="block" tone="amber" /></div>
       {(createMutation.error || checklistMutation.error) ? <InlineNotice tone="danger">{createMutation.error ?? checklistMutation.error}</InlineNotice> : null}
       {(createMutation.status === 'success' || checklistMutation.status === 'success') ? <InlineNotice tone="success">La operación de onboarding fue registrada correctamente.</InlineNotice> : null}
@@ -82,9 +98,6 @@ export function OnboardingCaseScreen() {
             <div className="space-y-2">{items.map((item, index) => <div key={item.id} className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 md:grid-cols-[160px_minmax(0,1fr)_36px]"><select className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs" value={item.itemType} onChange={(event) => updateItem(item.id, 'itemType', event.target.value)}><option>LEGAL</option><option>OPERATIONS</option><option>TECHNICAL</option><option>FINANCE</option></select><input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito ${index + 1}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} /><button type="button" disabled={items.length === 1} className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50 disabled:opacity-30" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))}><Icon name="delete" className="text-[18px]" /></button></div>)}</div>
           </Panel>
           <div className="flex justify-end"><AtlasButton icon="send" type="submit" form="create-onboarding-form" loading={createMutation.isLoading}>Crear caso de onboarding</AtlasButton></div>
-          {/* La comisión se pacta en el alta: activar sin haberla acordado deja la primera venta
-              cobrando lo que hubiera por defecto, y esa conversación ya no se puede tener después. */}
-          <MdrRulesPanel />
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-20">

@@ -155,9 +155,12 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   const resumen = page.locator('[data-tutorial-id="cartera-resumen"]');
   await expect(resumen.getByText(/por cobrar/i)).toBeVisible();
   await expect(resumen.getByText(/vencido/i).first()).toBeVisible();
-  await expect(resumen.getByText(/cobrado/i)).toBeVisible();
-  // La cuarta tarjeta pasó a ser la comisión: es la cifra que el comercio pregunta más.
-  await expect(resumen.getByText(/debe a atlas/i)).toBeVisible();
+  // `.first()` como en «vencido»: el detalle bajo la cifra repite la palabra, y el modo estricto
+  // de Playwright convierte esa repetición en un fallo que no habla de la pantalla.
+  await expect(resumen.getByText(/cobrado/i).first()).toBeVisible();
+  // La cuarta tarjeta pasó a ser la comisión: es la cifra que el comercio pregunta más. El rótulo
+  // que pinta la pantalla es «Comisión a Atlas»; la prueba se había quedado con uno anterior.
+  await expect(resumen.getByText(/comisión a atlas/i)).toBeVisible();
   await sinErrores(page, 'cartera · panel');
   await page.screenshot({ path: `${EVIDENCIA}/01-panel.png`, fullPage: true });
 
@@ -176,13 +179,33 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   // Comision: cuanto se le cobra por venta y cuanto le debe a Atlas.
   await page.getByRole('button', { name: /^comisión$/i }).click();
   await expect(page.locator('[data-tutorial-id="cartera-comision"]')).toBeVisible();
-  await expect(page.getByText(/debe a atlas/i).first()).toBeVisible();
-  await expect(page.getByText(/de dónde sale este porcentaje/i)).toBeVisible();
+  await expect(page.getByText(/comisión a atlas/i).first()).toBeVisible();
+  // El aviso que explica que la comisión se devenga al cobrar, no al vender. Se llamaba «De dónde
+  // sale este porcentaje» y hoy es «Cómo se cobra»: la prueba se había quedado con el rótulo viejo.
+  await expect(page.getByText(/cómo se cobra/i)).toBeVisible();
   await sinErrores(page, 'cartera · comisión');
   await page.screenshot({ path: `${EVIDENCIA}/09-comision.png`, fullPage: true });
 
   // La cartera no revela a quién se le debe.
   await expect(page.getByText(/por qué no ve nombres/i)).toBeVisible();
+});
+
+/*
+ * El negocio es el que inició sesión.
+ *
+ * Esta afirmación se recorre pantalla por pantalla porque el fallo se repartía por varias: cuatro
+ * de ellas leían `requiresAccountSelection`, que el backend también levanta para el staff interno,
+ * así que al comercio le pintaban un desplegable con TODOS los comercios de la plataforma —y en
+ * local, donde el bypass de auth convertía en ADMIN a todo el que entraba, salía siempre—.
+ */
+test('ninguna pestaña del portal pregunta de qué comercio se trata', async ({ page }) => {
+  for (const ruta of ['/portal-comercio/planes', '/portal-comercio/facturacion', '/portal-comercio/campanas', '/portal-comercio/sucursales-usuarios', '/portal-comercio/expediente']) {
+    await page.goto(ruta);
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText(/seleccione un comercio|elija un comercio/i), `selector de comercio en ${ruta}`).toHaveCount(0);
+    await expect(page.getByLabel('Comercio a consultar'), `selector de comercio en ${ruta}`).toHaveCount(0);
+    await sinErrores(page, ruta);
+  }
 });
 
 test('ninguna pantalla del portal pide escribir un UUID', async ({ page }) => {

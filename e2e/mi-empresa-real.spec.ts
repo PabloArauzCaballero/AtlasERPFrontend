@@ -70,48 +70,39 @@ test('el rubro es un catálogo y muestra el que el comercio tiene guardado', asy
   await expect(rubro).toHaveValue('EDUCACION');
 });
 
-test('al abrir la sucursal aparece su QR y el QR lleva el serial del terminal', async ({ page }) => {
+test('Mi empresa ya no tiene una segunda lista de sucursales', async ({ page }) => {
   await page.goto('/portal-comercio/expediente');
+  await expect(page.getByRole('heading', { name: /Centro de Preparacion Academica CPA/i })).toBeVisible({ timeout: 30_000 });
 
-  await page.getByTestId('tab-sucursales').click();
-  const sucursal = page.getByTestId('sucursal-CPA-CENTRAL');
-  await expect(sucursal).toBeVisible({ timeout: 30_000 });
-  await sucursal.click();
+  /*
+   * El expediente llegó a tener su propia alta de sucursales, y con ella dos altas para el mismo
+   * mostrador: la del ERP —donde se sitúa cada venta— y la del expediente —de donde cuelga el QR—.
+   * Un local se da de alta UNA vez, en «Sucursales»; aquí ya no se pide ni se declara.
+   */
+  await expect(page.getByTestId('tab-sucursales')).toHaveCount(0);
+  await expect(page.getByTestId('btn-registrar-sucursal')).toHaveCount(0);
+  await sinErrores(page, 'mi empresa sin pestaña de sucursales');
+});
 
-  const panel = page.getByTestId('qr-sucursal-CPA-CENTRAL');
-  await expect(panel).toBeVisible();
+test('al abrir la sucursal aparece su QR y el QR lleva el serial del terminal', async ({ page }) => {
+  await page.goto('/portal-comercio/sucursales-usuarios');
+  await expect(page.getByRole('heading', { name: /sucursales del comercio/i })).toBeVisible({ timeout: 30_000 });
 
-  const qr = panel.getByTestId('qr-terminal').first();
-  await expect(qr).toBeVisible();
+  // El negocio es el que inició sesión: aquí no hay ningún desplegable de comercios que elegir.
+  await expect(page.getByLabel('Negocio')).toHaveCount(0);
+
+  const abrir = page.getByRole('button', { name: /cajas y qr/i }).first();
+  await expect(abrir).toBeVisible({ timeout: 30_000 });
+  await abrir.click();
+
+  const qr = page.getByTestId('qr-terminal').first();
+  await expect(qr).toBeVisible({ timeout: 20_000 });
   // Lo que el componente dice llevar dentro. La comprobación de que se LEE va en la captura.
   await expect(qr).toHaveAttribute('data-qr-value', SERIAL_ESPERADO);
-  await expect(panel.getByText(SERIAL_ESPERADO)).toBeVisible();
+  await expect(page.getByText(SERIAL_ESPERADO).first()).toBeVisible();
 
   await sinErrores(page, 'qr de sucursal');
   // Captura recortada al QR: es la que se pasa por el lector para probar que escanea.
   await qr.screenshot({ path: `${EVIDENCIA}/qr-sucursal-cpa.png` });
-  await page.screenshot({ path: `${EVIDENCIA}/mi-empresa-qr-sucursal.png`, fullPage: true });
-});
-
-test('Sucursales enseña el QR sin adivinar de qué local es', async ({ page }) => {
-  await page.goto('/portal-comercio/sucursales-usuarios');
-  await expect(page.getByRole('heading', { name: /sucursales del comercio/i })).toBeVisible({ timeout: 30_000 });
-
-  const verQr = page.getByRole('button', { name: /ver qr/i }).first();
-  if ((await verQr.count()) === 0) {
-    // Sin sucursales en el ERP no hay nada que enlazar; la pantalla no debe romperse por ello.
-    await sinErrores(page, 'sucursales sin filas');
-    return;
-  }
-  await verQr.click();
-  /*
-   * Dos desenlaces legítimos: hay QR porque la sucursal está enlazada al expediente, o se explica
-   * que no lo está. Lo que NO puede pasar es que enseñe un QR cualquiera: la prueba acepta el
-   * mensaje, no un cuadro sin procedencia.
-   */
-  await expect(
-    page.getByTestId('qr-terminal').first().or(page.getByText(/no está enlazada|todavía no tiene ninguna caja/i).first()),
-  ).toBeVisible({ timeout: 20_000 });
-  await sinErrores(page, 'sucursales con qr');
   await page.screenshot({ path: `${EVIDENCIA}/sucursales-qr.png`, fullPage: true });
 });
