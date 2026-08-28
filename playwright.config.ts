@@ -32,4 +32,43 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
+  /*
+   * Los proyectos existen por el ancho, no por el navegador.
+   *
+   * Antes no había `projects` y todo corría en un único Desktop Chrome: de los nueve anchos que
+   * hay que validar se probaban cero, con un portal del comercio que se usa desde el teléfono.
+   *
+   * Las baterías `*-real` NO se duplican por ancho a propósito: son lentas, necesitan dos backends
+   * y lo que comprueban (que el dato llegue) no cambia con el ancho. Sólo `layout-responsive` se
+   * repite en 320, 768 y 1440, que es donde el ancho SÍ es la variable bajo prueba. Y WebKit corre
+   * únicamente esa misma batería: es el motor que más difiere en maquetación, y es ahí donde su
+   * señal es útil sin multiplicar por dos toda la suite.
+   */
+  projects: [
+    {
+      name: 'chromium',
+      testIgnore: /layout-responsive\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'layout-320',
+      testMatch: /layout-responsive\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 320, height: 720 } },
+    },
+    {
+      name: 'layout-768',
+      testMatch: /layout-responsive\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 768, height: 1024 } },
+    },
+    {
+      name: 'layout-1440',
+      testMatch: /layout-responsive\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: 'layout-webkit-390',
+      testMatch: /layout-responsive\.spec\.ts$/,
+      use: { ...devices['Desktop Safari'], viewport: { width: 390, height: 844 } },
+    },
+  ],
 });

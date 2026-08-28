@@ -13,6 +13,30 @@ export interface ApiRequestOptions {
   headers?: Record<string, string>;
 }
 
+/**
+ * El error que lanza este cliente, con el `status` intacto.
+ *
+ * Antes lanzaba un `Error` pelado: el texto SÍ distinguía 401 de 403 de un timeout, pero llegaba a
+ * la pantalla como una cadena, y una cadena no se puede ramificar. El resultado era que las 70
+ * pantallas del portal pintaban el mismo aviso rojo —«No se pudo cargar la información»— para «no
+ * tienes permiso», «se te caducó la sesión» y «el servidor no contestó», que son tres situaciones
+ * con tres salidas distintas: pedir el rol, volver a entrar, o reintentar.
+ *
+ * `status` es `0` cuando la petición no llegó a tener respuesta (red caída o abortada por timeout);
+ * `timedOut` separa ese caso del corte de red, porque el reintento tiene sentido en los dos pero el
+ * mensaje no es el mismo.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly timedOut = false,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 interface ApiEnvelope<T> {
   success?: boolean;
   data?: T;
@@ -172,7 +196,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await readPayload<T>(response);
 
   if (!response.ok) {
-    throw new Error(extractErrorMessage(response, payload));
+    throw new ApiError(extractErrorMessage(response, payload), response.status);
   }
 
   if (isApiEnvelope<T>(payload) && payload.success === true) return payload.data as T;
@@ -210,9 +234,14 @@ async function performFetch(path: string, options: ApiRequestOptions): Promise<R
     return await fetch(buildUrl(path, options.query), requestInit);
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('Tiempo de espera agotado al contactar el backend.');
+      throw new ApiError('Tiempo de espera agotado al contactar el backend.', 0, true);
     }
-    throw error;
+    // Un fallo de red (servidor caído, DNS, CORS) tampoco tiene respuesta: se normaliza al mismo
+    // tipo para que la pantalla no tenga que distinguir `TypeError` de `ApiError` para decidir.
+    throw new ApiError(
+      error instanceof Error ? error.message : 'No se pudo contactar el backend.',
+      0,
+    );
   } finally {
     clearTimeout(timeout);
   }
@@ -311,7 +340,7 @@ export async function apiFileDownload(
 
   if (!response.ok) {
     const payload = await readPayload<unknown>(response);
-    throw new Error(extractErrorMessage(response, payload));
+    throw new ApiError(extractErrorMessage(response, payload), response.status);
   }
 
   return {
@@ -353,7 +382,7 @@ export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}):
   if (!response.ok) {
     // El cuerpo del error SÍ es JSON aunque lo pedido sean bytes: se lee para conservar el motivo.
     const payload = await readPayload<unknown>(response);
-    throw new Error(extractErrorMessage(response, payload));
+    throw new ApiError(extractErrorMessage(response, payload), response.status);
   }
 
   return URL.createObjectURL(await response.blob());

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { isFailureStatus, useAsyncResource } from '@/hooks/useAsyncResource';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import type { PageQuery, PaginatedResult, ResourceRow } from '@/services/types';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
@@ -12,11 +12,15 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { formatBob, formatDate, maskPii } from '@/lib/formatters';
+import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { downloadCsv } from '@/lib/csv';
 import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { toast } from '@/lib/toast';
+import { ActionFormModal } from './ActionFormModal';
+import type { ActionField } from './StructuredActionForm';
+import type { JsonObject } from '@/services/types';
+import { ScreenState } from '@/components/ui/ScreenState';
 
 export interface DirectoryColumn {
   key: string;
@@ -50,6 +54,20 @@ export interface RowAction {
   tone?: 'default' | 'danger';
   /** Si se define, pide confirmación en un modal antes de ejecutar `onClick`. */
   confirm?: { title: string; message: string; confirmLabel?: string; tone?: 'danger' | 'primary'; successMessage?: string };
+  /**
+   * Operación que necesita datos: abre un modal sobre la fila en vez de mandar a otra pestaña.
+   *
+   * Es el mismo gesto que el lápiz de `CrudDirectory`; aquí sirve para lo que el backend expone
+   * como una transición y no como una edición (cambiar el estado de una campaña, por ejemplo).
+   */
+  form?: {
+    title?: ((row: ResourceRow) => string) | undefined;
+    description?: string | undefined;
+    fields: ActionField[] | ((row: ResourceRow) => ActionField[]);
+    submit: (row: ResourceRow, payload: JsonObject) => Promise<unknown>;
+    submitLabel?: string | undefined;
+    icon?: string | undefined;
+  } | undefined;
 }
 
 interface LiveDirectoryScreenProps {
@@ -61,6 +79,21 @@ interface LiveDirectoryScreenProps {
   metrics: MetricDefinition[];
   createHref?: string;
   createLabel?: string;
+  /** Alternativa a `createHref` cuando el alta vive en otra pestaña de la misma vista. */
+  createOnClick?: (() => void) | undefined;
+  /** Alta en un modal sobre la propia tabla: la forma estándar del ERP. */
+  create?: {
+    title?: string | undefined;
+    description?: string | undefined;
+    fields: ActionField[];
+    submit: (payload: JsonObject) => Promise<unknown>;
+    icon?: string | undefined;
+  } | undefined;
+  /**
+   * Sin cabecera de pantalla: para cuando este directorio es una pestaña dentro de una vista que
+   * ya pone su propio `WorkspaceHeader`, y repetir el título y las migas de pan sobraría.
+   */
+  embedded?: boolean | undefined;
   searchPlaceholder?: string;
   /** Filtro simple por estado. Se combina con `filters` (equivale a un filtro de key `status`). */
   statusOptions?: Array<{ label: string; value: string }>;
@@ -90,12 +123,7 @@ function renderCell(row: ResourceRow, column: DirectoryColumn) {
   const raw = row[column.key];
   if (column.kind === 'status') {
     const text = String(raw ?? 'SIN ESTADO');
-    const normalized = text.toUpperCase();
-    const tone = normalized.includes('ACTIVE') || normalized.includes('APPROV') || normalized.includes('SUCCESS')
-      ? 'success' : normalized.includes('PEND') || normalized.includes('REVIEW') || normalized.includes('DRAFT')
-        ? 'warning' : normalized.includes('REJECT') || normalized.includes('BLOCK') || normalized.includes('FAIL')
-          ? 'danger' : 'neutral';
-    return <StatusPill tone={tone}>{text.replaceAll('_', ' ')}</StatusPill>;
+    return <StatusPill tone={statusTone(text)}>{text.replaceAll('_', ' ')}</StatusPill>;
   }
   if (column.kind === 'money') return formatBob(Number(raw ?? 0));
   if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);
@@ -221,6 +249,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
 
   const [pending, setPending] = useState<{ action: RowAction; row: ResourceRow } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [rowForm, setRowForm] = useState<{ action: RowAction; row: ResourceRow } | null>(null);
 
   const runAction = useCallback(async (action: RowAction, row: ResourceRow) => {
     try {
@@ -233,20 +263,40 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
     }
   }, [resource]);
 
+  const crear = props.create
+    ? <AtlasButton icon="add" data-tutorial-id="directory-create" data-testid="directorio-crear" onClick={() => setCreating(true)}>{props.createLabel ?? 'Crear registro'}</AtlasButton>
+    : props.createOnClick
+    ? <AtlasButton icon="add" data-tutorial-id="directory-create" onClick={props.createOnClick}>{props.createLabel ?? 'Crear registro'}</AtlasButton>
+    : props.createHref
+      ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link>
+      : null;
+
+  const barraAcciones = (
+    <>
+      <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="directorio-pdf" loading={generandoPdf} disabled={!rows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
+      <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>CSV</AtlasButton>
+      {crear}
+    </>
+  );
+
   return (
     <div className="space-y-5" aria-busy={loading}>
-      <WorkspaceHeader
-        breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}
-        title={props.title}
-        description={props.description}
-        actions={
-          <>
-            <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="directorio-pdf" loading={generandoPdf} disabled={!rows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
-            <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>CSV</AtlasButton>
-            {props.createHref ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link> : null}
-          </>
-        }
-      />
+      {props.embedded ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-900">{props.title}</h2>
+            <p className="mt-0.5 text-xs text-slate-500">{props.description}</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">{barraAcciones}</div>
+        </div>
+      ) : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}
+          title={props.title}
+          description={props.description}
+          actions={barraAcciones}
+        />
+      )}
 
       <div data-tutorial-id="directory-metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {props.metrics.slice(0, 4).map((metric) => <MetricCard key={metric.label} {...metric} value={metric.value(rows, total)} />)}
@@ -276,7 +326,18 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         </div>
       </Panel>
 
-      {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar la información">{resource.error}</InlineNotice> : null}
+      {/*
+        * El fallo se delega a `ScreenState`, que distingue permiso / sesión / red / rotura.
+        *
+        * Antes esto era un `InlineNotice` rojo único para los cuatro casos: un 403 y un timeout se
+        * leían igual y ofrecían lo mismo (nada). `ScreenState` ya sabe pintar cada uno con su
+        * salida —pedir el rol, volver a entrar, reintentar—, así que basta con dejarle el estado.
+        * La condición `!rows.length` se conserva: si la recarga falla pero la tabla YA tiene datos,
+        * taparla con un cartel esconde información que sigue siendo válida.
+        */}
+      {isFailureStatus(resource.status) && !rows.length ? (
+        <ScreenState status={resource.status} error={resource.error} onRetry={resource.reload} hasData={false} />
+      ) : null}
       {errorPdf ? <InlineNotice tone="danger" title="No se pudo generar el PDF">{errorPdf}</InlineNotice> : null}
 
       <section data-tutorial-id="resource-table" className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -302,7 +363,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                               const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold ${toneClass}`;
                               return action.href
                                 ? <Link key={action.key} className={className} href={action.href}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
-                                : <button key={action.key} type="button" className={className} onClick={() => { if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
+                                : <button key={action.key} type="button" className={className} onClick={() => { if (action.form) setRowForm({ action, row }); else if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
                             })}
                           </div>
                         ) : href ? (
@@ -326,6 +387,43 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <span>Página <b>{page}</b> · {rows.length} visibles · <b>{total}</b> registros</span>
         <div className="flex gap-2"><AtlasButton variant="secondary" disabled={page <= 1 || loading} onClick={() => setQuery((current) => ({ ...current, page: page - 1 }))}>Anterior</AtlasButton><AtlasButton variant="secondary" disabled={page * pageSize >= total || loading} onClick={() => setQuery((current) => ({ ...current, page: page + 1 }))}>Siguiente</AtlasButton></div>
       </div>
+
+      {props.create ? (
+        <ActionFormModal
+          open={creating}
+          icon={props.create.icon ?? 'add'}
+          title={props.create.title ?? props.createLabel ?? 'Crear registro'}
+          description={props.create.description}
+          fields={props.create.fields}
+          submitLabel={props.createLabel ?? 'Crear'}
+          onClose={() => setCreating(false)}
+          onSubmit={async (payload) => {
+            await props.create!.submit(payload);
+            setCreating(false);
+            toast.success('Registro creado', 'El nuevo registro ya aparece en la tabla.');
+            await resource.reload();
+          }}
+        />
+      ) : null}
+
+      {rowForm?.action.form ? (
+        <ActionFormModal
+          open
+          icon={rowForm.action.form.icon ?? rowForm.action.icon ?? 'edit'}
+          title={rowForm.action.form.title ? rowForm.action.form.title(rowForm.row) : rowForm.action.label}
+          description={rowForm.action.form.description}
+          fields={typeof rowForm.action.form.fields === 'function' ? rowForm.action.form.fields(rowForm.row) : rowForm.action.form.fields}
+          submitLabel={rowForm.action.form.submitLabel ?? rowForm.action.label}
+          onClose={() => setRowForm(null)}
+          onSubmit={async (payload) => {
+            const { action, row } = rowForm;
+            await action.form!.submit(row, payload);
+            setRowForm(null);
+            toast.success('Operación registrada', `${action.label} se completó correctamente.`);
+            await resource.reload();
+          }}
+        />
+      ) : null}
 
       {pending ? (
         <ConfirmDialog

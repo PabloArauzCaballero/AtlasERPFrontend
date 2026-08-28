@@ -1,0 +1,48 @@
+# Integración continua del portal del ERP (ATL-009).
+#
+# 70 pantallas y ninguna comprobación al fusionar. Las baterías `*-real` de Playwright necesitan
+# dos backends y una sesión, así que NO se corren aquí: se quedarían amarillas por saltarse y
+# enseñarían a ignorar el informe. Aquí va lo que se puede afirmar sin stack.
+#
+# El `build` NO es redundante con el `type-check`: `next build` resuelve los imports de las 70
+# páginas y de los 90 componentes compartidos, así que atrapa el módulo que se renombró y nadie
+# actualizó —que es el fallo más común en este repositorio— y que `tsc --noEmit` sí deja pasar
+# cuando el path se resuelve por alias.
+#
+# PENDIENTE (ATL-009): este repositorio no tiene runner de pruebas unitarias. Cuando se instale
+# Vitest + Testing Library, su paso va aquí, antes del build.
+name: CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: Tipos, lint y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Instalar dependencias
+        run: yarn install --frozen-lockfile
+
+      - name: Tipos
+        run: yarn type-check
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
