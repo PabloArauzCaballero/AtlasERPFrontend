@@ -27,6 +27,10 @@ const links = [
   /* La ficha del negocio y el QR que se imprime: existia la pantalla, pero no habia como llegar. */
   { href: '/portal-comercio/expediente', label: 'Mi empresa', icon: 'badge' },
   { href: '/portal-comercio/tutoriales', label: 'Centro de Tutoriales', icon: 'school' },
+  /* Hablar con Atlas. Va al final y no arriba a proposito: no es trabajo diario del comercio, pero
+     tiene que estar SIEMPRE a la vista — un soporte que hay que buscar termina siendo un WhatsApp
+     personal a alguien de Atlas, donde nada queda registrado ni medido. */
+  { href: '/portal-comercio/soporte', label: 'Soporte', icon: 'support_agent' },
 ];
 
 function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNavigate?: () => void }) {
