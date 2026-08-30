@@ -91,7 +91,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
           icon="badge"
           description="El número con el que tu empresa está inscrita en el registro de comercio. Es lo único del alta que se puede completar después."
         >
-          <form className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" onSubmit={guardarMatricula}>
+          <form className="grid gap-3 grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" onSubmit={guardarMatricula}>
             <FormField
               label="Número de matrícula"
               name="commercialRegistry"
@@ -116,7 +116,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
               : 'Ya declaraste al representante, pero falta el poder que lo acredita: declararlo no es acreditarlo.'
           }
         >
-          <form className="grid gap-3 md:grid-cols-2" onSubmit={guardarRepresentante}>
+          <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={guardarRepresentante}>
             <FormField
               label="Nombre completo"
               name="fullName"

@@ -298,7 +298,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         />
       )}
 
-      <div data-tutorial-id="directory-metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div data-tutorial-id="directory-metrics" className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         {props.metrics.slice(0, 4).map((metric) => <MetricCard key={metric.label} {...metric} value={metric.value(rows, total)} />)}
       </div>
 

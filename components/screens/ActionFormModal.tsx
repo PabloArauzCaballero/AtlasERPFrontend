@@ -89,7 +89,7 @@ export function ActionFormModal(props: ActionFormModalProps) {
   return (
     <Modal open={open} title={props.title} description={props.description} icon={props.icon} onClose={props.onClose}>
       <form key={formKey} onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
           {fields.map((field, index) => {
             const preset = row ? valueOf(row, field.name) : undefined;
             return (

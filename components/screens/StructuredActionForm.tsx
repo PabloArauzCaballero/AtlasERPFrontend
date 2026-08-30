@@ -138,7 +138,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
         {props.sections.map((section, index) => (
           <div key={section.title} className={`p-5 ${tabbed && index !== activeTab ? 'hidden' : ''}`}>
             {section.description ? <p className="mb-4 text-xs text-slate-500">{section.description}</p> : null}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
               {(() => {
                 const clases = fieldSpanClasses(section.fields.map((field) => field.span), { breakpoint: 'md' });
                 return section.fields.map((field, fieldIndex) => (

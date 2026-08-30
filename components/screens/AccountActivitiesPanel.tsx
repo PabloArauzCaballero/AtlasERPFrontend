@@ -99,7 +99,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
   return (
     <Panel title="Actividad y tareas" description="Notas, llamadas, reuniones y tareas/recordatorios de la cuenta (timeline)." icon="history_edu">
       <div className="mb-4 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
           <FormField kind="select" label="Tipo" name="activityType" value={form.activityType} onChange={(e) => setField('activityType')(e.target.value)} options={activityTypeOptions} />
           <FormField label="Vencimiento (para tareas)" name="dueAt" type="datetime-local" value={form.dueAt} onChange={(e) => setField('dueAt')(e.target.value)} />
         </div>

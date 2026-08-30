@@ -105,7 +105,7 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
 
       {requestedId && !resource.error ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Código" value={<span className="font-mono">{partnerNo}</span>} detail="Inmutable" icon="tag" />
             <MetricCard label="Tipo" value={String(partner.partnerType ?? '—')} detail="Naturaleza del partner" icon="handshake" tone="teal" />
             <MetricCard label="KYB" value={<StatusPill tone={kybTone(String(partner.kybStatus))}>{String(partner.kybStatus ?? '—')}</StatusPill>} detail="Cumplimiento" icon="policy" tone="amber" />
@@ -118,7 +118,7 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
           <Panel title="Edición de partner" description="El código y el tipo de partner son inmutables. El NIT se muestra enmascarado pero se edita en claro." icon="edit">
             {form ? (
               <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                   <FormField label="Razón social" name="legalName" value={form.legalName} onChange={(e) => setForm({ ...form, legalName: e.target.value })} className="md:col-span-2" />
                   <FormField label="Nombre comercial" name="tradeName" value={form.tradeName} onChange={(e) => setForm({ ...form, tradeName: e.target.value })} />
                   <FormField label="NIT / documento" name="taxId" value={form.taxId} onChange={(e) => setForm({ ...form, taxId: e.target.value })} />
@@ -137,7 +137,7 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
           </Panel>
 
           <Panel title="Identidad" icon="badge">
-            <dl className="grid gap-x-6 gap-y-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="grid gap-x-6 gap-y-4 text-xs grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <Detail label="Razón social" value={partner.legalName} />
               <Detail label="Nombre comercial" value={partner.tradeName} />
               <Detail label="NIT" value={maskPii(partner.taxId, 'taxId')} mono />

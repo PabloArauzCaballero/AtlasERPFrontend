@@ -112,7 +112,7 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
 
       {requestedId && !resource.error ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Número de cuenta" value={<span className="font-mono">{accountNo}</span>} detail="Inmutable" icon="tag" />
             <MetricCard label="Clasificación" value={String(account.accountType ?? '—')} detail="Tipo contable" icon="account_tree" tone="teal" />
             <MetricCard label="Naturaleza" value={account.normalBalance === 'D' ? 'Débito' : account.normalBalance === 'C' ? 'Crédito' : '—'} detail="Saldo normal" icon="swap_vert" tone="amber" />
@@ -125,7 +125,7 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
           <Panel title="Edición de cuenta" description="Los identificadores contables (número, COA, tipo y naturaleza) son inmutables para no afectar partidas ya registradas." icon="edit">
             {form ? (
               <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                   <FormField label="Nombre" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="md:col-span-2" />
                   <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={recordStatusOptions} />
                   {flagFields.map((flag) => (
@@ -143,7 +143,7 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
           </Panel>
 
           <Panel title="Datos de referencia" icon="account_tree">
-            <dl className="grid gap-x-6 gap-y-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="grid gap-x-6 gap-y-4 text-xs grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <Detail label="COA" value={account.coaId} mono />
               <Detail label="Cuenta padre" value={account.parentAccountId} mono />
               <Detail label="Grupo de cuenta" value={account.accountGroupId} mono />

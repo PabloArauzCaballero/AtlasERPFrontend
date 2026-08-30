@@ -74,7 +74,7 @@ export default function AdsBillingPage() {
 
       {facturas.length ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
             <MetricCard label="Facturas emitidas" value={facturas.length} detail="En este cierre" icon="receipt_long" />
             <MetricCard label="Total facturado" value={formatMicrosAsBob(totalMicros)} detail="Suma del cierre" icon="payments" tone="teal" />
             <MetricCard label="Anunciantes" value={new Set(facturas.map((item) => item.advertiserId)).size} detail="Con consumo en el rango" icon="business" tone="purple" />

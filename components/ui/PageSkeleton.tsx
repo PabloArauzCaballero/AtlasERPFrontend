@@ -14,7 +14,7 @@ export function PageSkeleton() {
       </div>
       <Card className="space-y-4">
         <InlineLoading text="Preparando vista" />
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
           <SkeletonBlock className="h-24" />
           <SkeletonBlock className="h-24" />
           <SkeletonBlock className="h-24" />

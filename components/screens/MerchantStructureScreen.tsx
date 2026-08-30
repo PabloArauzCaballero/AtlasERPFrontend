@@ -299,7 +299,7 @@ export function MerchantStructureScreen() {
 
       <form onSubmit={submitBranch}>
         <Panel title="Agregar sucursal" description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte." icon="add_location">
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
             <FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
             <FormField label="Ciudad" name="city" placeholder="Santa Cruz de la Sierra" />
             <FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
@@ -315,7 +315,7 @@ export function MerchantStructureScreen() {
       {editando ? (
         <form onSubmit={guardarEdicion}>
           <Panel title={`Editar ${String(editando.name ?? 'sucursal')}`} description="La sucursal no cambia de negocio: eso movería sus ventas de cuenta." icon="edit_location">
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
               <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
               <FormField label="Ciudad" name="city" required defaultValue={String(editando.city ?? '')} />
               <FormField label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
@@ -467,7 +467,7 @@ export function MerchantStructureScreen() {
                               * rellenar.
                               */}
                             <form
-                              className="grid gap-2 border-t border-slate-200 pt-3 md:grid-cols-3"
+                              className="grid gap-2 border-t border-slate-200 pt-3 grid-cols-1 md:grid-cols-3"
                               onSubmit={(event) => {
                                 event.preventDefault();
                                 const form = event.currentTarget;

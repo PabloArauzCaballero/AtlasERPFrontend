@@ -146,7 +146,7 @@ export function CreditRatingScreen() {
         </InlineNotice>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Deudas calificadas" value={n(totals.receivableCount) || '—'} detail="Cuentas por cobrar con categoría vigente" icon="fact_check" />
         <MetricCard label="Exposición" value={formatBob(n(totals.exposureAmount))} detail="Saldo abierto calificado" icon="account_balance" tone="teal" />
         <MetricCard label="Previsión" value={formatBob(n(totals.provisionAmount))} detail="Lo que la matriz exige provisionar" icon="savings" tone="amber" />

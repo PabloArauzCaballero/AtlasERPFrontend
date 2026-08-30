@@ -63,7 +63,7 @@ export function MerchantUserInviteScreen() {
   return (
     <form onSubmit={submit}>
       <Panel title="Asociar usuario de comercio" description="Concede acceso operativo al personal autorizado del comercio." icon="person_add">
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
           <FormField kind="select" label="Comercio" name="accountId" required className="md:col-span-2" value={accountId} onChange={(e) => setAccountId(e.target.value)} options={[{ label: '— Seleccione —', value: '' }, ...accountOptions]} />
           <FormField kind="select" label="Sucursal" name="branchId" options={[{ label: accountId ? '— Alcance global —' : '— Elija primero el comercio —', value: '' }, ...branchOptions]} hint="Opcional para usuarios con alcance global." />
           <FormField label="Nombre completo" name="fullName" required placeholder="Nombre del responsable" />

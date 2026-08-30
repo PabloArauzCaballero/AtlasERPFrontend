@@ -230,7 +230,7 @@ export function MerchantPaymentProofsScreen() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard label="Por verificar" value={cargando ? '…' : comprobantes.length} detail="Esperando su confirmación" icon="receipt_long" />
         <MetricCard label="Comercio" value={nombre || '—'} detail={partnerId ? `Expediente ${partnerId}` : 'Identificando…'} icon="storefront" tone="teal" />
         <MetricCard label="Quién confirma" value="Usted" detail="El dinero entra en su cuenta" icon="verified_user" tone="purple" />

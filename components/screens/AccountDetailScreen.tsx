@@ -55,7 +55,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 
       {requestedId && !resource.error ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Estado comercial" value={<StatusPill tone="success">{String(account.lifecycleStatus ?? 'CARGANDO')}</StatusPill>} detail="Ciclo de vida de la cuenta" icon="domain" />
             <MetricCard label="Volumen mensual" value={formatBob(Number(account.expectedMonthlyVolume ?? 0))} detail="Proyección declarada" icon="payments" tone="teal" />
             <MetricCard label="Nivel de riesgo" value={String(account.riskTier ?? 'SIN CLASIFICAR')} detail="Sujeto a validación" icon="shield" tone="amber" />
@@ -65,7 +65,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
           <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
             <div className="space-y-4">
               <Panel title="Resumen de la cuenta" icon="corporate_fare">
-                <dl className="grid gap-x-6 gap-y-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                <dl className="grid gap-x-6 gap-y-4 text-xs grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   <Detail label="Razón social" value={account.legalName} />
                   <Detail label="Nombre comercial" value={account.tradeName} />
                   <Detail label="NIT" value={maskPii(account.taxId, 'taxId')} mono />
@@ -149,7 +149,7 @@ function Detail({ label, value, mono = false }: { label: string; value: unknown;
 }
 function ContactList({ contacts }: { contacts: unknown[] }) {
   if (!contacts.length) return <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center"><Icon name="contact_page" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-700">Sin contactos asociados</p></div>;
-  return <div className="space-y-2">{contacts.map((value, index) => { const contact = value as ResourceRow; return <article key={String(contact.id ?? index)} className="grid items-center gap-2 rounded-md border border-slate-200 p-3 text-xs sm:grid-cols-[1fr_1fr_auto]"><div><b className="block text-slate-800">{String(contact.fullName ?? '—')}</b><span className="text-slate-500">{String(contact.roleTitle ?? contact.decisionRole ?? 'Sin cargo')}</span></div><div className="text-slate-600"><span className="block">{maskPii(contact.email, 'email')}</span><span>{maskPii(contact.phone, 'phone')}</span></div><StatusPill tone={contact.isPrimary ? 'success' : 'neutral'}>{contact.isPrimary ? 'Principal' : String(contact.status ?? 'Activo')}</StatusPill></article>; })}</div>;
+  return <div className="space-y-2">{contacts.map((value, index) => { const contact = value as ResourceRow; return <article key={String(contact.id ?? index)} className="grid items-center gap-2 rounded-md border border-slate-200 p-3 text-xs grid-cols-1 sm:grid-cols-[1fr_1fr_auto]"><div><b className="block text-slate-800">{String(contact.fullName ?? '—')}</b><span className="text-slate-500">{String(contact.roleTitle ?? contact.decisionRole ?? 'Sin cargo')}</span></div><div className="text-slate-600"><span className="block">{maskPii(contact.email, 'email')}</span><span>{maskPii(contact.phone, 'phone')}</span></div><StatusPill tone={contact.isPrimary ? 'success' : 'neutral'}>{contact.isPrimary ? 'Principal' : String(contact.status ?? 'Activo')}</StatusPill></article>; })}</div>;
 }
 function Quick({ href, icon, title, detail }: { href: string; icon: string; title: string; detail: string }) {
   return <Link href={href} className="flex items-center gap-3 rounded-md border border-slate-200 p-3 hover:border-slate-300 hover:bg-slate-50"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary-wash text-primary"><Icon name={icon} className="text-[18px]" /></span><span className="min-w-0 flex-1"><b className="block text-xs">{title}</b><span className="block truncate text-[11px] text-slate-500">{detail}</span></span><Icon name="chevron_right" className="text-[17px] text-slate-500" /></Link>;

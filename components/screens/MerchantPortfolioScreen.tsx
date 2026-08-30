@@ -141,7 +141,7 @@ export function MerchantPortfolioScreen() {
 
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
 
-      <div data-tutorial-id="cartera-resumen" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div data-tutorial-id="cartera-resumen" className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Por cobrar" value={cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0))} detail={`${resumen?.activeCredits ?? 0} créditos activos`} icon="account_balance_wallet" />
         <MetricCard label="Vencido" value={cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0))} detail={`${resumen?.overdueInstallments ?? 0} cuotas en mora`} icon="running_with_errors" tone={Number(resumen?.overdueAmount ?? 0) > 0 ? 'amber' : 'teal'} />
         <MetricCard label="Cobrado" value={cargando ? '…' : formatBob(Number(resumen?.collected ?? 0))} detail="Acumulado de la cartera" icon="payments" tone="teal" />
@@ -227,7 +227,7 @@ export function MerchantPortfolioScreen() {
           {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
             : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cobros programados.</p>
             : (
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                 {proximos.map((dia) => (
                   <article key={dia.date} className={`rounded-md border p-3 ${dia.overdue ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200'}`}>
                     <div className="flex items-center justify-between">
@@ -245,7 +245,7 @@ export function MerchantPortfolioScreen() {
 
       {vista === 'comision' ? (
         <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
-          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+          <div className="mb-4 grid gap-3 grid-cols-1 sm:grid-cols-3">
             <div className="rounded-md bg-slate-50 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Tasa de comisión</p>
               <p className="mt-1 text-xl font-extrabold">{resumen?.mdrRatePercent ?? '0'} %</p>
@@ -289,7 +289,7 @@ export function MerchantPortfolioScreen() {
           {facturado ? (
             <div className="mt-4 rounded-lg border border-slate-200 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Lo que Atlas ya le facturó</p>
-              <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <div className="mt-2 grid gap-3 grid-cols-1 sm:grid-cols-3">
                 <div>
                   <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
                   <p className="text-[11px] text-slate-500">Facturado ({Number(facturado.summary?.salesCharged ?? 0)} ventas)</p>

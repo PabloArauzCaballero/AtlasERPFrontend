@@ -157,7 +157,7 @@ export function AdsEmailScreen() {
                       <InlineNotice tone="info">Sin datos para ese identificador todavía.</InlineNotice>
                     ) : (
                       <>
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                           <MetricCard label="Mensajes" value={n(seguimiento.total)} detail="Encolados en este envío" icon="mail" />
                           {Object.entries(porEstado).map(([estado, cantidad]) => (
                             <MetricCard key={estado} label={estado.replaceAll('_', ' ')} value={cantidad} detail="Mensajes en este estado" icon="inventory" tone={estado === 'SENT' ? 'teal' : estado === 'FAILED' ? 'red' : 'amber'} />

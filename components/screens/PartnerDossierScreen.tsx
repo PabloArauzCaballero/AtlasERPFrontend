@@ -263,7 +263,7 @@ export function PartnerDossierScreen() {
 
       {expedientePropio === 'sin-expediente' ? (
         <Panel title="Abrir expediente" icon="storefront" description="Todavía no tienes un expediente. Este es el primer paso.">
-          <form className="grid gap-3 md:grid-cols-2" onSubmit={abrirExpediente}>
+          <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={abrirExpediente}>
             <FormField label="Razón social" name="legalName" required data-testid="campo-legalName" />
             <FormField label="Nombre comercial" name="tradeName" />
             <FormField label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
@@ -348,7 +348,7 @@ export function PartnerDossierScreen() {
                 icon="edit_note"
               >
                 <form
-                  className="grid gap-3 md:grid-cols-3"
+                  className="grid gap-3 grid-cols-1 md:grid-cols-3"
                   data-testid="form-ficha-comercial"
                   onSubmit={(event) => {
                     event.preventDefault();
@@ -383,7 +383,7 @@ export function PartnerDossierScreen() {
                     </AtlasButton>
                   </div>
                 </form>
-                <dl className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-xs md:grid-cols-3">
+                <dl className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-xs grid-cols-1 md:grid-cols-3">
                   <div>
                     <dt className="font-bold text-slate-500">Razón social</dt>
                     <dd className="text-slate-800">{state.profile.legalName}</dd>

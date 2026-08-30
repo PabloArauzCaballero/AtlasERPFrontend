@@ -264,7 +264,7 @@ export function MerchantPaymentQrScreen() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard
           label="QR vigente"
           value={cargando ? '…' : vigente ? 'Sí' : 'No'}
@@ -290,7 +290,7 @@ export function MerchantPaymentQrScreen() {
         </InlineNotice>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Panel
           data-tutorial-id="qr-cobro-vigente"
           title="Lo que ve su cliente"
@@ -330,7 +330,7 @@ export function MerchantPaymentQrScreen() {
               <span className="mb-1.5 block text-xs font-bold text-slate-700">Imagen del QR (PNG o JPG)</span>
               <input ref={archivo} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-cobro" />
             </label>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
               {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y frenar
                   un cobro contra una entidad sin licencia vigente. */}
               <FormField
@@ -374,7 +374,7 @@ export function MerchantPaymentQrScreen() {
         description="Es evidencia de tu alta, no el código con el que te pagan. Se reemplaza igual que el bancario: el anterior queda archivado."
         icon="storefront"
       >
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <div className="space-y-2">
             <label className="block">
               <span className="mb-1.5 block text-xs font-bold text-slate-700">Imagen del QR (PNG o JPG)</span>

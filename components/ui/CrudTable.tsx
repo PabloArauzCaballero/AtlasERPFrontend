@@ -121,7 +121,7 @@ export function CrudTable({ title, description, columns, list, update, remove, e
       {editing ? (
         <div className="rounded-lg border border-primary-soft bg-primary-wash p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-[#006a61]">Editando: {labelOf(editing)}</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-3 grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
             {(editable ?? []).map((field) => (
               <FormField
                 key={field}

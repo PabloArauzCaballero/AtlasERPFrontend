@@ -126,7 +126,7 @@ export function MerchantPlansScreen() {
       {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
       {plansResource.error ? <InlineNotice tone="danger" title="No se pudieron cargar los planes">{plansResource.error}</InlineNotice> : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         {plans.map((plan) => {
           const planId = String(plan.id);
           const isCurrent = planId === currentPlanId;

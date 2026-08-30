@@ -92,7 +92,7 @@ export function SecurityAdministrationScreen() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Total Users" value={users.length || '—'} detail="internal_users (tenant actual)" icon="group" />
         <MetricCard label="Active Users" value={activeCount || '—'} detail="Estado activo" icon="public" tone="teal" />
         <MetricCard label="Suspended / Locked" value={suspendedCount} detail="Requieren revisión" icon="gpp_maybe" tone="amber" />

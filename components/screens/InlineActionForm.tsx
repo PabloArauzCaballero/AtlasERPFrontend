@@ -69,7 +69,7 @@ export function InlineActionForm(props: InlineActionFormProps) {
   return (
     <Panel title={props.title} description={props.description} icon={props.icon}>
       <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {fields.map((field, index) => (
             <ActionFieldControl key={field.name} field={field} className={spanClasses[index] ?? ''} dynamicOptions={dynamicOptions} />
           ))}

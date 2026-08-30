@@ -103,7 +103,7 @@ export function MdrRulesPanel() {
 
       {contractVersionId ? (
         <>
-          <form onSubmit={agregar} className="mt-4 grid gap-3 rounded-md bg-slate-50 p-3 md:grid-cols-3">
+          <form onSubmit={agregar} className="mt-4 grid gap-3 rounded-md bg-slate-50 p-3 grid-cols-1 md:grid-cols-3">
             <FormField label="Comisión (%)" name="ratePercent" type="number" step="0.01" min="0" max="100" required placeholder="3.50" />
             <FormField kind="select" label="Categoría de producto" name="productCategory" options={[CUALQUIERA, ...merchantCategoryOptions]} hint="Vacío: aplica a todas." />
             <FormField kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riskTierOptions]} hint="Vacío: aplica a todos." />

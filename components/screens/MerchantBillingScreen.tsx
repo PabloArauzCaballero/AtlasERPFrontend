@@ -327,7 +327,7 @@ export function MerchantBillingScreen() {
       {carteraError ? <InlineNotice tone="danger" title="No se pudieron cargar sus cobros">{carteraError}</InlineNotice> : null}
       {billing.error ? <InlineNotice tone="danger" title="No se pudieron cargar los cargos de Atlas">{billing.error}</InlineNotice> : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Cobrado"
           value={cargandoCartera ? '…' : formatBob(Number(resumen?.collected ?? 0))}

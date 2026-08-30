@@ -105,7 +105,7 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
   return (
     <Panel title={action.title} description={action.description} icon={action.icon} className="h-fit">
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
           {action.fields.map((field, index) => (
             <ActionFieldControl key={field.name} field={field} className={spanClasses[index] ?? ''} dynamicOptions={dynamicOptions} />
           ))}

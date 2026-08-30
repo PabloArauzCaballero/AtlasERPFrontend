@@ -67,7 +67,7 @@ export function TutorialCenter({ audience }: { audience: 'internal' | 'merchant'
         hideHelp
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryTile label="Tu avance" value={`${summary.percent}%`} detail={`${summary.completed} de ${summary.total} completados`} icon="school" />
         <SummaryTile label="En progreso" value={String(summary.inProgress)} detail="Puedes retomarlos donde los dejaste" icon="play_circle" />
         <SummaryTile label="Pendientes" value={String(summary.pending)} detail="Todavía sin empezar" icon="pending" />
@@ -128,7 +128,7 @@ export function TutorialCenter({ audience }: { audience: 'internal' | 'merchant'
           <p className="py-10 text-center text-sm text-slate-500">Ningún tutorial coincide con estos filtros.</p>
         </Panel>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((listing) => (
             <TutorialCard
               key={listing.id}
