@@ -1,0 +1,67 @@
+# syntax=docker/dockerfile:1.7
+# Imagen de PRUEBAS del front del ERP, para el VPS de testing (Ubuntu, Contabo).
+#
+# Este front habla con su API por el REWRITE de `next.config.ts`, no directamente: el navegador
+# llama siempre al mismo origen que le sirve la página, y el servidor de Next reenvía a
+# `ERP_API_ORIGIN`. Eso tiene dos consecuencias que hay que respetar aquí, y ninguna es evidente:
+#
+#   1. `ERP_API_ORIGIN` se HORNEA en el rewrite al construir. El default del `.env.local`
+#      (`127.0.0.1:3007`) dentro del contenedor es el PROPIO contenedor, no el ERP: el proxy
+#      devolvería ECONNREFUSED en cada llamada. En el VPS tiene que ser el nombre del servicio de
+#      Docker (`http://atlas-erp-backend:3007`), que sí resuelve desde dentro de la red.
+#
+#   2. `NEXT_PUBLIC_ATLAS_API_BASE_URL` tiene que quedar VACÍA. Vacía es como se le dice al cliente
+#      «habla con el mismo origen que te sirve» y use el proxy. Si llega sin definir, el cliente cae
+#      al origen por defecto: el front compila igual y apunta a otro sitio.
+#
+# Construcción:
+#   docker build -f Dockerfile.dev \
+#     --build-arg ERP_API_ORIGIN=http://atlas-erp-backend:3007 \
+#     -t atlas-erp-frontend:dev .
+
+FROM node:22-alpine AS base
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable
+
+FROM base AS dependencies
+COPY package.json yarn.lock ./
+RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
+  yarn install --frozen-lockfile
+
+FROM base AS builder
+# El origen al que reenvía el SERVIDOR de Next. Aquí sí vale un nombre de servicio de Docker: quien
+# hace esta llamada es el contenedor, no el navegador.
+ARG ERP_API_ORIGIN=http://atlas-erp-backend:3007
+ARG NEXT_PUBLIC_ATLAS_API_PREFIX=api/v1
+ARG NEXT_PUBLIC_ATLAS_DEFAULT_PAGE_SIZE=25
+ENV ERP_API_ORIGIN=$ERP_API_ORIGIN \
+    NEXT_PUBLIC_ATLAS_API_PREFIX=$NEXT_PUBLIC_ATLAS_API_PREFIX \
+    NEXT_PUBLIC_ATLAS_DEFAULT_PAGE_SIZE=$NEXT_PUBLIC_ATLAS_DEFAULT_PAGE_SIZE \
+    NEXT_PUBLIC_ATLAS_API_BASE_URL=
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
+RUN yarn build
+# Este front no tiene `public/`. La copia de más abajo es incondicional —Docker no sabe copiar «si
+# existe»— así que se garantiza el directorio aquí.
+RUN mkdir -p public
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production \
+  NEXT_TELEMETRY_DISABLED=1 \
+  HOSTNAME=0.0.0.0 \
+  PORT=3010
+
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
+EXPOSE 3010
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+  CMD wget -q -O /dev/null "http://127.0.0.1:${PORT}/" || exit 1
+CMD ["node", "server.js"]
