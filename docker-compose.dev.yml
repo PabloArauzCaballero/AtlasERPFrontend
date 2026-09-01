@@ -1,0 +1,49 @@
+# Despliegue de PRUEBAS del front del ERP en el VPS de Contabo (Ubuntu).
+#
+# ## Cómo habla este front con su API, que no es como parece
+#
+# El navegador llama SIEMPRE al mismo origen que le sirve la página, y el servidor de Next reenvía a
+# `ERP_API_ORIGIN` por el rewrite de `next.config.ts`. Eso tiene dos consecuencias:
+#
+#   1. `ERP_API_ORIGIN` se hornea AL CONSTRUIR y aquí sí vale un nombre de servicio de Docker
+#      (`http://erp:3007`): quien hace esa llamada es el contenedor, no el navegador. El default del
+#      `.env.local` (`127.0.0.1:3007`) dentro del contenedor es el PROPIO contenedor, y el proxy
+#      devolvería ECONNREFUSED en cada llamada.
+#   2. El puerto 3007 del ERP no necesita estar publicado ni abierto en el firewall. Sólo hay que
+#      abrir el 3010.
+#
+# ## Red compartida
+#
+#   docker network create atlas_vps     # una sola vez, en el VPS
+
+name: atlas-erp-frontend-vps
+
+services:
+  frontend:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    image: atlas-erp-frontend:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      cache_from: ['atlas-erp-frontend:dev']
+      args:
+        ERP_API_ORIGIN: http://erp:3007
+    env_file: ['${ATLAS_ENV_DIR:-/opt/atlas/env}/erp-frontend.env']
+    ports:
+      - '3010:3010'
+    networks:
+      atlas_vps:
+        aliases: [erp-frontend]
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+networks:
+  atlas_vps:
+    external: true
