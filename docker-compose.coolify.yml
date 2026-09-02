@@ -22,6 +22,7 @@ name: atlas-erp-frontend
 
 services:
   frontend:
+    networks: ['default', 'coolify']
     restart: unless-stopped
     logging:
       driver: json-file
@@ -35,7 +36,7 @@ services:
       cache_from: ['atlas-erp-frontend:coolify']
       args:
         # El backend del ERP, por la IP de Tailscale. Ver la nota de arriba.
-        ERP_API_ORIGIN: 'http://100.101.207.88:3007'
+        ERP_API_ORIGIN: 'http://erp:3007'
     # `init: true` reparte SIGTERM al proceso de Node, sin depender de instalar un binario.
     init: true
     # Publicado en la interfaz de Tailscale, que es por donde entras.
@@ -46,3 +47,17 @@ services:
       resources:
         limits:
           memory: 512m
+
+# ---------------------------------------------------------------------------------------------
+# La red COMPARTIDA de Coolify.
+#
+# Es como este portal alcanza a los backends: por su ALIAS estable (`atlas-backend`, `motor`,
+# `erp`), no por una IP del host. Coolify nombra cada contenedor con una marca de tiempo, así que
+# los nombres cambian en cada despliegue pero los alias no.
+#
+# **Hace falta activar «Connect To Predefined Network» en esta aplicación dentro de Coolify.**
+networks:
+  default: {}
+  coolify:
+    external: true
+    name: coolify
