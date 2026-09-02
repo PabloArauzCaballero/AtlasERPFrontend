@@ -1,0 +1,48 @@
+# Portal del ERP, gestionado por COOLIFY.
+#
+# Va aparte de `docker-compose.dev.yml` —el del VPS operado a mano, con los `.env` en
+# `/opt/atlas/env` y la red compartida `atlas_vps`—.
+#
+# ## `ERP_API_ORIGIN` se hornea AL CONSTRUIR
+#
+# Es un `build.arg`, así que su valor queda dentro del bundle: cambiarlo en Environment Variables
+# y reiniciar **no hace nada**, hay que RECONSTRUIR.
+#
+# Y NO puede seguir siendo `http://erp:3007`. Ese era un alias de la red compartida `atlas_vps`
+# del VPS operado a mano; en Coolify cada aplicación tiene su propia red, así que el nombre no
+# resuelve y el fallo —`EAI_AGAIN erp`— se lee igual que «el ERP está caído». Va la IP de
+# Tailscale del host, que es una dirección real y alcanzable desde otro contenedor.
+#
+# ## Lo que este archivo NO trae
+#
+# La red externa `atlas_vps` ni `env_file`: Coolify añade `env_file: - .env` a cada servicio por
+# su cuenta. Pega ahí `atlas-vps-testing/env/erp-frontend.env`, EN BLOQUE.
+
+name: atlas-erp-frontend
+
+services:
+  frontend:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    image: atlas-erp-frontend:coolify
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      cache_from: ['atlas-erp-frontend:coolify']
+      args:
+        # El backend del ERP, por la IP de Tailscale. Ver la nota de arriba.
+        ERP_API_ORIGIN: 'http://100.101.207.88:3007'
+    # `init: true` reparte SIGTERM al proceso de Node, sin depender de instalar un binario.
+    init: true
+    # Publicado en la interfaz de Tailscale, que es por donde entras.
+    ports: ['100.101.207.88:3010:3010']
+    expose: ['3010']
+    stop_grace_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
