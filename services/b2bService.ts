@@ -216,6 +216,21 @@ export const b2bService = {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
     return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/mdr-rules`, { method: 'POST', body });
   },
+  /** El ERP PIDE la verificación KYB; decide AtlasBackend con el Motor. Único origen de esa decisión. */
+  requestKybReview(onboardingCaseId: string, body: JsonObject) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/kyb-review`, { method: 'POST', body });
+  },
+  /** Trae el desenlace vigente (una revisión manual resuelta en el Motor, por ejemplo). */
+  syncKybDecision(onboardingCaseId: string) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/kyb-review/sync`, { method: 'POST', body: {} });
+  },
+  /** Enlaza el caso con el expediente del comercio en Atlas (por cuenta o por NIT). */
+  linkPartnerProfile(onboardingCaseId: string) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/partner-link`, { method: 'POST', body: {} });
+  },
   /** El acuse: pregunta a Atlas en qué quedaron las credenciales pedidas para el comercio del caso. */
   reconcileCaseIdentity(onboardingCaseId: string) {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');

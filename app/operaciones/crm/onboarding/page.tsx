@@ -20,6 +20,10 @@ import { merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 const ESTADO_FINAL = 'COMPLETED';
+/** Desde qué estados se puede (volver a) pedir la verificación al Motor. Espejo del backend. */
+const PUEDE_PEDIR_VERIFICACION = new Set(['OPEN', 'IN_PROGRESS', 'BLOCKED', 'RECHAZADO']);
+/** Estados en los que el desenlace puede cambiar sin que el ERP haga nada: hay que ir a mirar. */
+const ESPERA_AL_MOTOR = new Set(['EN_VERIFICACION', 'REVISION_MANUAL']);
 
 const CUALQUIERA = { label: '— Cualquiera —', value: '' };
 
@@ -51,10 +55,15 @@ export default function OnboardingPage() {
    */
   const load = useCallback(async () => {
     const primera = await b2bService.listOnboardingCases({ scope, limit: 200 });
-    const esperando = (primera.items ?? []).filter((row) => Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0);
-    if (esperando.length === 0) return primera;
-    const acuses = await Promise.allSettled(esperando.map((row) => b2bService.reconcileCaseIdentity(String(row.id ?? ''))));
-    const cambio = acuses.some((acuse) => acuse.status === 'fulfilled' && Array.isArray(acuse.value.resueltos) && acuse.value.resueltos.length > 0);
+    const filas = primera.items ?? [];
+    const esperandoCredenciales = filas.filter((row) => Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0);
+    const esperandoMotor = filas.filter((row) => ESPERA_AL_MOTOR.has(String(row.status ?? '')));
+    if (esperandoCredenciales.length === 0 && esperandoMotor.length === 0) return primera;
+    const acuses = await Promise.allSettled([
+      ...esperandoCredenciales.map((row) => b2bService.reconcileCaseIdentity(String(row.id ?? ''))),
+      ...esperandoMotor.map((row) => b2bService.syncKybDecision(String(row.id ?? ''))),
+    ]);
+    const cambio = acuses.some((acuse) => acuse.status === 'fulfilled' && ((Array.isArray(acuse.value.resueltos) && acuse.value.resueltos.length > 0) || acuse.value.changed === true));
     return cambio ? b2bService.listOnboardingCases({ scope, limit: 200 }) : primera;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, version]);
@@ -102,6 +111,7 @@ export default function OnboardingPage() {
                     { key: 'tradeName', label: 'Comercio' },
                     { key: 'status', label: 'Estado', kind: 'status' },
                     { key: 'pendingItems', label: 'Requisitos pendientes', align: 'right' },
+                    { key: 'decisionOutcome', label: 'Motor', kind: 'status' },
                     { key: 'contractNumber', label: 'Contrato', kind: 'mono' },
                     { key: 'credentialsSummary', label: 'Credenciales' },
                     { key: 'startedAt', label: 'Iniciado', kind: 'date' },
@@ -144,6 +154,30 @@ export default function OnboardingPage() {
                         ],
                         submit: (row, payload: JsonObject) => b2bService.updateChecklist(String(row.id ?? ''), payload),
                         submitLabel: 'Actualizar requisito',
+                      },
+                    },
+                    {
+                      key: 'verificar',
+                      label: 'Pedir verificación al Motor',
+                      icon: 'verified_user',
+                      enabled: (row) => PUEDE_PEDIR_VERIFICACION.has(String(row.status ?? '')),
+                      form: {
+                        title: (row) => `Verificación KYB de ${String(row.tradeName ?? 'este comercio')}`,
+                        description: 'El ERP pide; decide AtlasBackend con el artefacto PARTNER_KYB_REVIEW del Motor. Sin su APROBADO el comercio no se activa. Si el comercio no tiene expediente en Atlas, tiene que abrirlo desde su portal.',
+                        fields: [{ name: 'reason', label: 'Motivo (opcional)', type: 'textarea', optional: true, span: 2, placeholder: 'Por qué se pide ahora: alta comercial, reintento tras corregir…' }],
+                        submit: (row, payload: JsonObject) => b2bService.requestKybReview(String(row.id ?? ''), payload),
+                        submitLabel: 'Pedir verificación',
+                      },
+                    },
+                    {
+                      key: 'sincronizar',
+                      label: 'Actualizar verificación',
+                      icon: 'sync',
+                      enabled: (row) => ESPERA_AL_MOTOR.has(String(row.status ?? '')),
+                      run: async (row) => {
+                        const result = await b2bService.syncKybDecision(String(row.id ?? ''));
+                        summary.reload();
+                        return result;
                       },
                     },
                     {
@@ -242,7 +276,8 @@ export default function OnboardingPage() {
                       label: 'Activar comercio',
                       icon: 'rocket_launch',
                       tone: 'success',
-                      enabled: abierto,
+                      /* La compuerta dura la aplica el backend; aquí sólo no se ofrece lo que va a rechazar. */
+                      enabled: (row) => abierto(row) && String(row.decisionOutcome ?? '') === 'APROBADO',
                       run: async (row) => {
                         const result = await b2bService.activateOnboarding(String(row.id ?? ''), {});
                         summary.reload();
@@ -250,7 +285,7 @@ export default function OnboardingPage() {
                       },
                       confirm: {
                         title: 'Activar el comercio',
-                        message: 'El backend vuelve a comprobar los requisitos y el contrato activo: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa al historial.',
+                        message: 'El backend vuelve a comprobar el APROBADO del Motor, los requisitos y el contrato vigente: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa a «Activados».',
                         confirmLabel: 'Activar',
                       },
                     },

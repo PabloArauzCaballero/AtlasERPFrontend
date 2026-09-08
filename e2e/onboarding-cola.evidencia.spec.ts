@@ -89,7 +89,10 @@ test('todo se hace desde la fila: requisito, contrato, credenciales, activar', a
   await expect(fila.getByTitle(/mover un requisito/i)).toBeVisible();
   await expect(fila.getByTitle(/pactar contrato/i)).toBeVisible();
   await expect(fila.getByTitle(/pedir credenciales/i)).toBeVisible();
-  await expect(fila.getByTitle(/activar comercio/i)).toBeVisible();
+  // Compuerta dura: sin APROBADO del Motor no se ofrece activar; se ofrece pedir la verificación.
+  await expect(fila.getByTitle(/pedir verificación al motor/i)).toBeVisible();
+  await expect(fila.getByTitle(/activar comercio/i)).toHaveCount(0);
+  await expect(page.locator('[data-tutorial-id="crud-tabla"] th', { hasText: /^motor$/i })).toBeVisible();
   // El acuse de credenciales sólo se ofrece cuando hay una petición sin resolver.
   await expect(page.locator('[data-tutorial-id="crud-tabla"] th', { hasText: /credenciales/i })).toBeVisible();
   await expect(fila.getByText(/sin pedir/i)).toBeVisible();
