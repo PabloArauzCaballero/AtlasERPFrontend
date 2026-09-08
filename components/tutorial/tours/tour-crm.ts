@@ -117,16 +117,15 @@ export const TOURS_CRM: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="onboarding-checklist"]',
         title: 'Cada requisito bloquea la activación',
         content:
-          'Legales, operativos y técnicos. Mientras quede uno pendiente el comercio no se activa, y eso es deliberado: activar sin los papeles es justo el riesgo que este caso existe para impedir. Para cerrar uno, elige el caso en el panel de la derecha y su lista de requisitos se rellena sola.',
+          'Legales, operativos y técnicos. Mientras quede uno pendiente el comercio no se activa, y eso es deliberado: activar sin los papeles es justo el riesgo que este caso existe para impedir. Para cerrar uno, usa «Mover un requisito» en la fila del caso.',
         optional: true,
       },
       {
         id: 'activacion',
-        route: '/operaciones/crm/activacion-comercio',
-        target: '[data-tutorial-id="workspace-header"]',
+        target: '[data-tutorial-id="onboarding-tablero"]',
         title: 'La activación es el último control',
         content:
-          'Al activar, el comercio empieza a poder originar operaciones, sus usuarios entran al portal y empieza a facturarse. Deja de ser un expediente y pasa a ser un negocio en marcha.',
+          'Se activa desde la fila del caso. El tablero cuenta los «listos para activar» con la misma regla que aplica el backend: sin requisitos pendientes y con contrato vigente. Al activar, el comercio sale de la cola y pasa a «Activados».',
         tip: 'Revertir una activación afecta a operaciones vivas. Comprueba antes; después, la corrección es otro caso.',
       },
     ],

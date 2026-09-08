@@ -87,39 +87,49 @@ test('el tablero de oportunidades se lee del servidor', async ({ page }) => {
   await expect(page.getByText(/no inventa registros hist/i)).toHaveCount(0);
 });
 
-test('la activación muestra controles reales, no un 100 % dibujado', async ({ page }) => {
-  await page.goto('/operaciones/crm/activacion-comercio');
-  await expect(page.getByRole('heading', { name: /activaci/i }).first()).toBeVisible({ timeout: 120_000 });
+test('la cola de onboarding sólo enseña lo que falta por atender', async ({ page }) => {
+  await page.goto('/operaciones/crm/onboarding');
+  await expect(page.getByRole('heading', { name: /casos de onboarding/i })).toBeVisible({ timeout: 120_000 });
 
-  // Lo primero es qué casos hay y cuántos requisitos les faltan.
-  await expect(page.locator('[data-tutorial-id="crud-tabla"]')).toBeVisible();
+  // Dos pestañas: la cola con su tablero, y el alta. Ni «usuarios» ni «comisión» como pestañas.
+  await expect(page.getByTestId('tab-casos')).toBeVisible();
+  await expect(page.getByTestId('tab-nuevo')).toBeVisible();
+  await expect(page.getByTestId('tab-usuarios')).toHaveCount(0);
+  await expect(page.getByTestId('tab-mdr')).toHaveCount(0);
 
-  // El control vive en su pestaña. Sin caso elegido no se afirma nada: antes decía 100 % siempre.
-  await page.getByTestId('tab-activar').click();
-  await expect(page.getByText(/sin caso elegido/i)).toBeVisible();
-  await expect(page.getByText(/^100%$/)).toHaveCount(0);
-  await expect(page.locator('select[name="caseId"]')).toBeVisible();
+  // El tablero y la cola arrancan en «Por atender»: un comercio ya activado no es trabajo.
+  await expect(page.locator('[data-tutorial-id="onboarding-tablero"]')).toBeVisible();
+  await expect(page.getByTestId('onboarding-scope-abiertos')).toHaveAttribute('aria-checked', 'true');
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('[data-tutorial-id="crud-tabla"]').getByText(/^COMPLETED$/)).toHaveCount(0);
+
+  // El historial es un filtro explícito, y ahí sí están los activados.
+  await page.getByTestId('onboarding-scope-historial').click();
+  await expect(page.getByTestId('onboarding-scope-historial')).toHaveAttribute('aria-checked', 'true');
+  await page.screenshot({ path: 'docs/visual-evidence/operaciones/02-onboarding-cola-y-historial.png', fullPage: true });
 });
 
-test('la comisión por venta se configura en el alta, por segmento', async ({ page }) => {
-  await page.goto('/operaciones/crm/onboarding');
-  // El alta se repartió en pestañas; las reglas de comisión tienen la suya.
-  await page.getByTestId('tab-mdr').click();
+test('la pantalla de activación ya no existe: redirige a la cola', async ({ page }) => {
+  await page.goto('/operaciones/crm/activacion-comercio');
+  await expect(page).toHaveURL(/\/operaciones\/crm\/onboarding/, { timeout: 120_000 });
+});
+
+test('la comisión por venta se administra junto al contrato, por segmento', async ({ page }) => {
+  await page.goto('/operaciones/crm/contratos');
   const panel = page.locator('[data-tutorial-id="mdr-reglas"]');
   await expect(panel).toBeVisible({ timeout: 120_000 });
 
-  // Es parte del alta, no una pantalla suelta.
+  // Es parte de lo pactado, no una pantalla suelta.
   await expect(panel.getByText(/se acuerda en el alta/i)).toBeVisible();
   // Y la segmentación es lo que la hace flexible.
   await expect(panel.locator('select[name="contractVersionId"]')).toBeVisible();
-  await page.screenshot({ path: 'docs/visual-evidence/operaciones/01-comision-en-el-alta.png', fullPage: true });
+  await page.screenshot({ path: 'docs/visual-evidence/operaciones/01-comision-en-el-contrato.png', fullPage: true });
 });
 
 test('ninguna pantalla interna pide escribir un UUID', async ({ page }) => {
   const rutas = [
     '/operaciones/crm/oportunidades',
     '/operaciones/crm/onboarding',
-    '/operaciones/crm/activacion-comercio',
     '/operaciones/crm/aprobaciones',
     '/operaciones/crm/contratos',
     '/operaciones/crm/facturacion',

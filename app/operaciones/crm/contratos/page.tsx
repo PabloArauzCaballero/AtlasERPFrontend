@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { InlineActionForm } from '@/components/screens/InlineActionForm';
+import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
 import { b2bService } from '@/services/b2bService';
 import { loadContracts2, loadInternalUsers, loadProposals } from '@/services/optionLoaders';
 import type { JsonObject } from '@/services/types';
@@ -80,6 +81,9 @@ export default function CommercialContractsPage() {
           { name: 'signedAt', label: 'Fecha y hora de firma', optional: true, placeholder: '2026-07-10T20:00:00-04:00', span: 2 },
         ]}
       />
+      {/* La comisión cuelga de la versión del contrato: se administra junto al contrato, no en el
+          onboarding, donde obligaba a elegir el contrato otra vez en un desplegable. */}
+      <MdrRulesPanel />
     </CrudDirectory>
   );
 }

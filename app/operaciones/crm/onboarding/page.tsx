@@ -11,24 +11,45 @@ import { useCallback, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
-import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
-import { MerchantUserInviteScreen } from '@/components/screens/MerchantUserInviteScreen';
 import { OnboardingCaseScreen } from '@/components/screens/OnboardingCaseScreen';
+import { OnboardingQueueDashboard, type OnboardingScope } from '@/components/screens/OnboardingQueueDashboard';
+import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { b2bService } from '@/services/b2bService';
+import { portalService } from '@/services/portalService';
+import { merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
+import type { JsonObject, ResourceRow } from '@/services/types';
+
+const ESTADO_FINAL = 'COMPLETED';
+
+const CUALQUIERA = { label: '— Cualquiera —', value: '' };
+
+const ROLES_DEL_COMERCIO = [
+  { label: 'Administrador del comercio', value: 'MERCHANT_ADMIN' },
+  { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' },
+  { label: 'Operador', value: 'MERCHANT_OPERATOR' },
+  { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' },
+];
 
 /**
- * Onboarding de comercios: la cartera de casos primero, los formularios en pestañas.
+ * Onboarding de comercios: la cola y su tablero primero; el alta, en su pestaña.
  *
- * La vista apilaba un resumen truncado, el constructor de casos y el alta de usuarios, uno debajo
- * de otro. Para saber qué casos había abiertos y cuántos requisitos les faltaban había que leer un
- * panel que no filtraba ni paginaba; el resto era formulario.
+ * Tenía cuatro pestañas que eran cuatro trabajos distintos apilados —la cola, el alta, pedir
+ * credenciales y las reglas de comisión— y nada ataba las dos últimas al caso que se estaba
+ * tramitando: se elegía el comercio otra vez en un desplegable. Ahora todo lo que se hace SOBRE un
+ * caso se hace desde su fila, que es donde ya se sabe de qué comercio se habla.
  */
 export default function OnboardingPage() {
-  const [tab, setTab] = useState('listado');
+  const [tab, setTab] = useState('casos');
+  const [scope, setScope] = useState<OnboardingScope>('abiertos');
   const [version, setVersion] = useState(0);
   const recargar = useCallback(() => setVersion((value) => value + 1), []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const load = useCallback(() => b2bService.listOnboardingCases(), [version]);
+  const load = useCallback(() => b2bService.listOnboardingCases({ scope, limit: 200 }), [scope, version]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const summary = useAsyncResource(useCallback(() => b2bService.summarizeOnboardingCases(), [version]));
+
+  const abierto = (row: ResourceRow) => String(row.status ?? '') !== ESTADO_FINAL;
+  const requisitos = (row: ResourceRow) => (Array.isArray(row.checklistItems) ? (row.checklistItems as ResourceRow[]) : []);
 
   return (
     <div className="space-y-5">
@@ -43,72 +64,193 @@ export default function OnboardingPage() {
         keepMounted
         tabs={[
           {
-            id: 'listado',
+            id: 'casos',
             label: 'Casos',
             icon: 'table_view',
+            badge: summary.data ? Number(summary.data.abiertos ?? 0) : undefined,
             content: (
-              <CrudDirectory
-                embedded
-                moduleLabel="CRM"
-                title="Casos abiertos y cerrados"
-                description="Estado de cada expediente y cuántos requisitos le faltan por cerrar."
-                load={load}
-                labelKey="tradeName"
-                searchPlaceholder="Buscar por comercio o estado…"
-                emptyHint="Usa la pestaña «Nuevo caso» para abrir el primero."
-                columns={[
-                  { key: 'tradeName', label: 'Comercio' },
-                  { key: 'status', label: 'Estado', kind: 'status' },
-                  { key: 'pendingItems', label: 'Requisitos pendientes', align: 'right' },
-                  { key: 'startedAt', label: 'Iniciado', kind: 'date' },
-                  { key: 'completedAt', label: 'Completado', kind: 'date' },
-                ]}
-                filters={[
-                  { key: 'status', label: 'Estado' },
-                  { key: 'tradeName', label: 'Comercio', kind: 'text', placeholder: 'Filtrar comercio' },
-                ]}
-                create={{ label: 'Nuevo caso', onClick: () => setTab('nuevo') }}
-                extraActions={[
-                  {
-                    key: 'activar',
-                    label: 'Activar comercio',
-                    icon: 'rocket_launch',
-                    run: (row) => b2bService.activateOnboarding(String(row.id ?? ''), {}),
-                    confirm: {
-                      title: 'Activar el comercio',
-                      message: 'El backend vuelve a comprobar los requisitos y el contrato activo: si falta algo, rechaza la activación.',
-                      confirmLabel: 'Activar',
+              <div className="space-y-5">
+                <OnboardingQueueDashboard
+                  summary={(summary.data ?? null) as ResourceRow | null}
+                  loading={summary.status === 'loading' || summary.status === 'idle'}
+                  scope={scope}
+                  onScopeChange={setScope}
+                />
+                <CrudDirectory
+                  embedded
+                  moduleLabel="CRM"
+                  title={scope === 'historial' ? 'Comercios activados' : scope === 'todos' ? 'Todos los casos' : 'Casos por atender'}
+                  description={scope === 'abiertos' ? 'Lo que falta por hacer en cada expediente. Se opera desde la fila.' : 'Expedientes cerrados: por qué se habilitó cada comercio.'}
+                  load={load}
+                  labelKey="tradeName"
+                  searchPlaceholder="Buscar por comercio o estado…"
+                  emptyHint={scope === 'abiertos' ? 'No hay casos pendientes. Abre uno desde la pestaña «Nuevo caso».' : 'Todavía no hay comercios activados.'}
+                  columns={[
+                    { key: 'tradeName', label: 'Comercio' },
+                    { key: 'status', label: 'Estado', kind: 'status' },
+                    { key: 'pendingItems', label: 'Requisitos pendientes', align: 'right' },
+                    { key: 'contractNumber', label: 'Contrato', kind: 'mono' },
+                    { key: 'startedAt', label: 'Iniciado', kind: 'date' },
+                    ...(scope === 'abiertos' ? [] : [{ key: 'completedAt', label: 'Activado', kind: 'date' as const }]),
+                  ]}
+                  filters={[{ key: 'status', label: 'Estado' }]}
+                  create={{ label: 'Nuevo caso', onClick: () => setTab('nuevo') }}
+                  extraActions={[
+                    {
+                      key: 'requisito',
+                      label: 'Mover un requisito',
+                      icon: 'task_alt',
+                      enabled: abierto,
+                      form: {
+                        title: (row) => `Requisitos de ${String(row.tradeName ?? 'este comercio')}`,
+                        description: 'Completar, eximir o bloquear un requisito de este caso. La activación vuelve a comprobarlos todos.',
+                        fields: (row) => [
+                          {
+                            name: 'checklistItemId',
+                            label: 'Requisito',
+                            type: 'select',
+                            required: true,
+                            span: 2,
+                            options: requisitos(row).map((item) => ({ value: String(item.id), label: `${String(item.itemType)} · ${String(item.description)} — ${String(item.status)}` })),
+                          },
+                          {
+                            name: 'status',
+                            label: 'Nuevo estado',
+                            type: 'select',
+                            required: true,
+                            span: 2,
+                            defaultValue: 'COMPLETED',
+                            options: [
+                              { label: 'Completado', value: 'COMPLETED' },
+                              { label: 'Eximido', value: 'WAIVED' },
+                              { label: 'Bloqueado', value: 'BLOCKED' },
+                              { label: 'Pendiente', value: 'PENDING' },
+                            ],
+                          },
+                        ],
+                        submit: (row, payload: JsonObject) => b2bService.updateChecklist(String(row.id ?? ''), payload),
+                        submitLabel: 'Actualizar requisito',
+                      },
                     },
-                  },
-                ]}
-                notice={{
-                  tone: 'info',
-                  title: 'Un caso de onboarding no se borra',
-                  body: 'Es el expediente de por qué se habilitó un comercio. Los requisitos se mueven de estado desde la pestaña «Nuevo caso», y la activación se comprueba de nuevo en el backend.',
-                }}
-              />
+                    {
+                      key: 'contrato',
+                      label: 'Pactar contrato',
+                      icon: 'draw',
+                      enabled: abierto,
+                      form: {
+                        title: (row) => `Contrato del alta de ${String(row.tradeName ?? 'este comercio')}`,
+                        description: 'Sólo versiones de contratos de este mismo comercio. La activación exige que la pactada esté activa y vigente.',
+                        fields: (row) => [
+                          {
+                            name: 'contractVersionId',
+                            label: 'Versión de contrato',
+                            type: 'select',
+                            required: true,
+                            span: 2,
+                            defaultValue: String(row.contractVersionId ?? ''),
+                            optionsLoader: async () => {
+                              const versions = await b2bService.listCaseContractOptions(String(row.id ?? ''));
+                              if (!versions.length) return [{ label: '— Este comercio no tiene contratos: genera uno en CRM › Contratos —', value: '' }];
+                              return versions.map((version) => ({
+                                value: String(version.id),
+                                label: `${String(version.contractNumber ?? 'Contrato')} · v${String(version.versionNumber ?? '?')} · ${String(version.status)}${version.vigente ? ' · vigente' : ' · NO activable'}`,
+                              }));
+                            },
+                          },
+                        ],
+                        submit: (row, payload: JsonObject) => b2bService.assignCaseContract(String(row.id ?? ''), payload),
+                        submitLabel: 'Pactar contrato',
+                      },
+                    },
+                    {
+                      key: 'comision',
+                      label: 'Pactar comisión (MDR)',
+                      icon: 'percent',
+                      /* Sin contrato pactado no hay de dónde colgarla: el backend lo rechaza y aquí ni se ofrece. */
+                      enabled: (row) => abierto(row) && Boolean(row.contractVersionId),
+                      form: {
+                        title: (row) => `Comisión por venta de ${String(row.tradeName ?? 'este comercio')}`,
+                        description: 'Lo que Atlas cobra por cada venta, sobre el contrato pactado en este caso. Gana la regla más específica.',
+                        fields: [
+                          { name: 'ratePercent', label: 'Comisión (%)', type: 'number', valueKind: 'number', required: true, placeholder: '3.50' },
+                          { name: 'productCategory', label: 'Categoría de producto', type: 'select', optional: true, options: [CUALQUIERA, ...merchantCategoryOptions], hint: 'Vacío: aplica a todas.' },
+                          { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', optional: true, options: [CUALQUIERA, ...riskTierOptions], hint: 'Vacío: aplica a todos.' },
+                          { name: 'minFeeAmount', label: 'Piso (Bs)', type: 'number', valueKind: 'number', optional: true },
+                          { name: 'maxFeeAmount', label: 'Techo (Bs)', type: 'number', valueKind: 'number', optional: true },
+                        ],
+                        submit: (row, payload: JsonObject) => b2bService.createCaseMdrRule(String(row.id ?? ''), payload),
+                        submitLabel: 'Pactar comisión',
+                      },
+                    },
+                    {
+                      key: 'credenciales',
+                      label: 'Pedir credenciales',
+                      icon: 'person_add',
+                      enabled: abierto,
+                      /* Pide el acceso a Atlas: la identidad la concede el portal interno, no el ERP. */
+                      form: {
+                        title: (row) => `Acceso al portal para ${String(row.tradeName ?? 'el comercio')}`,
+                        description: 'Se registra a la persona en el CRM y se encola su acceso. La contraseña la genera Atlas al aprobar; el ERP nunca la ve.',
+                        fields: (row) => [
+                          { name: 'fullName', label: 'Nombre completo', required: true, placeholder: 'Nombre del responsable' },
+                          { name: 'email', label: 'Correo corporativo', type: 'email', required: true, placeholder: 'usuario@empresa.com' },
+                          { name: 'roleCode', label: 'Rol', type: 'select', required: true, defaultValue: 'MERCHANT_OPERATOR', options: ROLES_DEL_COMERCIO },
+                          {
+                            name: 'branchId',
+                            label: 'Sucursal',
+                            type: 'select',
+                            optional: true,
+                            hint: 'Vacío: alcance global sobre el comercio.',
+                            optionsLoader: async () => {
+                              const rows = await portalService.listBranches(String(row.accountId ?? ''));
+                              return [{ label: '— Alcance global —', value: '' }, ...rows.map((branch) => ({ value: String(branch.id), label: String(branch.name ?? 'Sucursal') }))];
+                            },
+                          },
+                        ],
+                        submit: (row, payload: JsonObject) => b2bService.createMerchantUser({ accountId: String(row.accountId ?? ''), ...payload }),
+                        submitLabel: 'Pedir acceso',
+                      },
+                    },
+                    {
+                      key: 'activar',
+                      label: 'Activar comercio',
+                      icon: 'rocket_launch',
+                      tone: 'success',
+                      enabled: abierto,
+                      run: async (row) => {
+                        const result = await b2bService.activateOnboarding(String(row.id ?? ''), {});
+                        summary.reload();
+                        return result;
+                      },
+                      confirm: {
+                        title: 'Activar el comercio',
+                        message: 'El backend vuelve a comprobar los requisitos y el contrato activo: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa al historial.',
+                        confirmLabel: 'Activar',
+                      },
+                    },
+                  ]}
+                  notice={{
+                    tone: 'info',
+                    title: 'Un caso de onboarding no se borra',
+                    body: 'Es el expediente de por qué se habilitó un comercio. Al activarlo deja de ser trabajo pendiente y pasa a «Activados»; mientras tanto, todo lo que se hace sobre él se hace desde su fila.',
+                  }}
+                />
+              </div>
             ),
           },
           {
             id: 'nuevo',
-            label: 'Nuevo caso y requisitos',
+            label: 'Nuevo caso',
             icon: 'add',
-            content: <OnboardingCaseScreen embedded onDone={recargar} />,
-          },
-          {
-            id: 'usuarios',
-            label: 'Usuarios del comercio',
-            icon: 'person_add',
-            /* Es del staff, y antes vivía en el portal del comercio, donde el staff ni entra. */
-            content: <MerchantUserInviteScreen />,
-          },
-          {
-            id: 'mdr',
-            label: 'Reglas de comisión',
-            icon: 'percent',
-            /* La comisión se pacta en el alta: activar sin haberla acordado deja la primera venta
-               cobrando lo que hubiera por defecto, y esa conversación ya no se puede tener después. */
-            content: <MdrRulesPanel />,
+            content: (
+              <OnboardingCaseScreen
+                embedded
+                onDone={() => {
+                  recargar();
+                  setTab('casos');
+                }}
+              />
+            ),
           },
         ]}
       />

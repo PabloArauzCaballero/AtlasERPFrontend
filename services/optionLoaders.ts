@@ -107,7 +107,7 @@ export const loadReceivables = async (): Promise<Option[]> =>
  * y con cuantos requisitos quedan pendientes, que es lo que decide si el caso se puede activar.
  */
 export const loadOnboardingCases = async (): Promise<Option[]> =>
-  (await b2bService.listOnboardingCases()).map((row) => ({
+  ((await b2bService.listOnboardingCases({ scope: 'abiertos', limit: 200 })).items ?? []).map((row) => ({
     value: s(row.id),
     label: `${s(row.tradeName) || s(row.accountId)} — ${s(row.status)}${Number(row.pendingItems) > 0 ? ` (${s(row.pendingItems)} pendiente(s))` : ''}`,
   }));

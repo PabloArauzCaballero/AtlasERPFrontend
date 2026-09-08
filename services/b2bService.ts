@@ -195,8 +195,30 @@ export const b2bService = {
   createOnboardingCase(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/onboarding/cases', { method: 'POST', body });
   },
-  listOnboardingCases() {
-    return apiRequest<ResourceRow[]>('/b2b/onboarding/cases');
+  /**
+   * La cola de onboarding. `scope` decide qué es trabajo: `abiertos` por defecto; el historial
+   * (comercios ya activados) y «todos» son filtros explícitos. Lo aplica el backend.
+   */
+  listOnboardingCases(query?: { scope?: 'abiertos' | 'historial' | 'todos'; accountId?: string; search?: string; limit?: number }) {
+    return apiRequest<PaginatedResult<ResourceRow>>('/b2b/onboarding/cases', query ? { query } : {});
+  },
+  /** Las versiones de contrato de la MISMA cuenta del caso, con si sirven para activar. */
+  listCaseContractOptions(onboardingCaseId: string) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow[]>(`/b2b/onboarding/cases/${caseId}/contract-options`);
+  },
+  assignCaseContract(onboardingCaseId: string, body: JsonObject) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/contract`, { method: 'PATCH', body });
+  },
+  /** La comisión del alta: cuelga del contrato del caso, no se elige el contrato otra vez. */
+  createCaseMdrRule(onboardingCaseId: string, body: JsonObject) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/mdr-rules`, { method: 'POST', body });
+  },
+  /** Las cifras del mini-tablero, contadas con la misma regla que aplica la activación. */
+  summarizeOnboardingCases() {
+    return apiRequest<ResourceRow>('/b2b/onboarding/cases/summary');
   },
   getOnboardingCase(onboardingCaseId: string) {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');

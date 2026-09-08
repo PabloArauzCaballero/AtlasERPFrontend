@@ -207,7 +207,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Firma y activación son dos cosas',
-        body: 'Un contrato firmado todavía no habilita a operar. La activación es un control aparte —está en «Activación de comercio»— y exige que el onboarding esté cerrado.',
+        body: 'Un contrato firmado todavía no habilita a operar. La activación se hace desde la fila del caso en «Onboarding» y exige que el expediente esté cerrado.',
       },
       {
         title: 'Los responsables se identifican',
@@ -220,8 +220,12 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/crm/onboarding': {
     eyebrow: 'CRM B2B',
     title: 'Onboarding del comercio',
-    intro: 'La lista de requisitos legales, operativos y técnicos que hay que cerrar antes de que un comercio pueda operar.',
+    intro: 'La cola de comercios por habilitar: qué le falta a cada expediente, y todo lo que se hace sobre él desde su fila.',
     sections: [
+      {
+        title: 'La cola sólo enseña lo que falta',
+        body: 'Un comercio ya activado no es trabajo pendiente: su caso pasa a «Activados» y ahí queda como expediente de por qué se habilitó. Nunca se borra.',
+      },
       {
         title: 'Es un caso, no un formulario',
         body: 'Se abre, avanza por partes y se cierra. Varias personas de áreas distintas tocan el mismo caso, y por eso el estado vive en el servidor y no en la cabeza de quien lo lleva.',
@@ -231,41 +235,16 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Mientras quede uno pendiente, el comercio no se activa. Es deliberado: activar sin los papeles es exactamente el riesgo que este caso existe para impedir.',
       },
       {
-        title: 'Sucursales y usuarios se dan de alta aquí',
-        body: 'Dónde opera el comercio y quién de su personal entra al portal. Se puede ampliar después, pero al menos uno de cada tiene que existir.',
+        title: 'Todo se hace desde la fila',
+        body: 'Mover un requisito, pedir las credenciales de acceso al portal y activar el comercio son acciones de la fila del caso: ya se sabe de qué comercio se habla, no hay que elegirlo otra vez.',
       },
       {
-        title: 'Todo se elige de una lista',
-        body: 'El comercio, el responsable, el caso y el requisito salen de desplegables con nombres, no de identificadores tecleados. Al elegir un caso, la lista de requisitos se rellena con los suyos: no se puede completar un requisito de otro expediente.',
+        title: 'Activar es el último control',
+        body: 'El backend vuelve a comprobar requisitos y contrato vigente antes de habilitar. Al activar, el comercio empieza a poder originar operaciones y a facturarse; revertirlo afecta a operaciones vivas.',
       },
     ],
-    backend: 'GET/POST/PATCH /b2b/onboarding',
+    backend: 'GET/POST/PATCH /b2b/onboarding · PATCH /b2b/onboarding/cases/:id/activate',
     tutorialId: 'crm-onboarding',
-  },
-
-  '/operaciones/crm/activacion-comercio': {
-    eyebrow: 'CRM B2B',
-    title: 'Activación de comercio',
-    intro: 'El último control antes de habilitar a un comercio para operar de verdad en Atlas.',
-    sections: [
-      {
-        title: 'Qué cambia al activar',
-        body: 'El comercio pasa a poder originar operaciones, sus usuarios entran al portal y empieza a facturarse. Es el punto en el que deja de ser un expediente y pasa a ser un negocio en marcha.',
-      },
-      {
-        title: 'Por eso hay una lista de comprobación',
-        body: 'Contrato firmado, onboarding cerrado, sucursal habilitada. La pantalla no te deja activar con huecos, y eso es una función, no una molestia.',
-      },
-      {
-        title: 'Revertir no es gratis',
-        body: 'Desactivar un comercio ya activo afecta a operaciones vivas. Antes de activar, comprueba; después, la corrección es un caso.',
-      },
-      {
-        title: 'El caso se elige por su nombre',
-        body: 'El desplegable trae el nombre del comercio y cuántos requisitos le quedan pendientes. Si dice que quedan, el backend va a rechazar la activación: ciérralos primero en «Onboarding».',
-      },
-    ],
-    backend: 'GET /b2b/onboarding/cases · PATCH /b2b/onboarding/cases/:id/activate',
   },
 
   '/operaciones/crm/facturacion': {
