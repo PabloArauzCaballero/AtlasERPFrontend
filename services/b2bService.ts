@@ -216,6 +216,11 @@ export const b2bService = {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
     return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/mdr-rules`, { method: 'POST', body });
   },
+  /** El acuse: pregunta a Atlas en qué quedaron las credenciales pedidas para el comercio del caso. */
+  reconcileCaseIdentity(onboardingCaseId: string) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/identity/reconcile`, { method: 'POST', body: {} });
+  },
   /** Las cifras del mini-tablero, contadas con la misma regla que aplica la activación. */
   summarizeOnboardingCases() {
     return apiRequest<ResourceRow>('/b2b/onboarding/cases/summary');

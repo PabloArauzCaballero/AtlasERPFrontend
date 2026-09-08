@@ -43,8 +43,21 @@ export default function OnboardingPage() {
   const [scope, setScope] = useState<OnboardingScope>('abiertos');
   const [version, setVersion] = useState(0);
   const recargar = useCallback(() => setVersion((value) => value + 1), []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const load = useCallback(() => b2bService.listOnboardingCases({ scope, limit: 200 }), [scope, version]);
+  /*
+   * Al abrir la cola se acusan las credenciales pendientes: por cada caso que espera al portal se
+   * pregunta a Atlas en qué quedó, y si algo cambió se vuelve a leer la lista. Es el aviso que antes
+   * no llegaba nunca. Si la sesión no lleva token de Atlas, el acuse falla en silencio y la lista
+   * se enseña igual: la cola no puede depender de eso para pintarse.
+   */
+  const load = useCallback(async () => {
+    const primera = await b2bService.listOnboardingCases({ scope, limit: 200 });
+    const esperando = (primera.items ?? []).filter((row) => Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0);
+    if (esperando.length === 0) return primera;
+    const acuses = await Promise.allSettled(esperando.map((row) => b2bService.reconcileCaseIdentity(String(row.id ?? ''))));
+    const cambio = acuses.some((acuse) => acuse.status === 'fulfilled' && Array.isArray(acuse.value.resueltos) && acuse.value.resueltos.length > 0);
+    return cambio ? b2bService.listOnboardingCases({ scope, limit: 200 }) : primera;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope, version]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const summary = useAsyncResource(useCallback(() => b2bService.summarizeOnboardingCases(), [version]));
 
@@ -90,6 +103,7 @@ export default function OnboardingPage() {
                     { key: 'status', label: 'Estado', kind: 'status' },
                     { key: 'pendingItems', label: 'Requisitos pendientes', align: 'right' },
                     { key: 'contractNumber', label: 'Contrato', kind: 'mono' },
+                    { key: 'credentialsSummary', label: 'Credenciales' },
                     { key: 'startedAt', label: 'Iniciado', kind: 'date' },
                     ...(scope === 'abiertos' ? [] : [{ key: 'completedAt', label: 'Activado', kind: 'date' as const }]),
                   ]}
@@ -209,6 +223,18 @@ export default function OnboardingPage() {
                         ],
                         submit: (row, payload: JsonObject) => b2bService.createMerchantUser({ accountId: String(row.accountId ?? ''), ...payload }),
                         submitLabel: 'Pedir acceso',
+                      },
+                    },
+                    {
+                      key: 'acuse',
+                      label: 'Comprobar credenciales',
+                      icon: 'sync',
+                      /* Sólo cuando hay algo que preguntar: una petición encolada y sin resolver. */
+                      enabled: (row) => abierto(row) && Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0,
+                      run: async (row) => {
+                        const result = await b2bService.reconcileCaseIdentity(String(row.id ?? ''));
+                        summary.reload();
+                        return result;
                       },
                     },
                     {
