@@ -42,7 +42,17 @@ test('el menú del comercio ofrece Soporte y la pantalla carga', async ({ page }
 });
 
 /**
- * Abrir la conversación.
+ * Abrir la conversación, pasando por el motivo.
+ *
+ * Desde 2026-09-09 «Hablar con soporte» no abre el chat: abre el paso del motivo, que decide a qué
+ * cola entra la conversación y con qué plazo se mide. El paso es CONDICIONAL aquí a propósito — si
+ * el catálogo de la base contra la que corre está vacío, la pantalla se lo salta y habla
+ * directamente—, porque esta prueba mide el recorrido real y no debe ponerse roja por un dato que
+ * falta en el entorno.
+ *
+ * Se pulsa la PRIMERA fila y no un motivo por su nombre: el catálogo lo administra soporte y puede
+ * reorganizarlo. Una prueba atada a «Conciliación de cobros» se pondría roja el día que alguien
+ * renombre esa etiqueta, y ese rojo no diría nada sobre el producto.
  *
  * El aviso de seguridad lo escribe el SISTEMA al abrir el canal, así que su presencia prueba que el
  * backend creó el canal de verdad y que la transcripción llegó a la pantalla — no sólo que el botón
@@ -51,6 +61,20 @@ test('el menú del comercio ofrece Soporte y la pantalla carga', async ({ page }
 test('abrir la conversación deja un chat utilizable', async ({ page }) => {
   await page.goto('/portal-comercio/soporte');
   await page.getByRole('button', { name: /hablar con soporte/i }).click();
+
+  /*
+   * El árbol tiene dos niveles: si la primera fila trae submotivos, baja un nivel y hay que elegir
+   * otra vez. Por eso se comprueba dos veces en lugar de una.
+   */
+  const paso = page.getByText('¿Sobre qué es?');
+  for (let nivel = 0; nivel < 2; nivel += 1) {
+    if (!(await paso.isVisible().catch(() => false))) break;
+    if (nivel === 0) {
+      await page.screenshot({ path: 'test-results/soporte-comercio-motivo.png', fullPage: true });
+    }
+    await page.locator('[data-testid="motivos-soporte"] button').first().click();
+    await page.waitForTimeout(500);
+  }
 
   await expect(page.getByText(/nunca te pedir/i)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole('button', { name: /^enviar$/i })).toBeVisible();
