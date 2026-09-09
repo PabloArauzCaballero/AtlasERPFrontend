@@ -17,6 +17,7 @@ import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { b2bService } from '@/services/b2bService';
 import { portalService } from '@/services/portalService';
 import { merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
+import { engineExecutionUrl, engineManualReviewUrl } from '@/lib/engineLinks';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 const ESTADO_FINAL = 'COMPLETED';
@@ -56,15 +57,11 @@ export default function OnboardingPage() {
   const load = useCallback(async () => {
     const primera = await b2bService.listOnboardingCases({ scope, limit: 200 });
     const filas = primera.items ?? [];
-    const esperandoCredenciales = filas.filter((row) => Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0);
-    const esperandoMotor = filas.filter((row) => ESPERA_AL_MOTOR.has(String(row.status ?? '')));
-    if (esperandoCredenciales.length === 0 && esperandoMotor.length === 0) return primera;
-    const acuses = await Promise.allSettled([
-      ...esperandoCredenciales.map((row) => b2bService.reconcileCaseIdentity(String(row.id ?? ''))),
-      ...esperandoMotor.map((row) => b2bService.syncKybDecision(String(row.id ?? ''))),
-    ]);
-    const cambio = acuses.some((acuse) => acuse.status === 'fulfilled' && ((Array.isArray(acuse.value.resueltos) && acuse.value.resueltos.length > 0) || acuse.value.changed === true));
-    return cambio ? b2bService.listOnboardingCases({ scope, limit: 200 }) : primera;
+    const esperando = filas.some((row) => ESPERA_AL_MOTOR.has(String(row.status ?? '')) || Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0);
+    if (!esperando) return primera;
+    // UNA llamada para todo lo pendiente; sin token de Atlas falla en silencio y la cola se pinta igual.
+    const acuse = await b2bService.reconcilePendingCases().catch(() => null);
+    return Number(acuse?.cambiados ?? 0) > 0 ? b2bService.listOnboardingCases({ scope, limit: 200 }) : primera;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, version]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,6 +109,7 @@ export default function OnboardingPage() {
                     { key: 'status', label: 'Estado', kind: 'status' },
                     { key: 'pendingItems', label: 'Requisitos pendientes', align: 'right' },
                     { key: 'decisionOutcome', label: 'Motor', kind: 'status' },
+                    { key: 'decisionReason', label: 'Motivo del Motor' },
                     { key: 'contractNumber', label: 'Contrato', kind: 'mono' },
                     { key: 'credentialsSummary', label: 'Credenciales' },
                     { key: 'startedAt', label: 'Iniciado', kind: 'date' },
@@ -168,6 +166,20 @@ export default function OnboardingPage() {
                         submit: (row, payload: JsonObject) => b2bService.requestKybReview(String(row.id ?? ''), payload),
                         submitLabel: 'Pedir verificación',
                       },
+                    },
+                    {
+                      key: 'ejecucion',
+                      label: 'Ver ejecución en el Motor',
+                      icon: 'open_in_new',
+                      enabled: (row) => engineExecutionUrl(String(row.decisionExecutionId ?? '') || null) !== null,
+                      href: (row) => engineExecutionUrl(String(row.decisionExecutionId ?? '')) ?? '#',
+                    },
+                    {
+                      key: 'caso-motor',
+                      label: 'Ver caso de revisión manual',
+                      icon: 'rule',
+                      enabled: (row) => engineManualReviewUrl(String(row.manualReviewCaseCode ?? '') || null) !== null,
+                      href: (row) => engineManualReviewUrl(String(row.manualReviewCaseCode ?? '')) ?? '#',
                     },
                     {
                       key: 'sincronizar',

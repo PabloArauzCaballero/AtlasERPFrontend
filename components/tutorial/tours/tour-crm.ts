@@ -114,7 +114,7 @@ export const TOURS_CRM: readonly InteractiveTutorial[] = [
       },
       {
         id: 'requisitos',
-        target: '[data-tutorial-id="onboarding-checklist"]',
+        target: '[data-tutorial-id="crud-tabla"]',
         title: 'Cada requisito bloquea la activación',
         content:
           'Legales, operativos y técnicos. Mientras quede uno pendiente el comercio no se activa, y eso es deliberado: activar sin los papeles es justo el riesgo que este caso existe para impedir. Para cerrar uno, usa «Mover un requisito» en la fila del caso.',
