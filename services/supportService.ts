@@ -1,4 +1,5 @@
 import { apiRequest, getAccessToken } from '@/lib/apiClient';
+import { newCorrelationId } from '../lib/correlationId';
 
 /**
  * Soporte del comercio: sus casos y la conversación con Atlas.
@@ -188,7 +189,15 @@ export function suscribirseAlChat(
 
     try {
       const respuesta = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'text/event-stream' },
+        // Este stream no pasa por `apiClient` —arma la URL y la autorización a mano—, así que la
+        // correlación hay que ponerla aquí o esta conexión queda como la única del portal que el
+        // backend no puede atar a nada. Uno por conexión, no por evento: la fila del log es la del
+        // request, y el request es la conexión entera.
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'text/event-stream',
+          'x-correlation-id': newCorrelationId(),
+        },
         signal: control.signal,
       });
       if (!respuesta.ok || !respuesta.body) throw new Error(`stream HTTP ${respuesta.status}`);

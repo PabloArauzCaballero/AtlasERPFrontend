@@ -1,3 +1,5 @@
+import { newCorrelationId } from './correlationId';
+
 export interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
@@ -205,7 +207,13 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
 function buildHeaders(options: ApiRequestOptions): Record<string, string> {
   const token = getAccessToken();
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    // Un id por petición, para que el backend pueda atar lo que hizo este portal con lo que registró
+    // en `system_action_logs`. Va aquí y no en `performFetch` porque por `buildHeaders` pasan también
+    // las descargas de archivo y los blobs, que hasta ahora eran igual de anónimas.
+    'x-correlation-id': newCorrelationId(),
+  };
 
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   for (const [nombre, valor] of Object.entries(options.headers ?? {})) {
