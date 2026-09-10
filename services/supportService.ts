@@ -61,6 +61,21 @@ export interface Transcripcion {
   nextCursor: string | null;
 }
 
+/**
+ * Un motivo del catálogo, tal y como lo ve quien va a pedir ayuda.
+ *
+ * NO trae cola, sensibilidad, impacto ni urgencia: esos cuatro campos son la política interna de
+ * atención, y publicarlos enseñaría qué motivo elegir para caer en la cola especializada o para
+ * nacer con prioridad alta.
+ */
+export interface MotivoDeSoporte {
+  categoryCode: string;
+  label: string;
+  description: string | null;
+  requiresSpecialist: boolean;
+  subcategories?: MotivoDeSoporte[];
+}
+
 export interface ArticuloDeAyuda {
   articleId: string;
   articleKey: string;
@@ -100,6 +115,15 @@ export const supportService = {
     acknowledgeDuplicate?: boolean;
   }) {
     return apiRequest<CasoDeSoporte>('/merchant/support/cases', { method: 'POST', body });
+  },
+  /**
+   * Los motivos por los que este comercio puede abrir un caso.
+   *
+   * Las audiencias las deriva el servidor del token: si viajaran como parámetro, pedir el catálogo
+   * del consumidor sería tan fácil como cambiar una cadena en la URL.
+   */
+  listarMotivos() {
+    return apiRequest<{ categories: MotivoDeSoporte[] }>('/merchant/support/categories');
   },
   abrirConversacion(body: { partnerProfileId: string; categoryCode?: string; caseId?: string }) {
     return apiRequest<{ channelId: string; status: string; reused: boolean; agentsAvailable: number | null }>(

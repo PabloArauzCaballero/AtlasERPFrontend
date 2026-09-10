@@ -14,6 +14,7 @@ import {
   type CasoDeSoporte,
   type EstadoDeLectura,
   type MensajeDeSoporte,
+  type MotivoDeSoporte,
 } from '@/services/supportService';
 
 /**
@@ -47,6 +48,9 @@ export function MerchantSupportScreen() {
   const [conectado, setConectado] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [motivos, setMotivos] = useState<MotivoDeSoporte[]>([]);
+  /** `null` = todavía no se pulsó «Hablar»; un valor = el nivel del árbol que se está viendo. */
+  const [eligiendo, setEligiendo] = useState<MotivoDeSoporte[] | null>(null);
   const finDelHilo = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,8 +61,21 @@ export function MerchantSupportScreen() {
         const propio = profiles[0];
         if (cancelado || !propio) return;
         setPartnerId(propio.partnerId);
-        const { cases } = await supportService.listarCasos(propio.partnerId);
-        if (!cancelado) setCasos(cases);
+        /*
+          El catálogo se pide junto a los casos y su fallo NO tumba la pantalla.
+
+          Sin motivos se puede hablar igual —el servidor abre la conversación sin clasificar y un
+          agente la clasifica después—, así que un catálogo que no carga no debe dejar a nadie sin
+          soporte. Por eso su `catch` es propio y devuelve una lista vacía en vez de caer al `catch`
+          de abajo, que pintaría «no pudimos cargar tus casos» por un dato que no son los casos.
+        */
+        const [{ cases }, catalogo] = await Promise.all([
+          supportService.listarCasos(propio.partnerId),
+          supportService.listarMotivos().catch(() => ({ categories: [] as MotivoDeSoporte[] })),
+        ]);
+        if (cancelado) return;
+        setCasos(cases);
+        setMotivos(catalogo.categories);
       })
       .catch(() => {
         if (!cancelado) setError('No pudimos cargar tus casos de soporte.');
@@ -130,15 +147,55 @@ export function MerchantSupportScreen() {
     finDelHilo.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensajes.length]);
 
-  const abrirConversacion = async () => {
+  /**
+   * Abrir la conversación, con el motivo si el comercio eligió uno.
+   *
+   * El motivo no es burocracia: decide a qué cola entra —conciliación y facturación no las atiende
+   * la primera línea— y con qué plazo se mide. Sin él todo caía en `partner_l1` y el caso nacía sin
+   * clasificar, así que el comercio esperaba más y nadie podía contar por qué escriben.
+   */
+  const abrirConversacion = async (categoryCode?: string) => {
     if (!partnerId) return;
+    setEligiendo(null);
     try {
-      const canal = await supportService.abrirConversacion({ partnerProfileId: partnerId });
+      const canal = await supportService.abrirConversacion({
+        partnerProfileId: partnerId,
+        ...(categoryCode ? { categoryCode } : {}),
+      });
       setChannelId(canal.channelId);
       setError(canal.agentsAvailable === 0 ? 'No hay agentes libres ahora. Deja tu mensaje y te respondemos.' : null);
     } catch {
       setError('No pudimos abrir la conversación.');
     }
+  };
+
+  /**
+   * Pulsar «Hablar» abre el paso del motivo; no abre la conversación todavía.
+   *
+   * Si el catálogo no cargó, se salta el paso y se habla directamente: preguntar por una lista vacía
+   * sería un callejón sin salida justo cuando alguien necesita ayuda.
+   */
+  const empezar = () => {
+    if (motivos.length === 0) {
+      void abrirConversacion();
+      return;
+    }
+    setEligiendo(motivos);
+  };
+
+  /**
+   * Un motivo con submotivos baja un nivel; uno sin ellos abre la conversación.
+   *
+   * No se obliga a bajar hasta la hoja: el motivo de primer nivel ya enruta y ya se puede contar, y
+   * exigir dos elecciones para pedir ayuda es fricción que acaba en una llamada al ejecutivo, donde
+   * nada queda registrado.
+   */
+  const elegirMotivo = (motivo: MotivoDeSoporte) => {
+    if (motivo.subcategories && motivo.subcategories.length > 0) {
+      setEligiendo(motivo.subcategories);
+      return;
+    }
+    void abrirConversacion(motivo.categoryCode);
   };
 
   const enviar = async () => {
@@ -166,7 +223,7 @@ export function MerchantSupportScreen() {
         description="Habla con Atlas y sigue tus casos abiertos."
         actions={
           channelId ? null : (
-            <AtlasButton onClick={() => void abrirConversacion()} disabled={!partnerId}>
+            <AtlasButton onClick={empezar} disabled={!partnerId}>
               Hablar con soporte
             </AtlasButton>
           )
@@ -174,6 +231,53 @@ export function MerchantSupportScreen() {
       />
 
       {error ? <InlineNotice tone="warning">{error}</InlineNotice> : null}
+
+      {eligiendo ? (
+        <Panel title="¿Sobre qué es?" description="Así te atiende quien más sabe del tema.">
+          {/*
+            Identificador estable para la prueba de punta a punta.
+
+            Sin él, «pulsa el primer motivo» se escribe como «pulsa el primer botón que no sea
+            Hablar con soporte», que en un portal con barra de navegación puede caer en cualquier
+            sitio. Un ancla explícita dice qué se está señalando.
+          */}
+          <ul className="divide-y divide-slate-200" data-testid="motivos-soporte">
+            {eligiendo.map((motivo) => (
+              <li key={motivo.categoryCode}>
+                <button
+                  type="button"
+                  className="w-full px-1 py-3 text-left hover:bg-slate-50"
+                  onClick={() => elegirMotivo(motivo)}
+                >
+                  <span className="block text-sm font-medium text-slate-900">{motivo.label}</span>
+                  {motivo.description ? (
+                    <span className="block text-xs text-slate-500">{motivo.description}</span>
+                  ) : null}
+                </button>
+              </li>
+            ))}
+            {/*
+              La salida sin motivo se queda, y a la vista. Esconderla convertiría el catálogo en un
+              peaje: quien no encuentra su caso en la lista se quedaría sin poder escribir, que es el
+              fallo que este paso pretende evitar.
+            */}
+            <li>
+              <button
+                type="button"
+                className="w-full px-1 py-3 text-left hover:bg-slate-50"
+                onClick={() => void abrirConversacion()}
+              >
+                <span className="block text-sm font-medium text-slate-900">
+                  Ninguno de estos / prefiero contarlo
+                </span>
+                <span className="block text-xs text-slate-500">
+                  Abrimos la conversación y la clasificamos nosotros.
+                </span>
+              </button>
+            </li>
+          </ul>
+        </Panel>
+      ) : null}
 
       {channelId ? (
         <Panel
