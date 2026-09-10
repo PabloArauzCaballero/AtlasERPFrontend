@@ -205,6 +205,26 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
+/** El formato que aceptan el backend del ERP y AtlasBackend; lo que no encaje no se manda. */
+const RUTA_DE_PANTALLA = /^\/[A-Za-z0-9/_:.-]{0,199}$/;
+
+/**
+ * La pantalla desde la que sale la petición, leída AL ENVIARLA.
+ *
+ * Se lee de `window.location` y no de un estado que fije un efecto: React ejecuta los efectos de los
+ * hijos antes que los del padre, y la primera carga de una pantalla nueva saldría con la ruta de la
+ * anterior. El App Router actualiza el historial en un `useInsertionEffect`, que corre antes que
+ * cualquier efecto de la pantalla, así que cuando ésta pide sus datos la URL ya es la suya.
+ *
+ * Va la ruta CONCRETA (`/operaciones/clientes/42`): la plantilla la resuelve quien tiene el
+ * catálogo. En el servidor no hay pantalla, y no se inventa una.
+ */
+function pantallaDeOrigen(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const ruta = window.location.pathname;
+  return RUTA_DE_PANTALLA.test(ruta) ? { 'x-atlas-flow': ruta } : {};
+}
+
 function buildHeaders(options: ApiRequestOptions): Record<string, string> {
   const token = getAccessToken();
   const headers: Record<string, string> = {
@@ -213,6 +233,11 @@ function buildHeaders(options: ApiRequestOptions): Record<string, string> {
     // en `system_action_logs`. Va aquí y no en `performFetch` porque por `buildHeaders` pasan también
     // las descargas de archivo y los blobs, que hasta ahora eran igual de anónimas.
     'x-correlation-id': newCorrelationId(),
+    // Qué cliente llama y desde qué pantalla. El backend del ERP lo cuenta por pantalla y Flujos lo
+    // cruza con su catálogo: así una pantalla de este portal pasa de «existe en el código» a
+    // «alguien la usó». `erp-portal` se normaliza a `ERP_PORTAL`, el código del catálogo.
+    'x-atlas-product': 'erp-portal',
+    ...pantallaDeOrigen(),
   };
 
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
