@@ -1,4 +1,4 @@
-import { apiRequest, getAccessToken } from '@/lib/apiClient';
+import { apiRequest, getAccessToken, cabecerasDeOrigen } from '@/lib/apiClient';
 import { newCorrelationId } from '../lib/correlationId';
 
 /**
@@ -197,6 +197,9 @@ export function suscribirseAlChat(
           Authorization: `Bearer ${token}`,
           Accept: 'text/event-stream',
           'x-correlation-id': newCorrelationId(),
+          // Tampoco pasa por `buildHeaders` el origen: sin esto, el chat es la única pantalla del portal
+          // cuyas llamadas no dicen desde dónde salen.
+          ...cabecerasDeOrigen(),
         },
         signal: control.signal,
       });

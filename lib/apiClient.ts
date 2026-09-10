@@ -225,6 +225,11 @@ function pantallaDeOrigen(): Record<string, string> {
   return RUTA_DE_PANTALLA.test(ruta) ? { 'x-atlas-flow': ruta } : {};
 }
 
+/** Las cabeceras de origen, para las peticiones que no pasan por `buildHeaders` (el stream del chat). */
+export function cabecerasDeOrigen(): Record<string, string> {
+  return { 'x-atlas-product': 'erp-portal', ...pantallaDeOrigen() };
+}
+
 function buildHeaders(options: ApiRequestOptions): Record<string, string> {
   const token = getAccessToken();
   const headers: Record<string, string> = {
@@ -236,8 +241,7 @@ function buildHeaders(options: ApiRequestOptions): Record<string, string> {
     // Qué cliente llama y desde qué pantalla. El backend del ERP lo cuenta por pantalla y Flujos lo
     // cruza con su catálogo: así una pantalla de este portal pasa de «existe en el código» a
     // «alguien la usó». `erp-portal` se normaliza a `ERP_PORTAL`, el código del catálogo.
-    'x-atlas-product': 'erp-portal',
-    ...pantallaDeOrigen(),
+    ...cabecerasDeOrigen(),
   };
 
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
