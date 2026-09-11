@@ -231,6 +231,10 @@ export const b2bService = {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
     return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/partner-link`, { method: 'POST', body: {} });
   },
+  /** El contrato legal por defecto que rige en Atlas; `template: null` si no se publicó ninguno. */
+  getDefaultLegalContractTemplate() {
+    return apiRequest<{ template: ResourceRow | null }>('/b2b/onboarding/legal-contract-template');
+  },
   /** Un solo acuse para todo lo que espera al portal o al Motor: una llamada por carga de la cola. */
   reconcilePendingCases() {
     return apiRequest<ResourceRow>('/b2b/onboarding/cases/reconcile-pending', { method: 'POST', body: {} });

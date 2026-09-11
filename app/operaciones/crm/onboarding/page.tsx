@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { LegalContractNotice } from '@/components/screens/LegalContractNotice';
 import { OnboardingCaseScreen } from '@/components/screens/OnboardingCaseScreen';
 import { OnboardingQueueDashboard, type OnboardingScope } from '@/components/screens/OnboardingQueueDashboard';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
@@ -95,6 +96,7 @@ export default function OnboardingPage() {
                   scope={scope}
                   onScopeChange={setScope}
                 />
+                <LegalContractNotice />
                 <CrudDirectory
                   embedded
                   moduleLabel="CRM"
