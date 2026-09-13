@@ -1,5 +1,6 @@
 import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
 import type { JsonObject } from '@/services/types';
+import { conReintentos } from '@/lib/reintentos';
 
 /**
  * El expediente verificable del comercio.
@@ -220,11 +221,13 @@ export const partnerOnboardingService = {
  * llamada, y mandar la credencial del portal a un origen de almacenamiento sería filtrarla.
  */
 export async function uploadQrFile(ticket: QrUploadTicket, file: File): Promise<void> {
-  const response = await fetch(ticket.uploadUrl, {
-    method: ticket.method,
-    headers: ticket.requiredHeaders,
-    body: file,
-  });
+  // Repetible: un PUT a la misma URL firmada deja el mismo objeto, y el almacén se despliega junto a
+  // AtlasBackend, así que puede no estar unos segundos. Ver `lib/reintentos.ts`. Un error del propio
+  // almacén (XML, p. ej. la firma vencida) no es de pasarela y no se repite.
+  const response = await conReintentos(
+    () => fetch(ticket.uploadUrl, { method: ticket.method, headers: ticket.requiredHeaders, body: file }),
+    { repeticion: 'segura', esSinRespuesta: (error) => error instanceof TypeError },
+  );
   if (!response.ok) {
     throw new Error(`El almacenamiento rechazó la subida del archivo (${response.status}).`);
   }

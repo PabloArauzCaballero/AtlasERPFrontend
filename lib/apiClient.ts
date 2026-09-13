@@ -1,4 +1,5 @@
 import { newCorrelationId } from './correlationId';
+import { conReintentos, esRespuestaDePasarela, repeticionDe } from './reintentos';
 
 export interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -284,24 +285,46 @@ async function performFetch(path: string, options: ApiRequestOptions): Promise<R
   }
 }
 
-let refreshPromise: Promise<boolean> | null = null;
+/**
+ * Envía la petición y la repite si el backend no estaba. Ver `reintentos.ts`: durante un despliegue
+ * contesta la pasarela, y eso no es un error que el operador tenga que ver ni resolver.
+ */
+function enviar(path: string, options: ApiRequestOptions): Promise<Response> {
+  return conReintentos(() => performFetch(path, options), {
+    repeticion: repeticionDe(options.method),
+    esSinRespuesta: (error) => error instanceof ApiError && error.status === 0,
+  });
+}
+
+/**
+ * Tres desenlaces, no dos. Antes era un booleano, y «el backend dijo que la sesión ya no vale» y «el
+ * backend no contestó» acababan igual: borrando el token. Un refresco que coincidía con un despliegue
+ * sacaba del portal a quien tenía una sesión perfectamente válida.
+ */
+type Renovacion = 'renovada' | 'rechazada' | 'no-disponible';
+
+let refreshPromise: Promise<Renovacion> | null = null;
 
 /**
  * Renueva el access token (15 min) contra `/auth/refresh`: ese endpoint lee el refresh token
  * upstream de AtlasBackend desde una cookie httpOnly (nunca visible para este cliente) y emite
  * un nuevo JWT propio. Comparte la promesa entre 401 concurrentes para no disparar N refrescos.
  */
-async function tryRefreshSession(): Promise<boolean> {
+async function tryRefreshSession(): Promise<Renovacion> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
         const refreshPath = getSessionKind() === 'merchant' ? 'auth/merchant/refresh' : 'auth/refresh';
-        const response = await performFetch(refreshPath, { method: 'POST', skipAuthRetry: true });
+        // Un refresco que SÍ llegó no se repite: el backend rota el token. `enviar` ya lo respeta —
+        // un POST sólo se repite si la pasarela confirma que no llegó.
+        const response = await enviar(refreshPath, { method: 'POST', skipAuthRetry: true });
+        if (esRespuestaDePasarela(response)) return 'no-disponible';
         const payload = await parseResponse<{ accessToken: string }>(response);
         setAccessToken(payload.accessToken);
-        return true;
-      } catch {
-        return false;
+        return 'renovada';
+      } catch (error) {
+        // Sin respuesta (red, plazo agotado) el token de refresco no se ha rechazado: sigue valiendo.
+        return error instanceof ApiError && error.status === 0 ? 'no-disponible' : 'rechazada';
       } finally {
         refreshPromise = null;
       }
@@ -318,13 +341,17 @@ async function tryRefreshSession(): Promise<boolean> {
  * `{success: false, error}`. Es el único backend al que el frontend habla directamente.
  */
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const response = await performFetch(path, options);
+  const response = await enviar(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
-    const refreshed = await tryRefreshSession();
-    if (refreshed) {
-      const retryResponse = await performFetch(path, options);
+    const renovacion = await tryRefreshSession();
+    if (renovacion === 'renovada') {
+      const retryResponse = await enviar(path, options);
       return parseResponse<T>(retryResponse);
+    }
+    if (renovacion === 'no-disponible') {
+      // La sesión se conserva: lo que falló es el servidor, no la sesión.
+      throw new ApiError('El servicio se está actualizando. Vuelve a intentarlo en unos segundos.', 503);
     }
     clearAccessToken();
     broadcastForcedLogout();
@@ -368,11 +395,10 @@ export async function apiFileDownload(
   fallbackFileName: string,
   options: ApiRequestOptions = {},
 ): Promise<ArchivoDescargado> {
-  let response = await performFetch(path, options);
+  let response = await enviar(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
-    const refreshed = await tryRefreshSession();
-    if (refreshed) response = await performFetch(path, options);
+    if ((await tryRefreshSession()) === 'renovada') response = await enviar(path, options);
   }
 
   if (!response.ok) {
@@ -409,11 +435,10 @@ function fileNameFromDisposition(response: Response): string | null {
 }
 
 export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}): Promise<string> {
-  let response = await performFetch(path, options);
+  let response = await enviar(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
-    const refreshed = await tryRefreshSession();
-    if (refreshed) response = await performFetch(path, options);
+    if ((await tryRefreshSession()) === 'renovada') response = await enviar(path, options);
   }
 
   if (!response.ok) {
