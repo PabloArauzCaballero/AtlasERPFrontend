@@ -15,6 +15,7 @@ import { LegalContractNotice } from '@/components/screens/LegalContractNotice';
 import { OnboardingCaseScreen } from '@/components/screens/OnboardingCaseScreen';
 import { OnboardingQueueDashboard, type OnboardingScope } from '@/components/screens/OnboardingQueueDashboard';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useAuth } from '@/lib/authContext';
 import { b2bService } from '@/services/b2bService';
 import { portalService } from '@/services/portalService';
 import { merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
@@ -22,8 +23,21 @@ import { engineExecutionUrl, engineManualReviewUrl } from '@/lib/engineLinks';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 const ESTADO_FINAL = 'COMPLETED';
-/** Desde qué estados se puede (volver a) pedir la verificación al Motor. Espejo del backend. */
-const PUEDE_PEDIR_VERIFICACION = new Set(['OPEN', 'IN_PROGRESS', 'BLOCKED', 'RECHAZADO']);
+/**
+ * Desde qué estados se puede (volver a) pedir la verificación al Motor. Espejo del backend.
+ * `EN_VERIFICACION` está porque la llamada es síncrona: un caso que se quedó ahí es uno que no
+ * recibió veredicto (AtlasBackend o el Motor no respondieron) y hay que poder volver a pedir.
+ */
+const PUEDE_PEDIR_VERIFICACION = new Set(['OPEN', 'IN_PROGRESS', 'BLOCKED', 'RECHAZADO', 'EN_VERIFICACION']);
+/**
+ * Los permisos RBAC de AtlasBackend que exigen las dos acciones que cruzan al otro lado. El ERP
+ * concede sus rutas por rol de negocio (`ADMIN`, `OPERATIONS`…), pero AtlasBackend decide por
+ * permiso y los vocabularios no coinciden: un `SYSTEMS_ADMIN` es `ADMIN` aquí y no lleva
+ * `partner.kyb.request`. Ofrecer el botón y recibir un 403 era la promesa rota; el permiso viene
+ * en `auth/me`, así que sólo se ofrece lo que AtlasBackend va a dejar pasar.
+ */
+const PERMISO_PEDIR_VERIFICACION = 'partner.kyb.request';
+const PERMISO_PEDIR_CREDENCIALES = 'merchant.users.request';
 /** Estados en los que el desenlace puede cambiar sin que el ERP haga nada: hay que ir a mirar. */
 const ESPERA_AL_MOTOR = new Set(['EN_VERIFICACION', 'REVISION_MANUAL']);
 
@@ -45,6 +59,9 @@ const ROLES_DEL_COMERCIO = [
  * caso se hace desde su fila, que es donde ya se sabe de qué comercio se habla.
  */
 export default function OnboardingPage() {
+  const { hasPermission } = useAuth();
+  const puedePedirVerificacion = hasPermission(PERMISO_PEDIR_VERIFICACION);
+  const puedePedirCredenciales = hasPermission(PERMISO_PEDIR_CREDENCIALES);
   const [tab, setTab] = useState('casos');
   const [scope, setScope] = useState<OnboardingScope>('abiertos');
   const [version, setVersion] = useState(0);
@@ -157,10 +174,18 @@ export default function OnboardingPage() {
                       },
                     },
                     {
+                      key: 'enlazar',
+                      label: 'Enlazar expediente de Atlas',
+                      icon: 'link',
+                      /* Sólo mientras no hay puente: pedir la verificación lo intenta solo, pero así se ve POR QUÉ falla (por cuenta, luego por NIT). */
+                      enabled: (row) => abierto(row) && puedePedirVerificacion && !row.partnerProfileId,
+                      run: (row) => b2bService.linkPartnerProfile(String(row.id ?? '')),
+                    },
+                    {
                       key: 'verificar',
                       label: 'Pedir verificación al Motor',
                       icon: 'verified_user',
-                      enabled: (row) => PUEDE_PEDIR_VERIFICACION.has(String(row.status ?? '')),
+                      enabled: (row) => puedePedirVerificacion && PUEDE_PEDIR_VERIFICACION.has(String(row.status ?? '')),
                       form: {
                         title: (row) => `Verificación KYB de ${String(row.tradeName ?? 'este comercio')}`,
                         description: 'El ERP pide; decide AtlasBackend con el artefacto PARTNER_KYB_REVIEW del Motor. Sin su APROBADO el comercio no se activa. Si el comercio no tiene expediente en Atlas, tiene que abrirlo desde su portal.',
@@ -248,7 +273,7 @@ export default function OnboardingPage() {
                       key: 'credenciales',
                       label: 'Pedir credenciales',
                       icon: 'person_add',
-                      enabled: abierto,
+                      enabled: (row) => abierto(row) && puedePedirCredenciales,
                       /* Pide el acceso a Atlas: la identidad la concede el portal interno, no el ERP. */
                       form: {
                         title: (row) => `Acceso al portal para ${String(row.tradeName ?? 'el comercio')}`,
@@ -307,7 +332,11 @@ export default function OnboardingPage() {
                   notice={{
                     tone: 'info',
                     title: 'Un caso de onboarding no se borra',
-                    body: 'Es el expediente de por qué se habilitó un comercio. Al activarlo deja de ser trabajo pendiente y pasa a «Activados»; mientras tanto, todo lo que se hace sobre él se hace desde su fila.',
+                    body:
+                      'Es el expediente de por qué se habilitó un comercio. Al activarlo deja de ser trabajo pendiente y pasa a «Activados»; mientras tanto, todo lo que se hace sobre él se hace desde su fila.' +
+                      (puedePedirVerificacion && puedePedirCredenciales
+                        ? ''
+                        : ` Tu sesión de Atlas no lleva ${[!puedePedirVerificacion ? `«${PERMISO_PEDIR_VERIFICACION}» (pedir la verificación al Motor)` : '', !puedePedirCredenciales ? `«${PERMISO_PEDIR_CREDENCIALES}» (pedir credenciales)` : ''].filter(Boolean).join(' ni ')}: esas acciones no se ofrecen. Las llevan OPERATIONS_MANAGER y SUPER_ADMIN.`),
                   }}
                 />
               </div>
