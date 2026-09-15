@@ -1,10 +1,22 @@
 import type { FormSectionDefinition } from '@/components/screens/StructuredActionForm';
 import { armarFormularioPapel, type FormularioPapel } from '@/lib/formularioPapel';
 import {
+  accountClassificationOptions,
+  countryOptions,
+  kybStatusOptions,
+  merchantCategoryOptions,
+  recordStatusOptions,
+  riskTierOptions,
+  statementTypeOptions,
+} from '@/lib/catalogs';
+import {
+  loadAccountGroups,
   loadAccountingPeriods,
   loadB2BAccounts,
   loadBankAccounts,
   loadBusinessPartners,
+  loadChartsOfAccounts,
+  loadContracts2,
   loadGlAccounts,
   loadInternalUsers,
   loadLedgers,
@@ -219,4 +231,219 @@ export function formularioCasoOnboarding(): Promise<FormularioPapel> {
     ],
     signatures: FIRMAS_INTERNAS,
   });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Pantallas a mano sin líneas dinámicas: fichas y paneles.
+// ---------------------------------------------------------------------------------------------
+
+const SI_NO = [
+  { label: 'Sí', value: 'true' },
+  { label: 'No', value: 'false' },
+];
+
+export const SECCIONES_GRUPO_CUENTA: FormSectionDefinition[] = [
+  {
+    title: 'Nuevo grupo',
+    description: 'Cree un grupo raíz o hijo (indicando el grupo padre).',
+    fields: [
+      { name: 'coaId', label: 'Plan de cuentas (COA)', type: 'select', required: true, optionsLoader: loadChartsOfAccounts, span: 2 },
+      { name: 'parentGroupId', label: 'Grupo padre', type: 'select', optionsLoader: loadAccountGroups, hint: 'Vacío = grupo raíz' },
+      { name: 'code', label: 'Código', required: true, placeholder: 'BG-ACT-CORR' },
+      { name: 'sortOrder', label: 'Orden', type: 'number' },
+      { name: 'name', label: 'Nombre', required: true, placeholder: 'Activo Corriente' },
+      { name: 'statementType', label: 'Estado financiero', type: 'select', options: statementTypeOptions },
+      { name: 'classification', label: 'Clasificación', type: 'select', options: accountClassificationOptions },
+      { name: 'subClassification', label: 'Subclasificación (opcional)', placeholder: 'CURRENT / NON_CURRENT…' },
+    ],
+  },
+];
+
+export function formularioGrupoCuenta(): Promise<FormularioPapel> {
+  return armarFormularioPapel(SECCIONES_GRUPO_CUENTA, {
+    formCode: 'ERP-CONTABILIDAD-GRUPO-CUENTA-CREAR',
+    title: 'Grupo de cuenta (árbol contable)',
+    subtitle: 'Contabilidad · Grupos de cuenta · Jerarquía',
+    signatures: FIRMAS_INTERNAS,
+  });
+}
+
+export const SECCIONES_CUENTA_GL_EDICION: FormSectionDefinition[] = [
+  {
+    title: 'Edición de cuenta',
+    description: 'Los identificadores contables (número, COA, tipo y naturaleza) son inmutables.',
+    fields: [
+      { name: 'accountNumber', label: 'Número de cuenta (la que se edita)', required: true },
+      { name: 'name', label: 'Nombre', span: 2 },
+      { name: 'status', label: 'Estado', type: 'select', options: recordStatusOptions },
+      { name: 'isPostingAllowed', label: 'Permite asientos', type: 'select', options: SI_NO },
+      { name: 'isBankAccount', label: 'Es cuenta bancaria', type: 'select', options: SI_NO },
+      { name: 'isReconcilable', label: 'Conciliable', type: 'select', options: SI_NO },
+      { name: 'isCostCenterRequired', label: 'Exige centro de costo', type: 'select', options: SI_NO },
+      { name: 'isProfitCenterRequired', label: 'Exige centro de beneficio', type: 'select', options: SI_NO },
+    ],
+  },
+];
+
+export function formularioCuentaGlEdicion(): Promise<FormularioPapel> {
+  return armarFormularioPapel(SECCIONES_CUENTA_GL_EDICION, {
+    formCode: 'ERP-CONTABILIDAD-CUENTA-GL-EDITAR',
+    title: 'Cambios en una cuenta GL',
+    subtitle: 'Contabilidad · Cuentas GL · Detalle',
+    signatures: FIRMAS_INTERNAS,
+  });
+}
+
+export const SECCIONES_PARTNER_EDICION: FormSectionDefinition[] = [
+  {
+    title: 'Edición de partner',
+    description: 'El código y el tipo de partner son inmutables.',
+    fields: [
+      { name: 'partnerCode', label: 'Código del partner (el que se edita)', required: true },
+      { name: 'legalName', label: 'Razón social', span: 2 },
+      { name: 'tradeName', label: 'Nombre comercial' },
+      { name: 'taxId', label: 'NIT / documento' },
+      { name: 'countryCode', label: 'País', type: 'select', options: countryOptions },
+      { name: 'kybStatus', label: 'Estado KYB', type: 'select', options: kybStatusOptions },
+      { name: 'status', label: 'Estado', type: 'select', options: recordStatusOptions },
+    ],
+  },
+];
+
+export function formularioPartnerEdicion(): Promise<FormularioPapel> {
+  return armarFormularioPapel(SECCIONES_PARTNER_EDICION, {
+    formCode: 'ERP-CONTABILIDAD-PARTNER-EDITAR',
+    title: 'Cambios en un business partner',
+    subtitle: 'Contabilidad · Business partners · Detalle',
+    signatures: FIRMAS_INTERNAS,
+  });
+}
+
+export const SECCIONES_REGLA_MDR: FormSectionDefinition[] = [
+  {
+    title: 'Comisión por venta (MDR)',
+    fields: [
+      { name: 'contractVersionId', label: 'Contrato (versión vigente)', type: 'select', required: true, optionsLoader: loadContracts2, span: 3 },
+      { name: 'ratePercent', label: 'Comisión (%)', type: 'number', required: true, placeholder: '3.50' },
+      { name: 'productCategory', label: 'Categoría de producto', type: 'select', options: merchantCategoryOptions, hint: 'Vacío: aplica a todas.' },
+      { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', options: riskTierOptions, hint: 'Vacío: aplica a todos.' },
+      { name: 'minFeeAmount', label: 'Piso (Bs)', type: 'number', hint: 'Una venta de Bs 20 al 3 % deja Bs 0,60.' },
+      { name: 'maxFeeAmount', label: 'Techo (Bs)', type: 'number', hint: 'Evita comisiones desproporcionadas en ventas grandes.' },
+    ],
+  },
+];
+
+export function formularioReglaMdr(): Promise<FormularioPapel> {
+  return armarFormularioPapel(SECCIONES_REGLA_MDR, {
+    formCode: 'ERP-CRM-CONTRATO-REGLA-MDR',
+    title: 'Regla de comisión por venta (MDR)',
+    subtitle: 'CRM · Contratos · Comisión por venta',
+    tablas: [
+      {
+        title: 'Más reglas para el mismo contrato',
+        table: {
+          columns: [
+            { label: 'Comisión %', numeric: true },
+            { label: 'Categoría', width: 2 },
+            { label: 'Segmento de riesgo', width: 2 },
+            { label: 'Piso (Bs)', numeric: true },
+            { label: 'Techo (Bs)', numeric: true },
+          ],
+          rows: 6,
+        },
+      },
+    ],
+    signatures: [{ name: 'Ejecutivo comercial' }, { name: 'Aprobación', role: 'Gerencia comercial' }],
+  });
+}
+
+export const SECCIONES_ACTIVIDAD_CUENTA: FormSectionDefinition[] = [
+  {
+    title: 'Actividad y tareas',
+    description: 'Notas, llamadas, reuniones y tareas/recordatorios de la cuenta.',
+    fields: [
+      { name: 'accountId', label: 'Cuenta B2B', type: 'select', required: true, optionsLoader: loadB2BAccounts, span: 2 },
+      {
+        name: 'activityType',
+        label: 'Tipo',
+        type: 'select',
+        options: [
+          { label: 'Nota', value: 'NOTE' },
+          { label: 'Llamada', value: 'CALL' },
+          { label: 'Reunión', value: 'MEETING' },
+          { label: 'Tarea', value: 'TASK' },
+        ],
+      },
+      { name: 'dueAt', label: 'Vencimiento (para tareas)', type: 'datetime' },
+      { name: 'subject', label: 'Asunto', required: true, span: 2, placeholder: 'Llamada de seguimiento, propuesta enviada…' },
+      { name: 'description', label: 'Detalle', type: 'textarea', span: 3, placeholder: 'Notas de la interacción…' },
+      { name: 'ownerUserId', label: 'Responsable', type: 'select', required: true, optionsLoader: loadInternalUsers },
+    ],
+  },
+];
+
+export function formularioActividadCuenta(): Promise<FormularioPapel> {
+  return armarFormularioPapel(SECCIONES_ACTIVIDAD_CUENTA, {
+    formCode: 'ERP-CRM-CUENTA-ACTIVIDAD',
+    title: 'Actividad o tarea de una cuenta',
+    subtitle: 'CRM · Cuentas · Detalle · Actividad y tareas',
+    signatures: [{ name: 'Registrado por' }],
+  });
+}
+
+export const SECCIONES_DECISION_MODERACION: FormSectionDefinition[] = [
+  {
+    title: 'Decisión de moderación',
+    fields: [
+      { name: 'creativeId', label: 'Creatividad revisada (identificador)', required: true, span: 2 },
+      {
+        name: 'reviewStatus',
+        label: 'Decisión',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Aprobada', value: 'APPROVED' },
+          { label: 'Rechazada', value: 'REJECTED' },
+          { label: 'Requiere cambios', value: 'CHANGES_REQUESTED' },
+        ],
+      },
+      { name: 'policyCode', label: 'Política aplicada', span: 1 },
+      { name: 'notes', label: 'Observaciones', type: 'textarea', span: 3 },
+      { name: 'escalate', label: 'Escalar a supervisor', type: 'select', options: SI_NO },
+    ],
+  },
+];
+
+export function formularioDecisionModeracion(): Promise<FormularioPapel> {
+  return armarFormularioPapel(SECCIONES_DECISION_MODERACION, {
+    formCode: 'ERP-ADS-MODERACION-DECIDIR',
+    title: 'Decisión de moderación de una creatividad',
+    subtitle: 'Ads · Moderación',
+    signatures: [{ name: 'Moderador' }, { name: 'Supervisor (si escala)' }],
+  });
+}
+
+export const SECCIONES_EVIDENCIA_REQUISITO: FormSectionDefinition[] = [
+  {
+    title: 'Evidencia de un requisito del expediente',
+    fields: [
+      { name: 'caseId', label: 'Caso de onboarding (número o comercio)', required: true, span: 2 },
+      { name: 'checklistItemId', label: 'Requisito', required: true, hint: 'Tal como aparece en el checklist del caso.' },
+      { name: 'nota', label: 'Qué se adjunta', type: 'textarea', span: 3 },
+    ],
+  },
+];
+
+export async function formularioEvidenciaRequisito(): Promise<FormularioPapel> {
+  const formulario = await armarFormularioPapel(SECCIONES_EVIDENCIA_REQUISITO, {
+    formCode: 'ERP-CRM-ONBOARDING-EVIDENCIA',
+    title: 'Evidencia de requisito de onboarding',
+    subtitle: 'CRM · Onboarding · Adjuntar evidencia',
+    signatures: [{ name: 'Entregado por', role: 'Comercio' }, { name: 'Recibido por', role: 'Ejecutivo' }],
+  });
+  formulario.sections.push({
+    title: 'Adjunto',
+    fields: [{ label: 'Documento entregado (PDF, foto o fotocopia)', kind: 'file', required: true }],
+  });
+  return formulario;
 }

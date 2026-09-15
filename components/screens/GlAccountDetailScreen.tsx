@@ -12,6 +12,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioCuentaGlEdicion } from '@/lib/formulariosPapel/operaciones';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { recordStatusOptions } from '@/lib/catalogs';
 import type { JsonObject, ResourceRow } from '@/services/types';
@@ -101,9 +103,12 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
         title={name}
         description="Detalle de la cuenta contable, dimensiones obligatorias y estado dentro del plan de cuentas."
         actions={
-          <Link href="/operaciones/contabilidad/cuentas-gl">
-            <AtlasButton variant="secondary" icon="arrow_back">Volver al directorio</AtlasButton>
-          </Link>
+          <>
+            <BotonFormularioPapel data-testid="papel-cuenta-gl" formulario={formularioCuentaGlEdicion} />
+            <Link href="/operaciones/contabilidad/cuentas-gl">
+              <AtlasButton variant="secondary" icon="arrow_back">Volver al directorio</AtlasButton>
+            </Link>
+          </>
         }
       />
 

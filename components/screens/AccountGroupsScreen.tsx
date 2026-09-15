@@ -11,6 +11,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioGrupoCuenta } from '@/lib/formulariosPapel/operaciones';
 import { useOptions } from '@/hooks/useOptions';
 import { loadAccountGroups, loadChartsOfAccounts, withEmpty } from '@/services/optionLoaders';
 import { accountClassificationOptions, statementTypeOptions } from '@/lib/catalogs';
@@ -93,7 +95,7 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
           breadcrumbs={[{ label: 'Contabilidad' }, { label: 'Grupos de cuenta' }]}
           title="Grupos de cuenta (árbol contable)"
           description="Taxonomía de reporte para estados financieros: Balance General, Activo, Corriente y subgrupos. Independiente de la jerarquía cuenta-a-cuenta."
-          actions={<AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>}
+          actions={<><BotonFormularioPapel data-testid="papel-grupo-cuenta" formulario={formularioGrupoCuenta} /><AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton></>}
         />
       )}
 

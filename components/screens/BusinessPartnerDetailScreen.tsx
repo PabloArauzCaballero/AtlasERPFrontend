@@ -12,6 +12,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioPartnerEdicion } from '@/lib/formulariosPapel/operaciones';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { PartnerDefaultAccountsPanel } from '@/components/screens/PartnerDefaultAccountsPanel';
 import { countryOptions, kybStatusOptions, recordStatusOptions } from '@/lib/catalogs';
@@ -94,9 +96,12 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
         title={name}
         description="Ficha del business partner, identidad legal y estado KYB dentro del maestro financiero."
         actions={
-          <Link href="/operaciones/contabilidad/business-partners">
-            <AtlasButton variant="secondary" icon="arrow_back">Volver al directorio</AtlasButton>
-          </Link>
+          <>
+            <BotonFormularioPapel data-testid="papel-partner" formulario={formularioPartnerEdicion} />
+            <Link href="/operaciones/contabilidad/business-partners">
+              <AtlasButton variant="secondary" icon="arrow_back">Volver al directorio</AtlasButton>
+            </Link>
+          </>
         }
       />
 

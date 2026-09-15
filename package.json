@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start -p 3010",
     "type-check": "tsc --noEmit",
-    "lint": "node scripts/check-pestanas-accion.mjs && eslint . --max-warnings=0",
+    "lint": "node scripts/check-pestanas-accion.mjs && node scripts/check-formularios-papel.mjs && eslint . --max-warnings=0",
     "check": "npm run type-check && npm run lint && npm run build",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"

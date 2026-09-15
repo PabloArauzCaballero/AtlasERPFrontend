@@ -12,6 +12,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioDecisionModeracion } from '@/lib/formulariosPapel/operaciones';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 function rowsFrom(data: { items?: ResourceRow[]; rows?: ResourceRow[] } | null): ResourceRow[] { return data?.items ?? data?.rows ?? []; }
@@ -31,7 +33,7 @@ export function ModerationQueueScreen() {
     try { await mutation.execute({ id: String(selected.id), body }); setSelected(null); await resource.reload(); } catch { /* shown */ }
   }
 
-  return <div className="space-y-5"><WorkspaceHeader breadcrumbs={[{ label: 'Ads' }, { label: 'Moderación' }]} title="Cola de moderación" description="Revise creatividades, aplique políticas y registre decisiones trazables." actions={<AtlasButton variant="secondary" icon="refresh" onClick={resource.reload}>Actualizar</AtlasButton>} />
+  return <div className="space-y-5"><WorkspaceHeader breadcrumbs={[{ label: 'Ads' }, { label: 'Moderación' }]} title="Cola de moderación" description="Revise creatividades, aplique políticas y registre decisiones trazables." actions={<><BotonFormularioPapel data-testid="papel-moderacion" formulario={formularioDecisionModeracion} /><AtlasButton variant="secondary" icon="refresh" onClick={resource.reload}>Actualizar</AtlasButton></>} />
     <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Pendientes" value={total} detail="Cola filtrada" icon="fact_check" /><MetricCard label="Alta prioridad" value={rows.filter((row) => ['HIGH','CRITICAL'].includes(String(row.severity))).length} detail="Página actual" icon="priority_high" tone="red" /><MetricCard label="Seleccionada" value={selected ? 1 : 0} detail="Lista para decisión" icon="ads_click" tone="teal" /><MetricCard label="Página" value={page} detail="8 revisiones por página" icon="menu_book" tone="amber" /></div>
     {resource.error ? <InlineNotice tone="danger">{resource.error}</InlineNotice> : null}{mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
     <div className="flex flex-wrap gap-2">{['PENDING_REVIEW','APPROVED','REJECTED','CHANGES_REQUESTED','ESCALATED'].map((item) => <button key={item} type="button" className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${status === item ? 'border-[#006a61] bg-[#006a61] text-white' : 'border-slate-300 bg-white text-slate-600'}`} onClick={() => { setPage(1); setStatus(item); }}>{item.replaceAll('_',' ')}</button>)}</div>

@@ -5,6 +5,8 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioReglaMdr } from '@/lib/formulariosPapel/operaciones';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
@@ -88,6 +90,7 @@ export function MdrRulesPanel() {
       title="Comisión por venta (MDR)"
       description="Lo que Atlas cobra al comercio por cada venta. Se acuerda en el alta, antes de que opere."
       icon="percent"
+      action={<BotonFormularioPapel data-testid="papel-regla-mdr" formulario={formularioReglaMdr} />}
     >
       <FormField
         kind="select"

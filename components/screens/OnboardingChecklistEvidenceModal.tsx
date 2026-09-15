@@ -8,6 +8,8 @@ import { Modal } from '@/components/atlas/Modal';
 import { b2bService } from '@/services/b2bService';
 import { contentTypeDeArchivo, sha256DeArchivo, uploadWithTicket } from '@/services/filesService';
 import type { ResourceRow } from '@/services/types';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioEvidenciaRequisito } from '@/lib/formulariosPapel/operaciones';
 
 interface Requisito {
   id: string;
@@ -100,6 +102,7 @@ export function OnboardingChecklistEvidenceModal({
       description="PDF, JPEG o PNG hasta 15 MB. Se guarda en el almacén de evidencia de Atlas y respalda la activación del comercio."
     >
       <form className="space-y-3" onSubmit={subir} data-testid="form-evidencia-requisito">
+        <div className="flex justify-end"><BotonFormularioPapel data-testid="papel-evidencia" formulario={formularioEvidenciaRequisito} /></div>
         <FormField
           kind="select"
           label="Requisito"

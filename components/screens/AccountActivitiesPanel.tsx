@@ -11,6 +11,8 @@ import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioActividadCuenta } from '@/lib/formulariosPapel/operaciones';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { formatDate } from '@/lib/formatters';
 import type { JsonObject, ResourceRow } from '@/services/types';
@@ -97,7 +99,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
   const canSave = form.subject.trim() && form.ownerUserId.trim();
 
   return (
-    <Panel title="Actividad y tareas" description="Notas, llamadas, reuniones y tareas/recordatorios de la cuenta (timeline)." icon="history_edu">
+    <Panel title="Actividad y tareas" description="Notas, llamadas, reuniones y tareas/recordatorios de la cuenta (timeline)." icon="history_edu" action={<BotonFormularioPapel data-testid="papel-actividad" formulario={formularioActividadCuenta} />}>
       <div className="mb-4 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3">
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
           <FormField kind="select" label="Tipo" name="activityType" value={form.activityType} onChange={(e) => setField('activityType')(e.target.value)} options={activityTypeOptions} />
