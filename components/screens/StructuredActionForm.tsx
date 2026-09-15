@@ -5,6 +5,9 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { armarFormularioPapel, codigoDeFormulario } from '@/lib/formularioPapel';
+import { usePathname } from 'next/navigation';
 import { Icon } from '@/components/atlas/Icon';
 import { formDataToPayload, type FieldValueKind } from '@/lib/formPayload';
 import { fieldSpanClasses } from '@/lib/formLayout';
@@ -114,7 +117,19 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
     }
   }
 
-  const acciones = <><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>;
+  const pathname = usePathname();
+  const papel = (
+    <BotonFormularioPapel
+      formulario={() =>
+        armarFormularioPapel(props.sections, {
+          formCode: codigoDeFormulario(pathname ?? '', props.title),
+          title: props.title,
+          subtitle: `${props.moduleLabel} · ${props.description}`.slice(0, 240),
+        })
+      }
+    />
+  );
+  const acciones = <>{papel}<AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>;
 
   return (
     <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit} onChange={formChangeHandler(onFieldChange)} noValidate={tabbed}>
