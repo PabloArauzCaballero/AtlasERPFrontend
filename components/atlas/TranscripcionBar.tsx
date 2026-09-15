@@ -59,8 +59,11 @@ export function TranscripcionPanel() {
       setError('El número de serie está al pie de cada página del formulario: «DOC-» y doce letras o números.');
       return;
     }
-    const form = String(datos.get('form') ?? '').trim().toUpperCase();
-    const [formCode, formVersion] = form.split('@');
+    // El código va en mayúsculas; la versión es una huella hexadecimal y se respeta tal cual, que
+    // es como está impresa y como la compara el backend.
+    const [codigoBruto, versionBruta] = String(datos.get('form') ?? '').trim().split('@');
+    const formCode = codigoBruto?.toUpperCase();
+    const formVersion = versionBruta?.toLowerCase();
     setError(null);
     activarTranscripcion({ serial, ...(formCode ? { formCode } : {}), ...(formVersion ? { formVersion } : {}) });
   }
@@ -85,7 +88,7 @@ export function TranscripcionPanel() {
       <FormField label="Estoy transcribiendo un papel · número de serie" name="serial" placeholder="DOC-4F3A9C2E7B10" required hint="Está al pie de cada página del formulario impreso." />
       <FormField label="Código del formulario (opcional)" name="form" placeholder="ERP-CRM-CUENTA-CREAR@a91f3c2e" hint="Aparece en la cabecera del papel, con su versión." />
       <AtlasButton type="submit" icon="print" data-testid="transcripcion-activar">Activar</AtlasButton>
-      {error ? <p className="text-xs text-red-700 md:col-span-3">{error}</p> : null}
+      {error ? <p className="text-xs text-red-700 md:col-span-3" data-testid="transcripcion-error">{error}</p> : null}
     </form>
   );
 }
