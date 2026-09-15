@@ -166,9 +166,10 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
       current && loaded.length && !loaded.some((option) => option.value === current)
         ? [...loaded, { value: current, label: `${current} (valor anterior)` }]
         : loaded;
-    // Un select opcional con fuente necesita su opción vacía, o obliga a elegir algo.
+    // Sólo un select declarado OPCIONAL (o con emptyOption) lleva opción vacía: si no, un campo que no
+    // es obligatorio pero tampoco admite vacío (el estado de un segmento) mandaría '' y el backend lo rechazaría.
     const withEmpty =
-      !field.required && (field.optionsSource || field.emptyOption) && withCurrent.length && withCurrent[0]?.value !== ''
+      !field.required && (field.optional || field.emptyOption) && withCurrent.length && withCurrent[0]?.value !== ''
         ? [{ value: '', label: field.emptyOption ?? '— Sin definir —' }, ...withCurrent]
         : withCurrent;
     return (
