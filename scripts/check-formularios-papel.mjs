@@ -34,9 +34,7 @@ const EXENTAS = new Map([
   ['components/screens/MerchantRequestsScreen.tsx', 'motivo de rechazo sobre una solicitud que sólo existe en pantalla'],
   ['components/screens/PartnerRequirementsPanel.tsx', 'sus campos van en el formulario del expediente (PartnerDossierScreen)'],
   ['components/atlas/TranscripcionBar.tsx', 'es el control del modo transcripción: pide la serie del papel, no captura datos'],
-  // PENDIENTE (atlas-98, 2026-09-15): el asistente de campañas de notificación es nuevo esta noche;
-  // su definición en papel se debe a quien lo construye. Quitar estas dos líneas cuando exista.
-  ['components/campaigns/', 'PENDIENTE: campañas de notificación en construcción (carpeta entera)'],
+  ['components/campaigns/', 'Campaña de notificación masiva: se diseña y programa en pantalla con audiencia calculada en vivo; no existe formulario físico que transcribir.'],
   // Controles compartidos: pintan campos, no son un formulario.
   ['components/screens/ActionFieldControl.tsx', 'control compartido'],
   ['components/screens/CrudDirectory.tsx', 'componente compartido; el botón lo pone ActionFormModal'],
