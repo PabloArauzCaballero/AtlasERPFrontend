@@ -4,6 +4,7 @@ import { AddressMapField } from '@/components/atlas/AddressMapField';
 import { ChipsField } from '@/components/atlas/ChipsField';
 import { CountryCityField } from '@/components/atlas/CountryCityField';
 import { FormField } from '@/components/atlas/FormField';
+import { MultiSelectField } from '@/components/atlas/MultiSelectField';
 import type { PayloadFieldDefinition } from '@/lib/formPayload';
 import type { ActionField } from './StructuredActionForm';
 
@@ -19,6 +20,12 @@ export function controlType(field: ActionField): string {
   return field.type ?? 'text';
 }
 
+/** Un campo con fuente de opciones y sin `type` es un select: la fuente ya dice que el dominio es cerrado. */
+export function isSelectField(field: ActionField): boolean {
+  if (field.type === 'select') return true;
+  return !field.type && Boolean(field.optionsSource || field.optionsLoader || field.optionsLoaderFor || field.options);
+}
+
 /**
  * Definiciones para `formDataToPayload`.
  *
@@ -27,17 +34,16 @@ export function controlType(field: ActionField): string {
  * `valueKind: 'datetime'` en cada pantalla y olvidarlo en una.
  */
 export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinition[] {
-  return fields.flatMap((field) => {
-    const own: PayloadFieldDefinition = {
+  return fields
+    // Lo que asigna el backend no viaja: el control se pinta sólo para enseñarlo.
+    .filter((field) => !field.assignedByBackend)
+    .map((field) => ({
       name: field.name,
-      valueKind: field.valueKind ?? (field.type === 'datetime' ? 'datetime' : undefined),
+      valueKind:
+        field.valueKind ??
+        (field.type === 'datetime' ? 'datetime' : field.type === 'multiselect' ? 'codeList' : undefined),
       optional: field.optional,
-    };
-    // El selector país+ciudad entrega DOS controles: la ciudad es siempre opcional (se puede
-    // elegir sólo el país) y sin esta definición el envío la ignoraría.
-    if (field.type === 'countryCity' && field.cityFieldName) return [own, { name: field.cityFieldName, optional: true }];
-    return [own];
-  });
+    }));
 }
 
 interface ActionFieldControlProps {
@@ -72,6 +78,37 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
   const bruto = props.defaultValue !== undefined ? props.defaultValue : field.defaultValue;
   const defaultValue = field.type === 'datetime' ? toDatetimeLocal(bruto) : bruto;
   const required = props.nativeRequired !== undefined ? props.nativeRequired : field.required;
+
+  if (field.assignedByBackend) {
+    const assigned = defaultValue !== undefined && defaultValue !== null ? String(defaultValue) : '';
+    return (
+      <FormField
+        name=""
+        label={field.label}
+        value={assigned}
+        placeholder="Se asigna al guardar"
+        readOnly
+        tabIndex={-1}
+        hint={field.hint ?? 'Lo asigna el sistema al guardar.'}
+        className={className}
+      />
+    );
+  }
+
+  if (field.type === 'multiselect') {
+    return (
+      <MultiSelectField
+        name={field.name}
+        label={field.label}
+        options={field.options ?? dynamicOptions[field.name] ?? []}
+        defaultValue={defaultValue !== undefined ? String(defaultValue) : undefined}
+        required={required}
+        softRequired={props.softRequired}
+        hint={field.hint}
+        className={className}
+      />
+    );
+  }
 
   if (field.type === 'chips') {
     return (
@@ -120,9 +157,25 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
     );
   }
 
-  if (field.type === 'select') {
+  if (isSelectField(field)) {
+    const loaded = field.options ?? dynamicOptions[field.name] ?? [];
+    const current = defaultValue !== undefined && defaultValue !== null ? String(defaultValue) : '';
+    // Un valor guardado que ya no está en la lista (texto libre de antes) se conserva visible: sin
+    // esto el select mostraría la primera opción y al guardar la fila cambiaría sin que nadie lo pida.
+    const withCurrent =
+      current && loaded.length && !loaded.some((option) => option.value === current)
+        ? [...loaded, { value: current, label: `${current} (valor anterior)` }]
+        : loaded;
+    // Un select opcional con fuente necesita su opción vacía, o obliga a elegir algo.
+    const withEmpty =
+      !field.required && (field.optionsSource || field.emptyOption) && withCurrent.length && withCurrent[0]?.value !== ''
+        ? [{ value: '', label: field.emptyOption ?? '— Sin definir —' }, ...withCurrent]
+        : withCurrent;
     return (
       <FormField
+        // Las opciones llegan después del primer render y un <select> no controlado sólo aplica su
+        // defaultValue al montar: se remonta cuando cambian para que el valor de la fila se vea.
+        key={`${field.name}:${withEmpty.length}:${withEmpty[0]?.value ?? ''}`}
         kind="select"
         name={field.name}
         label={field.label}
@@ -130,7 +183,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         softRequired={props.softRequired}
         defaultValue={defaultValue}
         hint={field.hint}
-        options={field.options ?? dynamicOptions[field.name] ?? []}
+        options={withEmpty}
         className={className}
       />
     );

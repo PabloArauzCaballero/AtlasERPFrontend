@@ -18,7 +18,7 @@ interface InputFieldProps extends BaseFieldProps, Omit<InputHTMLAttributes<HTMLI
 
 interface SelectFieldProps extends BaseFieldProps, Omit<SelectHTMLAttributes<HTMLSelectElement>, 'name' | 'className'> {
   kind: 'select';
-  options: Array<{ label: string; value: string }>;
+  options: Array<{ label: string; value: string; description?: string | undefined }>;
 }
 
 interface TextareaFieldProps extends BaseFieldProps, Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'name' | 'className'> {
@@ -41,7 +41,7 @@ export function FormField(props: FormFieldProps) {
         <select {...selectProps} name={name} required={required} disabled={isEmpty || selectProps.disabled} className={controlClass}>
           {isEmpty
             ? <option value="">— No hay datos registrados —</option>
-            : options.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
+            : options.map((option) => <option value={option.value} key={option.value} title={option.description}>{option.label}</option>)}
         </select>
         {hint ? <span className="mt-1 block text-[11px] text-slate-500">{hint}</span> : null}
       </label>

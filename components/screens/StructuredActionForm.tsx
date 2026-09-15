@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
@@ -12,18 +12,37 @@ import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import { toast } from '@/lib/toast';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
+import type { OptionsSource } from '@/services/domains';
+import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
 
 export interface ActionField {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'chips' | 'countryCity' | 'address';
+  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'multiselect' | 'chips' | 'countryCity' | 'address';
   valueKind?: FieldValueKind | undefined;
   required?: boolean | undefined;
   optional?: boolean | undefined;
   placeholder?: string | undefined;
   defaultValue?: string | number | undefined;
   hint?: string | undefined;
-  options?: Array<{ label: string; value: string }> | undefined;
+  options?: Array<{ label: string; value: string; description?: string | undefined }> | undefined;
+  /**
+   * De dónde salen los valores válidos, sin copiarlos en la pantalla: `domain:crm.riskTier` (lo
+   * publica el backend en /catalog/domains) o `catalog:currency` (listas ISO de lib/catalogs.ts).
+   * Un campo con fuente y sin `type` se pinta como select.
+   */
+  optionsSource?: OptionsSource | undefined;
+  /** Etiqueta de la opción vacía de un select opcional. Por defecto «— Sin definir —». */
+  emptyOption?: string | undefined;
+  /** Otro campo del mismo formulario del que dependen las opciones (tipo de entidad → entidad). */
+  dependsOn?: string | undefined;
+  /** Carga las opciones a partir del valor de `dependsOn`; se vuelve a llamar cada vez que cambia. */
+  optionsLoaderFor?: ((parentValue: string) => Promise<Array<{ label: string; value: string }>>) | undefined;
+  /**
+   * El valor lo asigna el backend (un correlativo): no se pide ni viaja en el envío. En un alta se
+   * muestra «Se asigna al guardar»; en una edición, el valor asignado, de sólo lectura.
+   */
+  assignedByBackend?: boolean | undefined;
   /** Carga opciones de un select desde el backend (una sola vez, al montar). Para campos UUID normalizados. */
   optionsLoader?: (() => Promise<Array<{ label: string; value: string }>>) | undefined;
   span?: 1 | 2 | 3;
@@ -64,28 +83,14 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
   const mutation = useAtlasMutation(submitAction);
   const definitions = props.sections.flatMap((section) => payloadDefinitions(section.fields));
 
-  const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
+  const allFields = props.sections.flatMap((section) => section.fields);
+  const { dynamicOptions, onFieldChange } = useFieldOptions(allFields);
   // Las secciones se muestran como pestañas para no saturar la vista; TODAS quedan montadas
   // (solo se ocultan las inactivas) para que el envío capture sus campos igual.
   const [activeTab, setActiveTab] = useState(0);
   const tabbed = props.sections.length > 1;
   const requiredFields = props.sections.flatMap((section, sectionIndex) =>
     section.fields.filter((field) => field.required).map((field) => ({ name: field.name, label: field.label, sectionIndex })));
-  useEffect(() => {
-    let cancelled = false;
-    props.sections
-      .flatMap((section) => section.fields)
-      .filter((field) => field.optionsLoader)
-      .forEach((field) => {
-        field
-          .optionsLoader!()
-          .then((options) => { if (!cancelled) setDynamicOptions((current) => ({ ...current, [field.name]: options })); })
-          .catch(() => { /* si falla, el select queda vacío y el usuario ve el error al enviar */ });
-      });
-    return () => { cancelled = true; };
-    // Los loaders se resuelven una sola vez al montar (las secciones no cambian en runtime).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -112,7 +117,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
   const acciones = <><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>;
 
   return (
-    <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit} noValidate={tabbed}>
+    <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit} onChange={formChangeHandler(onFieldChange)} noValidate={tabbed}>
       {props.embedded ? null : (
         <WorkspaceHeader
           breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}

@@ -9,6 +9,7 @@ import { formDataToPayload } from '@/lib/formPayload';
 import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject, ResourceRow } from '@/services/types';
+import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
 
 /** Valor de un campo del formulario a partir de la fila, soportando nombres anidados (`a.b`). */
 function valueOf(row: ResourceRow, name: string): string {
@@ -49,22 +50,12 @@ export interface ActionFormModalProps {
  */
 export function ActionFormModal(props: ActionFormModalProps) {
   const { open, fields } = props;
-  const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
+  // Los catálogos se piden al abrir, no al montar: si no se abre nunca, no se gasta la llamada.
+  const { dynamicOptions, onFieldChange } = useFieldOptions(fields, open, props.row ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const spanClasses = fieldSpanClasses(fields.map((field) => field.span), { maxColumns: 2 });
 
-  // Los catálogos se piden al abrir, no al montar: si no se abre nunca, no se gasta la llamada.
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    fields.filter((field) => field.optionsLoader).forEach((field) => {
-      field.optionsLoader!()
-        .then((options) => { if (!cancelled) setDynamicOptions((current) => ({ ...current, [field.name]: options })); })
-        .catch(() => { /* el select queda vacío y el error real se ve al enviar */ });
-    });
-    return () => { cancelled = true; };
-  }, [open, fields]);
 
   useEffect(() => { if (open) setError(''); }, [open]);
 
@@ -88,7 +79,7 @@ export function ActionFormModal(props: ActionFormModalProps) {
 
   return (
     <Modal open={open} title={props.title} description={props.description} icon={props.icon} onClose={props.onClose}>
-      <form key={formKey} onSubmit={handleSubmit} className="space-y-4">
+      <form key={formKey} onSubmit={handleSubmit} onChange={formChangeHandler(onFieldChange)} className="space-y-4">
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
           {fields.map((field, index) => {
             const preset = row ? valueOf(row, field.name) : undefined;

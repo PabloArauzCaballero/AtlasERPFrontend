@@ -7,6 +7,7 @@
 export interface CatalogOption {
   label: string;
   value: string;
+  description?: string | undefined;
 }
 
 /** ISO 4217 — BOB/USD primero por ser los de uso corriente en el ERP. */

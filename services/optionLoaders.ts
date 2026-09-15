@@ -6,6 +6,8 @@ import type { PaginatedResult, ResourceRow } from './types';
 export interface Option {
   label: string;
   value: string;
+  /** Ayuda corta cuando la etiqueta no basta para elegir bien. */
+  description?: string | undefined;
 }
 
 const s = (value: unknown): string => (value === undefined || value === null ? '' : String(value));

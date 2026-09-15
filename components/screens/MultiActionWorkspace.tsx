@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
@@ -12,6 +12,7 @@ import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import { toast } from '@/lib/toast';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
+import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
 import type { ActionField } from './StructuredActionForm';
 
 export interface WorkspaceAction {
@@ -76,17 +77,7 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
   const definitions = payloadDefinitions(action.fields);
   const spanClasses = fieldSpanClasses(action.fields.map((field) => field.span), { maxColumns: 2 });
 
-  const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
-  useEffect(() => {
-    let cancelled = false;
-    action.fields.filter((field) => field.optionsLoader).forEach((field) => {
-      field.optionsLoader!()
-        .then((options) => { if (!cancelled) setDynamicOptions((current) => ({ ...current, [field.name]: options })); })
-        .catch(() => { /* select queda vacío si falla */ });
-    });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { dynamicOptions, onFieldChange } = useFieldOptions(action.fields);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -104,7 +95,7 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
 
   return (
     <Panel title={action.title} description={action.description} icon={action.icon} className="h-fit">
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} onChange={formChangeHandler(onFieldChange)}>
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
           {action.fields.map((field, index) => (
             <ActionFieldControl key={field.name} field={field} className={spanClasses[index] ?? ''} dynamicOptions={dynamicOptions} />

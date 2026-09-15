@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
@@ -10,6 +10,7 @@ import { toast } from '@/lib/toast';
 import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject } from '@/services/types';
+import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
 
 interface InlineActionFormProps {
   title: string;
@@ -34,20 +35,11 @@ interface InlineActionFormProps {
 export function InlineActionForm(props: InlineActionFormProps) {
   const { fields } = props;
   const formRef = useRef<HTMLFormElement>(null);
-  const [dynamicOptions, setDynamicOptions] = useState<Record<string, Array<{ label: string; value: string }>>>({});
+  const { dynamicOptions, onFieldChange } = useFieldOptions(fields);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const spanClasses = fieldSpanClasses(fields.map((field) => field.span));
 
-  useEffect(() => {
-    let cancelled = false;
-    fields.filter((field) => field.optionsLoader).forEach((field) => {
-      field.optionsLoader!()
-        .then((options) => { if (!cancelled) setDynamicOptions((current) => ({ ...current, [field.name]: options })); })
-        .catch(() => { /* el select queda vacío; el error real aparece al enviar */ });
-    });
-    return () => { cancelled = true; };
-  }, [fields]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,7 +60,7 @@ export function InlineActionForm(props: InlineActionFormProps) {
 
   return (
     <Panel title={props.title} description={props.description} icon={props.icon}>
-      <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
+      <form ref={formRef} className="space-y-4" onSubmit={handleSubmit} onChange={formChangeHandler(onFieldChange)}>
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {fields.map((field, index) => (
             <ActionFieldControl key={field.name} field={field} className={spanClasses[index] ?? ''} dynamicOptions={dynamicOptions} />

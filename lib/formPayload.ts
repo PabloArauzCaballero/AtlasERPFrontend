@@ -1,4 +1,4 @@
-export type FieldValueKind = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'stringList';
+export type FieldValueKind = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'stringList' | 'codeList';
 
 export interface PayloadFieldDefinition {
   name: string;
@@ -11,6 +11,8 @@ function convertValue(value: FormDataEntryValue, definition: PayloadFieldDefinit
   if (definition.optional && text === '') return undefined;
   if (definition.valueKind === 'number') return Number(text);
   if (definition.valueKind === 'boolean') return text === 'true' || text === 'on';
+  // Códigos de un dominio cerrado: se conservan tal cual (IMAGE_BANNER no es image_banner).
+  if (definition.valueKind === 'codeList') return [...new Set(text.split(',').map((item) => item.trim()).filter(Boolean))];
   if (definition.valueKind === 'stringList') return [...new Set(text.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean))];
   /*
    * `<input type="datetime-local">` entrega «2026-07-10T15:00» —sin segundos y sin zona—, y el
