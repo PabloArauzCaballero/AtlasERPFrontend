@@ -61,7 +61,9 @@ test('el rubro es un catálogo y muestra el que el comercio tiene guardado', asy
   const rubro = page.getByTestId('campo-rubro');
   await expect(rubro).toBeVisible({ timeout: 30_000 });
   // Un select de verdad: si esto fuera un input, `option` no existiría.
-  await expect(rubro.locator('option')).not.toHaveCount(0);
+  await rubro.click();
+  await expect(page.getByRole('option')).not.toHaveCount(0);
+  await page.keyboard.press('Escape');
   /*
    * Y el valor SELECCIONADO es el que hay en la base, no «Sin definir». Es la regresión concreta:
    * el rubro estaba guardado como `EDUCATION` y el catálogo decía `EDUCACION`, así que el select

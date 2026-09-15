@@ -150,10 +150,10 @@ export function MerchantCampaignsScreen() {
           <div className="flex flex-col gap-3 sm:flex-row">
             {/* Sólo a quien administra VARIOS negocios propios se le pregunta con cuál sigue. */}
             {scope.requiresSelection ? (
-              <FormField kind="select" label="Negocio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} hint="Administras varios negocios: elige de cuál quieres ver las campañas." options={[{ label: '— Elige uno de tus negocios —', value: '' }, ...scope.accountOptions]} />
+              <FormField tooltip="Comercio afiliado sobre el que se opera." kind="select" label="Negocio" name="merchantAccountId" className="max-w-md flex-1" value={accountId ?? ''} onChange={(e) => { scope.setAccountId(e.target.value); setAdvertiserId(''); }} hint="Administras varios negocios: elige de cuál quieres ver las campañas." options={[{ label: '— Elige uno de tus negocios —', value: '' }, ...scope.accountOptions]} />
             ) : null}
             {eligeAnunciante ? (
-              <FormField kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Todos los anunciantes —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
+              <FormField tooltip="Anunciante dueño de la campaña; su crédito y su facturación son los que se consumen." kind="select" label="Anunciante" name="advertiserId" className="max-w-md flex-1" value={advertiserId} onChange={(e) => setAdvertiserId(e.target.value)} options={[{ label: '— Todos los anunciantes —', value: '' }, ...advertiserOptions]} hint="Acceso delegado: está entrando en nombre de otro comercio." />
             ) : null}
           </div>
         </Panel>

@@ -63,6 +63,25 @@ Los dos botones se resuelven por la RUTA desde `WorkspaceHeader`, así que ningu
 pantalla tiene que declararlos y no hay forma de olvidarse de uno. Cómo añadir
 contenido: `docs/tutoriales.md`.
 
+### Ningún campo sin «qué poner»; ninguna opción sin «qué significa»
+
+- Todo campo lleva `tooltip`: una frase que dice qué poner y por qué importa, con
+  ejemplo si el formato no es obvio. Se abre al pasar por el ⓘ de la etiqueta y al
+  enfocar el control con el teclado (`components/atlas/FieldTooltip.tsx`). El `hint`
+  sigue siendo el texto corto siempre visible bajo el control.
+- Toda opción de un select lleva `description`: qué significa y cuándo elegirla. Se ve
+  en la fila de la lista desplegada y la elegida la repite bajo el campo. Los dominios
+  del backend la traen como `help` de `GET /catalog/domains`; las listas de
+  `lib/catalogs.ts` la llevan escrita; las opciones que son filas (cuentas, socios) la
+  generan por plantilla en `services/optionLoaders.ts`.
+- No hay `<select>` nativo: un `<option>` no admite tooltip propio (Safari y el móvil no
+  pintan `title=`, y el lector no lo lee). Se usa `OptionSelect` (o `FormField
+  kind="select"`), un combobox ARIA con teclado completo y buscador a partir de ocho
+  opciones. En los E2E: `getByTestId('select-<name>')` y `getByRole('option')`.
+- Prohibido repetir la etiqueta. `scripts/check-ayuda.mjs` (en `yarn lint`) falla si
+  falta un `tooltip`, una `description`, si el texto repite la etiqueta o tiene menos de
+  cuatro palabras, o si aparece un `<select>` nativo. Excepción: `// sin-ayuda: <motivo>`.
+
 ## Diseño aplicado
 
 Se aplicó `atlas_erp/DESIGN.md` de las vistas originales:

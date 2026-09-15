@@ -64,27 +64,27 @@ export default function AccountGroupsPage() {
                   label: 'Crear grupo',
                   title: 'Nuevo grupo de cuenta',
                   fields: [
-                    { name: 'coaId', label: 'Plan de cuentas (COA)', type: 'select', required: true, span: 2, optionsLoader: loadChartsOfAccounts },
-                    { name: 'parentGroupId', label: 'Grupo padre', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadAccountGroups()) },
-                    { name: 'code', label: 'Código', required: true },
-                    { name: 'name', label: 'Nombre', required: true },
-                    { name: 'statementType', label: 'Estado financiero', required: true, defaultValue: 'BALANCE_SHEET', optionsSource: 'domain:accounting.statementType' },
-                    { name: 'classification', label: 'Clasificación', required: true, defaultValue: 'ASSET', optionsSource: 'domain:accounting.accountClassification' },
+                    { name: 'coaId', label: 'Plan de cuentas (COA)', tooltip: 'Plan de cuentas al que pertenece; una entidad puede tener varios.', type: 'select', required: true, span: 2, optionsLoader: loadChartsOfAccounts },
+                    { name: 'parentGroupId', label: 'Grupo padre', tooltip: 'Grupo de nivel superior; vacío = grupo raíz.', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadAccountGroups()) },
+                    { name: 'code', label: 'Código', tooltip: 'Código corto y único para citar el registro sin usar su identificador interno.', required: true },
+                    { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true },
+                    { name: 'statementType', label: 'Estado financiero', tooltip: 'Estado financiero en el que se presenta: balance, resultados o flujo.', required: true, defaultValue: 'BALANCE_SHEET', optionsSource: 'domain:accounting.statementType' },
+                    { name: 'classification', label: 'Clasificación', tooltip: 'Sección dentro del estado financiero (corriente, no corriente…).', required: true, defaultValue: 'ASSET', optionsSource: 'domain:accounting.accountClassification' },
                     // Era texto libre y el backend sólo acepta su vocabulario (CURRENT, NON_CURRENT…).
-                    { name: 'subClassification', label: 'Subclasificación', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
-                    { name: 'sortOrder', label: 'Orden', type: 'number', valueKind: 'number', defaultValue: 0 },
+                    { name: 'subClassification', label: 'Subclasificación', tooltip: 'Subsección más fina, si el estado la usa.', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
+                    { name: 'sortOrder', label: 'Orden', tooltip: 'Número que ordena la presentación; menor = más arriba.', type: 'number', valueKind: 'number', defaultValue: 0 },
                   ],
                   submit: async (payload) => { const created = await accountingService.createAccountGroup(payload); setVersion((value) => value + 1); return created; },
                 }}
                 edit={{
                   description: 'El plan y el código no se cambian: son la referencia con la que las cuentas cuelgan del grupo.',
                   fields: [
-                    { name: 'name', label: 'Nombre', required: true, span: 2 },
+                    { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, span: 2 },
                     // `required` evita la opción vacía: un grupo siempre tiene estado financiero y clasificación.
-                    { name: 'statementType', label: 'Estado financiero', required: true, optionsSource: 'domain:accounting.statementType' },
-                    { name: 'classification', label: 'Clasificación', required: true, optionsSource: 'domain:accounting.accountClassification' },
-                    { name: 'subClassification', label: 'Subclasificación', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
-                    { name: 'sortOrder', label: 'Orden', type: 'number', valueKind: 'number' },
+                    { name: 'statementType', label: 'Estado financiero', tooltip: 'Estado financiero en el que se presenta: balance, resultados o flujo.', required: true, optionsSource: 'domain:accounting.statementType' },
+                    { name: 'classification', label: 'Clasificación', tooltip: 'Sección dentro del estado financiero (corriente, no corriente…).', required: true, optionsSource: 'domain:accounting.accountClassification' },
+                    { name: 'subClassification', label: 'Subclasificación', tooltip: 'Subsección más fina, si el estado la usa.', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
+                    { name: 'sortOrder', label: 'Orden', tooltip: 'Número que ordena la presentación; menor = más arriba.', type: 'number', valueKind: 'number' },
                   ],
                   submit: (id, payload) => accountingService.updateAccountGroup(id, payload),
                 }}

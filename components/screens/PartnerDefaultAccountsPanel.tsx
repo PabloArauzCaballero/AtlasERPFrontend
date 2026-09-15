@@ -6,6 +6,7 @@ import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useOptions } from '@/hooks/useOptions';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -74,18 +75,21 @@ export function PartnerDefaultAccountsPanel({ partnerId }: { partnerId: string }
                 <span className="text-xs font-semibold text-slate-800">{etiqueta(purpose)}</span>
                 <StatusPill tone={assigned ? 'success' : 'warning'} dot={false}>{assigned ? 'Asignada' : 'Slot'}</StatusPill>
               </div>
-              <select
-                aria-label={`Cuenta GL para ${etiqueta(purpose)}`}
-                className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-[11px] outline-none focus:border-[#006a61] focus:ring-2 focus:ring-primary/15"
+              {/* Una cuenta ya asignada que no está entre las cargadas se conserva visible: si no, el
+                  select mostraría «Sin cuenta» y al guardar la desasignaría sin que nadie lo pida. */}
+              <OptionSelect
+                name={`cuenta-${purpose}`}
+                ariaLabel={`Cuenta GL para ${etiqueta(purpose)}`}
+                compact
+                className="min-w-0 flex-1"
                 value={current}
-                onChange={(e) => setDrafts((currentDrafts) => ({ ...currentDrafts, [purpose]: e.target.value }))}
-              >
-                <option value="">— Sin cuenta —</option>
-                {/* Una cuenta ya asignada que no está entre las cargadas se conserva visible: si no, el
-                    select mostraría «Sin cuenta» y al guardar la desasignaría sin que nadie lo pida. */}
-                {assigned && !conocidas.has(current) ? <option value={current}>{`${current.slice(0, 8)}… (cuenta asignada)`}</option> : null}
-                {glAccounts.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
+                onChange={(value) => setDrafts((currentDrafts) => ({ ...currentDrafts, [purpose]: value }))}
+                options={[
+                  { value: '', label: '— Sin cuenta —', description: 'Deja el propósito sin cuenta contable asignada.' },
+                  ...(assigned && !conocidas.has(current) ? [{ value: current, label: `${current.slice(0, 8)}… (cuenta asignada)`, description: 'Cuenta asignada que no aparece entre las cargadas; se conserva tal cual.' }] : []),
+                  ...glAccounts,
+                ]}
+              />
               <AtlasButton variant="secondary" icon="save" loading={savingKey === purpose} onClick={() => save(purpose)}>Guardar</AtlasButton>
             </div>
           );

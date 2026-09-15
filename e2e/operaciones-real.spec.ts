@@ -51,7 +51,7 @@ test('la cola de aprobaciones muestra TODAS las solicitudes, no solo las pendien
    * así que una solicitud ya decidida desaparecía y la vista quedaba vacía sin explicar por qué.
    */
   await expect(page.locator('[data-tutorial-id="crud-tabla"]')).toBeVisible();
-  await expect(page.locator('select[name="filtro-status"]')).toBeVisible();
+  await expect(page.getByTestId('select-filtro-status')).toBeVisible();
 
   /*
    * La decisión se toma DESDE la fila: ya no hay pestaña que vuelva a pedir en un desplegable la
@@ -60,7 +60,7 @@ test('la cola de aprobaciones muestra TODAS las solicitudes, no solo las pendien
   const pendiente = page.locator('tr', { has: page.getByText('PENDING') }).first();
   if (await pendiente.count()) {
     await pendiente.getByRole('button', { name: /registrar decisi/i }).click();
-    await expect(page.locator('select[name="status"]')).toBeVisible();
+    await expect(page.getByTestId('select-status')).toBeVisible();
     await expect(page.locator('textarea[name="reason"]')).toBeVisible();
   }
 });
@@ -78,7 +78,7 @@ test('las propuestas se leen, se filtran y se pueden corregir desde la propia fi
   await expect(page.getByRole('tab')).toHaveCount(0);
   await page.getByTestId('crud-crear').click();
   await expect(page).toHaveURL(/\/operaciones\/crm\/propuestas\/crear$/);
-  await expect(page.locator('select[name="opportunityId"]')).toBeVisible();
+  await expect(page.getByTestId('select-opportunityId')).toBeVisible();
 });
 
 test('el tablero de oportunidades se lee del servidor', async ({ page }) => {
@@ -122,7 +122,7 @@ test('la comisión por venta se administra junto al contrato, por segmento', asy
   // Es parte de lo pactado, no una pantalla suelta.
   await expect(panel.getByText(/se acuerda en el alta/i)).toBeVisible();
   // Y la segmentación es lo que la hace flexible.
-  await expect(panel.locator('select[name="contractVersionId"]')).toBeVisible();
+  await expect(panel.getByTestId('select-contractVersionId')).toBeVisible();
   await page.screenshot({ path: 'docs/visual-evidence/operaciones/01-comision-en-el-contrato.png', fullPage: true });
 });
 

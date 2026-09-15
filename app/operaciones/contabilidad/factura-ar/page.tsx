@@ -44,13 +44,13 @@ export default function ArInvoicePage() {
     description: 'Lo que genera derecho de cobro sobre un contrato: comisión, suscripción, implantación o soporte. Después se factura desde «Emitir factura».',
     submitLabel: 'Registrar evento',
     fields: [
-      { name: 'contractId', label: 'Contrato', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadContracts },
-      { name: 'eventType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.billingEventType' as const },
-      { name: 'eventTime', label: 'Cuándo ocurrió', type: 'datetime' as const, required: true },
-      { name: 'baseAmount', label: 'Importe base', type: 'number' as const, required: true },
-      { name: 'quantity', label: 'Cantidad', type: 'number' as const, optional: true, defaultValue: '1' },
-      { name: 'currencyCode', label: 'Moneda', optional: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' as const },
-      { name: 'externalRef', label: 'Referencia externa', optional: true, span: 2 as const },
+      { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadContracts },
+      { name: 'eventType', label: 'Tipo', tooltip: 'Qué ocurrió (uso, suscripción, penalidad…); decide cómo se factura.', required: true, optionsSource: 'domain:accounting.billingEventType' as const },
+      { name: 'eventTime', label: 'Cuándo ocurrió', tooltip: 'Fecha y hora del hecho facturable, no la de su registro.', type: 'datetime' as const, required: true },
+      { name: 'baseAmount', label: 'Importe base', tooltip: 'Importe unitario antes de impuestos.', type: 'number' as const, required: true },
+      { name: 'quantity', label: 'Cantidad', tooltip: 'Cantidad de unidades del evento. Ej.: 3.', type: 'number' as const, optional: true, defaultValue: '1' },
+      { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', optional: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' as const },
+      { name: 'externalRef', label: 'Referencia externa', tooltip: 'Referencia del hecho en el sistema de origen, para no facturarlo dos veces.', optional: true, span: 2 as const },
     ],
     submit: async (payload: Record<string, unknown>) => {
       const creado = await accountingService.createBillingEvent(payload);
@@ -94,37 +94,37 @@ export default function ArInvoicePage() {
           return resultado;
         },
         fields: [
-          { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, optionsLoader: loadLegalEntities },
-          { name: 'customerBpId', label: 'Cliente (Business Partner)', type: 'select', required: true, optionsLoader: loadBusinessPartners },
-          { name: 'contractId', label: 'Contrato', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
-          { name: 'invoiceDate', label: 'Fecha factura', type: 'date', required: true },
-          { name: 'dueDate', label: 'Fecha vencimiento', type: 'date', required: true },
-          { name: 'currencyCode', label: 'Moneda', defaultValue: 'BOB', required: true, optionsSource: 'catalog:currency' },
-          { name: 'description', label: 'Descripción', required: true, span: 2 },
-          { name: 'netAmount', label: 'Importe neto', type: 'number', valueKind: 'number', required: true },
-          { name: 'taxAmount', label: 'Impuesto', type: 'number', valueKind: 'number', defaultValue: 0 },
-          { name: 'arAccountId', label: 'Cuenta por cobrar (AR)', type: 'select', required: true, optionsLoader: loadGlAccounts },
-          { name: 'revenueAccountId', label: 'Cuenta de ingreso', type: 'select', required: true, optionsLoader: loadGlAccounts },
-          { name: 'taxLiabilityAccountId', label: 'Cuenta de impuesto', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadGlAccounts()) },
-          { name: 'taxCodeId', label: 'Código tributario', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadTaxCodes()) },
-          { name: 'billingEventId', label: 'Evento de facturación', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadBillingEvents()) },
-          { name: 'accountingPeriodId', label: 'Período contable', type: 'select', required: true, optionsLoader: loadAccountingPeriods },
-          { name: 'ledgerId', label: 'Ledger', type: 'select', required: true, optionsLoader: loadLedgers },
+          { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select', required: true, optionsLoader: loadLegalEntities },
+          { name: 'customerBpId', label: 'Cliente (Business Partner)', tooltip: 'Cliente al que se factura.', type: 'select', required: true, optionsLoader: loadBusinessPartners },
+          { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
+          { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
+          { name: 'dueDate', label: 'Fecha vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
+          { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, optionsSource: 'catalog:currency' },
+          { name: 'description', label: 'Descripción', tooltip: 'Concepto que se imprime en la factura. Ej.: Servicio de cobranza septiembre.', required: true, span: 2 },
+          { name: 'netAmount', label: 'Importe neto', tooltip: 'Importe de la factura antes de sumar impuestos.', type: 'number', valueKind: 'number', required: true },
+          { name: 'taxAmount', label: 'Impuesto', tooltip: 'Importe de impuestos que se suma al neto.', type: 'number', valueKind: 'number', defaultValue: 0 },
+          { name: 'arAccountId', label: 'Cuenta por cobrar (AR)', tooltip: 'Cuenta de cuentas por cobrar donde queda el saldo pendiente.', type: 'select', required: true, optionsLoader: loadGlAccounts },
+          { name: 'revenueAccountId', label: 'Cuenta de ingreso', tooltip: 'Cuenta de ingreso a la que se abona la venta.', type: 'select', required: true, optionsLoader: loadGlAccounts },
+          { name: 'taxLiabilityAccountId', label: 'Cuenta de impuesto', tooltip: 'Cuenta de pasivo donde se registra el impuesto por pagar.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadGlAccounts()) },
+          { name: 'taxCodeId', label: 'Código tributario', tooltip: 'Código tributario que calcula el impuesto; decide tasa y tratamiento.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadTaxCodes()) },
+          { name: 'billingEventId', label: 'Evento de facturación', tooltip: 'Evento de facturación que origina la factura.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadBillingEvents()) },
+          { name: 'accountingPeriodId', label: 'Período contable', tooltip: 'Período contable abierto en el que se registra; uno cerrado rechaza el asiento.', type: 'select', required: true, optionsLoader: loadAccountingPeriods },
+          { name: 'ledgerId', label: 'Ledger', tooltip: 'Libro contable en el que se registra; el predeterminado suele ser el correcto.', type: 'select', required: true, optionsLoader: loadLedgers },
           /*
            * CUF, CUFD, hash del XML, representación gráfica y estado SIAT ya no se piden: los devuelve
            * el SIAT al autorizar la factura, y quien factura no los tiene. El backend deja el estado en
            * PENDING cuando no llega. La contingencia sí la sabe quien emite, y se queda.
            */
-          { name: 'electronicTaxDocument.contingencyFlag', label: 'Contingencia', type: 'select', valueKind: 'boolean', defaultValue: 'false', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
+          { name: 'electronicTaxDocument.contingencyFlag', label: 'Contingencia', tooltip: 'Marca la factura emitida fuera de línea (contingencia) para regularizarla después.', type: 'select', valueKind: 'boolean', defaultValue: 'false', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
         ],
       }}
       extraActions={[{ key: 'descargar', label: 'Descargar factura', icon: 'download', run: descargar }]}
       edit={{
         description: 'Ni el número ni los importes se editan: el correlativo es del sistema y una factura emitida se corrige con una nota de crédito, no reescribiéndola.',
         fields: [
-          { name: 'invoiceDate', label: 'Fecha de emisión', type: 'date', required: true },
-          { name: 'dueDate', label: 'Fecha de vencimiento', type: 'date', required: true },
-          { name: 'status', label: 'Estado', required: true, optionsSource: 'domain:accounting.arInvoiceStatus' },
+          { name: 'invoiceDate', label: 'Fecha de emisión', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
+          { name: 'dueDate', label: 'Fecha de vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
+          { name: 'status', label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.', required: true, optionsSource: 'domain:accounting.arInvoiceStatus' },
         ],
         submit: (id, payload) => accountingService.updateArInvoice(id, payload),
       }}

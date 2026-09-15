@@ -60,12 +60,12 @@ export default function FinancialStructurePage() {
                   title: 'Nueva entidad legal',
                   description: 'Datos legales y tributarios de la entidad que encabezará los libros.',
                   fields: [
-                    { name: 'code', label: 'Código interno', required: true, placeholder: 'ATLAS-BO' },
-                    { name: 'legalName', label: 'Razón social', required: true, placeholder: 'Razón social registrada', span: 2 },
-                    { name: 'taxId', label: 'NIT', optional: true, placeholder: 'NIT oficial' },
-                    { name: 'countryCode', label: 'País', required: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
-                    { name: 'baseCurrency', label: 'Moneda base', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
-                    { name: 'timezone', label: 'Zona horaria', required: true, defaultValue: 'America/La_Paz', optionsSource: 'catalog:timezone', span: 2 },
+                    { name: 'code', label: 'Código interno', tooltip: 'Código interno de la entidad legal; aparece en la numeración de documentos. Ej.: ATL.', required: true, placeholder: 'ATLAS-BO' },
+                    { name: 'legalName', label: 'Razón social', tooltip: 'Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos.', required: true, placeholder: 'Razón social registrada', span: 2 },
+                    { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón.', optional: true, placeholder: 'NIT oficial' },
+                    { name: 'countryCode', label: 'País', tooltip: 'País de residencia fiscal del socio; decide qué documento tributario se le exige.', required: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
+                    { name: 'baseCurrency', label: 'Moneda base', tooltip: 'Moneda en la que lleva la contabilidad la entidad; todo se convierte a ella.', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
+                    { name: 'timezone', label: 'Zona horaria', tooltip: 'Zona horaria de la entidad; decide a qué día pertenece cada asiento.', required: true, defaultValue: 'America/La_Paz', optionsSource: 'catalog:timezone', span: 2 },
                   ],
                   submit: async (payload) => { const created = await accountingService.createLegalEntity(payload); bump(); return created; },
                 }}

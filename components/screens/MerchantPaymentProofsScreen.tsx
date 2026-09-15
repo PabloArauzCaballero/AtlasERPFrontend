@@ -292,7 +292,7 @@ export function MerchantPaymentProofsScreen() {
 
                 {rechazando === comprobante.claimId ? (
                   <div className="mt-4 space-y-3 rounded-md bg-slate-50 p-3">
-                    <FormField
+                    <FormField tooltip="Por qué se rechaza el comprobante; el cliente lo lee."
                       kind="select"
                       label="Motivo del rechazo"
                       name="reason"

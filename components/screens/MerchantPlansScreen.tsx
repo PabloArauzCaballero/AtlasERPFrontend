@@ -102,7 +102,7 @@ export function MerchantPlansScreen() {
             * también levanta para el staff interno.
             */}
           {scope.requiresSelection ? (
-            <FormField
+            <FormField tooltip="Comercio afiliado sobre el que se opera."
               kind="select"
               label="Negocio"
               name="merchantAccountId"

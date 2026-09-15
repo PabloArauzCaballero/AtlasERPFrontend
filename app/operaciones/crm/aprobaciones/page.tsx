@@ -63,8 +63,8 @@ export default function ApprovalsPage() {
             submitLabel: 'Registrar decisión',
             submit: decidir,
             fields: [
-              { name: 'status', label: 'Decisión', type: 'select', required: true, span: 2, defaultValue: 'APPROVED', optionsSource: 'domain:crm.approvalDecision' },
-              { name: 'reason', label: 'Justificación', type: 'textarea', required: true, span: 2, placeholder: 'Decisión fundamentada para auditoría…' },
+              { name: 'status', label: 'Decisión', tooltip: 'Decisión sobre la solicitud: aprobar la deja seguir; rechazar la devuelve con motivo.', type: 'select', required: true, span: 2, defaultValue: 'APPROVED', optionsSource: 'domain:crm.approvalDecision' },
+              { name: 'reason', label: 'Justificación', tooltip: 'Por qué se aprueba o rechaza; el solicitante lo lee.', type: 'textarea', required: true, span: 2, placeholder: 'Decisión fundamentada para auditoría…' },
             ],
           },
         },

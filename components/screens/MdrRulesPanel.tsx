@@ -95,7 +95,7 @@ export function MdrRulesPanel() {
       icon="percent"
       action={<BotonFormularioPapel data-testid="papel-regla-mdr" formulario={formularioReglaMdr} />}
     >
-      <FormField
+      <FormField tooltip="Versión del contrato de la que cuelga la regla de comisión."
         kind="select"
         label="Versión contractual"
         name="contractVersionId"
@@ -110,11 +110,11 @@ export function MdrRulesPanel() {
       {contractVersionId ? (
         <>
           <form onSubmit={agregar} className="mt-4 grid gap-3 rounded-md bg-slate-50 p-3 grid-cols-1 md:grid-cols-3">
-            <FormField label="Comisión (%)" name="ratePercent" type="number" step="0.01" min="0" max="100" required placeholder="3.50" />
-            <FormField kind="select" label="Categoría de producto" name="productCategory" options={[CUALQUIERA, ...categoriaOptions]} hint="Vacío: aplica a todas." />
-            <FormField kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riesgoOptions]} hint="Vacío: aplica a todos." />
-            <FormField label="Piso (Bs)" name="minFeeAmount" type="number" step="0.01" min="0" hint="Una venta de Bs 20 al 3 % deja Bs 0,60." />
-            <FormField label="Techo (Bs)" name="maxFeeAmount" type="number" step="0.01" min="0" hint="Evita comisiones desproporcionadas en ventas grandes." />
+            <FormField tooltip="Comisión (MDR) en porcentaje sobre cada venta. Ej.: 3." label="Comisión (%)" name="ratePercent" type="number" step="0.01" min="0" max="100" required placeholder="3.50" />
+            <FormField tooltip="Categoría del producto vendido; decide la comisión que aplica." kind="select" label="Categoría de producto" name="productCategory" options={[CUALQUIERA, ...categoriaOptions]} hint="Vacío: aplica a todas." />
+            <FormField tooltip="Segmento de riesgo del cliente al que aplica la regla; vacío = todos." kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riesgoOptions]} hint="Vacío: aplica a todos." />
+            <FormField tooltip="Comisión mínima en bolivianos por venta, aunque el porcentaje dé menos." label="Piso (Bs)" name="minFeeAmount" type="number" step="0.01" min="0" hint="Una venta de Bs 20 al 3 % deja Bs 0,60." />
+            <FormField tooltip="Comisión máxima en bolivianos por venta, aunque el porcentaje dé más." label="Techo (Bs)" name="maxFeeAmount" type="number" step="0.01" min="0" hint="Evita comisiones desproporcionadas en ventas grandes." />
             <div className="flex items-end">
               <AtlasButton type="submit" icon="add" loading={crear.isLoading} className="w-full">Agregar regla</AtlasButton>
             </div>

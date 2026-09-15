@@ -115,7 +115,7 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
           action={<AtlasButton icon="add" data-testid="grupo-cuenta-crear" onClick={() => setCreando(true)}>Nuevo grupo</AtlasButton>}
         >
           <div className="mb-3 flex items-center gap-2">
-            <FormField kind="select" label="Filtrar por plan de cuentas (COA)" name="coaFilter" value={coaFilter} onChange={(e) => setCoaFilter(e.target.value)} options={[{ label: 'Todos los COA', value: '' }, ...coaOptions]} className="flex-1" />
+            <FormField tooltip="Muestra sólo los grupos de ese plan de cuentas." kind="select" label="Filtrar por plan de cuentas (COA)" name="coaFilter" value={coaFilter} onChange={(e) => setCoaFilter(e.target.value)} options={[{ label: 'Todos los COA', value: '' }, ...coaOptions]} className="flex-1" />
           </div>
           {resource.error ? <InlineNotice tone="danger" title="No se pudo cargar el árbol">{resource.error}</InlineNotice> : null}
           {!resource.error && tree.length === 0 && resource.status !== 'loading' ? (
@@ -143,16 +143,16 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
         {mutation.status === 'success' ? <InlineNotice tone="success" title="Grupo creado">El grupo se agregó al árbol.</InlineNotice> : null}
         {mutation.error ? <InlineNotice tone="danger" title="No se pudo crear">{mutation.error}</InlineNotice> : null}
         <div className="space-y-3">
-          <FormField kind="select" label="Plan de cuentas (COA)" name="coaId" required value={form.coaId} onChange={(e) => setField('coaId')(e.target.value)} options={[{ label: '— Seleccione un COA —', value: '' }, ...coaOptions]} />
-          <FormField kind="select" label="Grupo padre" name="parentGroupId" value={form.parentGroupId} onChange={(e) => setField('parentGroupId')(e.target.value)} options={withEmpty(groupOptions, '— Grupo raíz —')} hint="Vacío = grupo raíz" />
+          <FormField tooltip="Plan de cuentas al que pertenece; una entidad puede tener varios." kind="select" label="Plan de cuentas (COA)" name="coaId" required value={form.coaId} onChange={(e) => setField('coaId')(e.target.value)} options={[{ label: '— Seleccione un COA —', value: '' }, ...coaOptions]} />
+          <FormField tooltip="Grupo de nivel superior; vacío = grupo raíz." kind="select" label="Grupo padre" name="parentGroupId" value={form.parentGroupId} onChange={(e) => setField('parentGroupId')(e.target.value)} options={withEmpty(groupOptions, '— Grupo raíz —')} hint="Vacío = grupo raíz" />
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="Código" name="code" required value={form.code} onChange={(e) => setField('code')(e.target.value)} placeholder="BG-ACT-CORR" />
-            <FormField label="Orden" name="sortOrder" type="number" value={form.sortOrder} onChange={(e) => setField('sortOrder')(e.target.value)} />
+            <FormField tooltip="Código corto y único para citar el registro sin usar su identificador interno." label="Código" name="code" required value={form.code} onChange={(e) => setField('code')(e.target.value)} placeholder="BG-ACT-CORR" />
+            <FormField tooltip="Número que ordena la presentación; menor = más arriba." label="Orden" name="sortOrder" type="number" value={form.sortOrder} onChange={(e) => setField('sortOrder')(e.target.value)} />
           </div>
-          <FormField label="Nombre" name="name" required value={form.name} onChange={(e) => setField('name')(e.target.value)} placeholder="Activo Corriente" />
-          <FormField kind="select" label="Estado financiero" name="statementType" value={form.statementType} onChange={(e) => setField('statementType')(e.target.value)} options={statementTypeOptions} />
-          <FormField kind="select" label="Clasificación" name="classification" value={form.classification} onChange={(e) => setField('classification')(e.target.value)} options={classificationOptions} />
-          <FormField kind="select" label="Subclasificación (opcional)" name="subClassification" value={form.subClassification} onChange={(e) => setField('subClassification')(e.target.value)} options={withEmpty(subClassificationOptions, '— Sin subclasificación —')} />
+          <FormField tooltip="Nombre con el que se identifica el registro en listados e informes." label="Nombre" name="name" required value={form.name} onChange={(e) => setField('name')(e.target.value)} placeholder="Activo Corriente" />
+          <FormField tooltip="Estado financiero en el que se presenta: balance, resultados o flujo." kind="select" label="Estado financiero" name="statementType" value={form.statementType} onChange={(e) => setField('statementType')(e.target.value)} options={statementTypeOptions} />
+          <FormField tooltip="Sección dentro del estado financiero (corriente, no corriente…)." kind="select" label="Clasificación" name="classification" value={form.classification} onChange={(e) => setField('classification')(e.target.value)} options={classificationOptions} />
+          <FormField tooltip="Subsección más fina, si el estado la usa." kind="select" label="Subclasificación (opcional)" name="subClassification" value={form.subClassification} onChange={(e) => setField('subClassification')(e.target.value)} options={withEmpty(subClassificationOptions, '— Sin subclasificación —')} />
           <AtlasButton icon="save" loading={mutation.isLoading} disabled={!canCreate} onClick={handleCreate}>Crear grupo</AtlasButton>
         </div>
       </Modal>

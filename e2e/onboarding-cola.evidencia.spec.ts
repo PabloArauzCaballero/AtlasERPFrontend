@@ -99,14 +99,16 @@ test('todo se hace desde la fila: requisito, contrato, credenciales, activar', a
 
   await fila.getByTitle(/mover un requisito/i).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.locator('select[name="checklistItemId"] option', { hasText: /NIT vigente/ })).toHaveCount(1);
+  await page.getByTestId('select-checklistItemId').click();
+  await expect(page.getByRole('option', { name: /NIT vigente/ })).toHaveCount(1);
+  await page.keyboard.press('Escape');
   await page.screenshot({ path: 'docs/visual-evidence/operaciones/onboarding-03-mover-requisito.png', fullPage: true });
   await page.keyboard.press('Escape');
 
   await page.getByTestId('onboarding-nuevo-caso').click();
   await expect(page).toHaveURL(/\/operaciones\/crm\/onboarding\/crear$/);
-  await expect(page.locator('select[name="accountId"]')).toBeVisible();
-  await expect(page.locator('select[name="caseId"]')).toHaveCount(0);
+  await expect(page.getByTestId('select-accountId')).toBeVisible();
+  await expect(page.getByTestId('select-caseId')).toHaveCount(0);
   await page.screenshot({ path: 'docs/visual-evidence/operaciones/onboarding-04-nuevo-caso.png', fullPage: true });
 });
 

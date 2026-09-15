@@ -12,13 +12,13 @@ import type { JsonObject, ResourceRow } from '@/services/types';
 
 const headerFields: ActionField[] = [
   // El número lo asigna el backend (CTA-…): pedirlo obligaba a adivinar el siguiente de la serie.
-  { name: 'contractNo', label: 'Número de contrato', assignedByBackend: true },
-  { name: 'contractType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.contractType' },
-  { name: 'legalEntityId', label: 'Entidad legal', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadLegalEntities },
-  { name: 'counterpartyBpId', label: 'Contraparte (Business Partner)', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadBusinessPartners },
-  { name: 'startDate', label: 'Fecha inicial', type: 'date' as const, required: true },
-  { name: 'endDate', label: 'Fecha final', type: 'date' as const, optional: true },
-  { name: 'currencyCode', label: 'Moneda', defaultValue: 'BOB', required: true, span: 2 as const, optionsSource: 'catalog:currency' },
+  { name: 'contractNo', label: 'Número de contrato', tooltip: 'Número del contrato tal como figura en el documento firmado.', assignedByBackend: true },
+  { name: 'contractType', label: 'Tipo', tooltip: 'Naturaleza del contrato (servicio, licencia, arrendamiento…); decide términos y cuentas.', required: true, optionsSource: 'domain:accounting.contractType' },
+  { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadLegalEntities },
+  { name: 'counterpartyBpId', label: 'Contraparte (Business Partner)', tooltip: 'Socio con el que se firma el contrato.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadBusinessPartners },
+  { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date' as const, required: true },
+  { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date' as const, optional: true },
+  { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, span: 2 as const, optionsSource: 'catalog:currency' },
 ];
 
 export default function AccountingContractsPage() {
@@ -79,11 +79,11 @@ export default function AccountingContractsPage() {
       edit={{
         description: 'La contraparte y la entidad legal no se cambian: eso movería el contrato de libro.',
         fields: [
-          { name: 'contractNo', label: 'Número de contrato', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
-          { name: 'contractType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.contractType' },
-          { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true },
-          { name: 'endDate', label: 'Fecha final', type: 'date', optional: true },
-          { name: 'status', label: 'Estado', required: true, optionsSource: 'domain:accounting.contractStatus' },
+          { name: 'contractNo', label: 'Número de contrato', tooltip: 'Número del contrato tal como figura en el documento firmado.', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
+          { name: 'contractType', label: 'Tipo', tooltip: 'Naturaleza del contrato (servicio, licencia, arrendamiento…); decide términos y cuentas.', required: true, optionsSource: 'domain:accounting.contractType' },
+          { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date', required: true },
+          { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date', optional: true },
+          { name: 'status', label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.', required: true, optionsSource: 'domain:accounting.contractStatus' },
         ],
         submit: (id, payload) => accountingService.updateContract(id, payload),
       }}
@@ -101,11 +101,11 @@ export default function AccountingContractsPage() {
         onDone={() => setRecargar((value) => value + 1)}
         onSubmit={(payload) => accountingService.createContractTerm({ ...payload, termValueJson: { value: payload.termValue }, termValue: undefined })}
         fields={[
-          { name: 'contractId', label: 'Contrato', type: 'select', required: true, span: 2, optionsLoader: loadContracts },
-          { name: 'termCode', label: 'Código del término', required: true },
-          { name: 'termValue', label: 'Valor contractual', required: true },
-          { name: 'effectiveFrom', label: 'Vigente desde', type: 'date', required: true },
-          { name: 'effectiveTo', label: 'Vigente hasta', type: 'date', optional: true },
+          { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select', required: true, span: 2, optionsLoader: loadContracts },
+          { name: 'termCode', label: 'Código del término', tooltip: 'Código del término contractual. Ej.: PLAZO_PAGO.', required: true },
+          { name: 'termValue', label: 'Valor contractual', tooltip: 'Valor pactado para el término. Ej.: 30 días.', required: true },
+          { name: 'effectiveFrom', label: 'Vigente desde', tooltip: 'Desde cuándo vale; antes de esta fecha el rol no aplica.', type: 'date', required: true },
+          { name: 'effectiveTo', label: 'Vigente hasta', tooltip: 'Hasta cuándo vale; vacío = sin fecha de fin.', type: 'date', optional: true },
         ]}
       />
     </CrudDirectory>

@@ -90,6 +90,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         readOnly
         tabIndex={-1}
         hint={field.hint ?? 'Lo asigna el sistema al guardar.'}
+        tooltip={field.tooltip}
         className={className}
       />
     );
@@ -105,6 +106,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         required={required}
         softRequired={props.softRequired}
         hint={field.hint}
+        tooltip={field.tooltip}
         className={className}
       />
     );
@@ -119,6 +121,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         defaultValue={typeof defaultValue === 'string' ? defaultValue : undefined}
         placeholder={field.placeholder}
         hint={field.hint}
+        tooltip={field.tooltip}
         className={className}
       />
     );
@@ -135,6 +138,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         defaultCountryCode={typeof defaultValue === 'string' ? defaultValue : undefined}
         defaultCity={field.defaultCity}
         hint={field.hint}
+        tooltip={field.tooltip}
         className={className}
       />
     );
@@ -150,6 +154,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         defaultValue={typeof defaultValue === 'string' ? defaultValue : undefined}
         placeholder={field.placeholder}
         hint={field.hint}
+        tooltip={field.tooltip}
         cityFieldName={field.cityFieldName}
         countryFieldName={field.countryFieldName}
         className={className}
@@ -184,6 +189,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         softRequired={props.softRequired}
         defaultValue={defaultValue}
         hint={field.hint}
+        tooltip={field.tooltip}
         options={withEmpty}
         className={className}
       />
@@ -201,6 +207,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         defaultValue={defaultValue}
         placeholder={field.placeholder}
         hint={field.hint}
+        tooltip={field.tooltip}
         className={className}
       />
     );
@@ -216,6 +223,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
       defaultValue={defaultValue}
       placeholder={field.placeholder}
       hint={field.hint}
+      tooltip={field.tooltip}
       className={className}
     />
   );

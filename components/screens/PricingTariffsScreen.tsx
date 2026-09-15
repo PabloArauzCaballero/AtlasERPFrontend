@@ -24,14 +24,14 @@ function parseFeatures(text: unknown): string[] {
  * código ISO exacto.
  */
 const camposComunes: ActionField[] = [
-  { name: 'name', label: 'Nombre visible', required: true, span: 2, placeholder: 'Crecimiento' },
-  { name: 'description', label: 'Descripción', type: 'textarea', span: 2, placeholder: 'Tarifa más baja a cambio de un compromiso mensual de inversión.' },
-  { name: 'cpmPrice', label: 'Alcance (CPM)', type: 'number', valueKind: 'number', required: true, hint: 'Por cada 1.000 personas' },
-  { name: 'cpcPrice', label: 'Clic (CPC)', type: 'number', valueKind: 'number', required: true, hint: 'Por clic recibido' },
-  { name: 'tier', label: 'Nivel', type: 'select', required: true, defaultValue: 'STANDARD', optionsSource: 'domain:portal.planTier' },
-  { name: 'currency', label: 'Moneda', defaultValue: 'BOB', optionsSource: 'catalog:currency' },
-  { name: 'sortOrder', label: 'Orden', type: 'number', valueKind: 'number', defaultValue: 0, hint: 'Posición en el portal del comercio.' },
-  { name: 'features', label: 'Qué incluye', type: 'textarea', span: 2, hint: 'Una línea por viñeta. Es el texto que lee el comercio en su portal.' },
+  { name: 'name', label: 'Nombre visible', tooltip: 'Nombre de la tarifa tal como lo ve el comercio en su portal.', required: true, span: 2, placeholder: 'Crecimiento' },
+  { name: 'description', label: 'Descripción', tooltip: 'Texto libre que explica el registro a quien lo lea después.', type: 'textarea', span: 2, placeholder: 'Tarifa más baja a cambio de un compromiso mensual de inversión.' },
+  { name: 'cpmPrice', label: 'Alcance (CPM)', tooltip: 'Precio por cada mil personas alcanzadas, en bolivianos.', type: 'number', valueKind: 'number', required: true, hint: 'Por cada 1.000 personas' },
+  { name: 'cpcPrice', label: 'Clic (CPC)', tooltip: 'Precio por cada clic recibido, en bolivianos.', type: 'number', valueKind: 'number', required: true, hint: 'Por clic recibido' },
+  { name: 'tier', label: 'Nivel', tooltip: 'Nivel de la tarifa; decide su posición y destaque en el portal.', type: 'select', required: true, defaultValue: 'STANDARD', optionsSource: 'domain:portal.planTier' },
+  { name: 'currency', label: 'Moneda', tooltip: 'Moneda en la que se factura y se consume el crédito (ISO 4217). Ej.: BOB.', defaultValue: 'BOB', optionsSource: 'catalog:currency' },
+  { name: 'sortOrder', label: 'Orden', tooltip: 'Número que ordena la presentación; menor = más arriba.', type: 'number', valueKind: 'number', defaultValue: 0, hint: 'Posición en el portal del comercio.' },
+  { name: 'features', label: 'Qué incluye', tooltip: 'Qué incluye la tarifa, una línea por viñeta; es lo que lee el comercio.', type: 'textarea', span: 2, hint: 'Una línea por viñeta. Es el texto que lee el comercio en su portal.' },
 ];
 
 /** Lo que se manda al backend en los dos casos: las viñetas van como lista, no como texto. */
@@ -122,7 +122,7 @@ export function PricingTariffsScreen() {
                     return resultado;
                   },
                   fields: [
-                    { name: 'code', label: 'Código', required: true, span: 2, placeholder: 'GROWTH', hint: 'Mayúsculas, dígitos y guion bajo. No se puede cambiar después.' },
+                    { name: 'code', label: 'Código', tooltip: 'Código corto y único para citar el registro sin usar su identificador interno.', required: true, span: 2, placeholder: 'GROWTH', hint: 'Mayúsculas, dígitos y guion bajo. No se puede cambiar después.' },
                     ...camposComunes,
                   ],
                 }}
@@ -130,7 +130,7 @@ export function PricingTariffsScreen() {
                   description: 'El código no se modifica: identifica a la tarifa en el histórico y en los informes.',
                   fields: [
                     ...camposComunes,
-                    { name: 'status', label: 'Estado', type: 'select', required: true, span: 2, optionsSource: 'domain:portal.planStatus', hint: 'Retirarla no cancela a quien ya la tiene contratada.' },
+                    { name: 'status', label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.', type: 'select', required: true, span: 2, optionsSource: 'domain:portal.planStatus', hint: 'Retirarla no cancela a quien ya la tiene contratada.' },
                   ],
                   submit: async (id, payload) => {
                     const resultado = await portalService.updatePlan(id, { ...cuerpoComun(payload), status: payload.status });

@@ -293,7 +293,7 @@ export function MerchantBillingScreen() {
       */}
       {expedientes.length > 1 ? (
         <Panel compact>
-          <FormField
+          <FormField tooltip="Expediente cuyos cobros y cuotas se muestran, si tienes más de uno."
             kind="select"
             label="Negocio"
             name="partnerProfileId"
@@ -308,7 +308,7 @@ export function MerchantBillingScreen() {
 
       {scope.requiresSelection ? (
         <Panel compact>
-          <FormField
+          <FormField tooltip="Comercio afiliado sobre el que se opera."
             kind="select"
             label="Negocio"
             name="merchantAccountId"

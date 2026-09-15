@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
@@ -342,18 +343,15 @@ export function MerchantPaymentQrScreen() {
         <InlineNotice tone="info" title="Su usuario tiene varios expedientes">
           <label className="flex flex-wrap items-center gap-2 text-xs">
             <span>El QR se sube al expediente elegido:</span>
-            <select
-              className="rounded border border-slate-300 px-2 py-1 text-xs"
+            <OptionSelect
+              name="expediente-qr"
+              ariaLabel="Expediente al que se sube el QR"
+              compact
+              className="min-w-64"
               value={partnerId}
-              onChange={(evento) => elegirExpediente(evento.target.value)}
-              data-testid="selector-expediente-qr"
-            >
-              {expedientes.map((perfil) => (
-                <option key={perfil.partnerId} value={perfil.partnerId}>
-                  {(perfil.tradeName ?? perfil.legalName ?? `Expediente ${perfil.partnerId}`) + ` · ${perfil.status}`}
-                </option>
-              ))}
-            </select>
+              onChange={elegirExpediente}
+              options={expedientes.map((perfil) => ({ value: perfil.partnerId, label: perfil.tradeName ?? perfil.legalName ?? `Expediente ${perfil.partnerId}`, description: `Expediente ${perfil.partnerId} · estado ${perfil.status}` }))}
+            />
           </label>
         </InlineNotice>
       ) : null}
@@ -436,7 +434,7 @@ export function MerchantPaymentQrScreen() {
             <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
               {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y frenar
                   un cobro contra una entidad sin licencia vigente. */}
-              <FormField
+              <FormField tooltip="Banco que emitió el QR, por su sigla ASFI. Ej.: BNB."
                 kind="select"
                 label="Entidad (sigla ASFI)"
                 name="bankInstitutionCode"
@@ -447,7 +445,7 @@ export function MerchantPaymentQrScreen() {
                 hint="La entidad que emitió el QR."
                 data-testid="campo-entidad"
               />
-              <FormField
+              <FormField tooltip="Últimos cuatro dígitos de la cuenta, precedidos de asteriscos. Ej.: ****7890."
                 label="Cuenta enmascarada"
                 name="accountNumberMasked"
                 value={cuenta}

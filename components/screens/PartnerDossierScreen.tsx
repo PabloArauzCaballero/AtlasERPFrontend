@@ -272,11 +272,11 @@ export function PartnerDossierScreen() {
       {expedientePropio === 'sin-expediente' ? (
         <Panel title="Abrir expediente" icon="storefront" description="Todavía no tienes un expediente. Este es el primer paso.">
           <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={abrirExpediente}>
-            <FormField label="Razón social" name="legalName" required data-testid="campo-legalName" />
-            <FormField label="Nombre comercial" name="tradeName" />
-            <FormField label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
-            <FormField label="Matrícula de comercio" name="commercialRegistry" />
-            <FormField
+            <FormField tooltip="Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos." label="Razón social" name="legalName" required data-testid="campo-legalName" />
+            <FormField tooltip="Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa»." label="Nombre comercial" name="tradeName" />
+            <FormField tooltip="NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón." label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
+            <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente." label="Matrícula de comercio" name="commercialRegistry" />
+            <FormField tooltip="Rubro principal del negocio; agrupa la cartera y decide las reglas de comisión que le aplican."
               kind="select"
               label="Rubro del negocio"
               name="businessCategory"
@@ -284,8 +284,8 @@ export function PartnerDossierScreen() {
               options={[{ label: '— Seleccione —', value: '' }, ...rubros]}
               hint="Agrupa tu cartera y las reglas de comisión. Se puede corregir después."
             />
-            <FormField label="Correo de contacto" name="contactEmail" type="email" required data-testid="campo-contactEmail" />
-            <FormField label="Teléfono" name="contactPhone" />
+            <FormField tooltip="Correo del negocio para avisos operativos y de facturación. Ej.: pagos@tienda.bo." label="Correo de contacto" name="contactEmail" type="email" required data-testid="campo-contactEmail" />
+            <FormField tooltip="Teléfono del negocio para incidencias; con código de país, sin espacios." label="Teléfono" name="contactPhone" />
             <div className="md:col-span-2">
               <AtlasButton type="submit" disabled={busy} data-testid="btn-abrir-expediente">
                 <Icon name="add_business" className="text-[18px]" /> Abrir expediente
@@ -364,14 +364,14 @@ export function PartnerDossierScreen() {
                     void run('Ficha comercial', () => partnerOnboardingService.updateCommercialProfile(partnerId, payload));
                   }}
                 >
-                  <FormField
+                  <FormField tooltip="Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa»."
                     label="Nombre comercial"
                     name="tradeName"
                     defaultValue={state.profile.tradeName ?? ''}
                     data-testid="campo-tradeName"
                     hint="El nombre de la fachada, el que ve tu cliente."
                   />
-                  <FormField
+                  <FormField tooltip="Rubro principal del negocio; agrupa la cartera y decide las reglas de comisión que le aplican."
                     kind="select"
                     label="Rubro del negocio"
                     name="businessCategory"
@@ -379,7 +379,7 @@ export function PartnerDossierScreen() {
                     data-testid="campo-rubro"
                     options={opcionesDeRubro(state.profile.businessCategory, rubros)}
                   />
-                  <FormField
+                  <FormField tooltip="Teléfono del negocio para incidencias; con código de país, sin espacios."
                     label="Teléfono de contacto"
                     name="contactPhone"
                     defaultValue={state.profile.contactPhone ?? ''}

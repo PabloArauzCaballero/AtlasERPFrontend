@@ -117,7 +117,7 @@ export function CampaignDetailModal({ campaignId, onClose, onChanged, onEdit }: 
 
         {cancelOpen ? (
           <div className="space-y-2 rounded-lg border border-red-200 bg-red-50/60 p-3">
-            <FormField kind="textarea" label="Motivo de la cancelación" name="reason" required hint="Mínimo 8 caracteres. Queda registrado en la campaña." value={reason} onChange={(event) => setReason(event.target.value)} />
+            <FormField tooltip="Por qué se cancela; queda registrado en la campaña. Mínimo 8 caracteres." kind="textarea" label="Motivo de la cancelación" name="reason" required hint="Mínimo 8 caracteres. Queda registrado en la campaña." value={reason} onChange={(event) => setReason(event.target.value)} />
             <div className="flex gap-2">
               <AtlasButton variant="danger" loading={busy === 'cancel'} disabled={reason.trim().length < 8 || busy !== null} onClick={() => void run('cancel', () => notificationCampaignsService.cancel(campaignId, reason.trim()), 'Campaña cancelada').then(() => setCancelOpen(false))}>
                 Confirmar cancelación
@@ -173,7 +173,7 @@ export function CampaignDetailModal({ campaignId, onClose, onChanged, onEdit }: 
         <div className="space-y-2 rounded-lg border border-slate-200 p-3">
           <p className="text-xs font-bold text-slate-700">Enviar una prueba</p>
           <div className="flex flex-wrap items-end gap-2">
-            <FormField label="ID de cliente de prueba" name="testCustomer" inputMode="numeric" className="w-56" hint="Tu cuenta de cliente en la app. Recibe el aviso marcado [PRUEBA]." value={testCustomer} onChange={(event) => setTestCustomer(event.target.value.replace(/[^0-9]/g, ''))} />
+            <FormField tooltip="Identificador de tu cuenta de cliente en la app para recibir el aviso de prueba." label="ID de cliente de prueba" name="testCustomer" inputMode="numeric" className="w-56" hint="Tu cuenta de cliente en la app. Recibe el aviso marcado [PRUEBA]." value={testCustomer} onChange={(event) => setTestCustomer(event.target.value.replace(/[^0-9]/g, ''))} />
             <AtlasButton variant="secondary" icon="send" loading={busy === 'test'} disabled={!testCustomer || busy !== null} onClick={() => void run('test', async () => setTestResult(await notificationCampaignsService.testSend(campaignId, testCustomer)), 'Prueba enviada')}>
               Enviar prueba
             </AtlasButton>

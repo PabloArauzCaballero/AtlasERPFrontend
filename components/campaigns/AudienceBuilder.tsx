@@ -68,13 +68,14 @@ function RuleRow({ rule, onChange, onRemove, index }: { rule: AudienceRule; onCh
       <FormField
         kind="select"
         label={`Condición ${index + 1}`}
+        tooltip="Dato del cliente por el que se filtra la audiencia: ciudad, mora, edad…"
         name={`attribute-${index}`}
         hint={meta.hint}
         value={rule.attribute}
         options={ATTRIBUTE_OPTIONS}
         onChange={(event) => onChange(defaultRule(event.target.value as AudienceAttribute))}
       />
-      <FormField
+      <FormField tooltip="Cómo se compara el atributo con el valor."
         kind="select"
         label="Operador"
         name={`operator-${index}`}
@@ -86,7 +87,7 @@ function RuleRow({ rule, onChange, onRemove, index }: { rule: AudienceRule; onCh
       {kind === 'none' ? (
         <p className="pb-2 text-xs text-slate-500">Sin valor: la condición se cumple o no.</p>
       ) : kind === 'select' ? (
-        <FormField
+        <FormField tooltip="Valor con el que se compara."
           kind="select"
           label="Valor"
           name={`value-${index}`}
@@ -98,6 +99,7 @@ function RuleRow({ rule, onChange, onRemove, index }: { rule: AudienceRule; onCh
       ) : kind === 'number' ? (
         <FormField
           label={`Valor (${meta.unit ?? 'número'})`}
+          tooltip={`Valor numérico con el que se compara, en ${meta.unit ?? 'número entero'}.`}
           name={`value-${index}`}
           type="number"
           min={0}
@@ -108,6 +110,7 @@ function RuleRow({ rule, onChange, onRemove, index }: { rule: AudienceRule; onCh
       ) : (
         <FormField
           label={kind === 'list' ? 'Valores (separados por coma)' : 'Valor'}
+          tooltip={kind === 'list' ? 'Varios valores admitidos, separados por coma. Ej.: LP, SC.' : 'Valor exacto con el que se compara.'}
           name={`value-${index}`}
           hint={meta.options ? `Por ejemplo: ${meta.options.slice(0, 3).map((option) => option.label).join(', ')}.` : 'No distingue mayúsculas.'}
           value={Array.isArray(rule.value) ? rule.value.join(', ') : String(rule.value ?? '')}
@@ -170,7 +173,7 @@ export function AudienceBuilder({ value, onChange, purpose, onEstimate }: Audien
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-3">
-        <FormField
+        <FormField tooltip="Con varias condiciones: si deben cumplirse todas o basta con una."
           kind="select"
           label="Quién entra"
           name="match"

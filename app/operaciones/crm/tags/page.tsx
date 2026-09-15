@@ -38,18 +38,18 @@ export default function AccountTagsPage() {
         title: 'Nuevo tag de clasificación',
         description: 'El nombre se guarda en minúsculas, igual que cuando se teclea desde el alta de una cuenta.',
         fields: [
-          { name: 'name', label: 'Nombre', required: true, placeholder: 'mayorista', span: 2 },
-          { name: 'description', label: 'Para qué se usa', optional: true, placeholder: 'Comercios que venden al por mayor', span: 2 },
-          { name: 'isActive', label: 'Activo', type: 'select', valueKind: 'boolean', defaultValue: 'true', options: siNo },
+          { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, placeholder: 'mayorista', span: 2 },
+          { name: 'description', label: 'Para qué se usa', tooltip: 'Texto libre que explica el registro a quien lo lea después.', optional: true, placeholder: 'Comercios que venden al por mayor', span: 2 },
+          { name: 'isActive', label: 'Activo', tooltip: 'Si el registro está en uso; uno inactivo no se ofrece al crear.', type: 'select', valueKind: 'boolean', defaultValue: 'true', options: siNo },
         ],
         submit: async (payload) => { const created = await b2bService.createAccountTag(payload); setVersion((value) => value + 1); return created; },
       }}
       edit={{
         description: 'Renombrar el tag lo cambia en todas las cuentas que ya lo llevan: no hay que reclasificarlas una a una.',
         fields: [
-          { name: 'name', label: 'Nombre', required: true, span: 2 },
-          { name: 'description', label: 'Para qué se usa', optional: true, span: 2 },
-          { name: 'isActive', label: 'Activo', type: 'select', valueKind: 'boolean', options: siNo },
+          { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, span: 2 },
+          { name: 'description', label: 'Para qué se usa', tooltip: 'Texto libre que explica el registro a quien lo lea después.', optional: true, span: 2 },
+          { name: 'isActive', label: 'Activo', tooltip: 'Si el registro está en uso; uno inactivo no se ofrece al crear.', type: 'select', valueKind: 'boolean', options: siNo },
         ],
         submit: (id, payload) => b2bService.updateAccountTag(id, payload),
       }}

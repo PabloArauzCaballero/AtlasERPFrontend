@@ -31,6 +31,8 @@ export interface CrudFilter {
   label: string;
   /** `select` sin `options` deriva la lista de los propios datos cargados. */
   kind?: 'select' | 'text' | undefined;
+  /** Qué filtra y por qué; si falta, se genera a partir de la etiqueta. */
+  tooltip?: string | undefined;
   options?: Array<{ label: string; value: string }> | undefined;
   placeholder?: string | undefined;
 }
@@ -427,6 +429,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
               <FormField
                 key={filter.key}
                 label={filter.label}
+                tooltip={filter.tooltip ?? `Escribe parte del valor de «${filter.label}» para quedarte sólo con esas filas.`}
                 name={`filtro-${filter.key}`}
                 className="w-full lg:w-48"
                 value={filterValues[filter.key] ?? ''}
@@ -437,7 +440,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
               <FormField
                 key={filter.key}
                 kind="select"
+                compact
                 label={filter.label}
+                tooltip={filter.tooltip ?? `Muestra sólo las filas con ese valor de «${filter.label}»; «Todos» quita el filtro.`}
                 name={`filtro-${filter.key}`}
                 className="w-full lg:w-48"
                 value={filterValues[filter.key] ?? ''}

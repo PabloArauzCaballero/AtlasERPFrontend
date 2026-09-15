@@ -189,7 +189,7 @@ function LoginForm() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <FormField
+                <FormField tooltip="Correo de la persona; recibe avisos y sirve para identificarla. Ej.: nombre@empresa.bo."
                   label={copy.emailLabel}
                   name="email"
                   type="email"
@@ -199,7 +199,7 @@ function LoginForm() {
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder={copy.placeholder}
                 />
-                <FormField
+                <FormField tooltip="Tu contraseña del ERP; distingue mayúsculas."
                   label="Contraseña"
                   name="password"
                   type="password"
@@ -321,7 +321,7 @@ function PasoDelCodigo({
       </header>
 
       <form onSubmit={onSubmit} className="space-y-5">
-        <FormField
+        <FormField tooltip="Código de seis dígitos que te llegó al correo; caduca en pocos minutos."
           label="Código de verificación"
           name="pin"
           inputMode="numeric"

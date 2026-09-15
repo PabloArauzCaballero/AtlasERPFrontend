@@ -204,11 +204,11 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
       {step === 0 ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-3">
-            <FormField label="Nombre interno" name="name" required hint="Sólo lo ve el equipo. Ej.: Recordatorio cuota septiembre." value={form.name} onChange={(event) => set('name', event.target.value)} />
-            <FormField kind="select" label="Tipo de campaña" name="purpose" hint="Una comercial respeta a quien no quiere promociones." value={form.purpose} options={PURPOSE_OPTIONS} onChange={(event) => set('purpose', event.target.value as CampaignPurpose)} />
-            <FormField label={`Título (${form.title.length}/120)`} name="title" required maxLength={120} hint="La primera línea del aviso. Corto: en el bloqueo se corta a unos 45 caracteres." value={form.title} onChange={(event) => set('title', event.target.value)} />
-            <FormField kind="textarea" label={`Mensaje (${form.body.length}/1000)`} name="body" required maxLength={1000} hint="Qué tiene que saber o hacer la persona." value={form.body} onChange={(event) => set('body', event.target.value)} />
-            <FormField kind="select" label="Al tocar el aviso, abrir" name="deepLink" hint="La pantalla de la app a la que lleva." value={form.deepLink} options={DEEP_LINK_OPTIONS} onChange={(event) => set('deepLink', event.target.value)} />
+            <FormField tooltip="Nombre interno de la campaña de avisos; sólo lo ve el equipo." label="Nombre interno" name="name" required hint="Sólo lo ve el equipo. Ej.: Recordatorio cuota septiembre." value={form.name} onChange={(event) => set('name', event.target.value)} />
+            <FormField tooltip="Tipo de campaña; una comercial respeta a quien no quiere promociones." kind="select" label="Tipo de campaña" name="purpose" hint="Una comercial respeta a quien no quiere promociones." value={form.purpose} options={PURPOSE_OPTIONS} onChange={(event) => set('purpose', event.target.value as CampaignPurpose)} />
+            <FormField tooltip="Primera línea del aviso; en la pantalla de bloqueo se corta a unos 45 caracteres." label={`Título (${form.title.length}/120)`} name="title" required maxLength={120} hint="La primera línea del aviso. Corto: en el bloqueo se corta a unos 45 caracteres." value={form.title} onChange={(event) => set('title', event.target.value)} />
+            <FormField tooltip="Qué tiene que saber o hacer la persona al leer el aviso; corto y concreto." kind="textarea" label={`Mensaje (${form.body.length}/1000)`} name="body" required maxLength={1000} hint="Qué tiene que saber o hacer la persona." value={form.body} onChange={(event) => set('body', event.target.value)} />
+            <FormField tooltip="Pantalla de la app que se abre al tocar el aviso." kind="select" label="Al tocar el aviso, abrir" name="deepLink" hint="La pantalla de la app a la que lleva." value={form.deepLink} options={DEEP_LINK_OPTIONS} onChange={(event) => set('deepLink', event.target.value)} />
             <fieldset>
               <legend className="mb-1.5 text-xs font-bold text-slate-700">Canales<span className="ml-1 text-red-600">*</span></legend>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -235,7 +235,7 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
 
       {step === 1 ? (
         <div className="space-y-4">
-          <FormField
+          <FormField tooltip="Si la audiencia sale de un segmento guardado o de condiciones nuevas."
             kind="select"
             label="Audiencia"
             name="audienceMode"
@@ -252,7 +252,7 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
           />
           {form.audienceMode === 'segment' ? (
             <div className="space-y-2">
-              <FormField kind="select" label="Segmento" name="segmentId" hint="Sólo segmentos activos." value={form.segmentId} options={[{ value: '', label: 'Elige un segmento…' }, ...segmentList.map((segment) => ({ value: segment.id, label: segment.name }))]} onChange={(event) => set('segmentId', event.target.value)} />
+              <FormField tooltip="Segmento guardado al que se envía; sólo activos." kind="select" label="Segmento" name="segmentId" hint="Sólo segmentos activos." value={form.segmentId} options={[{ value: '', label: 'Elige un segmento…' }, ...segmentList.map((segment) => ({ value: segment.id, label: segment.name }))]} onChange={(event) => set('segmentId', event.target.value)} />
               {selectedSegment ? (
                 <InlineNotice tone="info" title={selectedSegment.name}>
                   {selectedSegment.definition.rules.length ? selectedSegment.definition.rules.map(describeRule).join(selectedSegment.definition.match === 'any' ? ' · o · ' : ' · y · ') : 'Todos los clientes activos.'}
@@ -268,13 +268,13 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
 
       {step === 2 ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <FormField kind="select" label="Inicio" name="startMode" hint="«Ahora» empieza en menos de un minuto al programar." value={form.startMode} options={[{ value: 'now', label: 'Enviar en cuanto se programe' }, { value: 'date', label: 'Elegir fecha y hora' }]} onChange={(event) => set('startMode', event.target.value as FormState['startMode'])} />
+          <FormField tooltip="Si el envío empieza ahora o en una fecha programada." kind="select" label="Inicio" name="startMode" hint="«Ahora» empieza en menos de un minuto al programar." value={form.startMode} options={[{ value: 'now', label: 'Enviar en cuanto se programe' }, { value: 'date', label: 'Elegir fecha y hora' }]} onChange={(event) => set('startMode', event.target.value as FormState['startMode'])} />
           {form.startMode === 'date' ? (
-            <FormField label="Fecha y hora de inicio" name="startsAt" type="datetime-local" required hint="Hora de Bolivia." value={form.startsAt} onChange={(event) => set('startsAt', event.target.value)} />
+            <FormField tooltip="Fecha y hora en que empieza la entrega; antes no se muestra nada." label="Fecha y hora de inicio" name="startsAt" type="datetime-local" required hint="Hora de Bolivia." value={form.startsAt} onChange={(event) => set('startsAt', event.target.value)} />
           ) : <div />}
-          <FormField label="Fin de la campaña (opcional)" name="endsAt" type="datetime-local" hint="Al llegar, deja de enviar y el aviso desaparece de la bandeja. Vacío = sin fecha de fin." value={form.endsAt} onChange={(event) => set('endsAt', event.target.value)} />
-          <FormField kind="select" label="Cadencia de envío" name="ratePerMinute" hint="Repartir el envío evita picos de soporte y de carga." value={form.ratePerMinute} options={RATE_OPTIONS} onChange={(event) => set('ratePerMinute', event.target.value)} />
-          <FormField label="Tope de destinatarios (opcional)" name="maxRecipients" inputMode="numeric" hint="Útil para una prueba con una parte de la audiencia. Vacío = toda." value={form.maxRecipients} onChange={(event) => set('maxRecipients', event.target.value.replace(/[^0-9]/g, ''))} />
+          <FormField tooltip="Fecha y hora en que termina la entrega; vacío = hasta agotar presupuesto." label="Fin de la campaña (opcional)" name="endsAt" type="datetime-local" hint="Al llegar, deja de enviar y el aviso desaparece de la bandeja. Vacío = sin fecha de fin." value={form.endsAt} onChange={(event) => set('endsAt', event.target.value)} />
+          <FormField tooltip="Avisos por minuto; repartir el envío evita picos de soporte." kind="select" label="Cadencia de envío" name="ratePerMinute" hint="Repartir el envío evita picos de soporte y de carga." value={form.ratePerMinute} options={RATE_OPTIONS} onChange={(event) => set('ratePerMinute', event.target.value)} />
+          <FormField tooltip="Tope de personas que reciben el aviso; útil para una prueba parcial." label="Tope de destinatarios (opcional)" name="maxRecipients" inputMode="numeric" hint="Útil para una prueba con una parte de la audiencia. Vacío = toda." value={form.maxRecipients} onChange={(event) => set('maxRecipients', event.target.value.replace(/[^0-9]/g, ''))} />
         </div>
       ) : null}
 

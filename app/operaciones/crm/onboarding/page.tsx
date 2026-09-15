@@ -146,7 +146,7 @@ export default function OnboardingPage() {
                 fields: (row) => [
                   {
                     name: 'checklistItemId',
-                    label: 'Requisito',
+                    label: 'Requisito', tooltip: 'Requisito del checklist de alta sobre el que se actúa.',
                     type: 'select',
                     required: true,
                     span: 2,
@@ -157,7 +157,7 @@ export default function OnboardingPage() {
                   },
                   {
                     name: 'status',
-                    label: 'Nuevo estado',
+                    label: 'Nuevo estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.',
                     type: 'select',
                     required: true,
                     span: 2,
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
               form: {
                 title: (row) => `Verificación KYB de ${String(row.tradeName ?? 'este comercio')}`,
                 description: 'El ERP pide; decide AtlasBackend con el artefacto PARTNER_KYB_REVIEW del Motor. Sin su APROBADO el comercio no se activa. Si el comercio no tiene expediente en Atlas, tiene que abrirlo desde su portal.',
-                fields: [{ name: 'reason', label: 'Motivo (opcional)', type: 'textarea', optional: true, span: 2, placeholder: 'Por qué se pide ahora: alta comercial, reintento tras corregir…' }],
+                fields: [{ name: 'reason', label: 'Motivo (opcional)', tooltip: 'Motivo del cambio, opcional; queda en el historial del caso.', type: 'textarea', optional: true, span: 2, placeholder: 'Por qué se pide ahora: alta comercial, reintento tras corregir…' }],
                 submit: (row, payload: JsonObject) => b2bService.requestKybReview(String(row.id ?? ''), payload),
                 submitLabel: 'Pedir verificación',
               },
@@ -236,7 +236,7 @@ export default function OnboardingPage() {
                 fields: (row) => [
                   {
                     name: 'contractVersionId',
-                    label: 'Versión de contrato',
+                    label: 'Versión de contrato', tooltip: 'Versión del contrato de la que cuelga la regla de comisión.',
                     type: 'select',
                     required: true,
                     span: 2,
@@ -265,11 +265,11 @@ export default function OnboardingPage() {
                 title: (row) => `Comisión por venta de ${String(row.tradeName ?? 'este comercio')}`,
                 description: 'Lo que Atlas cobra por cada venta, sobre el contrato pactado en este caso. Gana la regla más específica.',
                 fields: [
-                  { name: 'ratePercent', label: 'Comisión (%)', type: 'number', valueKind: 'number', required: true, placeholder: '3.50' },
-                  { name: 'productCategory', label: 'Categoría de producto', type: 'select', optional: true, optionsSource: 'domain:crm.merchantCategory', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todas.' },
-                  { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', optional: true, optionsSource: 'domain:crm.riskTier', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todos.' },
-                  { name: 'minFeeAmount', label: 'Piso (Bs)', type: 'number', valueKind: 'number', optional: true },
-                  { name: 'maxFeeAmount', label: 'Techo (Bs)', type: 'number', valueKind: 'number', optional: true },
+                  { name: 'ratePercent', label: 'Comisión (%)', tooltip: 'Comisión (MDR) en porcentaje sobre cada venta. Ej.: 3.', type: 'number', valueKind: 'number', required: true, placeholder: '3.50' },
+                  { name: 'productCategory', label: 'Categoría de producto', tooltip: 'Categoría del producto vendido; decide la comisión que aplica.', type: 'select', optional: true, optionsSource: 'domain:crm.merchantCategory', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todas.' },
+                  { name: 'riskSegment', label: 'Segmento de riesgo', tooltip: 'Segmento de riesgo del cliente al que aplica la regla; vacío = todos.', type: 'select', optional: true, optionsSource: 'domain:crm.riskTier', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todos.' },
+                  { name: 'minFeeAmount', label: 'Piso (Bs)', tooltip: 'Comisión mínima en bolivianos por venta, aunque el porcentaje dé menos.', type: 'number', valueKind: 'number', optional: true },
+                  { name: 'maxFeeAmount', label: 'Techo (Bs)', tooltip: 'Comisión máxima en bolivianos por venta, aunque el porcentaje dé más.', type: 'number', valueKind: 'number', optional: true },
                 ],
                 submit: (row, payload: JsonObject) => b2bService.createCaseMdrRule(String(row.id ?? ''), payload),
                 submitLabel: 'Pactar comisión',
@@ -285,12 +285,12 @@ export default function OnboardingPage() {
                 title: (row) => `Acceso al portal para ${String(row.tradeName ?? 'el comercio')}`,
                 description: 'Se registra a la persona en el CRM y se encola su acceso. La contraseña la genera Atlas al aprobar; el ERP nunca la ve.',
                 fields: (row) => [
-                  { name: 'fullName', label: 'Nombre completo', required: true, placeholder: 'Nombre del responsable' },
-                  { name: 'email', label: 'Correo corporativo', type: 'email', required: true, placeholder: 'usuario@empresa.com' },
-                  { name: 'roleCode', label: 'Rol', type: 'select', required: true, defaultValue: 'MERCHANT_OPERATOR', optionsSource: 'domain:portal.merchantUserRole' },
+                  { name: 'fullName', label: 'Nombre completo', tooltip: 'Nombre y apellidos completos de la persona, como en su documento de identidad.', required: true, placeholder: 'Nombre del responsable' },
+                  { name: 'email', label: 'Correo corporativo', tooltip: 'Correo corporativo del usuario del comercio; ahí llegan las credenciales.', type: 'email', required: true, placeholder: 'usuario@empresa.com' },
+                  { name: 'roleCode', label: 'Rol', tooltip: 'Papel del socio frente a la entidad legal: cliente, proveedor, acreedor…', type: 'select', required: true, defaultValue: 'MERCHANT_OPERATOR', optionsSource: 'domain:portal.merchantUserRole' },
                   {
                     name: 'branchId',
-                    label: 'Sucursal',
+                    label: 'Sucursal', tooltip: 'Sucursal del comercio; sólo las habilitadas pueden originar operaciones.',
                     type: 'select',
                     optional: true,
                     hint: 'Vacío: alcance global sobre el comercio.',

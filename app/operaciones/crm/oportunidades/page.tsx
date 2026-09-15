@@ -68,14 +68,14 @@ export default function OpportunitiesPage() {
                     return resultado;
                   },
                   fields: [
-                    { name: 'accountId', label: 'Cuenta B2B', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
-                    { name: 'ownerUserId', label: 'Ejecutivo responsable', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
-                    { name: 'name', label: 'Nombre de la oportunidad', required: true, span: 2, placeholder: 'Beta Market — RENEWAL' },
-                    { name: 'opportunityType', label: 'Tipo', type: 'select', required: true, optionsSource: 'domain:crm.opportunityType' },
-                    { name: 'expectedMonthlyVolume', label: 'Volumen mensual esperado', type: 'number', valueKind: 'number', optional: true },
-                    { name: 'expectedMdrRate', label: 'Tasa de MDR esperada (%)', type: 'number', valueKind: 'number', optional: true },
-                    { name: 'probability', label: 'Probabilidad (%)', type: 'number', valueKind: 'number', defaultValue: 0 },
-                    { name: 'expectedCloseDate', label: 'Cierre previsto', type: 'date', optional: true },
+                    { name: 'accountId', label: 'Cuenta B2B', tooltip: 'Cuenta B2B del comercio sobre la que se trabaja.', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
+                    { name: 'ownerUserId', label: 'Ejecutivo responsable', tooltip: 'Ejecutivo comercial que responde por esta cuenta; recibe las tareas y los avisos.', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
+                    { name: 'name', label: 'Nombre de la oportunidad', tooltip: 'Nombre de la oportunidad. Ej.: Afiliación cadena Hipermaxi.', required: true, span: 2, placeholder: 'Beta Market — RENEWAL' },
+                    { name: 'opportunityType', label: 'Tipo', tooltip: 'Qué se vende: afiliación nueva, ampliación, renovación…', type: 'select', required: true, optionsSource: 'domain:crm.opportunityType' },
+                    { name: 'expectedMonthlyVolume', label: 'Volumen mensual esperado', tooltip: 'Ventas mensuales estimadas en bolivianos; dimensiona la oportunidad.', type: 'number', valueKind: 'number', optional: true },
+                    { name: 'expectedMdrRate', label: 'Tasa de MDR esperada (%)', tooltip: 'Comisión (MDR) en porcentaje que se espera pactar. Ej.: 3.5.', type: 'number', valueKind: 'number', optional: true },
+                    { name: 'probability', label: 'Probabilidad (%)', tooltip: 'Probabilidad de cierre en porcentaje; pondera el pronóstico. Ej.: 60.', type: 'number', valueKind: 'number', defaultValue: 0 },
+                    { name: 'expectedCloseDate', label: 'Cierre previsto', tooltip: 'Fecha estimada de firma; ordena el pipeline.', type: 'date', optional: true },
                   ],
                 }}
                 notice={{

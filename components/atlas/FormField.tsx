@@ -1,10 +1,18 @@
-import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+'use client';
+
+import { useId, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
+import { FieldLabel } from '@/components/atlas/FieldLabel';
+import { useFieldHelp } from '@/components/atlas/FieldTooltip';
+import { OptionSelect, type SelectOption } from '@/components/atlas/OptionSelect';
 
 interface BaseFieldProps {
   label: string;
   name: string;
+  /** Texto corto SIEMPRE visible bajo el control. */
   hint?: string | undefined;
+  /** Qué poner y por qué importa: se abre al pasar por el ⓘ o al enfocar el control. */
+  tooltip?: string | undefined;
   required?: boolean | undefined;
   /** Muestra el asterisco de obligatorio SIN poner `required` nativo (para campos en pestañas
    *  ocultas, donde el `required` del navegador lanzaría «not focusable» y bloquearía el envío). */
@@ -16,9 +24,22 @@ interface InputFieldProps extends BaseFieldProps, Omit<InputHTMLAttributes<HTMLI
   kind?: 'input';
 }
 
-interface SelectFieldProps extends BaseFieldProps, Omit<SelectHTMLAttributes<HTMLSelectElement>, 'name' | 'className'> {
+/** Evento mínimo que reciben los `onChange` de un select: `event.target.value` y `event.target.name`. */
+export interface SelectChangeEvent {
+  target: { value: string; name: string };
+}
+
+interface SelectFieldProps extends BaseFieldProps {
   kind: 'select';
-  options: Array<{ label: string; value: string; description?: string | undefined }>;
+  options: SelectOption[];
+  value?: string | number | readonly string[] | undefined;
+  defaultValue?: string | number | readonly string[] | undefined;
+  onChange?: ((event: SelectChangeEvent) => void) | undefined;
+  disabled?: boolean | undefined;
+  placeholder?: string | undefined;
+  /** Sin descripción bajo el control y letra menor: barras de filtros. */
+  compact?: boolean | undefined;
+  'data-testid'?: string | undefined;
 }
 
 interface TextareaFieldProps extends BaseFieldProps, Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'name' | 'className'> {
@@ -29,42 +50,88 @@ type FormFieldProps = InputFieldProps | SelectFieldProps | TextareaFieldProps;
 
 const controlClass = 'h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100';
 
+const asString = (value: string | number | readonly string[] | undefined): string | undefined =>
+  value === undefined ? undefined : Array.isArray(value) ? String(value[0] ?? '') : String(value);
+
+/**
+ * El átomo de campo del ERP: etiqueta con ⓘ, control y ayuda corta.
+ *
+ * La etiqueta es un `<label htmlFor>` y no envuelve al control: así el botón de ayuda queda fuera
+ * del nombre accesible y `getByLabel('Ciudad')` sigue encontrando el control. Un `kind="select"`
+ * pinta `OptionSelect` (cada opción con su descripción); su `onChange` recibe `event.target.value`
+ * como antes para que las pantallas no cambien.
+ */
 export function FormField(props: FormFieldProps) {
-  const requiredMark = (props.required || props.softRequired) ? <span className="ml-1 text-red-600">*</span> : null;
+  const id = useId();
+  const help = useFieldHelp(props.tooltip);
+  const required = props.required || props.softRequired;
+  const labelRow = (
+    <FieldLabel htmlFor={id} label={props.label} required={required} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
+  );
+  const hintRow = props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null;
 
   if (props.kind === 'select') {
-    const { label, name, hint, required, softRequired: _sr, className, options, kind: _kind, ...selectProps } = props;
-    const isEmpty = options.length === 0;
+    const { name, className, options, onChange, value, defaultValue, disabled, placeholder, compact } = props;
+    const testId = props['data-testid'];
     return (
-      <label className={cn('block min-w-0', className)}>
-        <span className="mb-1.5 block text-xs font-bold text-slate-700">{label}{requiredMark}</span>
-        <select {...selectProps} name={name} required={required} disabled={isEmpty || selectProps.disabled} className={controlClass}>
-          {isEmpty
-            ? <option value="">— No hay datos registrados —</option>
-            : options.map((option) => <option value={option.value} key={option.value} title={option.description}>{option.label}</option>)}
-        </select>
-        {hint ? <span className="mt-1 block text-[11px] text-slate-500">{hint}</span> : null}
-      </label>
+      <div className={cn('block min-w-0', className)}>
+        {labelRow}
+        <OptionSelect
+          id={id}
+          name={name}
+          options={options}
+          value={asString(value)}
+          defaultValue={asString(defaultValue)}
+          onChange={onChange ? (next) => onChange({ target: { value: next, name } }) : undefined}
+          required={props.required}
+          disabled={disabled}
+          placeholder={placeholder}
+          compact={compact}
+          testId={testId}
+          describedById={help.describedById}
+          onFocus={help.onFocus}
+          onBlur={help.onBlur}
+        />
+        {hintRow}
+      </div>
     );
   }
 
   if (props.kind === 'textarea') {
-    const { label, name, hint, required, softRequired: _sr, className, kind: _kind, ...textareaProps } = props;
+    const { label: _l, name, hint: _h, tooltip: _t, required: nativeRequired, softRequired: _sr, className, kind: _kind, onFocus, onBlur, ...textareaProps } = props;
     return (
-      <label className={cn('block min-w-0', className)}>
-        <span className="mb-1.5 block text-xs font-bold text-slate-700">{label}{requiredMark}</span>
-        <textarea {...textareaProps} name={name} required={required} className={`${controlClass} min-h-24 resize-y py-2`} />
-        {hint ? <span className="mt-1 block text-[11px] text-slate-500">{hint}</span> : null}
-      </label>
+      <div className={cn('block min-w-0', className)}>
+        {labelRow}
+        <textarea
+          {...textareaProps}
+          id={id}
+          name={name}
+          required={nativeRequired}
+          aria-describedby={help.describedById}
+          onFocus={(event) => { help.onFocus(); onFocus?.(event); }}
+          onBlur={(event) => { help.onBlur(); onBlur?.(event); }}
+          className={`${controlClass} min-h-24 resize-y py-2`}
+        />
+        {hintRow}
+      </div>
     );
   }
 
-  const { label, name, hint, required, softRequired: _sr, className, kind: _kind, ...inputProps } = props;
+  const { label: _l, name, hint: _h, tooltip: _t, required: nativeRequired, softRequired: _sr, className, kind: _kind, onFocus, onBlur, ...inputProps } = props;
   return (
-    <label className={cn('block min-w-0', className)}>
-      <span className="mb-1.5 block text-xs font-bold text-slate-700">{label}{requiredMark}</span>
-      <input {...inputProps} name={name} required={required} className={controlClass} />
-      {hint ? <span className="mt-1 block text-[11px] text-slate-500">{hint}</span> : null}
-    </label>
+    <div className={cn('block min-w-0', className)}>
+      {labelRow}
+      <input
+        {...inputProps}
+        id={id}
+        name={name}
+        required={nativeRequired}
+        aria-describedby={help.describedById}
+        onFocus={(event) => { help.onFocus(); onFocus?.(event); }}
+        onBlur={(event) => { help.onBlur(); onBlur?.(event); }}
+        className={controlClass}
+      />
+      {hintRow}
+    </div>
   );
 }

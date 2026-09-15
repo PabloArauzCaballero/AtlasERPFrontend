@@ -64,7 +64,7 @@ export default function PeriodClosingPage() {
             title: (row) => `Cerrar el período ${String(row.periodNo ?? '')}`,
             description: 'Bloquea nuevas contabilizaciones en el período. Antes de cerrarlo, el backend comprueba sus controles de cierre.',
             fields: [
-              { name: 'closeType', label: 'Tipo de cierre', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
+              { name: 'closeType', label: 'Tipo de cierre', tooltip: 'Cierre blando (se puede reabrir) o duro (definitivo, para auditoría).', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
             ],
             submit: async (row, payload) =>
               accountingService.closePeriod({ legalEntityId: await entidadLegalDe(row), periodId: String(row.id ?? ''), closeType: String(payload.closeType ?? 'MONTHLY') }),
@@ -81,7 +81,7 @@ export default function PeriodClosingPage() {
             title: (row) => `Reabrir el período ${String(row.periodNo ?? '')}`,
             description: 'Rehabilita temporalmente un período cerrado. Exige motivo documentado y queda en auditoría.',
             fields: [
-              { name: 'reason', label: 'Motivo documentado', type: 'textarea', required: true, span: 3, placeholder: 'Mínimo 5 caracteres: qué hay que corregir y quién lo autorizó.' },
+              { name: 'reason', label: 'Motivo documentado', tooltip: 'Por qué se cierra o reabre el período; lo exige auditoría.', type: 'textarea', required: true, span: 3, placeholder: 'Mínimo 5 caracteres: qué hay que corregir y quién lo autorizó.' },
             ],
             submit: (row, payload) => accountingService.reopenPeriod({ periodId: String(row.id ?? ''), reason: String(payload.reason ?? '') }),
             submitLabel: 'Reabrir período',

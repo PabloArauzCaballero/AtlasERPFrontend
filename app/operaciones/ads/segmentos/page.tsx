@@ -62,15 +62,15 @@ export default function AdSegmentsPage() {
         description: 'Una regla. El tipo limita qué atributos puede mirar el segmento, y el nivel de privacidad se deriva de la regla. Para IN, NOT_IN o BETWEEN, escribe los valores separados por coma; EXISTS no lleva valor.',
         submit: createSegment,
         fields: [
-          { name: 'name', label: 'Nombre del segmento', required: true, span: 2 },
+          { name: 'name', label: 'Nombre del segmento', tooltip: 'Nombre del segmento de audiencia. Ej.: Clientes con cuota al día en Santa Cruz.', required: true, span: 2 },
           /*
            * Tipo y operador son dominios cerrados del backend: se leen de `/catalog/domains` en vez
            * de copiarlos aquí, para que un tipo nuevo aparezca sin tocar la pantalla.
            */
-          { name: 'segmentType', label: 'Tipo', required: true, optionsSource: 'domain:ads.segmentType' },
+          { name: 'segmentType', label: 'Tipo', tooltip: 'De quién es el segmento: de la plataforma (para todos) o de un anunciante.', required: true, optionsSource: 'domain:ads.segmentType' },
           {
             name: 'advertiserId',
-            label: 'Anunciante',
+            label: 'Anunciante', tooltip: 'Anunciante dueño de la campaña; su crédito y su facturación son los que se consumen.',
             type: 'select',
             optional: true,
             hint: 'Vacío = segmento de plataforma, disponible para todos.',
@@ -78,7 +78,7 @@ export default function AdSegmentsPage() {
           },
           {
             name: 'attribute',
-            label: 'Atributo',
+            label: 'Atributo', tooltip: 'Dato del cliente por el que se filtra (edad, ciudad, mora…).',
             type: 'select',
             required: true,
             options: [
@@ -94,10 +94,10 @@ export default function AdSegmentsPage() {
               { label: 'Huella del cliente', value: 'corporateClientHash' },
             ],
           },
-          { name: 'operator', label: 'Operador', required: true, optionsSource: 'domain:platform.segmentOperator' },
+          { name: 'operator', label: 'Operador', tooltip: 'Cómo se compara el atributo con el valor: igual, mayor, entre…', required: true, optionsSource: 'domain:platform.segmentOperator' },
           {
             name: 'value',
-            label: 'Valor',
+            label: 'Valor', tooltip: 'Valor con el que se compara. Para BETWEEN, dos números separados por coma. Ej.: 12, 36.',
             optional: true,
             span: 2,
             placeholder: 'FARMACIA, MERCADO',

@@ -5,6 +5,7 @@ import { b2bService } from '@/services/b2bService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -12,13 +13,13 @@ import { formatBob } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
 const STAGES = [
-  { key: 'DISCOVERY', label: 'Descubrimiento', accent: 'bg-slate-400' },
-  { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-[#006a61]/40' },
-  { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-[#006a61]/55' },
-  { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-[#006a61]/70' },
-  { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-[#006a61]' },
-  { key: 'CLOSED_WON', label: 'Ganada', accent: 'bg-emerald-500' },
-  { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-red-500' },
+  { key: 'DISCOVERY', label: 'Descubrimiento', accent: 'bg-slate-400', description: 'Primer contacto: todavía no se sabe qué necesita ni si encaja.' },
+  { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-[#006a61]/40', description: 'Ya se confirmó necesidad, presupuesto y quién decide.' },
+  { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-[#006a61]/55', description: 'Se le envió una propuesta comercial y se espera respuesta.' },
+  { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-[#006a61]/70', description: 'Se discuten precio, plazos o condiciones de la propuesta.' },
+  { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-[#006a61]', description: 'Acuerdo cerrado de palabra; se redacta y firma el contrato.' },
+  { key: 'CLOSED_WON', label: 'Ganada', accent: 'bg-emerald-500', description: 'Contrato firmado: la oportunidad pasa a ser una cuenta activa.' },
+  { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-red-500', description: 'El cliente desistió o eligió otra opción; se cierra sin venta.' },
 ];
 
 interface OpportunityKanbanScreenProps {
@@ -125,14 +126,17 @@ export function OpportunityKanbanScreen({ embedded = false, version = 0 }: Oppor
                           <Icon name="percent" className="ml-1 text-[13px]" />{String(op.probability ?? '0')}%
                         </div>
                         {op.expectedMonthlyRevenue ? <p className="mt-0.5 text-[10px] text-emerald-700">Ingreso est.: {formatBob(Number(op.expectedMonthlyRevenue))}</p> : null}
-                        <select
-                          className="mt-2 h-8 w-full rounded border border-slate-300 bg-white px-2 text-[11px] font-semibold text-slate-700 disabled:opacity-50"
-                          value={stage.key}
-                          disabled={movingId === id}
-                          onChange={(e) => { if (e.target.value !== stage.key) requestMove(op, e.target.value); }}
-                        >
-                          {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-                        </select>
+                        <div className="mt-2">
+                          <OptionSelect
+                            name={`etapa-${id}`}
+                            ariaLabel={`Etapa de ${String(op.name ?? op.title ?? id)}`}
+                            compact
+                            value={stage.key}
+                            disabled={movingId === id}
+                            onChange={(next) => { if (next !== stage.key) requestMove(op, next); }}
+                            options={STAGES.map((s) => ({ value: s.key, label: s.label, description: s.description }))}
+                          />
+                        </div>
                       </article>
                     );
                   })}

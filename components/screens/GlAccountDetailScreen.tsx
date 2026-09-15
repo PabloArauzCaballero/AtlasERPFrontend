@@ -133,10 +133,10 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
             {form ? (
               <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                  <FormField label="Nombre" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="md:col-span-2" />
-                  <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={estadoOptions} />
+                  <FormField tooltip="Nombre con el que se identifica el registro en listados e informes." label="Nombre" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="md:col-span-2" />
+                  <FormField tooltip="Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos." kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={estadoOptions} />
                   {flagFields.map((flag) => (
-                    <FormField key={flag.key} kind="select" label={flag.label} name={flag.key} value={form[flag.key]} onChange={(e) => setForm({ ...form, [flag.key]: e.target.value })} options={boolOptions} />
+                    <FormField key={flag.key} kind="select" label={flag.label} tooltip={`Si la cuenta ${flag.label.toLowerCase()}; cambia qué asientos la admiten.`} name={flag.key} value={form[flag.key]} onChange={(e) => setForm({ ...form, [flag.key]: e.target.value })} options={boolOptions} />
                   ))}
                 </div>
                 <div className="flex items-center gap-3">

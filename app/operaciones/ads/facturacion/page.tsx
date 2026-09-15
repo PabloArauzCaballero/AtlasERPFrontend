@@ -66,9 +66,9 @@ export default function AdsBillingPage() {
         successMessage="El período quedó cerrado. Abajo están las facturas emitidas."
         onSubmit={cerrarPeriodo}
         fields={[
-          { name: 'periodStart', label: 'Desde', type: 'date', required: true },
-          { name: 'periodEnd', label: 'Hasta', type: 'date', required: true },
-          { name: 'advertiserId', label: 'Anunciante', type: 'select', optional: true, span: 2, optionsLoader: loadAdvertisers, hint: 'Vacío = todos los anunciantes con consumo en el rango.' },
+          { name: 'periodStart', label: 'Desde', tooltip: 'Inicio del período de consumo que se factura.', type: 'date', required: true },
+          { name: 'periodEnd', label: 'Hasta', tooltip: 'Fin del período de consumo que se factura, inclusive.', type: 'date', required: true },
+          { name: 'advertiserId', label: 'Anunciante', tooltip: 'Anunciante dueño de la campaña; su crédito y su facturación son los que se consumen.', type: 'select', optional: true, span: 2, optionsLoader: loadAdvertisers, hint: 'Vacío = todos los anunciantes con consumo en el rango.' },
         ]}
       />
 
@@ -124,13 +124,13 @@ export default function AdsBillingPage() {
            * (`/admin/ads` sólo tiene el cierre que las crea y el cobro que las salda), así que no
            * hay de dónde cargar un desplegable. Pulsar una factura del cierre la deja escrita aquí.
            */
-          { name: 'invoiceId', label: 'Factura', required: true, span: 2, ...(seleccionada ? { defaultValue: seleccionada } : {}) },
-          { name: 'amountMicros', label: 'Importe (micros)', type: 'number', required: true },
-          { name: 'paymentDate', label: 'Fecha del cobro', type: 'date', required: true },
+          { name: 'invoiceId', label: 'Factura', tooltip: 'Factura a la que se aplica el cobro.', required: true, span: 2, ...(seleccionada ? { defaultValue: seleccionada } : {}) },
+          { name: 'amountMicros', label: 'Importe (micros)', tooltip: 'Importe cobrado en micros (1 Bs = 1 000 000). Ej.: 150000000 = Bs 150.', type: 'number', required: true },
+          { name: 'paymentDate', label: 'Fecha del cobro', tooltip: 'Fecha en que entró el dinero, según el banco.', type: 'date', required: true },
           // El medio es un dominio cerrado del backend: como texto libre, cualquier cosa distinta del código exacto era un 400.
-          { name: 'paymentMethod', label: 'Medio', required: true, defaultValue: 'TRANSFERENCIA', optionsSource: 'domain:accounting.paymentMethod' },
-          { name: 'currency', label: 'Moneda', optional: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
-          { name: 'reference', label: 'Referencia', optional: true, span: 2, placeholder: 'Nº de transferencia' },
+          { name: 'paymentMethod', label: 'Medio', tooltip: 'Medio por el que se paga: transferencia, QR, efectivo…; decide qué cuenta bancaria se exige.', required: true, defaultValue: 'TRANSFERENCIA', optionsSource: 'domain:accounting.paymentMethod' },
+          { name: 'currency', label: 'Moneda', tooltip: 'Moneda en la que se factura y se consume el crédito (ISO 4217). Ej.: BOB.', optional: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
+          { name: 'reference', label: 'Referencia', tooltip: 'Número de transacción o comprobante del banco, para conciliar.', optional: true, span: 2, placeholder: 'Nº de transferencia' },
         ]}
       />
     </div>

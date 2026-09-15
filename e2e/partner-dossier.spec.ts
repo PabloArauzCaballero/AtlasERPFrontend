@@ -112,7 +112,8 @@ test.describe('expediente del negocio', () => {
     await expect(alta).toBeVisible();
     await alta.getByLabel('Nombre de sucursal').fill('Sucursal Norte');
     // La ciudad se elige del catálogo; ya no se teclea.
-    await alta.getByLabel('Ciudad').selectOption('Santa Cruz de la Sierra');
+    await alta.getByLabel('Ciudad').click();
+    await page.getByRole('option', { name: /^Santa Cruz de la Sierra/ }).click();
     await alta.getByRole('button', { name: 'Registrar sucursal' }).click();
     // Al guardar, el modal se cierra solo: si siguiera abierto taparía la lista que hay que comprobar.
     await expect(alta).toBeHidden();
@@ -144,7 +145,8 @@ test.describe('expediente del negocio', () => {
     await expect(page.getByTestId('qr-negocio-vigente')).toBeVisible();
 
     // La entidad se elige de `portal.bankInstitution`; ya no se teclea la sigla.
-    await page.getByTestId('campo-entidad').selectOption('BNB');
+    await page.getByTestId('campo-entidad').click();
+    await page.getByTestId('select-bankInstitutionCode-option-BNB').click();
     await page.getByTestId('campo-cuenta').fill('****7890');
     await page.getByTestId('input-qr-cobro').setInputFiles({ name: 'qr-bank.png', mimeType: 'image/png', buffer: PNG });
     await page.getByTestId('btn-subir-qr-cobro').click();

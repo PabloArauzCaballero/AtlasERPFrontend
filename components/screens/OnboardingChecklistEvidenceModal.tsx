@@ -103,7 +103,7 @@ export function OnboardingChecklistEvidenceModal({
     >
       <form className="space-y-3" onSubmit={subir} data-testid="form-evidencia-requisito">
         <div className="flex justify-end"><BotonFormularioPapel data-testid="papel-evidencia" formulario={formularioEvidenciaRequisito} /></div>
-        <FormField
+        <FormField tooltip="Requisito del checklist de alta sobre el que se actúa."
           kind="select"
           label="Requisito"
           name="checklistItemId"

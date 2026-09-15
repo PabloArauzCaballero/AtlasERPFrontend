@@ -52,21 +52,21 @@ export default function AdsInventoryPage() {
                   description: 'El precio suelo es el mínimo por millar; la tarifa contratada del comercio puede quedar por encima, nunca la sustituye en silencio.',
                   icon: 'add_box',
                   fields: [
-                    { name: 'placementCode', label: 'Código', required: true, span: 2, placeholder: 'MERCHANT_DASHBOARD_TOP_BANNER' },
+                    { name: 'placementCode', label: 'Código', tooltip: 'Código corto del espacio publicitario. Ej.: HOME_TOP. Se usa en la integración.', required: true, span: 2, placeholder: 'MERCHANT_DASHBOARD_TOP_BANNER' },
                     /*
                      * Superficie, formatos, modelo de cobro y estado son dominios cerrados: el backend
                      * rechaza con 400 cualquier otro valor. Antes superficie y formatos eran texto libre
                      * (y los formatos, chips que viajaban como un único texto «A,B» donde el backend pide
                      * una lista), así que el alta sólo pasaba escribiendo el código exacto.
                      */
-                    { name: 'surface', label: 'Superficie', required: true, optionsSource: 'domain:ads.surface' },
+                    { name: 'surface', label: 'Superficie', tooltip: 'Superficie donde vive el espacio: app, portal web, correo…', required: true, optionsSource: 'domain:ads.surface' },
                     // `multiselect` viaja como lista de códigos sin pasar a minúsculas (IMAGE_BANNER, no image_banner).
-                    { name: 'allowedFormats', label: 'Formatos admitidos', type: 'multiselect', required: true, span: 2, optionsSource: 'domain:ads.placementFormat' },
-                    { name: 'billingModel', label: 'Modelo de cobro', required: true, optionsSource: 'domain:ads.buyingModel' },
-                    { name: 'floorPriceMicros', label: 'Precio suelo (micros)', type: 'number', optional: true, hint: '2500000 = Bs 2,50 el millar.' },
-                    { name: 'widthPx', label: 'Ancho (px)', type: 'number', optional: true },
-                    { name: 'heightPx', label: 'Alto (px)', type: 'number', optional: true },
-                    { name: 'status', label: 'Estado', optional: true, optionsSource: 'domain:platform.activeInactive' },
+                    { name: 'allowedFormats', label: 'Formatos admitidos', tooltip: 'Formatos de creatividad que admite el espacio; los demás se rechazan al crear el anuncio.', type: 'multiselect', required: true, span: 2, optionsSource: 'domain:ads.placementFormat' },
+                    { name: 'billingModel', label: 'Modelo de cobro', tooltip: 'Cómo se cobra el espacio: por mil impresiones o por clic.', required: true, optionsSource: 'domain:ads.buyingModel' },
+                    { name: 'floorPriceMicros', label: 'Precio suelo (micros)', tooltip: 'Precio mínimo en micros por debajo del cual no se entrega. Ej.: 2500000 = Bs 2,50 el millar.', type: 'number', optional: true, hint: '2500000 = Bs 2,50 el millar.' },
+                    { name: 'widthPx', label: 'Ancho (px)', tooltip: 'Ancho del espacio en píxeles; la creatividad debe respetarlo.', type: 'number', optional: true },
+                    { name: 'heightPx', label: 'Alto (px)', tooltip: 'Alto del espacio en píxeles; la creatividad debe respetarlo.', type: 'number', optional: true },
+                    { name: 'status', label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.', optional: true, optionsSource: 'domain:platform.activeInactive' },
                   ],
                   submit: (payload) => adsService.createInventory(payload),
                 }}
@@ -104,12 +104,12 @@ export default function AdsInventoryPage() {
                   description: 'El tipo decide el efecto: rechazo automático, revisión manual, aviso o corte de entrega.',
                   icon: 'gavel',
                   fields: [
-                    { name: 'policyCode', label: 'Código', required: true, span: 2, placeholder: 'NO_UNVERIFIED_FINANCIAL_CLAIMS' },
+                    { name: 'policyCode', label: 'Código', tooltip: 'Código corto de la política. Ej.: NO_ALCOHOL. Aparece en el motivo del rechazo.', required: true, span: 2, placeholder: 'NO_UNVERIFIED_FINANCIAL_CLAIMS' },
                     // Categoría era texto libre con FINANCIAL_CLAIMS de ejemplo; el backend sólo acepta su dominio.
-                    { name: 'category', label: 'Categoría', required: true, optionsSource: 'domain:ads.policyCategory' },
-                    { name: 'ruleType', label: 'Tipo de regla', required: true, optionsSource: 'domain:ads.policyRuleType' },
-                    { name: 'severity', label: 'Severidad', optional: true, optionsSource: 'domain:ads.policySeverity' },
-                    { name: 'description', label: 'Qué prohíbe', type: 'textarea', optional: true, span: 3 },
+                    { name: 'category', label: 'Categoría', tooltip: 'Tema de la política (contenido, legal, marca…); agrupa las reglas de moderación.', required: true, optionsSource: 'domain:ads.policyCategory' },
+                    { name: 'ruleType', label: 'Tipo de regla', tooltip: 'Cómo se aplica la regla: bloquea, exige revisión manual o sólo avisa.', required: true, optionsSource: 'domain:ads.policyRuleType' },
+                    { name: 'severity', label: 'Severidad', tooltip: 'Gravedad del incumplimiento; una alta bloquea la creatividad sin revisión.', optional: true, optionsSource: 'domain:ads.policySeverity' },
+                    { name: 'description', label: 'Qué prohíbe', tooltip: 'Qué prohíbe exactamente la política, con ejemplos; el moderador lo lee al decidir.', type: 'textarea', optional: true, span: 3 },
                   ],
                   submit: (payload) => adsService.createPolicy(payload),
                 }}

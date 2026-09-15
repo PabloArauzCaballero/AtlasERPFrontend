@@ -34,7 +34,7 @@ function camposDeRegla(actual?: { attribute?: string; operator?: string; value?:
   return [
     {
       name: 'attribute',
-      label: 'Atributo',
+      label: 'Atributo', tooltip: 'Dato del cliente por el que se filtra (edad, ciudad, mora…).',
       type: 'select',
       required: true,
       span: 2,
@@ -44,7 +44,7 @@ function camposDeRegla(actual?: { attribute?: string; operator?: string; value?:
     },
     {
       name: 'operator',
-      label: 'Operador',
+      label: 'Operador', tooltip: 'Cómo se compara el atributo con el valor: igual, mayor, entre…',
       type: 'select',
       required: true,
       optionsSource: 'domain:platform.segmentOperator',
@@ -52,7 +52,7 @@ function camposDeRegla(actual?: { attribute?: string; operator?: string; value?:
     },
     {
       name: 'value',
-      label: 'Valor',
+      label: 'Valor', tooltip: 'Valor con el que se compara. Para BETWEEN, dos números separados por coma. Ej.: 12, 36.',
       optional: true,
       placeholder: 'FARMACIA, MERCADO',
       hint: 'IN, NOT_IN y BETWEEN llevan varios valores separados por coma; BETWEEN espera dos números (30, 90). EXISTS no lleva valor.',
@@ -144,14 +144,14 @@ export default function CrmSegmentsPage() {
         fields: [
           {
             name: 'subject',
-            label: 'Agrupa a',
+            label: 'Agrupa a', tooltip: 'A quién agrupa el segmento: comercios, sucursales o usuarios.',
             type: 'select',
             required: true,
             span: 2,
             optionsSource: 'domain:crm.segmentSubject',
           },
-          { name: 'name', label: 'Nombre del segmento', required: true, span: 2 },
-          { name: 'description', label: 'Para qué se usa', optional: true, span: 2 },
+          { name: 'name', label: 'Nombre del segmento', tooltip: 'Nombre del segmento de audiencia. Ej.: Clientes con cuota al día en Santa Cruz.', required: true, span: 2 },
+          { name: 'description', label: 'Para qué se usa', tooltip: 'Para qué se usa el segmento; quien lo reutilice sabrá si le sirve.', optional: true, span: 2 },
           ...camposDeRegla(),
         ],
         submit: async (payload) => {
@@ -169,11 +169,11 @@ export default function CrmSegmentsPage() {
       edit={{
         description: 'El sujeto y la regla no se tocan aquí: para corregir el criterio está la acción «Cambiar la regla» de la fila.',
         fields: [
-          { name: 'name', label: 'Nombre del segmento', required: true, span: 2 },
-          { name: 'description', label: 'Para qué se usa', optional: true, span: 2 },
+          { name: 'name', label: 'Nombre del segmento', tooltip: 'Nombre del segmento de audiencia. Ej.: Clientes con cuota al día en Santa Cruz.', required: true, span: 2 },
+          { name: 'description', label: 'Para qué se usa', tooltip: 'Para qué se usa el segmento; quien lo reutilice sabrá si le sirve.', optional: true, span: 2 },
           {
             name: 'status',
-            label: 'Estado',
+            label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.',
             type: 'select',
             /* `required` para que el select no ofrezca la opción vacía (antes no la tenía): un
                segmento siempre tiene estado, y enviarlo vacío lo rechazaría el backend. */

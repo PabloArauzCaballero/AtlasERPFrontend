@@ -293,7 +293,7 @@ export function MerchantStructureScreen() {
       {scope.requiresSelection ? (
         <Panel compact>
           <div className="max-w-md">
-            <FormField
+            <FormField tooltip="Negocio del que se muestran las sucursales, si administras varios."
               kind="select"
               label="Negocio"
               name="queryAccountId"
@@ -323,9 +323,9 @@ export function MerchantStructureScreen() {
       >
         <form onSubmit={submitBranch} className="space-y-4">
         <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-          <FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
-          <FormField kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
-          <FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
+          <FormField tooltip="Nombre con el que identificas el local. Ej.: Sucursal Equipetrol." label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
+          <FormField tooltip="Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura." kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
+          <FormField tooltip="Dirección completa de la casa matriz. Pulsa el pin para verla en el mapa." label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
         </div>
           {branchMutation.error ? <InlineNotice tone="danger">{branchMutation.error}</InlineNotice> : null}
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
@@ -346,10 +346,10 @@ export function MerchantStructureScreen() {
         >
         <form onSubmit={guardarEdicion}>
             <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-              <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
+              <FormField tooltip="Nombre con el que identificas el local. Ej.: Sucursal Equipetrol." label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
               {/* La ciudad guardada se conserva aunque no esté en el catálogo (texto libre de antes); y el
                   select se remonta cuando llegan las opciones, porque su defaultValue sólo se aplica al montar. */}
-              <FormField
+              <FormField tooltip="Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura."
                 key={`city:${ciudades.length}`}
                 kind="select"
                 label="Ciudad"
@@ -363,7 +363,7 @@ export function MerchantStructureScreen() {
                   '— Elija la ciudad —',
                 )}
               />
-              <FormField label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
+              <FormField tooltip="Dirección completa de la casa matriz. Pulsa el pin para verla en el mapa." label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
             </div>
             {editMutation.error ? <InlineNotice className="mt-4" tone="danger">{editMutation.error}</InlineNotice> : null}
             <div className="mt-5 flex justify-end gap-2">
@@ -431,7 +431,7 @@ export function MerchantStructureScreen() {
                             <p className="text-slate-600">Esta sucursal todavía no está enlazada con tu expediente, así que no puede tener QR.</p>
                             {sinEnlazar.length ? (
                               <div className="max-w-md">
-                                <FormField
+                                <FormField tooltip="Si este local ya lo declaraste antes, enlázalo en vez de crearlo otra vez."
                                   kind="select"
                                   label="¿Es uno de los locales que ya declaraste?"
                                   name="adoptar"
@@ -535,8 +535,8 @@ export function MerchantStructureScreen() {
                                 );
                               }}
                             >
-                              <FormField label="Serial de la caja" name="terminalSerial" required data-testid={`campo-pos-serial-${id}`} />
-                              <FormField label="Alias" name="terminalAlias" hint="Caja 1, Mostrador…" />
+                              <FormField tooltip="Número de serie impreso en la caja o terminal." label="Serial de la caja" name="terminalSerial" required data-testid={`campo-pos-serial-${id}`} />
+                              <FormField tooltip="Nombre corto para reconocer la caja. Ej.: Caja 1." label="Alias" name="terminalAlias" hint="Caja 1, Mostrador…" />
                               <div className="flex items-end">
                                 <AtlasButton type="submit" loading={ocupada === `alta-pos-${id}`} data-testid={`btn-registrar-pos-${id}`}>
                                   Registrar caja aquí

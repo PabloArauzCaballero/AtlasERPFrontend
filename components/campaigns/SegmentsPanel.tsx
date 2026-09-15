@@ -37,7 +37,7 @@ export function SegmentsPanel() {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <FormField kind="select" label="Mostrar" name="segmentStatus" hint="Los archivados no se ofrecen al crear campañas." className="w-56" value={status} options={[{ value: 'active', label: 'Segmentos activos' }, { value: 'archived', label: 'Segmentos archivados' }]} onChange={(event) => setStatus(event.target.value as 'active' | 'archived')} />
+        <FormField tooltip="Muestra segmentos activos o archivados; los archivados no se ofrecen al crear campañas." kind="select" label="Mostrar" name="segmentStatus" hint="Los archivados no se ofrecen al crear campañas." className="w-56" value={status} options={[{ value: 'active', label: 'Segmentos activos' }, { value: 'archived', label: 'Segmentos archivados' }]} onChange={(event) => setStatus(event.target.value as 'active' | 'archived')} />
         <AtlasButton icon="group_add" onClick={() => setEditing('new')}>Nuevo segmento</AtlasButton>
       </div>
       {list.error ? <InlineNotice tone="danger" title="No se pudieron cargar los segmentos">{list.error}</InlineNotice> : null}
@@ -118,8 +118,8 @@ function SegmentEditor({ segment, onClose, onSaved }: { segment: AudienceSegment
     >
       <div className="space-y-3">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <FormField label="Nombre" name="segmentName" required hint="Único entre los activos. Ej.: Mora temprana El Alto." value={name} onChange={(event) => setName(event.target.value)} />
-          <FormField label="Descripción (opcional)" name="segmentDescription" hint="Para qué se usa." value={description} onChange={(event) => setDescription(event.target.value)} />
+          <FormField tooltip="Nombre único del segmento. Ej.: Mora temprana El Alto." label="Nombre" name="segmentName" required hint="Único entre los activos. Ej.: Mora temprana El Alto." value={name} onChange={(event) => setName(event.target.value)} />
+          <FormField tooltip="Para qué se usa el segmento, opcional." label="Descripción (opcional)" name="segmentDescription" hint="Para qué se usa." value={description} onChange={(event) => setDescription(event.target.value)} />
         </div>
         <AudienceBuilder value={definition} onChange={setDefinition} purpose="marketing" />
         {error ? <InlineNotice tone="danger" title="No se pudo guardar">{error}</InlineNotice> : null}

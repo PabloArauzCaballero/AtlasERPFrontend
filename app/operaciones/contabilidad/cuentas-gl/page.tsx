@@ -53,12 +53,12 @@ export default function GlAccountsPage() {
         title: 'Nueva cuenta del plan',
         description: 'Cuenta dentro de una versión vigente del plan, con sus dimensiones obligatorias.',
         fields: [
-          { name: 'coaId', label: 'Plan de cuentas (COA)', type: 'select', required: true, span: 2, optionsLoader: loadChartsOfAccounts },
-          { name: 'parentAccountId', label: 'Cuenta padre', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadGlAccounts()) },
-          { name: 'accountNo', label: 'Número de cuenta', required: true },
-          { name: 'name', label: 'Nombre', required: true },
-          { name: 'accountType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.glAccountType' },
-          { name: 'normalBalance', label: 'Naturaleza', required: true, optionsSource: 'domain:accounting.normalBalance' },
+          { name: 'coaId', label: 'Plan de cuentas (COA)', tooltip: 'Plan de cuentas al que pertenece; una entidad puede tener varios.', type: 'select', required: true, span: 2, optionsLoader: loadChartsOfAccounts },
+          { name: 'parentAccountId', label: 'Cuenta padre', tooltip: 'Cuenta de nivel superior de la que cuelga; define la jerarquía del plan.', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadGlAccounts()) },
+          { name: 'accountNo', label: 'Número de cuenta', tooltip: 'Número de cuenta según el plan. Ej.: 110201. Ordena y agrupa el balance.', required: true },
+          { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true },
+          { name: 'accountType', label: 'Tipo', tooltip: 'Clase de cuenta (activo, pasivo, ingreso…); decide en qué estado financiero se presenta.', required: true, optionsSource: 'domain:accounting.glAccountType' },
+          { name: 'normalBalance', label: 'Naturaleza', tooltip: 'Saldo natural de la cuenta: deudor (activos, gastos) o acreedor (pasivos, ingresos).', required: true, optionsSource: 'domain:accounting.normalBalance' },
           ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, defaultValue: 'false', options: siNo })),
         ],
         submit: async (payload) => { const created = await accountingService.createGlAccount(payload); setVersion((value) => value + 1); return created; },
@@ -66,10 +66,10 @@ export default function GlAccountsPage() {
       edit={{
         description: 'El número de cuenta y su plan no se cambian: son la referencia de los asientos ya contabilizados.',
         fields: [
-          { name: 'name', label: 'Nombre', required: true, span: 2 },
+          { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, span: 2 },
           // `required` para que el select no ofrezca «— Sin definir —»: la cuenta siempre tiene tipo y naturaleza.
-          { name: 'accountType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.glAccountType' },
-          { name: 'normalBalance', label: 'Naturaleza', required: true, optionsSource: 'domain:accounting.normalBalance' },
+          { name: 'accountType', label: 'Tipo', tooltip: 'Clase de cuenta (activo, pasivo, ingreso…); decide en qué estado financiero se presenta.', required: true, optionsSource: 'domain:accounting.glAccountType' },
+          { name: 'normalBalance', label: 'Naturaleza', tooltip: 'Saldo natural de la cuenta: deudor (activos, gastos) o acreedor (pasivos, ingresos).', required: true, optionsSource: 'domain:accounting.normalBalance' },
           ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, options: siNo })),
         ],
         submit: (id, payload) => accountingService.updateGlAccount(id, payload),

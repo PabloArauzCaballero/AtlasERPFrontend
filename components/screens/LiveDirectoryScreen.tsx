@@ -7,6 +7,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import type { PageQuery, PaginatedResult, ResourceRow } from '@/services/types';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
@@ -306,17 +307,12 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
               <input data-tutorial-id="directory-search" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
             </label>
             {effectiveFilters.map((filter) => (
-              filter.kind === 'text' ? <input key={filter.key} aria-label={filter.label} placeholder={filter.placeholder ?? filter.label} className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))} /> : <select key={filter.key} aria-label={filter.label} className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))}>
-                <option value="">{`Todos: ${filter.label}`}</option>
-                {(filter.options ?? []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
+              filter.kind === 'text' ? <input key={filter.key} aria-label={filter.label} placeholder={filter.placeholder ?? filter.label} className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))} /> : <OptionSelect key={filter.key} name={`filtro-${filter.key}`} ariaLabel={filter.label} compact className="min-w-44" value={filterValues[filter.key] ?? ''} onChange={(value) => setFilterValues((current) => ({ ...current, [filter.key]: value }))} options={[{ value: '', label: `Todos: ${filter.label}`, description: 'Sin filtrar por este criterio.' }, ...(filter.options ?? [])]} />
             ))}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-[#006a61]" />Actualizando</span> : null}
-            <select className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs" value={pageSize} onChange={(event) => setQuery((current) => ({ ...current, page: 1, limit: Number(event.target.value), pageSize: Number(event.target.value) }))}>
-              {[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size} filas</option>)}
-            </select>
+            <OptionSelect name="filas-por-pagina" ariaLabel="Filas por página" compact className="w-28" value={String(pageSize)} onChange={(value) => setQuery((current) => ({ ...current, page: 1, limit: Number(value), pageSize: Number(value) }))} options={[10, 25, 50, 100].map((size) => ({ value: String(size), label: `${size} filas`, description: `Muestra ${size} registros por página.` }))} />
             <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
           </div>
         </div>

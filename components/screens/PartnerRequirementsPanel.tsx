@@ -92,7 +92,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
           description="El número con el que tu empresa está inscrita en el registro de comercio. Es lo único del alta que se puede completar después."
         >
           <form className="grid gap-3 grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" onSubmit={guardarMatricula}>
-            <FormField
+            <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente."
               label="Número de matrícula"
               name="commercialRegistry"
               required
@@ -117,7 +117,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
           }
         >
           <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={guardarRepresentante}>
-            <FormField
+            <FormField tooltip="Nombre y apellidos completos de la persona, como en su documento de identidad."
               label="Nombre completo"
               name="fullName"
               required
@@ -125,7 +125,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
               placeholder="Nombre y apellidos como figuran en el documento"
               data-testid="campo-representante-nombre"
             />
-            <FormField
+            <FormField tooltip="Tipo de documento de identidad de la persona; decide el formato del número que se exige."
               kind="select"
               label="Tipo de documento"
               name="documentType"
@@ -136,7 +136,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
                 { label: 'Documento extranjero', value: 'foreign_id' },
               ]}
             />
-            <FormField
+            <FormField tooltip="Número del documento tal como aparece impreso, sin puntos. Ej.: 7654321 SC."
               label="Número de documento"
               name="documentNumber"
               required

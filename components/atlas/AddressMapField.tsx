@@ -1,6 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
+import { FieldLabel } from '@/components/atlas/FieldLabel';
+import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { cn } from '@/lib/cn';
 import { Icon } from '@/components/atlas/Icon';
 import { Modal } from '@/components/atlas/Modal';
@@ -11,6 +13,7 @@ interface AddressMapFieldProps {
   label: string;
   name: string;
   hint?: string | undefined;
+  tooltip?: string | undefined;
   required?: boolean | undefined;
   softRequired?: boolean | undefined;
   placeholder?: string | undefined;
@@ -37,7 +40,8 @@ export function AddressMapField(props: AddressMapFieldProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const requiredMark = (props.required || props.softRequired) ? <span className="ml-1 text-red-600">*</span> : null;
+  const id = useId();
+  const help = useFieldHelp(props.tooltip);
 
   const openMap = () => {
     const form = inputRef.current?.form;
@@ -56,11 +60,15 @@ export function AddressMapField(props: AddressMapFieldProps) {
 
   return (
     <div className={cn('block min-w-0', props.className)}>
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-bold text-slate-700">{props.label}{requiredMark}</span>
+      <div>
+        <FieldLabel htmlFor={id} label={props.label} required={props.required || props.softRequired} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
         <div className="flex h-9 w-full items-center rounded-md border border-slate-300 bg-white focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-[#006a61]/20">
           <input
             ref={inputRef}
+            id={id}
+            aria-describedby={help.describedById}
+            onFocus={help.onFocus}
+            onBlur={help.onBlur}
             name={props.name}
             value={value}
             required={props.required}
@@ -80,7 +88,7 @@ export function AddressMapField(props: AddressMapFieldProps) {
             <span className="hidden sm:inline">Mapa</span>
           </button>
         </div>
-      </label>
+      </div>
       {props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null}
 
       <Modal

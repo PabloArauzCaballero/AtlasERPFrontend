@@ -61,10 +61,10 @@ export default function MerchantBranchesPage() {
         title: 'Nueva sucursal',
         description: 'Nace PENDIENTE y sin poder originar ventas a plazos: eso se habilita al activar el comercio, no al darla de alta.',
         fields: [
-          { name: 'accountId', label: 'Comercio', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
-          { name: 'name', label: 'Nombre de la sucursal', required: true, span: 2 },
-          { name: 'city', label: 'Ciudad', optional: true, optionsSource: 'catalog:city' },
-          { name: 'address', label: 'Dirección', optional: true, span: 3 },
+          { name: 'accountId', label: 'Comercio', tooltip: 'Comercio al que pertenece la sucursal.', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
+          { name: 'name', label: 'Nombre de la sucursal', tooltip: 'Nombre con el que el comercio identifica el local. Ej.: Sucursal Equipetrol.', required: true, span: 2 },
+          { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, optionsSource: 'catalog:city' },
+          { name: 'address', label: 'Dirección', tooltip: 'Dirección de la sucursal, con zona y referencia.', optional: true, span: 3 },
         ],
         submit: async (payload: JsonObject) => {
           const created = await b2bService.createBranch(payload);
@@ -75,10 +75,10 @@ export default function MerchantBranchesPage() {
       edit={{
         description: 'El comercio al que pertenece no se cambia: una sucursal que cambia de dueño es otra sucursal.',
         fields: [
-          { name: 'name', label: 'Nombre de la sucursal', required: true, span: 2 },
+          { name: 'name', label: 'Nombre de la sucursal', tooltip: 'Nombre con el que el comercio identifica el local. Ej.: Sucursal Equipetrol.', required: true, span: 2 },
           // Una ciudad escrita a mano antes y fuera del catálogo se conserva como «valor anterior».
-          { name: 'city', label: 'Ciudad', optional: true, optionsSource: 'catalog:city' },
-          { name: 'address', label: 'Dirección', optional: true, span: 3 },
+          { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, optionsSource: 'catalog:city' },
+          { name: 'address', label: 'Dirección', tooltip: 'Dirección de la sucursal, con zona y referencia.', optional: true, span: 3 },
         ],
         submit: (id, payload) => b2bService.updateBranch(id, payload),
       }}
@@ -93,7 +93,7 @@ export default function MerchantBranchesPage() {
             fields: (row) => [
               {
                 name: 'status',
-                label: 'Estado',
+                label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.',
                 type: 'select' as const,
                 required: true,
                 span: 2 as const,

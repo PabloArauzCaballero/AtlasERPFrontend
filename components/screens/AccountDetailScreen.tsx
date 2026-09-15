@@ -45,7 +45,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <FormField kind="select" label="Cuenta B2B" name="accountLookup" value={accountId} onChange={(event) => setAccountId(event.target.value)} options={[{ label: '— Elija la cuenta —', value: '' }, ...accounts]} className="flex-1" />
+          <FormField tooltip="Cuenta B2B que se quiere abrir." kind="select" label="Cuenta B2B" name="accountLookup" value={accountId} onChange={(event) => setAccountId(event.target.value)} options={[{ label: '— Elija la cuenta —', value: '' }, ...accounts]} className="flex-1" />
           <AtlasButton icon="search" loading={resource.status === 'loading'} onClick={() => setRequestedId(accountId.trim())}>Consultar cuenta</AtlasButton>
         </div>
       </Panel>
@@ -118,16 +118,16 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
           description="El correo y el teléfono se guardan completos y se muestran enmascarados: la ficha no es el sitio donde se leen datos personales."
           submitLabel="Añadir contacto"
           fields={[
-            { name: 'fullName', label: 'Nombre completo', required: true, span: 2 },
+            { name: 'fullName', label: 'Nombre completo', tooltip: 'Nombre y apellidos completos de la persona, como en su documento de identidad.', required: true, span: 2 },
             /* Cargo y rol en la decisión son vocabularios cerrados (los mismos del alta de la cuenta):
                como texto libre, la cartera no se podía agrupar por interlocutor. */
-            { name: 'roleTitle', label: 'Cargo', optional: true, optionsSource: 'domain:crm.contactRoleTitle' },
-            { name: 'email', label: 'Correo', type: 'email', optional: true, span: 2 },
-            { name: 'phone', label: 'Teléfono', optional: true },
-            { name: 'decisionRole', label: 'Rol en la decisión', optional: true, optionsSource: 'domain:crm.decisionRole' },
+            { name: 'roleTitle', label: 'Cargo', tooltip: 'Cargo que ocupa en la empresa; ayuda a saber a quién dirigirse en cada tema.', optional: true, optionsSource: 'domain:crm.contactRoleTitle' },
+            { name: 'email', label: 'Correo', tooltip: 'Correo de la persona; recibe avisos y sirve para identificarla. Ej.: nombre@empresa.bo.', type: 'email', optional: true, span: 2 },
+            { name: 'phone', label: 'Teléfono', tooltip: 'Teléfono con código de país, sin espacios. Ej.: +59170012345.', optional: true },
+            { name: 'decisionRole', label: 'Rol en la decisión', tooltip: 'Cuánto pesa esta persona en la decisión de compra; orienta a quién hay que convencer.', optional: true, optionsSource: 'domain:crm.decisionRole' },
             {
               name: 'isPrimary',
-              label: 'Es el contacto principal',
+              label: 'Es el contacto principal', tooltip: 'Marca al contacto principal: es a quien se llama primero y quien recibe los avisos.',
               type: 'select',
               valueKind: 'boolean',
               defaultValue: 'false',

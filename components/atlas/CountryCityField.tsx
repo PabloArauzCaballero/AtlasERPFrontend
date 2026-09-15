@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { Icon } from '@/components/atlas/Icon';
+import { FieldLabel } from '@/components/atlas/FieldLabel';
+import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { findGeoCountry, flagEmoji, geoCountries } from '@/lib/geo';
 
 interface CountryCityFieldProps {
@@ -12,6 +14,7 @@ interface CountryCityFieldProps {
   /** Nombre del control que lleva la ciudad (texto). */
   cityName: string;
   hint?: string | undefined;
+  tooltip?: string | undefined;
   required?: boolean | undefined;
   softRequired?: boolean | undefined;
   className?: string | undefined;
@@ -77,16 +80,21 @@ export function CountryCityField(props: CountryCityFieldProps) {
     setOpen(false);
   };
 
-  const requiredMark = (props.required || props.softRequired) ? <span className="ml-1 text-red-600">*</span> : null;
+  const id = useId();
+  const help = useFieldHelp(props.tooltip);
   const summary = selected
     ? `${flagEmoji(selected.code)} ${selected.name}${city ? ` · ${city}` : ''}`
     : countryCode ? `${flagEmoji(countryCode)} ${countryCode}${city ? ` · ${city}` : ''}` : '— Elegir país y ciudad —';
 
   return (
     <div ref={rootRef} className={cn('relative block min-w-0', props.className)}>
-      <span className="mb-1.5 block text-xs font-bold text-slate-700">{props.label}{requiredMark}</span>
+      <FieldLabel htmlFor={id} label={props.label} required={props.required || props.softRequired} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
       <button
         type="button"
+        id={id}
+        aria-describedby={help.describedById}
+        onFocus={help.onFocus}
+        onBlur={help.onBlur}
         aria-haspopup="tree"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}

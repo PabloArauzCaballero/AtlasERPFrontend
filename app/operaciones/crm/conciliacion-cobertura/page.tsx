@@ -60,8 +60,8 @@ export default function CoverageReconciliationPage() {
       return resultado;
     },
     fields: [
-      { name: 'periodStart', label: 'Desde', type: 'date' as const, required: true },
-      { name: 'periodEnd', label: 'Hasta', type: 'date' as const, required: true },
+      { name: 'periodStart', label: 'Desde', tooltip: 'Inicio del período de consumo que se factura.', type: 'date' as const, required: true },
+      { name: 'periodEnd', label: 'Hasta', tooltip: 'Fin del período de consumo que se factura, inclusive.', type: 'date' as const, required: true },
     ],
   };
 
@@ -86,15 +86,15 @@ export default function CoverageReconciliationPage() {
     description: 'La entrada es el 60 % del precio y se paga en el momento; el 40 % restante se reparte en las cuotas.',
     submitLabel: 'Registrar compra',
     fields: [
-      { name: 'merchantAccountId', label: 'Comercio', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadB2BAccounts },
-      { name: 'branchId', label: 'Sucursal', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadMerchantBranches, hint: 'Sólo las sucursales habilitadas pueden originar.' },
-      { name: 'consumerExternalRef', label: 'Documento del cliente', required: true, hint: 'Es lo que el comercio tiene delante; el uuid interno lo resuelve el backend.' },
-      { name: 'purchaseAmount', label: 'Precio de la compra (Bs)', type: 'number' as const, required: true },
-      { name: 'cuotas', label: 'Número de cuotas', type: 'number' as const, required: true, defaultValue: '3' },
-      { name: 'primeraCuota', label: 'Primera cuota vence', type: 'date' as const, required: true },
-      { name: 'mdrReceivableDueDate', label: 'Vence la comisión al comercio', type: 'date' as const, required: true },
+      { name: 'merchantAccountId', label: 'Comercio', tooltip: 'Comercio afiliado sobre el que se opera.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadB2BAccounts },
+      { name: 'branchId', label: 'Sucursal', tooltip: 'Sucursal del comercio; sólo las habilitadas pueden originar operaciones.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadMerchantBranches, hint: 'Sólo las sucursales habilitadas pueden originar.' },
+      { name: 'consumerExternalRef', label: 'Documento del cliente', tooltip: 'Documento de identidad del cliente final, como lo tiene el comercio. Ej.: 7654321.', required: true, hint: 'Es lo que el comercio tiene delante; el uuid interno lo resuelve el backend.' },
+      { name: 'purchaseAmount', label: 'Precio de la compra (Bs)', tooltip: 'Precio total de la compra en bolivianos, con hasta dos decimales.', type: 'number' as const, required: true },
+      { name: 'cuotas', label: 'Número de cuotas', tooltip: 'En cuántas cuotas se paga. Ej.: 6.', type: 'number' as const, required: true, defaultValue: '3' },
+      { name: 'primeraCuota', label: 'Primera cuota vence', tooltip: 'Fecha en que vence la primera cuota; las demás se calculan a partir de ella.', type: 'date' as const, required: true },
+      { name: 'mdrReceivableDueDate', label: 'Vence la comisión al comercio', tooltip: 'Fecha límite para que el comercio pague la comisión (MDR) de esta operación.', type: 'date' as const, required: true },
       /* Mismo vocabulario que las reglas de comisión: una categoría tecleada no casaría con ninguna. */
-      { name: 'productCategory', label: 'Categoría del producto', optional: true, span: 2 as const, optionsSource: 'domain:crm.merchantCategory' as const },
+      { name: 'productCategory', label: 'Categoría del producto', tooltip: 'Categoría del producto vendido; decide la comisión que aplica.', optional: true, span: 2 as const, optionsSource: 'domain:crm.merchantCategory' as const },
     ],
     submit: async (payload: JsonObject) => {
       const redondear = (valor: number) => Math.round((valor + Number.EPSILON) * 100) / 100;
@@ -173,7 +173,7 @@ export default function CoverageReconciliationPage() {
                       description: 'Marca la cobertura como pagada al comercio y abre su recuperación frente al consumidor.',
                       submitLabel: 'Marcar pagado',
                       submit: confirmarPago,
-                      fields: [{ name: 'paidAt', label: 'Fecha y hora del pago', type: 'datetime', required: true, span: 2 }],
+                      fields: [{ name: 'paidAt', label: 'Fecha y hora del pago', tooltip: 'Fecha y hora exactas del pago según el comprobante.', type: 'datetime', required: true, span: 2 }],
                     },
                   },
                 ]}
@@ -221,8 +221,8 @@ export default function CoverageReconciliationPage() {
                       submitLabel: 'Programar cobertura',
                       submit: programarCobertura,
                       fields: [
-                        { name: 'scheduledPaymentDate', label: 'Fecha programada', type: 'date', required: true },
-                        { name: 'reason', label: 'Motivo', defaultValue: 'CUSTOMER_INSTALLMENT_DEFAULT_COVERAGE' },
+                        { name: 'scheduledPaymentDate', label: 'Fecha programada', tooltip: 'Fecha en la que se programa el pago.', type: 'date', required: true },
+                        { name: 'reason', label: 'Motivo', tooltip: 'Motivo breve del cambio; queda en la bitácora para que otro entienda por qué se hizo.', defaultValue: 'CUSTOMER_INSTALLMENT_DEFAULT_COVERAGE' },
                       ],
                     },
                   },
@@ -265,7 +265,7 @@ export default function CoverageReconciliationPage() {
                       fields: (row) => [
                         {
                           name: 'amount',
-                          label: 'Monto',
+                          label: 'Monto', tooltip: 'Importe en la moneda indicada, con hasta dos decimales. Ej.: 1250.50.',
                           type: 'number',
                           valueKind: 'number',
                           required: true,

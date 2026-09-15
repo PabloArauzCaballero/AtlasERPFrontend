@@ -15,20 +15,21 @@ export interface CatalogOption {
 
 /** ISO 4217 — BOB/USD primero por ser los de uso corriente en el ERP. */
 export const currencyOptions: CatalogOption[] = [
-  { label: 'BOB — Boliviano', value: 'BOB' },
-  { label: 'USD — Dólar estadounidense', value: 'USD' },
-  { label: 'EUR — Euro', value: 'EUR' },
-  { label: 'ARS — Peso argentino', value: 'ARS' },
-  { label: 'BRL — Real brasileño', value: 'BRL' },
-  { label: 'CLP — Peso chileno', value: 'CLP' },
-  { label: 'PEN — Sol peruano', value: 'PEN' },
-  { label: 'PYG — Guaraní paraguayo', value: 'PYG' },
-  { label: 'UYU — Peso uruguayo', value: 'UYU' },
-  { label: 'COP — Peso colombiano', value: 'COP' },
-  { label: 'MXN — Peso mexicano', value: 'MXN' },
+  { label: 'BOB — Boliviano', value: 'BOB', description: 'Moneda local de Bolivia; la de uso corriente en el ERP y la que exige la factura fiscal.' },
+  { label: 'USD — Dólar estadounidense', value: 'USD', description: 'Para contratos y cobros en dólares; se convierte al tipo de cambio del día al contabilizar.' },
+  { label: 'EUR — Euro', value: 'EUR', description: 'Para proveedores europeos; se convierte al tipo de cambio del día.' },
+  { label: 'ARS — Peso argentino', value: 'ARS', description: 'Para operaciones con Argentina; su tipo de cambio varía mucho, revísalo al contabilizar.' },
+  { label: 'BRL — Real brasileño', value: 'BRL', description: 'Para operaciones con Brasil.' },
+  { label: 'CLP — Peso chileno', value: 'CLP', description: 'Para operaciones con Chile; no usa decimales.' },
+  { label: 'PEN — Sol peruano', value: 'PEN', description: 'Para operaciones con Perú.' },
+  { label: 'PYG — Guaraní paraguayo', value: 'PYG', description: 'Para operaciones con Paraguay; no usa decimales.' },
+  { label: 'UYU — Peso uruguayo', value: 'UYU', description: 'Para operaciones con Uruguay.' },
+  { label: 'COP — Peso colombiano', value: 'COP', description: 'Para operaciones con Colombia; importes grandes, sin decimales en la práctica.' },
+  { label: 'MXN — Peso mexicano', value: 'MXN', description: 'Para operaciones con México.' },
 ];
 
 /** ISO 3166-1 alpha-2 — Bolivia primero. */
+// sin-ayuda: nombres propios de países
 export const countryOptions: CatalogOption[] = [
   { label: 'Bolivia', value: 'BO' },
   { label: 'Argentina', value: 'AR' },
@@ -46,6 +47,7 @@ export const countryOptions: CatalogOption[] = [
 
 /** IANA time zones — lista corta LatAm-first. */
 /** Ciudades de Bolivia (capitales de departamento y plazas comerciales relevantes). */
+// sin-ayuda: nombres propios de ciudades
 export const cityOptions: CatalogOption[] = [
   { label: 'Santa Cruz de la Sierra', value: 'Santa Cruz de la Sierra' },
   { label: 'La Paz', value: 'La Paz' },
@@ -62,6 +64,7 @@ export const cityOptions: CatalogOption[] = [
   { label: 'Otra', value: 'Otra' },
 ];
 
+// sin-ayuda: zonas horarias, nombres propios
 export const timezoneOptions: CatalogOption[] = [
   { label: 'La Paz (GMT-4)', value: 'America/La_Paz' },
   { label: 'Buenos Aires (GMT-3)', value: 'America/Argentina/Buenos_Aires' },
@@ -77,13 +80,13 @@ export const timezoneOptions: CatalogOption[] = [
 ];
 
 export const partnerAccountPurposeOptions: CatalogOption[] = [
-  { label: 'Cuentas por cobrar (control)', value: 'AR_CONTROL' },
-  { label: 'Cuentas por pagar (control)', value: 'AP_CONTROL' },
-  { label: 'Anticipos de cliente', value: 'CUSTOMER_ADVANCES' },
-  { label: 'Anticipos a proveedor', value: 'SUPPLIER_ADVANCES' },
-  { label: 'Recargos', value: 'SURCHARGES' },
-  { label: 'Descuentos', value: 'DISCOUNTS' },
-  { label: 'Retenciones', value: 'WITHHOLDINGS' },
+  { label: 'Cuentas por cobrar (control)', value: 'AR_CONTROL', description: 'Cuenta de control donde se acumula lo que este socio nos debe como cliente.' },
+  { label: 'Cuentas por pagar (control)', value: 'AP_CONTROL', description: 'Cuenta de control donde se acumula lo que le debemos como proveedor.' },
+  { label: 'Anticipos de cliente', value: 'CUSTOMER_ADVANCES', description: 'Dinero que el socio nos paga antes de facturarle; pasivo hasta aplicarlo.' },
+  { label: 'Anticipos a proveedor', value: 'SUPPLIER_ADVANCES', description: 'Dinero que le pagamos antes de recibir su factura; activo hasta aplicarlo.' },
+  { label: 'Recargos', value: 'SURCHARGES', description: 'Intereses, multas o recargos que se le cobran aparte del principal.' },
+  { label: 'Descuentos', value: 'DISCOUNTS', description: 'Descuentos concedidos o recibidos que no van en la factura original.' },
+  { label: 'Retenciones', value: 'WITHHOLDINGS', description: 'Retenciones tributarias practicadas en sus pagos; se declaran a Impuestos.' },
 ];
 
 export function purposeLabel(value: string): string {

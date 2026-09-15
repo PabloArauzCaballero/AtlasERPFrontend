@@ -121,12 +121,12 @@ export function AdsEmailScreen() {
                   onSubmit={enviar}
                   onDone={() => void tracking.reload()}
                   fields={[
-                    { name: 'campaignId', label: 'Campaña', type: 'select', required: true, span: 2, optionsLoader: loadCampaigns },
-                    { name: 'subject', label: 'Asunto', required: true, span: 2 },
-                    { name: 'recipients', label: 'Destinatarios', required: true, span: 3, placeholder: 'ana@comercio.bo, luis@comercio.bo', hint: 'Hasta 500 direcciones, separadas por coma.' },
-                    { name: 'htmlBody', label: 'Cuerpo HTML', type: 'textarea', required: true, span: 3 },
-                    { name: 'textBody', label: 'Cuerpo en texto plano', type: 'textarea', optional: true, span: 3, hint: 'Para los clientes de correo que no pintan HTML.' },
-                    { name: 'scheduledAt', label: 'Programar para', type: 'datetime', optional: true, hint: 'Vacío = ahora.' },
+                    { name: 'campaignId', label: 'Campaña', tooltip: 'Campaña a la que pertenece el envío.', type: 'select', required: true, span: 2, optionsLoader: loadCampaigns },
+                    { name: 'subject', label: 'Asunto', tooltip: 'Asunto del correo; es lo primero que lee el destinatario.', required: true, span: 2 },
+                    { name: 'recipients', label: 'Destinatarios', tooltip: 'Correos de destino separados por coma; hasta 500.', required: true, span: 3, placeholder: 'ana@comercio.bo, luis@comercio.bo', hint: 'Hasta 500 direcciones, separadas por coma.' },
+                    { name: 'htmlBody', label: 'Cuerpo HTML', tooltip: 'Cuerpo del correo en HTML.', type: 'textarea', required: true, span: 3 },
+                    { name: 'textBody', label: 'Cuerpo en texto plano', tooltip: 'Versión en texto plano para clientes de correo sin HTML.', type: 'textarea', optional: true, span: 3, hint: 'Para los clientes de correo que no pintan HTML.' },
+                    { name: 'scheduledAt', label: 'Programar para', tooltip: 'Cuándo se envía; vacío = ahora.', type: 'datetime', optional: true, hint: 'Vacío = ahora.' },
                   ]}
                 />
 
@@ -217,9 +217,9 @@ export function AdsEmailScreen() {
                   title: 'Suprimir una dirección',
                   description: 'Volver a suprimir una dirección ya suprimida no la duplica: actualiza el motivo y la reactiva si estaba dada de baja.',
                   fields: [
-                    { name: 'email', label: 'Dirección', type: 'email', required: true, span: 2 },
-                    { name: 'reason', label: 'Motivo', required: true, optionsSource: 'domain:ads.emailSuppressionReason' },
-                    { name: 'details', label: 'Detalle', optional: true, span: 3, placeholder: 'Pidió la baja por teléfono el 12/03' },
+                    { name: 'email', label: 'Dirección', tooltip: 'Dirección que no debe recibir más correos de esta campaña.', type: 'email', required: true, span: 2 },
+                    { name: 'reason', label: 'Motivo', tooltip: 'Motivo breve del cambio; queda en la bitácora para que otro entienda por qué se hizo.', required: true, optionsSource: 'domain:ads.emailSuppressionReason' },
+                    { name: 'details', label: 'Detalle', tooltip: 'Detalle libre del motivo de la supresión.', optional: true, span: 3, placeholder: 'Pidió la baja por teléfono el 12/03' },
                   ],
                   submit: async (payload) => {
                     const created = await adsService.suppressEmail(payload);

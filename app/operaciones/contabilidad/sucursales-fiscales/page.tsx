@@ -55,10 +55,10 @@ export default function BranchesFiscalYearsPage() {
                   label: 'Crear sucursal',
                   title: 'Nueva sucursal contable',
                   fields: [
-                    { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
-                    { name: 'code', label: 'Código', required: true, placeholder: 'SCZ-CENTRAL' },
-                    { name: 'name', label: 'Nombre', required: true, placeholder: 'Oficina central' },
-                    { name: 'city', label: 'Ciudad', optional: true, span: 2, optionsSource: 'catalog:city' },
+                    { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
+                    { name: 'code', label: 'Código', tooltip: 'Código corto y único para citar el registro sin usar su identificador interno.', required: true, placeholder: 'SCZ-CENTRAL' },
+                    { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, placeholder: 'Oficina central' },
+                    { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, span: 2, optionsSource: 'catalog:city' },
                   ],
                   submit: async (payload) => { const created = await accountingService.createBranch(payload); bump(); return created; },
                 }}
@@ -90,11 +90,11 @@ export default function BranchesFiscalYearsPage() {
                   label: 'Crear año fiscal',
                   title: 'Nuevo año fiscal',
                   fields: [
-                    { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
+                    { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
                     // La etiqueta la deriva el backend de las fechas: teclearla podía contradecirlas.
-                    { name: 'yearLabel', label: 'Etiqueta', assignedByBackend: true },
-                    { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true, defaultValue: '2026-01-01' },
-                    { name: 'endDate', label: 'Fecha final', type: 'date', required: true, defaultValue: '2026-12-31', span: 2 },
+                    { name: 'yearLabel', label: 'Etiqueta', tooltip: 'Etiqueta legible del año fiscal. Ej.: 2026.', assignedByBackend: true },
+                    { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date', required: true, defaultValue: '2026-01-01' },
+                    { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date', required: true, defaultValue: '2026-12-31', span: 2 },
                   ],
                   submit: async (payload) => { const created = await accountingService.createFiscalYear(payload); bump(); return created; },
                 }}

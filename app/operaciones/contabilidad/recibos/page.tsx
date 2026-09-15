@@ -36,10 +36,10 @@ export default function ReceiptsPage() {
         description: 'El monto y las asignaciones no se editan aquí: eso descuadraría el asiento ya contabilizado.',
         fields: [
           // El número es el correlativo del sistema (REC-…, por entidad legal): se enseña, no se edita.
-          { name: 'receiptNo', label: 'Número de recibo', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
-          { name: 'receiptDate', label: 'Fecha del recibo', type: 'date', required: true },
+          { name: 'receiptNo', label: 'Número de recibo', tooltip: 'Número del recibo; lo asigna el sistema al guardar.', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
+          { name: 'receiptDate', label: 'Fecha del recibo', tooltip: 'Fecha en que se recibió el dinero.', type: 'date', required: true },
           // La lista local tenía APPLIED y CANCELLED, que el backend no acepta, y le faltaban RECORDED y VOID.
-          { name: 'status', label: 'Estado', required: true, optionsSource: 'domain:accounting.receiptStatus' },
+          { name: 'status', label: 'Estado', tooltip: 'Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos.', required: true, optionsSource: 'domain:accounting.receiptStatus' },
         ],
         submit: (id, payload) => accountingService.updateReceipt(id, payload),
       }}

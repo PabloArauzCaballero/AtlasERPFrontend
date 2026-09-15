@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { cn } from '@/lib/cn';
@@ -17,6 +18,19 @@ import {
   type TutorialState,
 } from './tutorial-center-state';
 import { listingsForAudience, pendingPrerequisites, tutorialTitle } from './tutorial-registry';
+
+/** Qué significa cada estado y cada nivel, para la lista desplegable de los filtros. */
+const ESTADO_AYUDA: Readonly<Record<TutorialState, string>> = {
+  pending: 'Guías que todavía no has abierto.',
+  'in-progress': 'Guías empezadas y sin terminar: se retoman donde las dejaste.',
+  completed: 'Guías que ya terminaste; se pueden repetir.',
+  outdated: 'Guías que cambiaron desde que las hiciste: conviene repasarlas.',
+};
+const NIVEL_AYUDA: Readonly<Record<TutorialLevel, string>> = {
+  basico: 'Para quien entra por primera vez: lo mínimo para operar.',
+  intermedio: 'Para el uso diario: flujos completos de cada módulo.',
+  avanzado: 'Para configurar y auditar: reglas, cierres y excepciones.',
+};
 import {
   TUTORIAL_CATEGORY_LABELS,
   TUTORIAL_LEVEL_LABELS,
@@ -86,39 +100,42 @@ export function TutorialCenter({ audience }: { audience: 'internal' | 'merchant'
             />
           </label>
           <div className="flex flex-wrap gap-2">
-            <select
-              aria-label="Módulo"
-              className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700"
+            <OptionSelect
+              name="filtro-modulo"
+              ariaLabel="Módulo"
+              compact
+              className="min-w-44"
               value={filters.category}
-              onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value as TutorialCategory | 'all' }))}
-            >
-              <option value="all">Todos los módulos</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>{TUTORIAL_CATEGORY_LABELS[category]}</option>
-              ))}
-            </select>
-            <select
-              aria-label="Estado"
-              className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700"
+              onChange={(value) => setFilters((current) => ({ ...current, category: value as TutorialCategory | 'all' }))}
+              options={[
+                { value: 'all', label: 'Todos los módulos', description: 'Guías de cualquier área del ERP.' },
+                ...categories.map((category) => ({ value: category, label: TUTORIAL_CATEGORY_LABELS[category], description: `Sólo las guías del módulo ${TUTORIAL_CATEGORY_LABELS[category]}.` })),
+              ]}
+            />
+            <OptionSelect
+              name="filtro-estado"
+              ariaLabel="Estado"
+              compact
+              className="min-w-44"
               value={filters.state}
-              onChange={(event) => setFilters((current) => ({ ...current, state: event.target.value as TutorialState | 'all' }))}
-            >
-              <option value="all">Cualquier estado</option>
-              {(Object.keys(STATE_LABELS) as TutorialState[]).map((state) => (
-                <option key={state} value={state}>{STATE_LABELS[state]}</option>
-              ))}
-            </select>
-            <select
-              aria-label="Nivel"
-              className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700"
+              onChange={(value) => setFilters((current) => ({ ...current, state: value as TutorialState | 'all' }))}
+              options={[
+                { value: 'all', label: 'Cualquier estado', description: 'Guías empezadas, terminadas o sin abrir.' },
+                ...(Object.keys(STATE_LABELS) as TutorialState[]).map((state) => ({ value: state, label: STATE_LABELS[state], description: ESTADO_AYUDA[state] })),
+              ]}
+            />
+            <OptionSelect
+              name="filtro-nivel"
+              ariaLabel="Nivel"
+              compact
+              className="min-w-44"
               value={filters.level}
-              onChange={(event) => setFilters((current) => ({ ...current, level: event.target.value as TutorialLevel | 'all' }))}
-            >
-              <option value="all">Cualquier nivel</option>
-              {(Object.keys(TUTORIAL_LEVEL_LABELS) as TutorialLevel[]).map((level) => (
-                <option key={level} value={level}>{TUTORIAL_LEVEL_LABELS[level]}</option>
-              ))}
-            </select>
+              onChange={(value) => setFilters((current) => ({ ...current, level: value as TutorialLevel | 'all' }))}
+              options={[
+                { value: 'all', label: 'Cualquier nivel', description: 'Desde la primera vez hasta el uso avanzado.' },
+                ...(Object.keys(TUTORIAL_LEVEL_LABELS) as TutorialLevel[]).map((level) => ({ value: level, label: TUTORIAL_LEVEL_LABELS[level], description: NIVEL_AYUDA[level] })),
+              ]}
+            />
           </div>
         </div>
       </Panel>

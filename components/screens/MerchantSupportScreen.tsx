@@ -335,7 +335,7 @@ export function MerchantSupportScreen() {
             void enviarCaso();
           }}
         >
-          <FormField
+          <FormField tooltip="Tema del caso; decide a qué equipo llega."
             kind="select"
             label="Motivo"
             name="motivoDelCaso"
@@ -345,7 +345,7 @@ export function MerchantSupportScreen() {
             options={aplanar(motivos)}
             hint={motivos.length === 0 ? 'El catálogo de motivos no cargó: vuelve a intentarlo o habla con soporte.' : undefined}
           />
-          <FormField
+          <FormField tooltip="Resumen del problema en una línea."
             label="Título"
             name="tituloDelCaso"
             required
@@ -353,7 +353,7 @@ export function MerchantSupportScreen() {
             onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, title: evento.target.value }))}
             placeholder="Qué pasa, en una línea"
           />
-          <FormField
+          <FormField tooltip="Qué pasó, cuándo y qué esperabas; cuanto más detalle, antes se resuelve."
             kind="textarea"
             label="Descripción"
             name="descripcionDelCaso"
@@ -481,7 +481,7 @@ export function MerchantSupportScreen() {
 
           <div className="mt-4 flex items-end gap-3">
             <div className="flex-1">
-              <FormField
+              <FormField tooltip="Tu respuesta o aclaración para el equipo de soporte."
                 label="Tu mensaje"
                 name="mensajeDeSoporte"
                 value={texto}

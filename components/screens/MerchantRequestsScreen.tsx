@@ -204,7 +204,7 @@ export function MerchantRequestsScreen() {
 
                 {rechazando === solicitud.applicationId ? (
                   <div className="mt-4 space-y-3 rounded-md bg-slate-50 p-3">
-                    <FormField
+                    <FormField tooltip="Motivo codificado del rechazo; queda explicado para auditoría."
                       kind="select"
                       label="Motivo del rechazo"
                       name="reasonCode"

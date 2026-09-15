@@ -61,8 +61,8 @@ export function NotificationCampaignsScreen() {
   const campaignsTab = (
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-3">
-        <FormField kind="select" label="Estado" name="status" hint="Filtra la tabla." className="w-52" value={status} options={STATUS_FILTER} onChange={(event) => { setStatus(event.target.value); setPage(1); }} />
-        <FormField label="Buscar" name="search" hint="Por nombre o título." className="w-72" placeholder="Recordatorio de cuota…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
+        <FormField tooltip="Filtra las campañas por estado." kind="select" label="Estado" name="status" hint="Filtra la tabla." className="w-52" value={status} options={STATUS_FILTER} onChange={(event) => { setStatus(event.target.value); setPage(1); }} />
+        <FormField tooltip="Texto que se busca en las columnas visibles." label="Buscar" name="search" hint="Por nombre o título." className="w-72" placeholder="Recordatorio de cuota…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
       </div>
       {list.error ? <InlineNotice tone="danger" title="No se pudieron cargar las campañas">{list.error}</InlineNotice> : null}
       <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">

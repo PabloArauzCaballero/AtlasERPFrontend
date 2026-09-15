@@ -94,7 +94,7 @@ export default function ProposalsPage() {
             title: (row) => `Rechazar ${String(row.proposalNumber ?? 'la propuesta')}`,
             description: 'El motivo es obligatorio: un rechazo sin explicación no sirve para decidir la siguiente oferta.',
             fields: [
-              { name: 'reason', label: 'Motivo del rechazo', type: 'textarea', required: true, span: 3, placeholder: 'Por qué el cliente o el comité no la acepta.' },
+              { name: 'reason', label: 'Motivo del rechazo', tooltip: 'Por qué se rechaza la propuesta; el comercial lo lee para corregirla.', type: 'textarea', required: true, span: 3, placeholder: 'Por qué el cliente o el comité no la acepta.' },
             ],
             submit: (row, payload) => b2bService.rejectProposal(String(row.id ?? ''), String(payload.reason ?? '')),
             submitLabel: 'Rechazar propuesta',
@@ -107,9 +107,9 @@ export default function ProposalsPage() {
         enabled: (row) => EDITABLES.has(estado(row)),
         fields: [
           // El correlativo lo asignó el backend: se enseña, no se reescribe (y no viaja en el envío).
-          { name: 'proposalNumber', label: 'Número de propuesta', assignedByBackend: true },
-          { name: 'validUntil', label: 'Válida hasta', type: 'date', optional: true },
-          { name: 'totalEstimatedMonthlyRevenue', label: 'Ingreso mensual estimado', type: 'number', valueKind: 'number', optional: true },
+          { name: 'proposalNumber', label: 'Número de propuesta', tooltip: 'Número de la propuesta; lo asigna el sistema al guardar.', assignedByBackend: true },
+          { name: 'validUntil', label: 'Válida hasta', tooltip: 'Fecha hasta la que el cliente puede aceptar la propuesta.', type: 'date', optional: true },
+          { name: 'totalEstimatedMonthlyRevenue', label: 'Ingreso mensual estimado', tooltip: 'Ingreso mensual estimado en bolivianos si se acepta.', type: 'number', valueKind: 'number', optional: true },
         ],
         submit: (id, payload) => b2bService.updateProposal(id, payload),
       }}

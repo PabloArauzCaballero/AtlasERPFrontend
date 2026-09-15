@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { FieldLabel } from '@/components/atlas/FieldLabel';
+import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { cn } from '@/lib/cn';
 
 interface MultiSelectFieldProps {
@@ -12,6 +14,7 @@ interface MultiSelectFieldProps {
   required?: boolean | undefined;
   softRequired?: boolean | undefined;
   hint?: string | undefined;
+  tooltip?: string | undefined;
   className?: string | undefined;
 }
 
@@ -32,14 +35,13 @@ export function MultiSelectField(props: MultiSelectFieldProps) {
   );
   const toggle = (code: string) =>
     setSelected((current) => (current.includes(code) ? current.filter((value) => value !== code) : [...current, code]));
-  const requiredMark = props.required || props.softRequired ? <span className="ml-1 text-red-600">*</span> : null;
+  const id = useId();
+  const help = useFieldHelp(props.tooltip);
 
   return (
     <fieldset className={cn('block min-w-0', props.className)}>
-      <legend className="mb-1.5 block text-xs font-bold text-slate-700">
-        {props.label}
-        {requiredMark}
-      </legend>
+      <legend className="sr-only">{props.label}</legend>
+      <FieldLabel label={props.label} required={props.required || props.softRequired} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
       {/*
        * El valor viaja en un input visualmente oculto pero NO `type="hidden"`: el navegador no valida
        * `required` en un campo oculto, y el alta salía con la lista vacía hasta que el backend la
@@ -56,7 +58,7 @@ export function MultiSelectField(props: MultiSelectFieldProps) {
         onInvalid={(event) => event.currentTarget.setCustomValidity('Elige al menos una opción.')}
         onInput={(event) => event.currentTarget.setCustomValidity('')}
       />
-      <div className="flex flex-wrap gap-1.5">
+      <div id={id} className="flex flex-wrap gap-1.5" aria-describedby={help.describedById} onFocus={help.onFocus} onBlur={help.onBlur}>
         {props.options.length === 0 ? (
           <span className="text-xs text-slate-500">— No hay datos registrados —</span>
         ) : (

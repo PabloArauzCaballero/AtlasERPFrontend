@@ -102,12 +102,12 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
     <Panel title="Actividad y tareas" description="Notas, llamadas, reuniones y tareas/recordatorios de la cuenta (timeline)." icon="history_edu" action={<BotonFormularioPapel data-testid="papel-actividad" formulario={formularioActividadCuenta} />}>
       <div className="mb-4 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3">
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-          <FormField kind="select" label="Tipo" name="activityType" value={form.activityType} onChange={(e) => setField('activityType')(e.target.value)} options={activityTypeOptions} />
-          <FormField label="Vencimiento (para tareas)" name="dueAt" type="datetime-local" value={form.dueAt} onChange={(e) => setField('dueAt')(e.target.value)} />
+          <FormField tooltip="Tipo de actividad: llamada, reunión, tarea, nota…" kind="select" label="Tipo" name="activityType" value={form.activityType} onChange={(e) => setField('activityType')(e.target.value)} options={activityTypeOptions} />
+          <FormField tooltip="Nueva fecha y hora límite de la tarea." label="Vencimiento (para tareas)" name="dueAt" type="datetime-local" value={form.dueAt} onChange={(e) => setField('dueAt')(e.target.value)} />
         </div>
-        <FormField label="Asunto" name="subject" required value={form.subject} onChange={(e) => setField('subject')(e.target.value)} placeholder="Llamada de seguimiento, propuesta enviada..." />
-        <FormField kind="textarea" label="Detalle" name="description" value={form.description} onChange={(e) => setField('description')(e.target.value)} placeholder="Notas de la interacción..." />
-        <FormField kind="select" label="Responsable" name="ownerUserId" required value={form.ownerUserId} onChange={(e) => setField('ownerUserId')(e.target.value)} options={[{ label: '— Seleccione responsable —', value: '' }, ...internalUsers]} hint="Usuario comercial responsable de la actividad." />
+        <FormField tooltip="A quién agrupa el segmento: comercios, sucursales o usuarios." label="Asunto" name="subject" required value={form.subject} onChange={(e) => setField('subject')(e.target.value)} placeholder="Llamada de seguimiento, propuesta enviada..." />
+        <FormField tooltip="Texto libre que explica el registro a quien lo lea después." kind="textarea" label="Detalle" name="description" value={form.description} onChange={(e) => setField('description')(e.target.value)} placeholder="Notas de la interacción..." />
+        <FormField tooltip="Ejecutivo comercial que responde por esta cuenta; recibe las tareas y los avisos." kind="select" label="Responsable" name="ownerUserId" required value={form.ownerUserId} onChange={(e) => setField('ownerUserId')(e.target.value)} options={[{ label: '— Seleccione responsable —', value: '' }, ...internalUsers]} hint="Usuario comercial responsable de la actividad." />
         {error ? <InlineNotice tone="danger" title="Error">{error}</InlineNotice> : null}
         <AtlasButton icon="add" loading={saving} disabled={!canSave} onClick={addActivity}>Registrar actividad</AtlasButton>
       </div>
@@ -156,7 +156,7 @@ export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId
           title={`Reprogramar «${String(reprogramando.subject ?? '')}»`}
           description="Se cambia sólo el vencimiento. El asunto y el detalle no se tocan: reescribirlos cambiaría lo que se dijo que pasó."
           submitLabel="Reprogramar"
-          fields={[{ name: 'dueAt', label: 'Nuevo vencimiento', type: 'datetime', required: true, span: 2, defaultValue: typeof reprogramando.dueAt === 'string' ? reprogramando.dueAt.slice(0, 16) : '' }]}
+          fields={[{ name: 'dueAt', label: 'Nuevo vencimiento', tooltip: 'Nueva fecha y hora límite de la tarea.', type: 'datetime', required: true, span: 2, defaultValue: typeof reprogramando.dueAt === 'string' ? reprogramando.dueAt.slice(0, 16) : '' }]}
           onClose={() => setReprogramando(null)}
           onSubmit={(payload) => reprogramar(reprogramando, payload)}
         />

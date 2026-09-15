@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { FieldLabel } from '@/components/atlas/FieldLabel';
+import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { cn } from '@/lib/cn';
 import { Icon } from '@/components/atlas/Icon';
 
@@ -8,6 +10,7 @@ interface ChipsFieldProps {
   label: string;
   name: string;
   hint?: string | undefined;
+  tooltip?: string | undefined;
   required?: boolean | undefined;
   placeholder?: string | undefined;
   className?: string | undefined;
@@ -40,13 +43,18 @@ export function ChipsField(props: ChipsFieldProps) {
     setDraft('');
   };
 
+  const id = useId();
+  const help = useFieldHelp(props.tooltip);
   const removeAt = (index: number) => setChips((current) => current.filter((_, position) => position !== index));
 
   return (
     <div className={cn('block min-w-0', props.className)}>
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-bold text-slate-700">{props.label}{props.required ? <span className="ml-1 text-red-600">*</span> : null}</span>
+      <div>
+        <FieldLabel htmlFor={id} label={props.label} required={props.required} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
         <input
+          id={id}
+          aria-describedby={help.describedById}
+          onFocus={help.onFocus}
           className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20"
           value={draft}
           placeholder={props.placeholder ?? 'Escribe y pulsa Enter...'}
@@ -59,9 +67,9 @@ export function ChipsField(props: ChipsFieldProps) {
             if (event.key === 'Enter') { event.preventDefault(); add(draft); }
             else if (event.key === 'Backspace' && !draft && chips.length) { removeAt(chips.length - 1); }
           }}
-          onBlur={() => add(draft)}
+          onBlur={() => { help.onBlur(); add(draft); }}
         />
-      </label>
+      </div>
       {chips.length ? (
         /* Una sola fila, sin salto de línea: si hay más pastillas que ancho, se desplaza en horizontal. */
         <div

@@ -6,6 +6,7 @@ import { b2bService } from '@/services/b2bService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -114,23 +115,23 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
           <Panel title="Identificación de la propuesta" icon="description">
-            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField name="" label="Número de propuesta" value={proposalNumber} placeholder="Se asigna al guardar" readOnly tabIndex={-1} hint="Lo asigna el sistema al guardar." /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="Propuesta creada" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Lo asigna el sistema al guardar." /></div>
+            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField tooltip="Oportunidad de la que nace la propuesta." kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField tooltip="Número de la propuesta; lo asigna el sistema al guardar." name="" label="Número de propuesta" value={proposalNumber} placeholder="Se asigna al guardar" readOnly tabIndex={-1} hint="Lo asigna el sistema al guardar." /><FormField tooltip="Fecha hasta la que el cliente puede aceptar la propuesta." label="Válida hasta" name="validUntil" type="date" /><FormField tooltip="Ingreso mensual estimado en bolivianos si se acepta." label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField tooltip="Identificador de la propuesta recién guardada." label="Propuesta creada" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Lo asigna el sistema al guardar." /></div>
           </Panel>
 
           <Panel title="Términos comerciales" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>
             <div className="table-scroll">
               <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo</th><th className="px-2 py-2">Facturación</th><th className="px-2 py-2">Mínimo mensual</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
-                <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.termType} onChange={(event) => updateLine(line.id, 'termType', event.target.value)}>{lineOptions(tiposDeTermino, line.termType).map((option) => <option key={option.value} value={option.value} title={option.description}>{option.label}</option>)}</select></td>
+                <td className="p-2"><OptionSelect name={`termType-${line.id}`} ariaLabel="Tipo de término" compact value={line.termType} onChange={(value) => updateLine(line.id, 'termType', value)} options={lineOptions(tiposDeTermino, line.termType)} /></td>
                 <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" required /></td>
                 <td className="p-2"><input className="h-9 w-24 rounded border border-slate-300 px-2 text-right" type="number" value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>
                 <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" value={line.fixedAmount} onChange={(event) => updateLine(line.id, 'fixedAmount', event.target.value)} /></td>
-                <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.billingTiming} onChange={(event) => updateLine(line.id, 'billingTiming', event.target.value)}>{lineOptions(momentosDeCobro, line.billingTiming).map((option) => <option key={option.value} value={option.value} title={option.description}>{option.label}</option>)}</select></td>
+                <td className="p-2"><OptionSelect name={`billingTiming-${line.id}`} ariaLabel="Momento de cobro" compact value={line.billingTiming} onChange={(value) => updateLine(line.id, 'billingTiming', value)} options={lineOptions(momentosDeCobro, line.billingTiming)} /></td>
                 <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" value={line.minimumMonthlyAmount} onChange={(event) => updateLine(line.id, 'minimumMonthlyAmount', event.target.value)} /></td>
                 <td className="p-2"><button type="button" aria-label="Eliminar línea" className="grid h-8 w-8 place-items-center rounded text-red-600 hover:bg-red-50" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((item) => item.id !== line.id))}><Icon name="delete" className="text-[18px]" /></button></td>
               </tr>)}</tbody></table>
             </div>
           </Panel>
-          <Panel title="Excepción de tarifa" icon="warning"><FormField kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
+          <Panel title="Excepción de tarifa" icon="warning"><FormField tooltip="Por qué se sale de la tarifa estándar; lo lee quien aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
           <div className="flex justify-end"><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar propuesta</AtlasButton></div>
         </div>
 

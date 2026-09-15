@@ -56,10 +56,10 @@ export default function AccountingDocumentsPage() {
             description: 'Se crea un asiento CONTRARIO; el original no se toca. El período de la reversión puede ser distinto al del asiento: si aquél ya está cerrado, la reversión va al abierto.',
             fields: [
               // El número de la reversión lo asigna el backend (DOC-…), como el de cualquier documento.
-              { name: 'reversalDocumentNo', label: 'Número del asiento de reversión', assignedByBackend: true, span: 2 },
-              { name: 'reversalDate', label: 'Fecha de reversión', type: 'date', required: true },
-              { name: 'accountingPeriodId', label: 'Período contable', type: 'select', required: true, span: 2, optionsLoader: loadAccountingPeriods },
-              { name: 'reason', label: 'Motivo', required: true, span: 3, placeholder: 'Documento cargado con la cuenta equivocada' },
+              { name: 'reversalDocumentNo', label: 'Número del asiento de reversión', tooltip: 'Número del asiento que anula al original; lo asigna el sistema.', assignedByBackend: true, span: 2 },
+              { name: 'reversalDate', label: 'Fecha de reversión', tooltip: 'Fecha con la que se contabiliza la reversión; debe caer en un período abierto.', type: 'date', required: true },
+              { name: 'accountingPeriodId', label: 'Período contable', tooltip: 'Período contable abierto en el que se registra; uno cerrado rechaza el asiento.', type: 'select', required: true, span: 2, optionsLoader: loadAccountingPeriods },
+              { name: 'reason', label: 'Motivo', tooltip: 'Motivo breve del cambio; queda en la bitácora para que otro entienda por qué se hizo.', required: true, span: 3, placeholder: 'Documento cargado con la cuenta equivocada' },
             ],
             submit: (row, payload) => accountingService.reverseDocument(String(row.id ?? ''), payload),
             submitLabel: 'Reversar',

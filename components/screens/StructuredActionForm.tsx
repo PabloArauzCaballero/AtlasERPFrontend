@@ -28,6 +28,8 @@ export interface ActionField {
   placeholder?: string | undefined;
   defaultValue?: string | number | undefined;
   hint?: string | undefined;
+  /** Qué poner y por qué importa; se abre al pasar por el ⓘ o al enfocar el control. Obligatorio (lo exige scripts/check-ayuda.mjs). */
+  tooltip?: string | undefined;
   options?: Array<{ label: string; value: string; description?: string | undefined }> | undefined;
   /**
    * De dónde salen los valores válidos, sin copiarlos en la pantalla: `domain:crm.riskTier` (lo

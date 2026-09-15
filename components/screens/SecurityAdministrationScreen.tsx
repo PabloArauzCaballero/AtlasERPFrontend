@@ -183,14 +183,14 @@ export function SecurityAdministrationScreen() {
           fields={[
             {
               name: 'roles',
-              label: 'Roles',
+              label: 'Roles', tooltip: 'Roles del ERP que tendrá el usuario; cada uno abre un conjunto de pantallas y acciones.',
               type: 'chips',
               required: true,
               span: 2,
               defaultValue: rolesChange.roles.join(', '),
               hint: `Disponibles: ${(rolesCatalog.data?.items ?? []).map((role) => role.code).join(', ') || 'cargando…'}`,
             },
-            { name: 'reason', label: 'Motivo', required: true, span: 2, placeholder: 'Cambio de puesto, rotación de equipo…' },
+            { name: 'reason', label: 'Motivo', tooltip: 'Motivo breve del cambio; queda en la bitácora para que otro entienda por qué se hizo.', required: true, span: 2, placeholder: 'Cambio de puesto, rotación de equipo…' },
           ]}
           onClose={() => setRolesChange(null)}
           onSubmit={async (payload) => {

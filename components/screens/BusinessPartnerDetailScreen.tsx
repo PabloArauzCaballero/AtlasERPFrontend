@@ -129,12 +129,12 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
             {form ? (
               <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                  <FormField label="Razón social" name="legalName" value={form.legalName} onChange={(e) => setForm({ ...form, legalName: e.target.value })} className="md:col-span-2" />
-                  <FormField label="Nombre comercial" name="tradeName" value={form.tradeName} onChange={(e) => setForm({ ...form, tradeName: e.target.value })} />
-                  <FormField label="NIT / documento" name="taxId" value={form.taxId} onChange={(e) => setForm({ ...form, taxId: e.target.value })} />
-                  <FormField kind="select" label="País" name="countryCode" value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} options={countryOptions} />
-                  <FormField kind="select" label="Estado KYB" name="kybStatus" value={form.kybStatus} onChange={(e) => setForm({ ...form, kybStatus: e.target.value })} options={kybOptions} />
-                  <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={estadoOptions} />
+                  <FormField tooltip="Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos." label="Razón social" name="legalName" value={form.legalName} onChange={(e) => setForm({ ...form, legalName: e.target.value })} className="md:col-span-2" />
+                  <FormField tooltip="Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa»." label="Nombre comercial" name="tradeName" value={form.tradeName} onChange={(e) => setForm({ ...form, tradeName: e.target.value })} />
+                  <FormField tooltip="NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón." label="NIT / documento" name="taxId" value={form.taxId} onChange={(e) => setForm({ ...form, taxId: e.target.value })} />
+                  <FormField tooltip="País de residencia fiscal del socio; decide qué documento tributario se le exige." kind="select" label="País" name="countryCode" value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} options={countryOptions} />
+                  <FormField tooltip="Estado de la verificación de la empresa (KYB); sólo un socio verificado puede operar y cobrar." kind="select" label="Estado KYB" name="kybStatus" value={form.kybStatus} onChange={(e) => setForm({ ...form, kybStatus: e.target.value })} options={kybOptions} />
+                  <FormField tooltip="Estado del registro; decide qué acciones se permiten sobre él y si aparece en los listados operativos." kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={estadoOptions} />
                 </div>
                 <div className="flex items-center gap-3">
                   <AtlasButton icon="save" loading={mutation.isLoading} disabled={!dirty} onClick={handleSave}>Guardar cambios</AtlasButton>

@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
@@ -78,10 +79,10 @@ function rowsOf(data: PaginatedResult<ResourceRow> | ResourceRow[] | null): Reso
  * tiene listado del que elegir, así que sólo para él queda un texto donde pegar el identificador.
  */
 const camposDeVinculo: ActionField[] = [
-  { name: 'entityType', label: 'Tipo de entidad', required: true, defaultValue: 'BUSINESS_PARTNER', optionsSource: 'domain:accounting.entityLinkType' },
+  { name: 'entityType', label: 'Tipo de entidad', tooltip: 'Tipo de entidad que se vincula: centro de coste, contrato, sucursal…', required: true, defaultValue: 'BUSINESS_PARTNER', optionsSource: 'domain:accounting.entityLinkType' },
   {
     name: 'entityId',
-    label: 'Entidad',
+    label: 'Entidad', tooltip: 'La entidad concreta de ese tipo.',
     span: 2,
     // No es `required` nativo: con OTHER el select queda vacío y bloquearía el envío. Se valida al enviar.
     optional: true,
@@ -91,9 +92,9 @@ const camposDeVinculo: ActionField[] = [
     hint: 'Las del tipo elegido.',
   },
   // campo-libre: «Otro» es el tipo sin catálogo (por definición no hay listado del que elegir).
-  { name: 'otherEntityId', label: 'Identificador (sólo tipo «Otro»)', optional: true, span: 2, placeholder: '00000000-0000-4000-8000-000000000000', hint: '«Otro» no tiene listado del que elegir: pega el UUID de la entidad.' },
+  { name: 'otherEntityId', label: 'Identificador (sólo tipo «Otro»)', tooltip: 'Identificador de la entidad cuando el tipo es «Otro»: pega el UUID.', optional: true, span: 2, placeholder: '00000000-0000-4000-8000-000000000000', hint: '«Otro» no tiene listado del que elegir: pega el UUID de la entidad.' },
   // Su ayuda inventaba GASTO/INGRESO, que el backend no acepta: ahora es su vocabulario.
-  { name: 'relation', label: 'Relación', optional: true, defaultValue: 'DEFAULT', optionsSource: 'domain:accounting.entityLinkRelation', hint: 'Para qué se ata la entidad. Vacío = DEFAULT.' },
+  { name: 'relation', label: 'Relación', tooltip: 'Para qué se ata la entidad a la cuenta; vacío = por defecto.', optional: true, defaultValue: 'DEFAULT', optionsSource: 'domain:accounting.entityLinkRelation', hint: 'Para qué se ata la entidad. Vacío = DEFAULT.' },
 ];
 
 /** Resuelve de qué control sale el identificador y avisa si falta, antes de viajar al backend. */
@@ -217,16 +218,15 @@ export function EntityLinksScreen() {
             content: (
               <div className="space-y-4">
                 <Panel title="Elige la cuenta" icon="search">
-                  <select
+                  <OptionSelect
+                    name="accountId"
+                    ariaLabel="Cuenta GL"
+                    className="max-w-xl"
                     value={accountId}
-                    onChange={(event) => setAccountId(event.target.value)}
-                    className="h-9 w-full max-w-xl rounded-md border border-slate-300 px-3 text-xs"
-                  >
-                    <option value="">— Selecciona una cuenta GL —</option>
-                    {cuentas.map((row) => (
-                      <option key={s(row.id)} value={s(row.id)}>{`${s(row.accountNo)} — ${s(row.name)}`}</option>
-                    ))}
-                  </select>
+                    onChange={setAccountId}
+                    placeholder="— Selecciona una cuenta GL —"
+                    options={cuentas.map((row) => ({ value: s(row.id), label: `${s(row.accountNo)} — ${s(row.name)}`, description: [s(row.accountType), s(row.status)].filter(Boolean).join(' · ') || undefined }))}
+                  />
                   {accounts.error ? <InlineNotice tone="danger" title="No se pudo cargar el plan de cuentas">{accounts.error}</InlineNotice> : null}
                 </Panel>
                 {accountId ? (
@@ -255,16 +255,15 @@ export function EntityLinksScreen() {
             content: (
               <div className="space-y-4">
                 <Panel title="Elige el documento" description="El asiento se alcanza por el documento contable que lo generó." icon="search">
-                  <select
+                  <OptionSelect
+                    name="documentId"
+                    ariaLabel="Documento contable"
+                    className="max-w-xl"
                     value={documentId}
-                    onChange={(event) => setDocumentId(event.target.value)}
-                    className="h-9 w-full max-w-xl rounded-md border border-slate-300 px-3 text-xs"
-                  >
-                    <option value="">— Selecciona un documento contable —</option>
-                    {documentos.map((row) => (
-                      <option key={s(row.id)} value={s(row.id)}>{`${s(row.documentNo)} — ${s(row.documentType)} (${s(row.postingStatus || row.status)})`}</option>
-                    ))}
-                  </select>
+                    onChange={setDocumentId}
+                    placeholder="— Selecciona un documento contable —"
+                    options={documentos.map((row) => ({ value: s(row.id), label: `${s(row.documentNo)} — ${s(row.documentType)}`, description: `Estado: ${s(row.postingStatus || row.status)}${row.postingDate ? ` · contabilizado el ${s(row.postingDate).slice(0, 10)}` : ''}` }))}
+                  />
                   {documentId && documentDetail.status !== 'loading' && !journalId ? (
                     <InlineNotice tone="warning" title="Este documento no tiene asiento">
                       El asiento se crea al contabilizar el documento. Sin asiento no hay nada que vincular.

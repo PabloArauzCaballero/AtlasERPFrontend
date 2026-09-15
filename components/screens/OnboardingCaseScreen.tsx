@@ -5,6 +5,7 @@ import { b2bService } from '@/services/b2bService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -71,8 +72,8 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
       <form id="create-onboarding-form" onSubmit={createCase} className="space-y-4">
         <Panel data-tutorial-id="onboarding-checklist" title="El comercio y su responsable" icon="domain">
           <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            <FormField kind="select" label="Comercio" name="accountId" required options={[{ label: '— Elija el comercio —', value: '' }, ...accounts]} hint="Cuentas B2B registradas en el directorio." />
-            <FormField kind="select" label="Ejecutivo responsable" name="ownerUserId" required options={[{ label: '— Elija responsable —', value: '' }, ...owners]} hint="Quien responde por el alta ante Legal y Operaciones." />
+            <FormField tooltip="Cuenta B2B del comercio sobre la que se trabaja." kind="select" label="Comercio" name="accountId" required options={[{ label: '— Elija el comercio —', value: '' }, ...accounts]} hint="Cuentas B2B registradas en el directorio." />
+            <FormField tooltip="Ejecutivo comercial que responde por esta cuenta; recibe las tareas y los avisos." kind="select" label="Ejecutivo responsable" name="ownerUserId" required options={[{ label: '— Elija responsable —', value: '' }, ...owners]} hint="Quien responde por el alta ante Legal y Operaciones." />
           </div>
         </Panel>
         <Panel
@@ -84,13 +85,16 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
           <div className="space-y-2">
             {items.map((item, index) => (
               <div key={item.id} className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 grid-cols-1 md:grid-cols-[160px_minmax(0,1fr)_36px]">
-                <select className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs" value={item.itemType} onChange={(event) => updateItem(item.id, 'itemType', event.target.value)}>
-                  {/* Mientras el dominio no llega, el valor de la línea se sigue ofreciendo: sin él el
-                      select se vería vacío aunque el requisito ya lleve LEGAL. */}
-                  {(tiposDeRequisito.some((option) => option.value === item.itemType) ? tiposDeRequisito : [...tiposDeRequisito, { value: item.itemType, label: item.itemType }]).map((option) => (
-                    <option key={option.value} value={option.value} title={option.description}>{option.label}</option>
-                  ))}
-                </select>
+                {/* Mientras el dominio no llega, el valor de la línea se sigue ofreciendo: sin él el
+                    select se vería vacío aunque el requisito ya lleve LEGAL. */}
+                <OptionSelect
+                  name={`itemType-${index + 1}`}
+                  ariaLabel={`Tipo del requisito ${index + 1}`}
+                  compact
+                  value={item.itemType}
+                  onChange={(value) => updateItem(item.id, 'itemType', value)}
+                  options={tiposDeRequisito.some((option) => option.value === item.itemType) ? tiposDeRequisito : [...tiposDeRequisito, { value: item.itemType, label: item.itemType }]}
+                />
                 <input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito ${index + 1}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} />
                 <button type="button" disabled={items.length === 1} className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50 disabled:opacity-30" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))} aria-label="Quitar requisito">
                   <Icon name="delete" className="text-[18px]" />

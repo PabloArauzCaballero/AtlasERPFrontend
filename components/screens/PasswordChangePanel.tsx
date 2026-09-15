@@ -86,7 +86,7 @@ export function PasswordChangePanel() {
         icon="mail_lock"
       >
         <form onSubmit={handleConfirm} className="max-w-sm space-y-4">
-          <FormField
+          <FormField tooltip="Código corto y único para citar el registro sin usar su identificador interno."
             label="Código del correo"
             name="code"
             inputMode="numeric"
@@ -97,7 +97,7 @@ export function PasswordChangePanel() {
             onChange={(event) => setCode(event.target.value)}
             placeholder="000000"
           />
-          <FormField
+          <FormField tooltip="Contraseña nueva: mínimo 10 caracteres con letra y número o símbolo."
             label="Contraseña nueva"
             name="newPassword"
             type="password"
@@ -108,7 +108,7 @@ export function PasswordChangePanel() {
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
           />
-          <FormField
+          <FormField tooltip="Vuelve a escribir la contraseña nueva para evitar errores."
             label="Repite la contraseña nueva"
             name="repeatPassword"
             type="password"
@@ -131,7 +131,7 @@ export function PasswordChangePanel() {
       icon="lock_reset"
     >
       <form onSubmit={handleRequest} className="max-w-sm space-y-4">
-        <FormField
+        <FormField tooltip="Tu contraseña actual, para confirmar que eres tú."
           label="Contraseña actual"
           name="currentPassword"
           type="password"

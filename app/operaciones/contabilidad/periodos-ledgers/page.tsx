@@ -58,11 +58,11 @@ export default function PeriodsLedgersPage() {
                   label: 'Crear período',
                   title: 'Nuevo período contable',
                   fields: [
-                    { name: 'fiscalYearId', label: 'Año fiscal', type: 'select', required: true, span: 2, optionsLoader: loadFiscalYears },
+                    { name: 'fiscalYearId', label: 'Año fiscal', tooltip: 'Año fiscal al que pertenece el período.', type: 'select', required: true, span: 2, optionsLoader: loadFiscalYears },
                     // El backend toma el siguiente número libre del año fiscal: pedirlo chocaba con el que ya existía.
-                    { name: 'periodNo', label: 'Número de período', assignedByBackend: true },
-                    { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true },
-                    { name: 'endDate', label: 'Fecha final', type: 'date', required: true, span: 2 },
+                    { name: 'periodNo', label: 'Número de período', tooltip: 'Número del período dentro del año. Ej.: 9 para septiembre.', assignedByBackend: true },
+                    { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date', required: true },
+                    { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date', required: true, span: 2 },
                   ],
                   submit: async (payload) => { const created = await accountingService.createPeriod(payload); bump(); return created; },
                 }}
@@ -95,11 +95,11 @@ export default function PeriodsLedgersPage() {
                   label: 'Crear ledger',
                   title: 'Nuevo libro mayor',
                   fields: [
-                    { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
-                    { name: 'code', label: 'Código', required: true, placeholder: 'LOCAL-BO' },
-                    { name: 'name', label: 'Nombre', required: true, placeholder: 'Libro local Bolivia' },
-                    { name: 'accountingBasis', label: 'Base contable', required: true, defaultValue: 'LOCAL_BO', span: 2, optionsSource: 'domain:accounting.ledgerBasis' },
-                    { name: 'isDefault', label: 'Libro predeterminado', type: 'select', valueKind: 'boolean', defaultValue: 'false', span: 2, options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
+                    { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
+                    { name: 'code', label: 'Código', tooltip: 'Código corto y único para citar el registro sin usar su identificador interno.', required: true, placeholder: 'LOCAL-BO' },
+                    { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, placeholder: 'Libro local Bolivia' },
+                    { name: 'accountingBasis', label: 'Base contable', tooltip: 'Base contable del libro: devengo o caja.', required: true, defaultValue: 'LOCAL_BO', span: 2, optionsSource: 'domain:accounting.ledgerBasis' },
+                    { name: 'isDefault', label: 'Libro predeterminado', tooltip: 'Libro por defecto de la entidad; los documentos van a él si no se indica otro.', type: 'select', valueKind: 'boolean', defaultValue: 'false', span: 2, options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
                   ],
                   submit: async (payload) => { const created = await accountingService.createLedger(payload); bump(); return created; },
                 }}
