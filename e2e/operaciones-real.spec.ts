@@ -74,8 +74,10 @@ test('las propuestas se leen, se filtran y se pueden corregir desde la propia fi
   await expect(page.getByTestId('crud-buscar')).toBeVisible();
   await expect(page.getByTestId('crud-crear')).toBeVisible();
 
-  // Y el constructor sigue estando, en su pestaña.
-  await page.getByTestId('tab-nueva').click();
+  // Sin pestañas: «Nueva propuesta» es un botón de la cabecera que abre el constructor en su página.
+  await expect(page.getByRole('tab')).toHaveCount(0);
+  await page.getByTestId('crud-crear').click();
+  await expect(page).toHaveURL(/\/operaciones\/crm\/propuestas\/crear$/);
   await expect(page.locator('select[name="opportunityId"]')).toBeVisible();
 });
 
@@ -91,11 +93,9 @@ test('la cola de onboarding sólo enseña lo que falta por atender', async ({ pa
   await page.goto('/operaciones/crm/onboarding');
   await expect(page.getByRole('heading', { name: /casos de onboarding/i })).toBeVisible({ timeout: 120_000 });
 
-  // Dos pestañas: la cola con su tablero, y el alta. Ni «usuarios» ni «comisión» como pestañas.
-  await expect(page.getByTestId('tab-casos')).toBeVisible();
-  await expect(page.getByTestId('tab-nuevo')).toBeVisible();
-  await expect(page.getByTestId('tab-usuarios')).toHaveCount(0);
-  await expect(page.getByTestId('tab-mdr')).toHaveCount(0);
+  // Sin pestañas: la cola con su tablero es la pantalla, y «Nuevo caso» es un botón de la cabecera.
+  await expect(page.getByRole('tab')).toHaveCount(0);
+  await expect(page.getByTestId('onboarding-nuevo-caso')).toBeVisible();
 
   // El tablero y la cola arrancan en «Por atender»: un comercio ya activado no es trabajo.
   await expect(page.locator('[data-tutorial-id="onboarding-tablero"]')).toBeVisible();

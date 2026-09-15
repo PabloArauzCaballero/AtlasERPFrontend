@@ -97,7 +97,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
                 <div className="space-y-2">
                   <Quick href={`/operaciones/crm/cuentas/calificar?accountId=${requestedId}`} icon="verified" title="Calificar cuenta" detail="Ejecutar evaluación comercial" />
                   <Quick href="/operaciones/crm/oportunidades" icon="handshake" title="Crear oportunidad" detail="Iniciar nuevo negocio" />
-                  <Quick href="/operaciones/crm/onboarding" icon="fact_check" title="Iniciar onboarding" detail="Preparar activación del comercio" />
+                  <Quick href="/operaciones/crm/onboarding/crear" icon="fact_check" title="Iniciar onboarding" detail="Preparar activación del comercio" />
                 </div>
               </Panel>
               <Panel title="Historial de acciones" icon="history_edu">

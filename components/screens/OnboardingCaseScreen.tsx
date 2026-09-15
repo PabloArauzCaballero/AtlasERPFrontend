@@ -17,9 +17,7 @@ interface ChecklistDraft { id: string; itemType: string; description: string }
 const newChecklistItem = (id: string): ChecklistDraft => ({ id, itemType: 'LEGAL', description: '' });
 
 interface OnboardingCaseScreenProps {
-  /** Dentro de una pestaña: sin cabecera de pantalla, que la pone la vista que lo contiene. */
-  embedded?: boolean | undefined;
-  /** Se llama tras crear el caso: la vista que lo contiene recarga la cola y vuelve a ella. */
+  /** Se llama tras crear el caso: la página vuelve a la cola. */
   onDone?: (() => void | Promise<void>) | undefined;
 }
 
@@ -34,7 +32,7 @@ interface OnboardingCaseScreenProps {
  * Todo lo que se elige está catalogado, así que se ELIGE, no se teclea: un ejecutivo comercial no
  * se sabe un uuid, y uno mal copiado sólo produce un 500 o un caso colgado de otra cuenta.
  */
-export function OnboardingCaseScreen({ embedded = false, onDone }: OnboardingCaseScreenProps = {}) {
+export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {}) {
   const [items, setItems] = useState<ChecklistDraft[]>([newChecklistItem('item-0')]);
   const accounts = useOptions(loadB2BAccounts);
   const owners = useOptions(loadInternalUsers);
@@ -62,14 +60,7 @@ export function OnboardingCaseScreen({ embedded = false, onDone }: OnboardingCas
 
   return (
     <div className="space-y-5">
-      {embedded ? (
-        <div className="min-w-0">
-          <h2 className="text-sm font-bold text-slate-900">Nuevo caso de onboarding</h2>
-          <p className="mt-0.5 text-xs text-slate-500">El comercio, quién responde por el alta, y los requisitos que habrá que cerrar antes de activarlo.</p>
-        </div>
-      ) : (
-        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Onboarding' }]} title="Nuevo caso de onboarding" description="El comercio, quién responde por el alta, y los requisitos que habrá que cerrar antes de activarlo." />
-      )}
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Onboarding', href: '/operaciones/crm/onboarding' }, { label: 'Nuevo caso' }]} title="Nuevo caso de onboarding" description="El comercio, quién responde por el alta, y los requisitos que habrá que cerrar antes de activarlo." />
       {createMutation.error ? <InlineNotice tone="danger">{createMutation.error}</InlineNotice> : null}
 
       <form id="create-onboarding-form" onSubmit={createCase} className="space-y-4">

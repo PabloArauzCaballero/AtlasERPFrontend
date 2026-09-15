@@ -64,10 +64,9 @@ test('la cola arranca en «Por atender» y los activados sólo salen en el histo
   await page.goto('/operaciones/crm/onboarding');
   await expect(page.getByRole('heading', { name: /casos de onboarding/i })).toBeVisible({ timeout: 120_000 });
 
-  // Dos pestañas y nada más.
-  await expect(page.getByRole('tab')).toHaveCount(2);
-  await expect(page.getByTestId('tab-usuarios')).toHaveCount(0);
-  await expect(page.getByTestId('tab-mdr')).toHaveCount(0);
+  // Sin pestañas: el alta es un botón de la cabecera, no una sección.
+  await expect(page.getByRole('tab')).toHaveCount(0);
+  await expect(page.getByTestId('onboarding-nuevo-caso')).toBeVisible();
 
   const tabla = page.locator('[data-tutorial-id="crud-tabla"]');
   await expect(page.locator('[data-tutorial-id="onboarding-tablero"]')).toBeVisible();
@@ -104,7 +103,8 @@ test('todo se hace desde la fila: requisito, contrato, credenciales, activar', a
   await page.screenshot({ path: 'docs/visual-evidence/operaciones/onboarding-03-mover-requisito.png', fullPage: true });
   await page.keyboard.press('Escape');
 
-  await page.getByTestId('tab-nuevo').click();
+  await page.getByTestId('onboarding-nuevo-caso').click();
+  await expect(page).toHaveURL(/\/operaciones\/crm\/onboarding\/crear$/);
   await expect(page.locator('select[name="accountId"]')).toBeVisible();
   await expect(page.locator('select[name="caseId"]')).toHaveCount(0);
   await page.screenshot({ path: 'docs/visual-evidence/operaciones/onboarding-04-nuevo-caso.png', fullPage: true });
