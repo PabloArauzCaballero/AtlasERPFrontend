@@ -7,6 +7,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioSoporte } from '@/lib/formulariosPapel/portal';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import {
   supportService,
@@ -302,6 +304,7 @@ export function MerchantSupportScreen() {
             </AtlasButton>
           ) : (
             <>
+              <BotonFormularioPapel data-testid="papel-soporte" formulario={() => formularioSoporte(aplanar(motivos))} />
               <AtlasButton variant="secondary" onClick={() => setAbriendoCaso((valor) => !valor)} disabled={!partnerId}>
                 Abrir un caso
               </AtlasButton>

@@ -9,6 +9,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioSucursales } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
@@ -236,6 +238,8 @@ export function MerchantStructureScreen() {
         title="Sucursales del comercio"
         description="Dónde opera tu negocio. De cada sucursal cuelgan sus cajas y el QR que se imprime para ese mostrador."
         actions={
+          <>
+          <BotonFormularioPapel data-testid="papel-sucursales" formulario={() => formularioSucursales()} />
           <BotonPdf
             label="Descargar PDF"
             data-testid="pdf-sucursales"
@@ -265,6 +269,7 @@ export function MerchantStructureScreen() {
               ],
             })}
           />
+          </>
         }
       />
 

@@ -9,6 +9,8 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioQrCobro } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { merchantCreditService } from '@/services/merchantCreditService';
@@ -272,6 +274,7 @@ export function MerchantPaymentQrScreen() {
         description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Atlas."
         actions={
           <>
+            <BotonFormularioPapel data-testid="papel-qr" formulario={() => formularioQrCobro(nombre || undefined)} />
             <BotonPdf
               label="Descargar PDF"
               data-testid="pdf-qr"

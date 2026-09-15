@@ -1,4 +1,5 @@
 import { apiFileDownload } from './apiClient';
+import type { FormularioPapel } from './formularioPapel';
 
 /**
  * Impresión de documentos, para las dos caras del ERP.
@@ -134,6 +135,23 @@ export async function descargarPdf(documento: DocumentoPdf, filename?: string): 
     method: 'POST',
     headers: { accept: 'application/pdf' },
     body: { filename: nombre, payload },
+  });
+  guardarArchivo(archivo.blob, archivo.fileName);
+}
+
+/**
+ * Formulario EN BLANCO para rellenar a mano (`blank-form` del worker).
+ *
+ * Misma puerta autenticada y mismo gesto que `descargarPdf`; sólo cambia la plantilla. El nombre
+ * del archivo lleva el código del formulario para que en una carpeta de descargas se distinga
+ * «alta de cuenta» de «alta de sucursal» sin abrirlos.
+ */
+export async function descargarFormularioPapel(formulario: FormularioPapel, filename?: string): Promise<void> {
+  const nombre = filename ?? `${formulario.formCode.toLowerCase()}-formulario.pdf`;
+  const archivo = await apiFileDownload('/documents/generate', nombre, {
+    method: 'POST',
+    headers: { accept: 'application/pdf' },
+    body: { templateId: 'blank-form', filename: nombre, payload: formulario },
   });
   guardarArchivo(archivo.blob, archivo.fileName);
 }

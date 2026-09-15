@@ -10,6 +10,8 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioPropuesta } from '@/lib/formulariosPapel/operaciones';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { formatBob } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
@@ -89,7 +91,7 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
 
   return (
     <form className="space-y-5" onSubmit={submit}>
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas', href: '/operaciones/crm/propuestas' }, { label: 'Nueva propuesta' }]} title="Nueva propuesta comercial" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<>{guardar}{enviar}</>} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas', href: '/operaciones/crm/propuestas' }, { label: 'Nueva propuesta' }]} title="Nueva propuesta comercial" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><BotonFormularioPapel data-testid="papel-propuesta" formulario={formularioPropuesta} />{guardar}{enviar}</>} />
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
       {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya está en la cartera de propuestas como borrador. El siguiente paso es «Enviar al cliente».</InlineNotice> : null}
 

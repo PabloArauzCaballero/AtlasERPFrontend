@@ -10,6 +10,8 @@ import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { PartnerRequirementsPanel } from './PartnerRequirementsPanel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
+import { formularioExpediente } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
@@ -184,7 +186,9 @@ export function PartnerDossierScreen() {
         title="Mi empresa"
         description="Los datos de tu negocio, dónde opera, con qué cobra y el QR que escanean tus clientes."
         actions={
-          state ? (
+          <>
+          <BotonFormularioPapel data-testid="papel-expediente" formulario={formularioExpediente} />
+          {state ? (
             <BotonPdf
               label="Descargar PDF"
               data-testid="pdf-mi-empresa"
@@ -245,7 +249,8 @@ export function PartnerDossierScreen() {
                 ],
               })}
             />
-          ) : null
+          ) : null}
+          </>
         }
       />
 
