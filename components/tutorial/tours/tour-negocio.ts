@@ -52,10 +52,10 @@ export const TOURS_NEGOCIO: readonly InteractiveTutorial[] = [
       {
         id: 'propuesta',
         route: '/operaciones/crm/propuestas',
-        target: '[data-testid="tab-nueva"]',
+        target: '[data-testid="crud-crear"]',
         title: '5 · La propuesta: términos comerciales',
         content:
-          'En «Nueva propuesta» eliges la oportunidad, le pones número y cargas los TÉRMINOS (MDR %, suscripción, cargo fijo…). Primero «Guardar propuesta» (queda DRAFT); luego «Enviar al cliente»; cuando el cliente acepta, se marca «Aceptada» desde la tabla. Una propuesta enviada ya no se edita: se hace otra.',
+          'El botón «Nueva propuesta», arriba a la derecha, abre el constructor: eliges la oportunidad, le pones número y cargas los TÉRMINOS (MDR %, suscripción, cargo fijo…). Primero «Guardar propuesta» (queda DRAFT); luego «Enviar al cliente»; cuando el cliente acepta, se marca «Aceptada» desde su fila en la cartera (y si no la acepta, «Rechazar» también está en la fila). Una propuesta enviada ya no se edita: se hace otra.',
         requiredAction: 'click',
         optional: true,
       },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { b2bService } from '@/services/b2bService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
@@ -11,6 +12,7 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { formatBob } from '@/lib/formatters';
+import { toast } from '@/lib/toast';
 import type { JsonObject } from '@/services/types';
 import { useOptions } from '@/hooks/useOptions';
 import { loadOpportunities } from '@/services/optionLoaders';
@@ -28,13 +30,12 @@ interface ProposalLine {
 const emptyLine = (id: string): ProposalLine => ({ id, termType: 'MDR', description: '', ratePercent: '', fixedAmount: '', billingTiming: 'PER_TRANSACTION', minimumMonthlyAmount: '' });
 
 interface ProposalManagerScreenProps {
-  /** Dentro de una pestaña: sin cabecera de pantalla, que la pone la vista que lo contiene. */
-  embedded?: boolean | undefined;
-  /** Se llama tras guardar o enviar: sirve para recargar la tabla de propuestas de la misma vista. */
+  /** Se llama tras guardar o enviar. */
   onDone?: (() => void | Promise<void>) | undefined;
 }
 
-export function ProposalManagerScreen({ embedded = false, onDone }: ProposalManagerScreenProps = {}) {
+export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {}) {
+  const router = useRouter();
   /* Las oportunidades se ELIGEN: el backend las expone y nadie se sabe un uuid. */
   const oportunidades = useOptions(loadOpportunities);
   const [lines, setLines] = useState<ProposalLine[]>([emptyLine('line-0')]);
@@ -73,7 +74,13 @@ export function ProposalManagerScreen({ embedded = false, onDone }: ProposalMana
 
   async function sendProposal() {
     if (!proposalId) return;
-    try { await sendMutation.execute(proposalId); await onDone?.(); } catch { /* controlled */ }
+    try {
+      await sendMutation.execute(proposalId);
+      await onDone?.();
+      // Enviada ya no se toca: lo siguiente se hace desde su fila en la cartera.
+      toast.success('Propuesta enviada', 'Queda en la cartera; cuando el cliente acepte, márcala desde su fila.');
+      router.push('/operaciones/crm/propuestas');
+    } catch { /* controlled */ }
   }
 
   const guardar = <AtlasButton type="submit" icon="save" loading={createMutation.isLoading} disabled={Boolean(proposalId)}>{proposalId ? 'Guardada' : 'Guardar propuesta'}</AtlasButton>;
@@ -82,19 +89,9 @@ export function ProposalManagerScreen({ embedded = false, onDone }: ProposalMana
 
   return (
     <form className="space-y-5" onSubmit={submit}>
-      {embedded ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-900">Nueva propuesta comercial</h2>
-            <p className="mt-0.5 text-xs text-slate-500">Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente.</p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">{guardar}{enviar}</div>
-        </div>
-      ) : (
-        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Gestor de propuestas comerciales" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<>{guardar}{enviar}</>} />
-      )}
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas', href: '/operaciones/crm/propuestas' }, { label: 'Nueva propuesta' }]} title="Nueva propuesta comercial" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<>{guardar}{enviar}</>} />
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
-      {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya aparece en la pestaña «Propuestas» y queda lista para enviarse al cliente.</InlineNotice> : null}
+      {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya está en la cartera de propuestas como borrador. El siguiente paso es «Enviar al cliente».</InlineNotice> : null}
 
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
