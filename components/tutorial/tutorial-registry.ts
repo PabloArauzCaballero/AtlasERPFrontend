@@ -89,7 +89,7 @@ const META: readonly TutorialMeta[] = [
     recommended: true,
     category: 'contabilidad',
     level: 'intermedio',
-    route: '/operaciones/contabilidad/documentos',
+    route: '/operaciones/contabilidad/documentos/crear',
     estimatedMinutes: 6,
     prerequisites: ['contabilidad-cuentas-gl'],
   },

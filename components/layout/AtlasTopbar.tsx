@@ -95,10 +95,10 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           >
             <Icon name={searchOpen ? 'close' : 'search'} className="text-[20px]" />
           </button>
-          <Link href="/operaciones/contabilidad/documentos" className="mr-2 hidden h-9 items-center gap-2 rounded-md bg-[#006a61] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#00544d] xl:flex">
+          <Link href="/operaciones/contabilidad/documentos/crear" className="mr-2 hidden h-9 items-center gap-2 rounded-md bg-[#006a61] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#00544d] xl:flex">
             <Icon name="add" className="text-[17px]" />Nueva transacción
           </Link>
-          <Link href="/operaciones/contabilidad/documentos" className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Nueva transacción">
+          <Link href="/operaciones/contabilidad/documentos/crear" className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Nueva transacción">
             <Icon name="add" className="text-[20px]" />
           </Link>
           <Link href="/operaciones/admin/notificaciones" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 sm:grid" aria-label="Notificaciones">

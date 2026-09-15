@@ -55,7 +55,7 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
     steps: [
       {
         id: 'lineas',
-        route: '/operaciones/contabilidad/documentos',
+        route: '/operaciones/contabilidad/documentos/crear',
         target: '[data-tutorial-id="document-lines"]',
         title: 'Cada línea es un movimiento en una cuenta',
         content:
@@ -66,11 +66,11 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="document-totals"]',
         title: 'Debe y haber tienen que cuadrar',
         content:
-          'El pie te dice en todo momento cuánto falta. La pantalla no deja registrar un asiento descuadrado, y no es un capricho: uno solo rompe el balance entero.',
+          'El control de la derecha te dice en todo momento si el asiento cuadra. La pantalla no deja registrar un asiento descuadrado, y no es un capricho: uno solo rompe el balance entero.',
       },
       {
         id: 'periodo',
-        target: '[data-tutorial-id="action-form"]',
+        target: '[data-tutorial-id="document-header"]',
         title: 'La fecha necesita un período abierto',
         content:
           'Si el sistema rechaza la fecha, mira «Períodos y libros»: el mes al que apuntas puede no existir todavía o estar ya cerrado.',
@@ -78,10 +78,11 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
       },
       {
         id: 'inmutable',
-        target: '[data-tutorial-id="resource-table"]',
+        route: '/operaciones/contabilidad/documentos',
+        target: '[data-tutorial-id="crud-tabla"]',
         title: 'Lo registrado no se edita',
         content:
-          'El historial de abajo es de sólo lectura. Un asiento equivocado se corrige con otro que lo revierte, porque un libro que se puede reescribir no prueba nada.',
+          'El listado de documentos es de sólo lectura: sin lápiz ni papelera. Un asiento equivocado se corrige con otro que lo revierte, porque un libro que se puede reescribir no prueba nada.',
         optional: true,
       },
     ],
