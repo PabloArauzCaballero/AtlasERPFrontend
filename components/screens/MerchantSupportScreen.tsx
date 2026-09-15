@@ -6,6 +6,7 @@ import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
+import { Modal } from '@/components/atlas/Modal';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioSoporte } from '@/lib/formulariosPapel/portal';
@@ -318,58 +319,63 @@ export function MerchantSupportScreen() {
 
       {error ? <InlineNotice tone="warning">{error}</InlineNotice> : null}
 
-      {abriendoCaso ? (
-        <Panel title="Abrir un caso" description="Cuéntanos qué pasa por escrito; lo seguimos desde tus casos.">
-          <form
-            className="grid gap-4"
-            data-testid="formulario-abrir-caso"
-            onSubmit={(evento) => {
-              evento.preventDefault();
-              void enviarCaso();
-            }}
-          >
-            <FormField
-              kind="select"
-              label="Motivo"
-              name="motivoDelCaso"
-              required
-              value={nuevoCaso.categoryCode}
-              onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, categoryCode: evento.target.value }))}
-              options={aplanar(motivos)}
-              hint={motivos.length === 0 ? 'El catálogo de motivos no cargó: vuelve a intentarlo o habla con soporte.' : undefined}
-            />
-            <FormField
-              label="Título"
-              name="tituloDelCaso"
-              required
-              value={nuevoCaso.title}
-              onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, title: evento.target.value }))}
-              placeholder="Qué pasa, en una línea"
-            />
-            <FormField
-              kind="textarea"
-              label="Descripción"
-              name="descripcionDelCaso"
-              required
-              value={nuevoCaso.description}
-              onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, description: evento.target.value }))}
-              placeholder="Cuándo empezó, qué esperabas y qué pasó."
-            />
-            <div className="flex justify-end gap-3">
-              <AtlasButton variant="secondary" onClick={() => setAbriendoCaso(false)} disabled={enviandoCaso}>
-                Cancelar
-              </AtlasButton>
-              <AtlasButton
-                type="submit"
-                loading={enviandoCaso}
-                disabled={!nuevoCaso.categoryCode || nuevoCaso.title.trim().length < 3 || nuevoCaso.description.trim().length < 10}
-              >
-                Enviar el caso
-              </AtlasButton>
-            </div>
-          </form>
-        </Panel>
-      ) : null}
+      <Modal
+        open={abriendoCaso}
+        title="Abrir un caso"
+        description="Cuéntanos qué pasa por escrito; lo seguimos desde tus casos."
+        icon="support_agent"
+        width="md"
+        onClose={() => setAbriendoCaso(false)}
+      >
+        <form
+          className="grid gap-4"
+          data-testid="formulario-abrir-caso"
+          onSubmit={(evento) => {
+            evento.preventDefault();
+            void enviarCaso();
+          }}
+        >
+          <FormField
+            kind="select"
+            label="Motivo"
+            name="motivoDelCaso"
+            required
+            value={nuevoCaso.categoryCode}
+            onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, categoryCode: evento.target.value }))}
+            options={aplanar(motivos)}
+            hint={motivos.length === 0 ? 'El catálogo de motivos no cargó: vuelve a intentarlo o habla con soporte.' : undefined}
+          />
+          <FormField
+            label="Título"
+            name="tituloDelCaso"
+            required
+            value={nuevoCaso.title}
+            onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, title: evento.target.value }))}
+            placeholder="Qué pasa, en una línea"
+          />
+          <FormField
+            kind="textarea"
+            label="Descripción"
+            name="descripcionDelCaso"
+            required
+            value={nuevoCaso.description}
+            onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, description: evento.target.value }))}
+            placeholder="Cuándo empezó, qué esperabas y qué pasó."
+          />
+          <div className="flex justify-end gap-3">
+            <AtlasButton variant="secondary" onClick={() => setAbriendoCaso(false)} disabled={enviandoCaso}>
+              Cancelar
+            </AtlasButton>
+            <AtlasButton
+              type="submit"
+              loading={enviandoCaso}
+              disabled={!nuevoCaso.categoryCode || nuevoCaso.title.trim().length < 3 || nuevoCaso.description.trim().length < 10}
+            >
+              Enviar el caso
+            </AtlasButton>
+          </div>
+        </form>
+      </Modal>
 
       {casoAbierto ? (
         <Panel title={casoAbierto.title} description={`${casoAbierto.caseNumber} · ${casoAbierto.status}`}>
