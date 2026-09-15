@@ -106,10 +106,16 @@ test.describe('expediente del negocio', () => {
     await page.screenshot({ path: `${EVIDENCIA}/04-pos.png`, fullPage: true });
 
     // --- La sucursal NUEVA se declara sola ----------------------------------------------------
-    await page.getByLabel('Nombre de sucursal').fill('Sucursal Norte');
+    /* El alta se abre en un modal desde su botón: ya no es un formulario fijo sobre la lista. */
+    await page.getByTestId('btn-agregar-sucursal').click();
+    const alta = page.getByRole('dialog');
+    await expect(alta).toBeVisible();
+    await alta.getByLabel('Nombre de sucursal').fill('Sucursal Norte');
     // La ciudad se elige del catálogo; ya no se teclea.
-    await page.getByLabel('Ciudad').selectOption('Santa Cruz de la Sierra');
-    await page.getByRole('button', { name: 'Registrar sucursal' }).click();
+    await alta.getByLabel('Ciudad').selectOption('Santa Cruz de la Sierra');
+    await alta.getByRole('button', { name: 'Registrar sucursal' }).click();
+    // Al guardar, el modal se cierra solo: si siguiera abierto taparía la lista que hay que comprobar.
+    await expect(alta).toBeHidden();
 
     /*
      * Dos sucursales en el expediente sin que nadie haya rellenado un segundo formulario. Es el
