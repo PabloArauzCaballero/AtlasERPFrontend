@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { filesService, uploadToCloudinary } from '@/services/filesService';
+import { filesService, subirArchivoDelErp } from '@/services/filesService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
@@ -38,24 +38,27 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
     setUploading(true);
     setError(null);
     try {
-      const signature = await filesService.uploadSignature(ownerType, ownerId);
-      const uploaded = await uploadToCloudinary(signature, file);
-      await filesService.registerFile({
-        ownerType,
-        ownerId,
-        fileName: file.name,
-        storagePublicId: uploaded.public_id,
-        secureUrl: uploaded.secure_url,
-        ...(file.type ? { mimeType: file.type } : {}),
-        ...(typeof uploaded.bytes === 'number' ? { byteSize: uploaded.bytes } : {}),
-        ...(uploaded.resource_type ? { resourceType: uploaded.resource_type } : {}),
-      });
+      // Permiso firmado de AtlasBackend → subida directa al almacén → registro tras verificar el objeto.
+      await subirArchivoDelErp(ownerType, ownerId, file);
       await resource.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir el archivo.');
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
+    }
+  }
+
+  /** Abre el archivo desde un blob con sesión: los adjuntos ya no tienen URL pública. */
+  async function abrir(id: unknown) {
+    if (!id) return;
+    setError(null);
+    try {
+      const url = await filesService.contentUrl(String(id));
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo abrir el archivo.');
     }
   }
 
@@ -71,9 +74,13 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
   }
 
   return (
-    <Panel title={title} description={description ?? 'Suba comprobantes o documentos de respaldo (se almacenan en Cloudinary).'} icon="attach_file">
+    <Panel
+      title={title}
+      description={description ?? 'PDF, JPEG o PNG hasta 15 MB. Se guardan en el almacén de evidencia de Atlas y se abren con tu sesión.'}
+      icon="attach_file"
+    >
       <div className="mb-3 flex items-center gap-2">
-        <input ref={inputRef} type="file" className="hidden" onChange={handleFileSelected} />
+        <input ref={inputRef} type="file" accept="application/pdf,image/png,image/jpeg" className="hidden" onChange={handleFileSelected} />
         <AtlasButton icon="upload" loading={uploading} disabled={!ownerId} onClick={() => inputRef.current?.click()}>
           Subir documento
         </AtlasButton>
@@ -89,7 +96,9 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
             <li key={String(file.id)} className="flex items-center gap-3 px-3 py-2">
               <Icon name="description" className="text-[18px] text-slate-500" />
               <div className="min-w-0 flex-1">
-                <a href={String(file.secureUrl)} target="_blank" rel="noreferrer" className="block truncate text-xs font-semibold text-[#006a61] hover:underline">{String(file.fileName ?? 'archivo')}</a>
+                <button type="button" onClick={() => abrir(file.id)} className="block max-w-full truncate text-left text-xs font-semibold text-[#006a61] hover:underline">
+                  {String(file.fileName ?? 'archivo')}
+                </button>
                 <span className="text-[10px] text-slate-500">{String(file.mimeType ?? '—')} · {formatBytes(file.byteSize)}</span>
               </div>
               <button type="button" onClick={() => handleDelete(file.id)} className="grid h-8 w-8 place-items-center rounded-md text-red-600 hover:bg-red-50" aria-label="Eliminar archivo">

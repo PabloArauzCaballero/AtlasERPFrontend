@@ -13,6 +13,7 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { LegalContractNotice } from '@/components/screens/LegalContractNotice';
 import { OnboardingCaseScreen } from '@/components/screens/OnboardingCaseScreen';
+import { OnboardingChecklistEvidenceModal } from '@/components/screens/OnboardingChecklistEvidenceModal';
 import { OnboardingQueueDashboard, type OnboardingScope } from '@/components/screens/OnboardingQueueDashboard';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/lib/authContext';
@@ -63,6 +64,8 @@ export default function OnboardingPage() {
   const puedePedirVerificacion = hasPermission(PERMISO_PEDIR_VERIFICACION);
   const puedePedirCredenciales = hasPermission(PERMISO_PEDIR_CREDENCIALES);
   const [tab, setTab] = useState('casos');
+  /* El caso cuyo requisito se está respaldando con un archivo; `null` cierra el modal. */
+  const [evidenciaDe, setEvidenciaDe] = useState<ResourceRow | null>(null);
   const [scope, setScope] = useState<OnboardingScope>('abiertos');
   const [version, setVersion] = useState(0);
   const recargar = useCallback(() => setVersion((value) => value + 1), []);
@@ -152,7 +155,10 @@ export default function OnboardingPage() {
                             type: 'select',
                             required: true,
                             span: 2,
-                            options: requisitos(row).map((item) => ({ value: String(item.id), label: `${String(item.itemType)} · ${String(item.description)} — ${String(item.status)}` })),
+                            options: requisitos(row).map((item) => ({
+                              value: String(item.id),
+                              label: `${String(item.itemType)} · ${String(item.description)} — ${String(item.status)}${item.hasEvidence ? ' · con archivo' : item.requiresEvidence ? ' · FALTA archivo' : ''}`,
+                            })),
                           },
                           {
                             name: 'status',
@@ -171,6 +177,16 @@ export default function OnboardingPage() {
                         ],
                         submit: (row, payload: JsonObject) => b2bService.updateChecklist(String(row.id ?? ''), payload),
                         submitLabel: 'Actualizar requisito',
+                      },
+                    },
+                    {
+                      key: 'evidencia',
+                      label: 'Adjuntar archivo de un requisito',
+                      icon: 'upload_file',
+                      enabled: abierto,
+                      /* Abre el modal con el archivo; los formularios de fila no admiten adjuntos. */
+                      run: async (row) => {
+                        setEvidenciaDe(row);
                       },
                     },
                     {
@@ -357,6 +373,14 @@ export default function OnboardingPage() {
             ),
           },
         ]}
+      />
+      <OnboardingChecklistEvidenceModal
+        caso={evidenciaDe}
+        onClose={() => setEvidenciaDe(null)}
+        onDone={() => {
+          recargar();
+          summary.reload();
+        }}
       />
     </div>
   );

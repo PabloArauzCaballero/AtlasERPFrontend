@@ -1,5 +1,6 @@
 import { requireUuidPathParam } from '@/lib/apiPath';
-import { apiRequest } from '@/lib/apiClient';
+import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
+import type { UploadTicket } from '@/services/filesService';
 import { buildBackendQuery } from './query';
 import type { JsonObject, PageQuery, PaginatedResult, ResourceRow } from './types';
 
@@ -277,6 +278,30 @@ export const b2bService = {
       method: 'PATCH',
       body,
     });
+  },
+  /** Permiso de subida del archivo de un requisito: lo emite AtlasBackend y fija tipo y tamaño. */
+  checklistEvidenceUploadUrl(onboardingCaseId: string, checklistItemId: string, body: JsonObject) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    const itemId = requireUuidPathParam(checklistItemId, 'el UUID del requisito');
+    return apiRequest<UploadTicket>(`/b2b/onboarding/cases/${caseId}/checklist/${itemId}/evidence/upload-url`, {
+      method: 'POST',
+      body,
+    });
+  },
+  /** Registra el archivo ya subido; AtlasBackend lo verifica antes (existencia, hash, tipo real). */
+  attachChecklistEvidence(onboardingCaseId: string, checklistItemId: string, body: JsonObject) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    const itemId = requireUuidPathParam(checklistItemId, 'el UUID del requisito');
+    return apiRequest<ResourceRow>(`/b2b/onboarding/cases/${caseId}/checklist/${itemId}/evidence`, {
+      method: 'POST',
+      body,
+    });
+  },
+  /** Los bytes del archivo del requisito, como blob con sesión. */
+  checklistEvidenceUrl(onboardingCaseId: string, checklistItemId: string) {
+    const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
+    const itemId = requireUuidPathParam(checklistItemId, 'el UUID del requisito');
+    return apiBlobUrl(`/b2b/onboarding/cases/${caseId}/checklist/${itemId}/evidence/content`);
   },
   activateOnboarding(onboardingCaseId: string, body: JsonObject) {
     const caseId = requireUuidPathParam(onboardingCaseId, 'el UUID del caso de onboarding');
