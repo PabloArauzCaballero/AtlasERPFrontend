@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -16,15 +16,34 @@ import type { ResourceRow } from '@/services/types';
 function numeric(row: ResourceRow | null, key: string): number { const value = row?.[key]; return typeof value === 'number' ? value : Number(value ?? 0) || 0; }
 function microsToBob(value: number): string { return new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB', maximumFractionDigits: 2 }).format(value / 1_000_000); }
 
+/**
+ * El rango del tablero. Antes había un botón «Últimos 30 días» sin ningún manejador: aparentaba ser
+ * el selector y el tablero pedía siempre `getDashboard({})`, sin fechas. El backend (`GET
+ * /admin/ads/dashboard`) sí admite `from`/`to`, así que ahora el rango se elige de verdad.
+ */
+const RANGOS = [
+  { label: 'Últimos 7 días', dias: 7 },
+  { label: 'Últimos 30 días', dias: 30 },
+  { label: 'Últimos 90 días', dias: 90 },
+] as const;
+
+function rangoDeFechas(dias: number): { from: string; to: string } {
+  const hasta = new Date();
+  const desde = new Date(hasta);
+  desde.setDate(hasta.getDate() - dias);
+  return { from: desde.toISOString().slice(0, 10), to: hasta.toISOString().slice(0, 10) };
+}
+
 export function AdsDashboardScreen() {
-  const loader = useCallback(() => adsService.getDashboard({}), []);
+  const [dias, setDias] = useState<number>(30);
+  const loader = useCallback(() => adsService.getDashboard(rangoDeFechas(dias)), [dias]);
   const { data, error, reload, status } = useAsyncResource(loader);
   const alerts = Array.isArray(data?.alerts) ? data.alerts as unknown[] : [];
   const invalidRate = numeric(data, 'invalidEventRate');
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'Ads' }, { label: 'Dashboard' }]} title="Gestión de campañas" description="Monitoree facturación, delivery, moderación y señales de fraude con datos del backend Ads." actions={<><AtlasButton variant="secondary" icon="calendar_today">Últimos 30 días</AtlasButton><AtlasButton variant="secondary" icon="refresh" onClick={reload}>Actualizar</AtlasButton></>} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'Ads' }, { label: 'Dashboard' }]} title="Gestión de campañas" description="Monitoree facturación, delivery, moderación y señales de fraude con datos del backend Ads." actions={<><label className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="calendar_today" className="text-[18px]" /><select aria-label="Rango del tablero" className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs" value={dias} onChange={(evento) => setDias(Number(evento.target.value))}>{RANGOS.map((rango) => <option key={rango.dias} value={rango.dias}>{rango.label}</option>)}</select></label><AtlasButton variant="secondary" icon="refresh" onClick={reload}>Actualizar</AtlasButton></>} />
       <ScreenState error={error} onRetry={reload} status={status} />
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Revenue" value={microsToBob(numeric(data, 'revenueMicros'))} detail="Facturas emitidas y cobradas" icon="payments" />

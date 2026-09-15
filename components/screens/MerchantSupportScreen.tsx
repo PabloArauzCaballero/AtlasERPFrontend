@@ -51,6 +51,12 @@ export function MerchantSupportScreen() {
   const [motivos, setMotivos] = useState<MotivoDeSoporte[]>([]);
   /** `null` = todavía no se pulsó «Hablar»; un valor = el nivel del árbol que se está viendo. */
   const [eligiendo, setEligiendo] = useState<MotivoDeSoporte[] | null>(null);
+  /** El formulario «Abrir caso» (un caso escrito, sin chat) y el caso abierto en detalle. */
+  const [abriendoCaso, setAbriendoCaso] = useState(false);
+  const [nuevoCaso, setNuevoCaso] = useState({ categoryCode: '', title: '', description: '' });
+  const [enviandoCaso, setEnviandoCaso] = useState(false);
+  const [casoAbierto, setCasoAbierto] = useState<CasoDeSoporte | null>(null);
+  const [cerrando, setCerrando] = useState(false);
   const finDelHilo = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,16 +68,20 @@ export function MerchantSupportScreen() {
         if (cancelado || !propio) return;
         setPartnerId(propio.partnerId);
         /*
-          El catálogo se pide junto a los casos y su fallo NO tumba la pantalla.
+          El catálogo se pide junto a los casos, y su fallo se DICE.
 
-          Sin motivos se puede hablar igual —el servidor abre la conversación sin clasificar y un
-          agente la clasifica después—, así que un catálogo que no carga no debe dejar a nadie sin
-          soporte. Por eso su `catch` es propio y devuelve una lista vacía en vez de caer al `catch`
-          de abajo, que pintaría «no pudimos cargar tus casos» por un dato que no son los casos.
+          Antes su `catch` devolvía una lista vacía «para no tumbar la pantalla», y eso escondió
+          durante semanas que la pasarela del ERP no reenviaba `merchant/support/categories`: el
+          panel «¿Sobre qué es?» salía siempre vacío y toda conversación nacía sin clasificar. Se
+          puede seguir hablando sin motivos, pero el aviso queda a la vista para quien lo mire.
         */
         const [{ cases }, catalogo] = await Promise.all([
           supportService.listarCasos(propio.partnerId),
-          supportService.listarMotivos().catch(() => ({ categories: [] as MotivoDeSoporte[] })),
+          supportService.listarMotivos().catch((fallo: unknown) => {
+            if (!cancelado) setError('No pudimos cargar los motivos de soporte; puedes hablar igual y lo clasificamos nosotros.');
+            console.warn('merchant/support/categories', fallo);
+            return { categories: [] as MotivoDeSoporte[] };
+          }),
         ]);
         if (cancelado) return;
         setCasos(cases);
@@ -211,6 +221,70 @@ export function MerchantSupportScreen() {
     }
   };
 
+  const recargarCasos = useCallback(async () => {
+    if (!partnerId) return;
+    const { cases } = await supportService.listarCasos(partnerId);
+    setCasos(cases);
+  }, [partnerId]);
+
+  /**
+   * Un caso ESCRITO, sin chat: para lo que no urge y conviene que quede documentado de entrada.
+   *
+   * `abrirCaso` existía en el servicio y nadie lo llamaba: el comercio sólo podía chatear. Un caso
+   * nace con motivo, título y descripción, y se sigue desde la lista de abajo.
+   */
+  const enviarCaso = async () => {
+    if (!partnerId || enviandoCaso) return;
+    setEnviandoCaso(true);
+    setError(null);
+    try {
+      await supportService.abrirCaso({ ...nuevoCaso, partnerProfileId: partnerId });
+      setAbriendoCaso(false);
+      setNuevoCaso({ categoryCode: '', title: '', description: '' });
+      await recargarCasos();
+    } catch {
+      setError('No pudimos abrir el caso. Revisa el motivo y el título e inténtalo de nuevo.');
+    } finally {
+      setEnviandoCaso(false);
+    }
+  };
+
+  /** El detalle de un caso: lo que el servidor sabe de él, no sólo la fila de la lista. */
+  const abrirDetalle = async (caso: CasoDeSoporte) => {
+    try {
+      setCasoAbierto(await supportService.verCaso(caso.caseId));
+    } catch {
+      setError('No pudimos cargar el detalle del caso.');
+    }
+  };
+
+  /**
+   * Cerrar la conversación desde este lado.
+   *
+   * Existía en el servicio (`cerrarConversacion`) y no había botón: la única salida era que el
+   * agente la cerrara o abandonarla. Cerrarla es un acto del comercio y queda en su historial.
+   */
+  const cerrarConversacion = async () => {
+    if (!channelId || cerrando) return;
+    setCerrando(true);
+    try {
+      await supportService.cerrarConversacion(channelId);
+      setChannelId(null);
+      setMensajes([]);
+      await recargarCasos();
+    } catch {
+      setError('No pudimos cerrar la conversación.');
+    } finally {
+      setCerrando(false);
+    }
+  };
+
+  const aplanar = (lista: MotivoDeSoporte[], prefijo = ''): Array<{ label: string; value: string }> =>
+    lista.flatMap((motivo) => [
+      { label: `${prefijo}${motivo.label}`, value: motivo.categoryCode },
+      ...aplanar(motivo.subcategories ?? [], `${prefijo}${motivo.label} › `),
+    ]);
+
   /** El doble tic: sólo tiene sentido sobre lo que mandó este comercio. */
   const fueLeido = (mensaje: MensajeDeSoporte) =>
     mensaje.senderActorType === 'PARTNER_USER' &&
@@ -222,15 +296,94 @@ export function MerchantSupportScreen() {
         title="Soporte"
         description="Habla con Atlas y sigue tus casos abiertos."
         actions={
-          channelId ? null : (
-            <AtlasButton onClick={empezar} disabled={!partnerId}>
-              Hablar con soporte
+          channelId ? (
+            <AtlasButton variant="secondary" onClick={() => void cerrarConversacion()} loading={cerrando}>
+              Cerrar conversación
             </AtlasButton>
+          ) : (
+            <>
+              <AtlasButton variant="secondary" onClick={() => setAbriendoCaso((valor) => !valor)} disabled={!partnerId}>
+                Abrir un caso
+              </AtlasButton>
+              <AtlasButton onClick={empezar} disabled={!partnerId}>
+                Hablar con soporte
+              </AtlasButton>
+            </>
           )
         }
       />
 
       {error ? <InlineNotice tone="warning">{error}</InlineNotice> : null}
+
+      {abriendoCaso ? (
+        <Panel title="Abrir un caso" description="Cuéntanos qué pasa por escrito; lo seguimos desde tus casos.">
+          <form
+            className="grid gap-4"
+            data-testid="formulario-abrir-caso"
+            onSubmit={(evento) => {
+              evento.preventDefault();
+              void enviarCaso();
+            }}
+          >
+            <FormField
+              kind="select"
+              label="Motivo"
+              name="motivoDelCaso"
+              required
+              value={nuevoCaso.categoryCode}
+              onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, categoryCode: evento.target.value }))}
+              options={aplanar(motivos)}
+              hint={motivos.length === 0 ? 'El catálogo de motivos no cargó: vuelve a intentarlo o habla con soporte.' : undefined}
+            />
+            <FormField
+              label="Título"
+              name="tituloDelCaso"
+              required
+              value={nuevoCaso.title}
+              onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, title: evento.target.value }))}
+              placeholder="Qué pasa, en una línea"
+            />
+            <FormField
+              kind="textarea"
+              label="Descripción"
+              name="descripcionDelCaso"
+              required
+              value={nuevoCaso.description}
+              onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, description: evento.target.value }))}
+              placeholder="Cuándo empezó, qué esperabas y qué pasó."
+            />
+            <div className="flex justify-end gap-3">
+              <AtlasButton variant="secondary" onClick={() => setAbriendoCaso(false)} disabled={enviandoCaso}>
+                Cancelar
+              </AtlasButton>
+              <AtlasButton
+                type="submit"
+                loading={enviandoCaso}
+                disabled={!nuevoCaso.categoryCode || nuevoCaso.title.trim().length < 3 || nuevoCaso.description.trim().length < 10}
+              >
+                Enviar el caso
+              </AtlasButton>
+            </div>
+          </form>
+        </Panel>
+      ) : null}
+
+      {casoAbierto ? (
+        <Panel title={casoAbierto.title} description={`${casoAbierto.caseNumber} · ${casoAbierto.status}`}>
+          <dl className="grid gap-2 text-sm sm:grid-cols-2" data-testid="detalle-del-caso">
+            <div><dt className="text-xs text-slate-500">Tipo</dt><dd>{casoAbierto.caseType}</dd></div>
+            <div><dt className="text-xs text-slate-500">Dominio</dt><dd>{casoAbierto.domain}</dd></div>
+            <div><dt className="text-xs text-slate-500">Abierto</dt><dd>{new Date(casoAbierto.openedAt).toLocaleString('es-BO')}</dd></div>
+            <div><dt className="text-xs text-slate-500">Última actividad</dt><dd>{new Date(casoAbierto.lastActivityAt).toLocaleString('es-BO')}</dd></div>
+            <div><dt className="text-xs text-slate-500">Primera respuesta</dt><dd>{casoAbierto.firstResponseAt ? new Date(casoAbierto.firstResponseAt).toLocaleString('es-BO') : 'Todavía no'}</dd></div>
+            <div><dt className="text-xs text-slate-500">Resuelto</dt><dd>{casoAbierto.resolvedAt ? new Date(casoAbierto.resolvedAt).toLocaleString('es-BO') : 'Todavía no'}</dd></div>
+            {casoAbierto.summary ? <div className="sm:col-span-2"><dt className="text-xs text-slate-500">Resumen</dt><dd className="whitespace-pre-wrap">{casoAbierto.summary}</dd></div> : null}
+          </dl>
+          <div className="mt-4 flex justify-end">
+            <AtlasButton variant="ghost" onClick={() => setCasoAbierto(null)}>Cerrar el detalle</AtlasButton>
+          </div>
+        </Panel>
+      ) : null}
 
       {eligiendo ? (
         <Panel title="¿Sobre qué es?" description="Así te atiende quien más sabe del tema.">
@@ -355,6 +508,9 @@ export function MerchantSupportScreen() {
               </div>
               <div className="flex items-center gap-3">
                 <StatusPill tone={caso.closedAt ? 'neutral' : caso.resolvedAt ? 'success' : 'info'}>{caso.status}</StatusPill>
+                <AtlasButton variant="ghost" onClick={() => void abrirDetalle(caso)}>
+                  Ver detalle
+                </AtlasButton>
                 {caso.channels?.find((canal) => !['CLOSED', 'ABANDONED'].includes(canal.status)) ? (
                   <AtlasButton
                     variant="ghost"
