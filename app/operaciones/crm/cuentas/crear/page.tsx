@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { b2bService } from '@/services/b2bService';
 import { businessLineOptions, cityOptions, contactRoleTitleOptions, countryOptions, decisionRoleOptions, industryOptions, merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
@@ -11,6 +12,7 @@ const optionalSelect = <T extends { label: string; value: string }>(options: T[]
 ];
 
 export default function CreateB2BAccountPage() {
+  const router = useRouter();
   return (
     <StructuredActionForm
       moduleLabel="CRM"
@@ -18,7 +20,12 @@ export default function CreateB2BAccountPage() {
       description="Da de alta una empresa en el directorio comercial. Con los datos marcados con asterisco basta para crearla; el resto se puede completar después. La empresa entra como «lead» (posible cliente) y avanza desde su ficha."
       submitLabel="Crear empresa"
       submitIcon="domain_add"
-      onSubmit={b2bService.createAccount}
+      onSubmit={async (payload) => {
+        const creada = await b2bService.createAccount(payload);
+        // Al guardar se abre la ficha: es donde se califica y se abre la oportunidad (el paso siguiente).
+        if (creada?.id) router.push(`/operaciones/crm/cuentas/detalle?id=${encodeURIComponent(String(creada.id))}`);
+        return creada;
+      }}
       sections={[
         {
           title: 'Datos de la empresa', icon: 'domain', description: 'Quién es la empresa y a qué se dedica.', fields: [

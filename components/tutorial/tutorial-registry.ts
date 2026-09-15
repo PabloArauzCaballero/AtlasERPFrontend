@@ -10,6 +10,27 @@ import { TUTORIALS } from './tours';
  * toca.
  */
 const META: readonly TutorialMeta[] = [
+  // Lo primerísimo: los tres recorridos que pidió negocio (registrar un negocio, crear un usuario
+  // final, registrar un hecho contable). Van antes que «Primeros pasos» a propósito.
+  {
+    id: 'negocio-desde-cero',
+    category: 'crm',
+    level: 'basico',
+    route: '/operaciones/crm/cuentas',
+    estimatedMinutes: 8,
+    recommended: true,
+    essential: true,
+  },
+  {
+    id: 'usuario-final-comercio',
+    category: 'crm',
+    level: 'basico',
+    route: '/operaciones/crm/onboarding',
+    estimatedMinutes: 4,
+    recommended: true,
+    essential: true,
+    prerequisites: ['negocio-desde-cero'],
+  },
   {
     id: 'primeros-pasos',
     category: 'introduccion',
@@ -64,6 +85,8 @@ const META: readonly TutorialMeta[] = [
   },
   {
     id: 'contabilidad-documento',
+    essential: true,
+    recommended: true,
     category: 'contabilidad',
     level: 'intermedio',
     route: '/operaciones/contabilidad/documentos',

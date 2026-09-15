@@ -76,7 +76,9 @@ export function ProposalManagerScreen({ embedded = false, onDone }: ProposalMana
     try { await sendMutation.execute(proposalId); await onDone?.(); } catch { /* controlled */ }
   }
 
-  const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal}>Enviar propuesta</AtlasButton>;
+  const guardar = <AtlasButton type="submit" icon="save" loading={createMutation.isLoading} disabled={Boolean(proposalId)}>{proposalId ? 'Guardada' : 'Guardar propuesta'}</AtlasButton>;
+  // «Enviar» sólo se enciende con la propuesta guardada; sin el título, el botón gris no decía por qué.
+  const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal} title={proposalId ? undefined : 'Primero guarda la propuesta'}>Enviar al cliente</AtlasButton>;
 
   return (
     <form className="space-y-5" onSubmit={submit}>
@@ -86,10 +88,10 @@ export function ProposalManagerScreen({ embedded = false, onDone }: ProposalMana
             <h2 className="text-sm font-bold text-slate-900">Nueva propuesta comercial</h2>
             <p className="mt-0.5 text-xs text-slate-500">Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente.</p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">{enviar}</div>
+          <div className="flex shrink-0 flex-wrap gap-2">{guardar}{enviar}</div>
         </div>
       ) : (
-        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Gestor de propuestas comerciales" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><AtlasButton variant="secondary" icon="history">Audit Log</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar PDF</AtlasButton>{enviar}</>} />
+        <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas' }]} title="Gestor de propuestas comerciales" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<>{guardar}{enviar}</>} />
       )}
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
       {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya aparece en la pestaña «Propuestas» y queda lista para enviarse al cliente.</InlineNotice> : null}
