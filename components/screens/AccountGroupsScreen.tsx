@@ -15,7 +15,7 @@ import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioGrupoCuenta } from '@/lib/formulariosPapel/operaciones';
 import { useOptions } from '@/hooks/useOptions';
 import { loadAccountGroups, loadChartsOfAccounts, withEmpty } from '@/services/optionLoaders';
-import { accountClassificationOptions, statementTypeOptions } from '@/lib/catalogs';
+import { domainLoader } from '@/services/domains';
 import type { JsonObject } from '@/services/types';
 
 interface GroupNode {
@@ -56,6 +56,10 @@ interface AccountGroupsScreenProps {
 export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenProps = {}) {
   const coaOptions = useOptions(loadChartsOfAccounts);
   const groupOptions = useOptions(loadAccountGroups);
+  // Los tres vocabularios salen del backend: la subclasificación era texto libre y el esquema la cierra.
+  const statementTypeOptions = useOptions(domainLoader('domain:accounting.statementType'));
+  const classificationOptions = useOptions(domainLoader('domain:accounting.accountClassification'));
+  const subClassificationOptions = useOptions(domainLoader('domain:accounting.accountSubClassification'));
   const [coaFilter, setCoaFilter] = useState('');
   const load = useCallback(() => accountingService.accountGroupTree(coaFilter.trim() || undefined), [coaFilter]);
   const resource = useAsyncResource(load);
@@ -130,8 +134,8 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
             </div>
             <FormField label="Nombre" name="name" required value={form.name} onChange={(e) => setField('name')(e.target.value)} placeholder="Activo Corriente" />
             <FormField kind="select" label="Estado financiero" name="statementType" value={form.statementType} onChange={(e) => setField('statementType')(e.target.value)} options={statementTypeOptions} />
-            <FormField kind="select" label="Clasificación" name="classification" value={form.classification} onChange={(e) => setField('classification')(e.target.value)} options={accountClassificationOptions} />
-            <FormField label="Subclasificación (opcional)" name="subClassification" value={form.subClassification} onChange={(e) => setField('subClassification')(e.target.value)} placeholder="CURRENT / NON_CURRENT..." />
+            <FormField kind="select" label="Clasificación" name="classification" value={form.classification} onChange={(e) => setField('classification')(e.target.value)} options={classificationOptions} />
+            <FormField kind="select" label="Subclasificación (opcional)" name="subClassification" value={form.subClassification} onChange={(e) => setField('subClassification')(e.target.value)} options={withEmpty(subClassificationOptions, '— Sin subclasificación —')} />
             <AtlasButton icon="save" loading={mutation.isLoading} disabled={!canCreate} onClick={handleCreate}>Crear grupo</AtlasButton>
           </div>
         </Panel>
