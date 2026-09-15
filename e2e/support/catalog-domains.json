@@ -3,21 +3,25 @@
     "accounting.recordStatus": [
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "En uso: se puede elegir en cualquier alta o asiento nuevo."
       },
       {
         "code": "INACTIVE",
-        "label": "Inactivo"
+        "label": "Inactivo",
+        "help": "Deja de ofrecerse en pantallas nuevas; lo ya registrado no cambia."
       },
       {
         "code": "ARCHIVED",
-        "label": "Archivado"
+        "label": "Archivado",
+        "help": "Retirado del catálogo; se conserva sólo para leer el histórico."
       }
     ],
     "accounting.glAccountStatus": [
       {
         "code": "ACTIVE",
-        "label": "Activa"
+        "label": "Activa",
+        "help": "Admite asientos y aparece en los selectores de imputación."
       },
       {
         "code": "INACTIVE",
@@ -33,11 +37,13 @@
     "accounting.businessPartnerStatus": [
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Se le puede facturar, cobrar y pagar con normalidad."
       },
       {
         "code": "INACTIVE",
-        "label": "Inactivo"
+        "label": "Inactivo",
+        "help": "Sin operaciones en curso; elígelo para sacarlo de las listas sin borrarlo."
       },
       {
         "code": "BLOCKED",
@@ -46,29 +52,35 @@
       },
       {
         "code": "ARCHIVED",
-        "label": "Archivado"
+        "label": "Archivado",
+        "help": "Relación terminada; se guarda sólo por obligación documental."
       }
     ],
     "accounting.glAccountType": [
       {
         "code": "ASSET",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Lo que la empresa posee o le deben: caja, bancos, cartera."
       },
       {
         "code": "LIABILITY",
-        "label": "Pasivo"
+        "label": "Pasivo",
+        "help": "Lo que la empresa debe a terceros: proveedores, impuestos, préstamos."
       },
       {
         "code": "EQUITY",
-        "label": "Patrimonio"
+        "label": "Patrimonio",
+        "help": "Aportes de los socios y resultados que no se han distribuido."
       },
       {
         "code": "REVENUE",
-        "label": "Ingreso"
+        "label": "Ingreso",
+        "help": "Lo que la empresa gana por vender o prestar un servicio."
       },
       {
         "code": "EXPENSE",
-        "label": "Gasto"
+        "label": "Gasto",
+        "help": "Lo que consume la operación: sueldos, alquiler, servicios."
       },
       {
         "code": "CONTRA_ASSET",
@@ -79,117 +91,143 @@
     "accounting.normalBalance": [
       {
         "code": "D",
-        "label": "Débito"
+        "label": "Débito",
+        "help": "El saldo aumenta por la izquierda: activos y gastos."
       },
       {
         "code": "C",
-        "label": "Crédito"
+        "label": "Crédito",
+        "help": "El saldo aumenta por la derecha: pasivos, patrimonio, ingresos."
       }
     ],
     "accounting.partnerType": [
       {
         "code": "PERSON",
-        "label": "Persona"
+        "label": "Persona",
+        "help": "Un ser humano identificado por su cédula, no por un NIT de empresa."
       },
       {
         "code": "COMPANY",
-        "label": "Empresa"
+        "label": "Empresa",
+        "help": "Sociedad o unipersonal con NIT propio ajena al grupo Atlas."
       },
       {
         "code": "BANK",
-        "label": "Banco"
+        "label": "Banco",
+        "help": "Entidad financiera con la que se opera: cuentas, préstamos, recaudación."
       },
       {
         "code": "GROUP_ENTITY",
-        "label": "Entidad del grupo"
+        "label": "Entidad del grupo",
+        "help": "Otra empresa del mismo grupo; sus saldos se eliminan al consolidar."
       },
       {
         "code": "GOVERNMENT",
-        "label": "Entidad pública"
+        "label": "Entidad pública",
+        "help": "Estado y sus dependencias: Impuestos, alcaldías, gestoras."
       }
     ],
     "accounting.kybStatus": [
       {
         "code": "PENDING",
-        "label": "Pendiente"
+        "label": "Pendiente",
+        "help": "Falta reunir o cargar la documentación de respaldo."
       },
       {
         "code": "IN_REVIEW",
-        "label": "En revisión"
+        "label": "En revisión",
+        "help": "Cumplimiento está analizando lo entregado; aún no hay veredicto."
       },
       {
         "code": "APPROVED",
-        "label": "Aprobado"
+        "label": "Aprobado",
+        "help": "Se verificó la identidad y la actividad; se puede operar sin restricción."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazado"
+        "label": "Rechazado",
+        "help": "La verificación no pasó; exige un motivo y frena la operación."
       }
     ],
     "accounting.statementType": [
       {
         "code": "BALANCE_SHEET",
-        "label": "Balance general"
+        "label": "Balance general",
+        "help": "Foto de lo que se tiene y se debe a una fecha; saldos acumulados."
       },
       {
         "code": "INCOME_STATEMENT",
-        "label": "Estado de resultados"
+        "label": "Estado de resultados",
+        "help": "Ingresos menos gastos de un período; el saldo se cierra cada gestión."
       },
       {
         "code": "CASH_FLOW",
-        "label": "Flujo de efectivo"
+        "label": "Flujo de efectivo",
+        "help": "Movimientos de caja y bancos por operación, inversión y financiamiento."
       },
       {
         "code": "EQUITY_CHANGES",
-        "label": "Cambios en el patrimonio"
+        "label": "Cambios en el patrimonio",
+        "help": "Aportes, retiros y resultados que mueven el capital de los socios."
       },
       {
         "code": "MEMORANDUM",
-        "label": "Cuentas de orden"
+        "label": "Cuentas de orden",
+        "help": "Registros de control (garantías, avales) que no afectan al balance."
       }
     ],
     "accounting.accountClassification": [
       {
         "code": "ASSET",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Agrupa recursos y derechos de cobro de la empresa."
       },
       {
         "code": "LIABILITY",
-        "label": "Pasivo"
+        "label": "Pasivo",
+        "help": "Agrupa las obligaciones con terceros."
       },
       {
         "code": "EQUITY",
-        "label": "Patrimonio"
+        "label": "Patrimonio",
+        "help": "Agrupa capital, reservas y resultados de los socios."
       },
       {
         "code": "REVENUE",
-        "label": "Ingreso"
+        "label": "Ingreso",
+        "help": "Agrupa las cuentas que registran lo que se gana."
       },
       {
         "code": "EXPENSE",
-        "label": "Gasto"
+        "label": "Gasto",
+        "help": "Agrupa las cuentas que registran lo que se consume."
       }
     ],
     "accounting.accountSubClassification": [
       {
         "code": "CURRENT",
-        "label": "Corriente"
+        "label": "Corriente",
+        "help": "Se realiza o se paga dentro de los próximos doce meses."
       },
       {
         "code": "NON_CURRENT",
-        "label": "No corriente"
+        "label": "No corriente",
+        "help": "Se realiza o se paga después de un año: activo fijo, deuda larga."
       },
       {
         "code": "CAPITAL",
-        "label": "Capital"
+        "label": "Capital",
+        "help": "Aportes de los socios y capital suscrito de la sociedad."
       },
       {
         "code": "RESERVES",
-        "label": "Reservas"
+        "label": "Reservas",
+        "help": "Utilidades retenidas por ley o por decisión de la junta."
       },
       {
         "code": "RESULTS",
-        "label": "Resultados acumulados"
+        "label": "Resultados acumulados",
+        "help": "Ganancias y pérdidas de gestiones anteriores aún sin destino."
       },
       {
         "code": "OCI",
@@ -198,243 +236,299 @@
       },
       {
         "code": "OPERATING",
-        "label": "Operativo"
+        "label": "Operativo",
+        "help": "Ingresos y gastos propios del giro habitual del negocio."
       },
       {
         "code": "NON_OPERATING",
-        "label": "No operativo"
+        "label": "No operativo",
+        "help": "Ingresos y gastos ajenos al giro: venta de activos, otros."
       },
       {
         "code": "COST_OF_SERVICE",
-        "label": "Costo del servicio"
+        "label": "Costo del servicio",
+        "help": "Lo que cuesta directamente prestar el servicio que se factura."
       },
       {
         "code": "FINANCIAL",
-        "label": "Financiero"
+        "label": "Financiero",
+        "help": "Intereses, comisiones bancarias y diferencia de cambio."
       },
       {
         "code": "DEPRECIATION",
-        "label": "Depreciación y amortización"
+        "label": "Depreciación y amortización",
+        "help": "Desgaste del activo fijo e intangible imputado a la gestión."
       },
       {
         "code": "CREDIT_LOSS",
-        "label": "Pérdida crediticia"
+        "label": "Pérdida crediticia",
+        "help": "Previsión y castigo de cartera que no se espera recuperar."
       },
       {
         "code": "TAX",
-        "label": "Impuestos"
+        "label": "Impuestos",
+        "help": "Cargas tributarias del período: IVA, IT, IUE y afines."
       }
     ],
     "accounting.entityLinkType": [
       {
         "code": "BUSINESS_PARTNER",
-        "label": "Business partner"
+        "label": "Business partner",
+        "help": "El tercero con el que se opera: cliente, proveedor, banco."
       },
       {
         "code": "COST_CENTER",
-        "label": "Centro de costo"
+        "label": "Centro de costo",
+        "help": "El área que consume el gasto; sirve para repartirlo."
       },
       {
         "code": "PROFIT_CENTER",
-        "label": "Centro de beneficio"
+        "label": "Centro de beneficio",
+        "help": "La unidad a la que se le mide el resultado, no sólo el gasto."
       },
       {
         "code": "CONTRACT",
-        "label": "Contrato"
+        "label": "Contrato",
+        "help": "El acuerdo que origina el cobro o el pago recurrente."
       },
       {
         "code": "LEGAL_ENTITY",
-        "label": "Entidad legal"
+        "label": "Entidad legal",
+        "help": "La empresa del grupo dueña del registro, con su propio NIT."
       },
       {
         "code": "TAX_CODE",
-        "label": "Código de impuesto"
+        "label": "Código de impuesto",
+        "help": "La regla tributaria que determina la alícuota aplicada."
       },
       {
         "code": "BANK_ACCOUNT",
-        "label": "Cuenta bancaria"
+        "label": "Cuenta bancaria",
+        "help": "La cuenta concreta por donde entra o sale el dinero."
       },
       {
         "code": "LEDGER",
-        "label": "Ledger"
+        "label": "Ledger",
+        "help": "El libro contable (local, gestión o NIIF) al que pertenece."
       },
       {
         "code": "BRANCH",
-        "label": "Sucursal"
+        "label": "Sucursal",
+        "help": "El punto de venta o la oficina donde ocurrió el hecho."
       },
       {
         "code": "ACCOUNTING_DOCUMENT",
-        "label": "Documento contable"
+        "label": "Documento contable",
+        "help": "Otro comprobante ya registrado, cuando el vínculo es entre documentos."
       },
       {
         "code": "OTHER",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "Nada de lo anterior encaja; conviene detallarlo en la glosa."
       }
     ],
     "accounting.entityLinkRelation": [
       {
         "code": "DEFAULT",
-        "label": "Por defecto"
+        "label": "Por defecto",
+        "help": "La cuenta que se propone si nada más la sobreescribe."
       },
       {
         "code": "AR_CONTROL",
-        "label": "Cuentas por cobrar (control)"
+        "label": "Cuentas por cobrar (control)",
+        "help": "Concentra lo que el tercero adeuda a la empresa."
       },
       {
         "code": "AP_CONTROL",
-        "label": "Cuentas por pagar (control)"
+        "label": "Cuentas por pagar (control)",
+        "help": "Concentra lo que la empresa adeuda a ese tercero."
       },
       {
         "code": "ADVANCE",
-        "label": "Anticipos"
+        "label": "Anticipos",
+        "help": "Dinero entregado o recibido antes de que exista la factura."
       },
       {
         "code": "SURCHARGE",
-        "label": "Recargos"
+        "label": "Recargos",
+        "help": "Intereses por mora y cargos añadidos al importe original."
       },
       {
         "code": "REVENUE",
-        "label": "Ingreso"
+        "label": "Ingreso",
+        "help": "Dónde se reconoce lo que se gana con ese tercero o contrato."
       },
       {
         "code": "EXPENSE",
-        "label": "Gasto"
+        "label": "Gasto",
+        "help": "Dónde se imputa lo que se consume con ese tercero o contrato."
       },
       {
         "code": "TAX",
-        "label": "Impuesto"
+        "label": "Impuesto",
+        "help": "Dónde caen el IVA, el IT o la retención de esa operación."
       }
     ],
     "accounting.partnerAccountPurpose": [
       {
         "code": "AR_CONTROL",
-        "label": "Cuentas por cobrar (control)"
+        "label": "Cuentas por cobrar (control)",
+        "help": "Cuenta donde se acumula la deuda que ese cliente tiene."
       },
       {
         "code": "AP_CONTROL",
-        "label": "Cuentas por pagar (control)"
+        "label": "Cuentas por pagar (control)",
+        "help": "Cuenta donde se acumula lo que se le debe a ese proveedor."
       },
       {
         "code": "CUSTOMER_ADVANCES",
-        "label": "Anticipos de cliente"
+        "label": "Anticipos de cliente",
+        "help": "Cobros recibidos antes de emitir la factura; son un pasivo."
       },
       {
         "code": "SUPPLIER_ADVANCES",
-        "label": "Anticipos a proveedor"
+        "label": "Anticipos a proveedor",
+        "help": "Pagos entregados antes de recibir el bien; son un activo."
       },
       {
         "code": "SURCHARGES",
-        "label": "Recargos"
+        "label": "Recargos",
+        "help": "Intereses y penalidades que se le cargan por atraso."
       },
       {
         "code": "DISCOUNTS",
-        "label": "Descuentos"
+        "label": "Descuentos",
+        "help": "Rebajas concedidas por pronto pago o por volumen."
       },
       {
         "code": "WITHHOLDINGS",
-        "label": "Retenciones"
+        "label": "Retenciones",
+        "help": "Impuesto retenido al pagarle y que se entera al fisco."
       }
     ],
     "accounting.partnerRole": [
       {
         "code": "CUSTOMER",
-        "label": "Cliente"
+        "label": "Cliente",
+        "help": "Se le factura y se le cobra por lo vendido."
       },
       {
         "code": "SUPPLIER",
-        "label": "Proveedor"
+        "label": "Proveedor",
+        "help": "Emite facturas de compra que hay que pagarle."
       },
       {
         "code": "MERCHANT",
-        "label": "Comercio afiliado"
+        "label": "Comercio afiliado",
+        "help": "Vende con Atlas y liquida comisión sobre lo que coloca."
       },
       {
         "code": "LENDER",
-        "label": "Prestamista"
+        "label": "Prestamista",
+        "help": "Financia a la empresa; se le devuelve capital e intereses."
       },
       {
         "code": "BANK",
-        "label": "Banco"
+        "label": "Banco",
+        "help": "Custodia el efectivo y procesa cobros, pagos y QR."
       },
       {
         "code": "INTERCOMPANY",
-        "label": "Empresa del grupo"
+        "label": "Empresa del grupo",
+        "help": "Se opera con ella pero su saldo se elimina al consolidar."
       }
     ],
     "accounting.ledgerBasis": [
       {
         "code": "LOCAL_BO",
-        "label": "Norma local (Bolivia)"
+        "label": "Norma local (Bolivia)",
+        "help": "El libro que se presenta a Impuestos Nacionales y a Fundempresa."
       },
       {
         "code": "MANAGEMENT",
-        "label": "Gestión interna"
+        "label": "Gestión interna",
+        "help": "Libro para decidir dentro de casa; no se presenta a nadie."
       },
       {
         "code": "IFRS",
-        "label": "NIIF (IFRS)"
+        "label": "NIIF (IFRS)",
+        "help": "Norma internacional; se usa para reportar a casa matriz o inversores."
       }
     ],
     "accounting.taxType": [
       {
         "code": "IVA",
-        "label": "IVA — Impuesto al Valor Agregado"
+        "label": "IVA — Impuesto al Valor Agregado",
+        "help": "Grava la venta al 13 % y se compensa con el crédito fiscal de compras."
       },
       {
         "code": "IT",
-        "label": "IT — Impuesto a las Transacciones"
+        "label": "IT — Impuesto a las Transacciones",
+        "help": "Grava el ingreso bruto al 3 %; se compensa contra el IUE pagado."
       },
       {
         "code": "IUE",
-        "label": "IUE — Impuesto sobre las Utilidades"
+        "label": "IUE — Impuesto sobre las Utilidades",
+        "help": "Grava la utilidad de la gestión al 25 %; se liquida al cierre anual."
       },
       {
         "code": "RETENTION",
-        "label": "Retención"
+        "label": "Retención",
+        "help": "Se descuenta al pagar a quien no factura y se entera al fisco."
       },
       {
         "code": "OTHER",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "Tributo municipal o sectorial que no encaja en los anteriores."
       }
     ],
     "accounting.contractType": [
       {
         "code": "CUSTOMER_BILLING",
-        "label": "Facturación a cliente"
+        "label": "Facturación a cliente",
+        "help": "Genera las facturas periódicas que se le cobran al cliente."
       },
       {
         "code": "SUPPLIER",
-        "label": "Proveedor"
+        "label": "Proveedor",
+        "help": "Fija qué y cómo se le compra y paga a un tercero."
       },
       {
         "code": "LOAN",
-        "label": "Préstamo"
+        "label": "Préstamo",
+        "help": "Deuda con calendario de capital e intereses a devengar."
       },
       {
         "code": "INTERCOMPANY",
-        "label": "Entre empresas del grupo"
+        "label": "Entre empresas del grupo",
+        "help": "Servicios cruzados entre entidades que luego se eliminan."
       },
       {
         "code": "MERCHANT",
-        "label": "Comercio afiliado"
+        "label": "Comercio afiliado",
+        "help": "Acuerdo de comisión y liquidación con un comercio de Atlas."
       }
     ],
     "accounting.contractStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Aún se redacta; no genera facturas ni obligaciones."
       },
       {
         "code": "ACTIVE",
-        "label": "Vigente"
+        "label": "Vigente",
+        "help": "En ejecución: devenga y factura según lo pactado."
       },
       {
         "code": "SUSPENDED",
-        "label": "Suspendido"
+        "label": "Suspendido",
+        "help": "Se detiene la facturación sin cerrarlo; puede reanudarse."
       },
       {
         "code": "TERMINATED",
-        "label": "Terminado"
+        "label": "Terminado",
+        "help": "Concluido o rescindido; ya no devenga nada nuevo."
       }
     ],
     "accounting.billingEventType": [
@@ -445,37 +539,45 @@
       },
       {
         "code": "SAAS",
-        "label": "Suscripción"
+        "label": "Suscripción",
+        "help": "Cuota fija periódica por el uso de la plataforma."
       },
       {
         "code": "SETUP",
-        "label": "Cargo de alta"
+        "label": "Cargo de alta",
+        "help": "Cobro único por habilitar al comercio la primera vez."
       },
       {
         "code": "INTERCOMPANY",
-        "label": "Servicio entre empresas del grupo"
+        "label": "Servicio entre empresas del grupo",
+        "help": "Cargo que una entidad del grupo le hace a otra."
       },
       {
         "code": "SUPPORT",
-        "label": "Soporte"
+        "label": "Soporte",
+        "help": "Atención o desarrollo facturado aparte del plan."
       }
     ],
     "accounting.arInvoiceStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Todavía se puede editar; no genera cuenta por cobrar."
       },
       {
         "code": "ISSUED",
-        "label": "Emitida"
+        "label": "Emitida",
+        "help": "Entregada al cliente y contabilizada; espera el cobro."
       },
       {
         "code": "PARTIALLY_PAID",
-        "label": "Pagada en parte"
+        "label": "Pagada en parte",
+        "help": "Se cobró una porción; queda saldo pendiente."
       },
       {
         "code": "PAID",
-        "label": "Pagada"
+        "label": "Pagada",
+        "help": "Cobrada en su totalidad; no queda saldo."
       },
       {
         "code": "CREDITED",
@@ -484,69 +586,84 @@
       },
       {
         "code": "VOID",
-        "label": "Anulada"
+        "label": "Anulada",
+        "help": "Se dejó sin efecto antes de cobrarla; no cuenta como ingreso."
       }
     ],
     "accounting.receiptStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Se está capturando; aún no descuenta deuda del cliente."
       },
       {
         "code": "RECORDED",
-        "label": "Registrado"
+        "label": "Registrado",
+        "help": "El cobro está capturado y aplicado, pero sin asiento aún."
       },
       {
         "code": "POSTED",
-        "label": "Contabilizado"
+        "label": "Contabilizado",
+        "help": "Ya generó su asiento en el libro y afecta los saldos."
       },
       {
         "code": "VOID",
-        "label": "Anulado"
+        "label": "Anulado",
+        "help": "Se revirtió el cobro; la deuda vuelve a quedar abierta."
       }
     ],
     "accounting.documentApprovalStatus": [
       {
         "code": "NOT_REQUIRED",
-        "label": "No requiere aprobación"
+        "label": "No requiere aprobación",
+        "help": "Por su importe o tipo pasa directo a contabilizarse."
       },
       {
         "code": "PENDING",
-        "label": "Pendiente de aprobación"
+        "label": "Pendiente de aprobación",
+        "help": "Espera la firma de quien tiene la facultad para autorizarlo."
       },
       {
         "code": "APPROVED",
-        "label": "Aprobado"
+        "label": "Aprobado",
+        "help": "Autorizado; ya puede contabilizarse y pagarse."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazado"
+        "label": "Rechazado",
+        "help": "Devuelto a quien lo cargó; exige corregir y volver a enviar."
       }
     ],
     "accounting.documentSourceSystem": [
       {
         "code": "ATLAS_ERP",
-        "label": "ERP Atlas"
+        "label": "ERP Atlas",
+        "help": "Lo escribió el propio ERP sin poder atribuirlo a un módulo concreto."
       },
       {
         "code": "ACCOUNTING",
-        "label": "Contabilidad (manual)"
+        "label": "Contabilidad (manual)",
+        "help": "Lo cargó una persona desde las pantallas de contabilidad."
       },
       {
         "code": "BILLING",
-        "label": "Facturación"
+        "label": "Facturación",
+        "help": "Nació del proceso que emite facturas a clientes y comercios."
       },
       {
         "code": "TREASURY",
-        "label": "Tesorería"
+        "label": "Tesorería",
+        "help": "Nació de un cobro, un pago o un movimiento bancario."
       },
       {
         "code": "CRM",
-        "label": "CRM comercial"
+        "label": "CRM comercial",
+        "help": "Nació del circuito de ventas B2B: contratos, propuestas, liquidaciones."
       },
       {
         "code": "ADS",
-        "label": "Publicidad"
+        "label": "Publicidad",
+        "help": "Nació del consumo publicitario de un anunciante."
       },
       {
         "code": "SMOKE",
@@ -557,27 +674,33 @@
     "accounting.documentSourceType": [
       {
         "code": "MANUAL",
-        "label": "Asiento manual"
+        "label": "Asiento manual",
+        "help": "Lo tecleó una persona; no lo respalda otro documento del sistema."
       },
       {
         "code": "AR_INVOICE",
-        "label": "Factura por cobrar"
+        "label": "Factura por cobrar",
+        "help": "Lo originó la emisión de una factura a un cliente."
       },
       {
         "code": "RECEIPT",
-        "label": "Recibo de cobro"
+        "label": "Recibo de cobro",
+        "help": "Lo originó el cobro de una o varias facturas."
       },
       {
         "code": "MERCHANT_INVOICE",
-        "label": "Factura a comercio"
+        "label": "Factura a comercio",
+        "help": "Lo originó la liquidación de comisiones a un comercio afiliado."
       },
       {
         "code": "REVERSAL",
-        "label": "Reversión"
+        "label": "Reversión",
+        "help": "Deshace un asiento anterior con los importes invertidos."
       },
       {
         "code": "CLOSING",
-        "label": "Cierre de período"
+        "label": "Cierre de período",
+        "help": "Lo generó el proceso que traslada resultados al patrimonio."
       },
       {
         "code": "BATCH_VALIDATION",
@@ -588,63 +711,77 @@
     "accounting.documentType": [
       {
         "code": "JOURNAL",
-        "label": "Asiento de diario"
+        "label": "Asiento de diario",
+        "help": "Registro contable genérico de partida doble."
       },
       {
         "code": "AR_INVOICE",
-        "label": "Factura por cobrar"
+        "label": "Factura por cobrar",
+        "help": "Comprobante que reconoce el ingreso y la deuda del cliente."
       },
       {
         "code": "RECEIPT",
-        "label": "Recibo"
+        "label": "Recibo",
+        "help": "Comprobante de que entró el dinero y bajó la cartera."
       },
       {
         "code": "REVERSAL",
-        "label": "Reversión"
+        "label": "Reversión",
+        "help": "Anula un documento previo sin borrarlo del libro."
       },
       {
         "code": "ADJUSTMENT",
-        "label": "Ajuste"
+        "label": "Ajuste",
+        "help": "Corrige saldos por diferencias, provisiones o reclasificaciones."
       },
       {
         "code": "CLOSING",
-        "label": "Cierre"
+        "label": "Cierre",
+        "help": "Salda las cuentas de resultado al terminar el período."
       }
     ],
     "accounting.siatStatus": [
       {
         "code": "PENDING",
-        "label": "Pendiente de envío"
+        "label": "Pendiente de envío",
+        "help": "Emitida en el ERP pero todavía no transmitida a Impuestos."
       },
       {
         "code": "SENT",
-        "label": "Enviada"
+        "label": "Enviada",
+        "help": "Transmitida al SIAT; falta la respuesta de validación."
       },
       {
         "code": "ACCEPTED",
-        "label": "Aceptada"
+        "label": "Aceptada",
+        "help": "Impuestos la validó; tiene CUF vigente y respalda crédito fiscal."
       },
       {
         "code": "OBSERVED",
-        "label": "Observada"
+        "label": "Observada",
+        "help": "El SIAT halló inconsistencias; hay que corregir y reenviar."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazada"
+        "label": "Rechazada",
+        "help": "Impuestos no la admitió; no vale como respaldo tributario."
       },
       {
         "code": "VOIDED",
-        "label": "Anulada ante el SIAT"
+        "label": "Anulada ante el SIAT",
+        "help": "Se comunicó su anulación dentro del plazo que fija la norma."
       }
     ],
     "accounting.periodCloseType": [
       {
         "code": "MONTHLY",
-        "label": "Mensual"
+        "label": "Mensual",
+        "help": "Bloquea el mes para que nadie altere lo ya informado."
       },
       {
         "code": "ANNUAL",
-        "label": "Anual"
+        "label": "Anual",
+        "help": "Cierra la gestión, liquida el IUE y traslada el resultado."
       }
     ],
     "accounting.paymentTermModality": [
@@ -704,153 +841,188 @@
     "accounting.paymentMethod": [
       {
         "code": "TRANSFERENCIA",
-        "label": "Transferencia bancaria"
+        "label": "Transferencia bancaria",
+        "help": "Abono a la cuenta del proveedor; exige registrar sus datos bancarios."
       },
       {
         "code": "CHEQUE",
-        "label": "Cheque"
+        "label": "Cheque",
+        "help": "Se gira contra una cuenta propia; el egreso se confirma al cobrarse."
       },
       {
         "code": "EFECTIVO",
-        "label": "Efectivo"
+        "label": "Efectivo",
+        "help": "Entrega en caja; conviene sólo para importes menores por el control que exige."
       },
       {
         "code": "TARJETA",
-        "label": "Tarjeta"
+        "label": "Tarjeta",
+        "help": "Se carga a una tarjeta de la empresa; concilia contra el extracto del emisor."
       },
       {
         "code": "QR",
-        "label": "Pago con QR"
+        "label": "Pago con QR",
+        "help": "Transferencia inmediata leyendo el QR del proveedor; exige su cuenta destino."
       },
       {
         "code": "COMPENSACION",
-        "label": "Compensación de saldos"
+        "label": "Compensación de saldos",
+        "help": "No sale dinero: se cruza la deuda contra lo que ese mismo tercero adeuda."
       }
     ],
     "accounting.paymentFrequency": [
       {
         "code": "UNICA",
-        "label": "Pago único"
+        "label": "Pago único",
+        "help": "No se repite: se liquida una sola vez y la condición se agota."
       },
       {
         "code": "SEMANAL",
-        "label": "Semanal"
+        "label": "Semanal",
+        "help": "Se repite cada siete días; para servicios que se consumen a diario."
       },
       {
         "code": "QUINCENAL",
-        "label": "Quincenal"
+        "label": "Quincenal",
+        "help": "Dos liquidaciones por mes; habitual en personal eventual y fletes."
       },
       {
         "code": "MENSUAL",
-        "label": "Mensual"
+        "label": "Mensual",
+        "help": "Una vez al mes; es la frecuencia de alquileres y servicios básicos."
       },
       {
         "code": "BIMESTRAL",
-        "label": "Bimestral"
+        "label": "Bimestral",
+        "help": "Una vez cada dos meses; suma sesenta días al vencimiento anterior."
       },
       {
         "code": "TRIMESTRAL",
-        "label": "Trimestral"
+        "label": "Trimestral",
+        "help": "Cuatro liquidaciones al año; usual en mantenimientos y licencias."
       },
       {
         "code": "SEMESTRAL",
-        "label": "Semestral"
+        "label": "Semestral",
+        "help": "Dos liquidaciones al año; propio de pólizas y contratos largos."
       },
       {
         "code": "ANUAL",
-        "label": "Anual"
+        "label": "Anual",
+        "help": "Una sola liquidación por gestión; para renovaciones de doce meses."
       }
     ],
     "accounting.paymentTermStatus": [
       {
         "code": "BORRADOR",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Se está redactando; todavía no se aplica a ninguna factura."
       },
       {
         "code": "ACTIVA",
-        "label": "Activa"
+        "label": "Activa",
+        "help": "La única que calcula vencimientos; elígela cuando el acuerdo ya rige."
       },
       {
         "code": "SUSPENDIDA",
-        "label": "Suspendida"
+        "label": "Suspendida",
+        "help": "En pausa por una disputa o revisión; se reactiva sin volver a crearla."
       },
       {
         "code": "VENCIDA",
-        "label": "Vencida"
+        "label": "Vencida",
+        "help": "Pasó su fecha de vigencia; hay que renegociarla para volver a usarla."
       },
       {
         "code": "ARCHIVADA",
-        "label": "Archivada"
+        "label": "Archivada",
+        "help": "Retirada del uso; se conserva sólo para consultar el historial."
       }
     ],
     "crm.accountType": [
       {
         "code": "MERCHANT",
-        "label": "Comercio afiliado"
+        "label": "Comercio afiliado",
+        "help": "Vende a los clientes de Atlas y liquida comisión por cada venta."
       },
       {
         "code": "PARTNER",
-        "label": "Aliado"
+        "label": "Aliado",
+        "help": "Colabora sin vender directamente: convenios, referidos, difusión."
       },
       {
         "code": "DISTRIBUTOR",
-        "label": "Distribuidor"
+        "label": "Distribuidor",
+        "help": "Revende el servicio y capta comercios en nombre de Atlas."
       },
       {
         "code": "FINANCIAL_ALLY",
-        "label": "Aliado financiero"
+        "label": "Aliado financiero",
+        "help": "Banco o entidad que fondea o procesa cobros de la operación."
       }
     ],
     "crm.accountLifecycleStatus": [
       {
         "code": "LEAD",
-        "label": "Prospecto"
+        "label": "Prospecto",
+        "help": "Recién captada; todavía nadie comprobó si sirve como cliente."
       },
       {
         "code": "QUALIFIED",
-        "label": "Calificada"
+        "label": "Calificada",
+        "help": "Se confirmó que encaja y puede contratar; aún no firma."
       },
       {
         "code": "CUSTOMER",
-        "label": "Cliente"
+        "label": "Cliente",
+        "help": "Ya tiene contrato vigente y genera facturación."
       },
       {
         "code": "SUSPENDED",
-        "label": "Suspendida"
+        "label": "Suspendida",
+        "help": "Se le cortó el servicio temporalmente, por mora o incumplimiento."
       },
       {
         "code": "TERMINATED",
-        "label": "Terminada"
+        "label": "Terminada",
+        "help": "La relación se cerró de mutuo acuerdo o por rescisión."
       },
       {
         "code": "DISQUALIFIED",
-        "label": "Descartada"
+        "label": "Descartada",
+        "help": "No cumple los requisitos; no se la vuelve a trabajar."
       }
     ],
     "crm.opportunityStage": [
       {
         "code": "DISCOVERY",
-        "label": "Descubrimiento"
+        "label": "Descubrimiento",
+        "help": "Se está entendiendo qué necesita el comercio y quién decide."
       },
       {
         "code": "QUALIFICATION",
-        "label": "Calificación"
+        "label": "Calificación",
+        "help": "Se comprueba presupuesto, urgencia y capacidad de contratar."
       },
       {
         "code": "PROPOSAL",
-        "label": "Propuesta"
+        "label": "Propuesta",
+        "help": "Ya se le presentó una oferta con precios y condiciones."
       },
       {
         "code": "NEGOTIATION",
-        "label": "Negociación"
+        "label": "Negociación",
+        "help": "Se discuten comisión, plazos o alcance antes de cerrar."
       },
       {
         "code": "CONTRACTING",
-        "label": "Contratación"
+        "label": "Contratación",
+        "help": "Acuerdo cerrado; falta la firma y la carga de documentos."
       },
       {
         "code": "CLOSED_WON",
-        "label": "Ganada"
+        "label": "Ganada",
+        "help": "Terminó en contrato firmado; alimenta la meta del período."
       },
       {
         "code": "CLOSED_LOST",
@@ -861,55 +1033,67 @@
     "crm.opportunityType": [
       {
         "code": "NEW_MERCHANT",
-        "label": "Comercio nuevo"
+        "label": "Comercio nuevo",
+        "help": "Primera afiliación: el comercio nunca operó con Atlas."
       },
       {
         "code": "RENEWAL",
-        "label": "Renovación"
+        "label": "Renovación",
+        "help": "Extender un contrato que vence manteniendo el alcance."
       },
       {
         "code": "UPSELL",
-        "label": "Ampliación (upsell)"
+        "label": "Ampliación (upsell)",
+        "help": "Subirlo de plan o añadir sucursales al contrato vigente."
       },
       {
         "code": "CROSS_SELL",
-        "label": "Venta cruzada"
+        "label": "Venta cruzada",
+        "help": "Venderle otro producto de Atlas, como publicidad."
       },
       {
         "code": "REACTIVATION",
-        "label": "Reactivación"
+        "label": "Reactivación",
+        "help": "Recuperar a un comercio que dejó de operar o se dio de baja."
       }
     ],
     "crm.proposalStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Se está armando; el cliente todavía no la ha visto."
       },
       {
         "code": "PENDING_APPROVAL",
-        "label": "Pendiente de aprobación"
+        "label": "Pendiente de aprobación",
+        "help": "Sus condiciones exceden lo permitido y espera visto bueno interno."
       },
       {
         "code": "SENT",
-        "label": "Enviada al cliente"
+        "label": "Enviada al cliente",
+        "help": "Ya está en manos del comercio y corre el plazo de respuesta."
       },
       {
         "code": "ACCEPTED",
-        "label": "Aceptada"
+        "label": "Aceptada",
+        "help": "El cliente la aprobó; de aquí sale el contrato."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazada"
+        "label": "Rechazada",
+        "help": "El cliente la desestimó; conviene anotar por qué."
       }
     ],
     "crm.approvalDecision": [
       {
         "code": "APPROVED",
-        "label": "Aprobar"
+        "label": "Aprobar",
+        "help": "Autoriza las condiciones y deja seguir el circuito comercial."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazar"
+        "label": "Rechazar",
+        "help": "Deniega las condiciones; la propuesta vuelve a quien la armó."
       }
     ],
     "crm.termType": [
@@ -920,59 +1104,72 @@
       },
       {
         "code": "SUBSCRIPTION",
-        "label": "Suscripción"
+        "label": "Suscripción",
+        "help": "Cuota periódica fija por tener el servicio habilitado."
       },
       {
         "code": "SETUP_FEE",
-        "label": "Cargo de alta"
+        "label": "Cargo de alta",
+        "help": "Cobro único por la habilitación inicial del comercio."
       },
       {
         "code": "SERVICE_FEE",
-        "label": "Cargo por servicio"
+        "label": "Cargo por servicio",
+        "help": "Prestación puntual facturada aparte del plan contratado."
       },
       {
         "code": "PENALTY",
-        "label": "Penalidad"
+        "label": "Penalidad",
+        "help": "Importe por incumplir el contrato, como una baja anticipada."
       },
       {
         "code": "MINIMUM_MONTHLY_FEE",
-        "label": "Mínimo mensual"
+        "label": "Mínimo mensual",
+        "help": "Piso que se cobra aunque la comisión del mes quede por debajo."
       }
     ],
     "crm.billingTiming": [
       {
         "code": "PER_TRANSACTION",
-        "label": "Por transacción"
+        "label": "Por transacción",
+        "help": "Se liquida en cada venta; para comercios con volumen diario."
       },
       {
         "code": "MONTHLY",
-        "label": "Mensual"
+        "label": "Mensual",
+        "help": "Se acumula y se cobra una vez al cierre de cada mes."
       },
       {
         "code": "ONE_TIME",
-        "label": "Una sola vez"
+        "label": "Una sola vez",
+        "help": "Se cobra al activar el término y no se repite."
       },
       {
         "code": "ON_DEMAND",
-        "label": "Bajo demanda"
+        "label": "Bajo demanda",
+        "help": "Se factura sólo cuando alguien lo solicita expresamente."
       }
     ],
     "crm.contractBillingCycle": [
       {
         "code": "MONTHLY",
-        "label": "Mensual"
+        "label": "Mensual",
+        "help": "Doce facturas al año; es el ciclo por defecto de los comercios."
       },
       {
         "code": "QUARTERLY",
-        "label": "Trimestral"
+        "label": "Trimestral",
+        "help": "Cuatro facturas al año, cada tres meses de servicio."
       },
       {
         "code": "SEMIANNUAL",
-        "label": "Semestral"
+        "label": "Semestral",
+        "help": "Dos facturas al año; suele venir con descuento por anticipo."
       },
       {
         "code": "ANNUAL",
-        "label": "Anual"
+        "label": "Anual",
+        "help": "Una factura por gestión, cobrada por adelantado."
       }
     ],
     "crm.contractSettlementPolicy": [
@@ -995,165 +1192,202 @@
     "crm.contractStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Redactándose todavía; no obliga a ninguna de las dos partes."
       },
       {
         "code": "PENDING_SIGNATURE",
-        "label": "Pendiente de firma"
+        "label": "Pendiente de firma",
+        "help": "Condiciones cerradas; falta que el comercio lo suscriba."
       },
       {
         "code": "ACTIVE",
-        "label": "Vigente"
+        "label": "Vigente",
+        "help": "Firmado y en ejecución: genera comisiones y facturación."
       },
       {
         "code": "EXPIRED",
-        "label": "Vencido"
+        "label": "Vencido",
+        "help": "Llegó a su fecha final sin renovarse; deja de facturar."
       },
       {
         "code": "TERMINATED",
-        "label": "Terminado"
+        "label": "Terminado",
+        "help": "Se rescindió antes de tiempo; puede implicar penalidad."
       },
       {
         "code": "SUSPENDED",
-        "label": "Suspendido"
+        "label": "Suspendido",
+        "help": "En pausa por mora o incumplimiento; se puede reanudar."
       }
     ],
     "crm.merchantInvoiceStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Aún editable; el comercio todavía no la recibió."
       },
       {
         "code": "ISSUED",
-        "label": "Emitida"
+        "label": "Emitida",
+        "help": "Entregada al comercio y a la espera de su pago."
       },
       {
         "code": "PARTIALLY_PAID",
-        "label": "Pagada en parte"
+        "label": "Pagada en parte",
+        "help": "Se recibió un abono; queda saldo por cobrar."
       },
       {
         "code": "PAID",
-        "label": "Pagada"
+        "label": "Pagada",
+        "help": "Cobrada íntegramente; sin saldo pendiente."
       },
       {
         "code": "OVERDUE",
-        "label": "Vencida"
+        "label": "Vencida",
+        "help": "Pasó la fecha límite sin pagarse; entra en gestión de cobranza."
       },
       {
         "code": "CANCELLED",
-        "label": "Anulada"
+        "label": "Anulada",
+        "help": "Se dejó sin efecto; no se reclama ni cuenta como ingreso."
       }
     ],
     "crm.receivableStatus": [
       {
         "code": "PENDING",
-        "label": "Pendiente"
+        "label": "Pendiente",
+        "help": "Dentro del plazo acordado; todavía no vence."
       },
       {
         "code": "PARTIALLY_PAID",
-        "label": "Pagada en parte"
+        "label": "Pagada en parte",
+        "help": "Hubo abonos parciales y queda saldo abierto."
       },
       {
         "code": "PAID",
-        "label": "Pagada"
+        "label": "Pagada",
+        "help": "El comercio canceló el total de la deuda."
       },
       {
         "code": "OVERDUE",
-        "label": "Vencida"
+        "label": "Vencida",
+        "help": "Superó la fecha de pago; puede devengar recargos."
       },
       {
         "code": "CANCELLED",
-        "label": "Anulada"
+        "label": "Anulada",
+        "help": "Se dio de baja la deuda por error o por acuerdo."
       },
       {
         "code": "DISPUTED",
-        "label": "En disputa"
+        "label": "En disputa",
+        "help": "El comercio reclama el importe; el cobro queda en suspenso."
       }
     ],
     "crm.payableStatus": [
       {
         "code": "SCHEDULED",
-        "label": "Programado"
+        "label": "Programado",
+        "help": "Tiene fecha futura de desembolso y aún no vence."
       },
       {
         "code": "DUE",
-        "label": "Por pagar"
+        "label": "Por pagar",
+        "help": "Llegó su fecha; entra en el próximo lote de tesorería."
       },
       {
         "code": "PAID",
-        "label": "Pagado"
+        "label": "Pagado",
+        "help": "El dinero ya salió y se acreditó al comercio."
       },
       {
         "code": "CANCELLED",
-        "label": "Anulado"
+        "label": "Anulado",
+        "help": "Se dejó sin efecto antes de desembolsarse."
       },
       {
         "code": "DISPUTED",
-        "label": "En disputa"
+        "label": "En disputa",
+        "help": "Hay desacuerdo sobre el importe; se retiene hasta resolverlo."
       }
     ],
     "crm.recoveryStatus": [
       {
         "code": "OPEN",
-        "label": "Abierto"
+        "label": "Abierto",
+        "help": "Se detectó el importe a recuperar y nadie lo gestiona aún."
       },
       {
         "code": "IN_COLLECTION",
-        "label": "En cobranza"
+        "label": "En cobranza",
+        "help": "Cobranza lo está trabajando con gestiones registradas."
       },
       {
         "code": "PARTIALLY_RECOVERED",
-        "label": "Recuperado en parte"
+        "label": "Recuperado en parte",
+        "help": "Se rescató una porción; el resto sigue en gestión."
       },
       {
         "code": "RECOVERED",
-        "label": "Recuperado"
+        "label": "Recuperado",
+        "help": "Se cobró la totalidad; el caso se cierra sin pérdida."
       },
       {
         "code": "WRITTEN_OFF",
-        "label": "Castigado"
+        "label": "Castigado",
+        "help": "Se da por incobrable y se lleva a pérdida contable."
       }
     ],
     "crm.branchStatus": [
       {
         "code": "PENDING",
-        "label": "Pendiente"
+        "label": "Pendiente",
+        "help": "Registrada pero sin habilitar; no puede cobrar todavía."
       },
       {
         "code": "ACTIVE",
-        "label": "Activa"
+        "label": "Activa",
+        "help": "Opera con normalidad y acepta ventas de clientes Atlas."
       },
       {
         "code": "INACTIVE",
-        "label": "Inactiva"
+        "label": "Inactiva",
+        "help": "Cerrada o sin actividad; deja de aparecer en la app."
       },
       {
         "code": "SUSPENDED",
-        "label": "Suspendida"
+        "label": "Suspendida",
+        "help": "Bloqueada por una incidencia; se reactiva al resolverla."
       }
     ],
     "crm.merchantUserStatus": [
       {
         "code": "INVITED",
-        "label": "Invitado"
+        "label": "Invitado",
+        "help": "Se le enviaron credenciales y aún no entró al portal."
       },
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Puede iniciar sesión y operar según su rol."
       },
       {
         "code": "SUSPENDED",
-        "label": "Suspendido"
+        "label": "Suspendido",
+        "help": "Acceso cortado temporalmente; se restituye sin recrear la cuenta."
       },
       {
         "code": "DISABLED",
-        "label": "Deshabilitado"
+        "label": "Deshabilitado",
+        "help": "Ya no trabaja en el comercio; el acceso queda cerrado."
       }
     ],
     "crm.onboardingCaseStatus": [
       {
         "code": "OPEN",
-        "label": "Abierto"
+        "label": "Abierto",
+        "help": "Recién creado; faltan documentos antes de pedir la verificación."
       },
       {
         "code": "IN_PROGRESS",
@@ -1167,55 +1401,67 @@
       },
       {
         "code": "EN_VERIFICACION",
-        "label": "En verificación"
+        "label": "En verificación",
+        "help": "El expediente está en el Motor esperando su veredicto de KYB."
       },
       {
         "code": "REVISION_MANUAL",
-        "label": "En revisión manual"
+        "label": "En revisión manual",
+        "help": "El Motor no decidió solo; una persona debe mirar el caso."
       },
       {
         "code": "RECHAZADO",
-        "label": "Rechazado"
+        "label": "Rechazado",
+        "help": "La verificación falló; el comercio no se afilia."
       },
       {
         "code": "VERIFICADO",
-        "label": "Verificado"
+        "label": "Verificado",
+        "help": "El KYB salió aprobado; ya se pueden pedir credenciales."
       },
       {
         "code": "ALTA_PENDIENTE",
-        "label": "Credenciales pedidas"
+        "label": "Credenciales pedidas",
+        "help": "Se solicitó el usuario al portal y se espera su respuesta."
       },
       {
         "code": "LISTO",
-        "label": "Listo para activar"
+        "label": "Listo para activar",
+        "help": "El portal concedió el acceso; falta el último paso del ERP."
       },
       {
         "code": "COMPLETED",
-        "label": "Activado"
+        "label": "Activado",
+        "help": "Único estado que saca el caso de la cola: el comercio ya opera."
       }
     ],
     "crm.onboardingScope": [
       {
         "code": "abiertos",
-        "label": "Abiertos"
+        "label": "Abiertos",
+        "help": "Lo que falta por hacer; es la vista por defecto para trabajar."
       },
       {
         "code": "historial",
-        "label": "Historial"
+        "label": "Historial",
+        "help": "Sólo los comercios ya activados, para consultar lo cerrado."
       },
       {
         "code": "todos",
-        "label": "Todos"
+        "label": "Todos",
+        "help": "Vista completa; sirve para exportar y auditar, no para operar."
       }
     ],
     "crm.checklistStatus": [
       {
         "code": "PENDING",
-        "label": "Pendiente"
+        "label": "Pendiente",
+        "help": "Todavía no se entregó ni se verificó lo que pide el requisito."
       },
       {
         "code": "COMPLETED",
-        "label": "Cumplido"
+        "label": "Cumplido",
+        "help": "La evidencia está cargada y alguien la dio por buena."
       },
       {
         "code": "WAIVED",
@@ -1224,93 +1470,113 @@
       },
       {
         "code": "BLOCKED",
-        "label": "Bloqueado"
+        "label": "Bloqueado",
+        "help": "No se puede avanzar hasta resolver un impedimento externo."
       }
     ],
     "crm.checklistItemType": [
       {
         "code": "LEGAL",
-        "label": "Legal"
+        "label": "Legal",
+        "help": "Documentos societarios: NIT, matrícula, poderes del firmante."
       },
       {
         "code": "OPERATIONS",
-        "label": "Operaciones"
+        "label": "Operaciones",
+        "help": "Puesta en marcha: sucursales, horarios, capacitación del personal."
       },
       {
         "code": "TECHNICAL",
-        "label": "Técnico"
+        "label": "Técnico",
+        "help": "Integración y equipos: QR, terminal, acceso al portal."
       },
       {
         "code": "FINANCE",
-        "label": "Finanzas"
+        "label": "Finanzas",
+        "help": "Datos de cobro: cuenta bancaria, comisiones y garantías."
       },
       {
         "code": "COMPLIANCE",
-        "label": "Cumplimiento"
+        "label": "Cumplimiento",
+        "help": "Prevención de lavado: KYB, listas restrictivas, origen de fondos."
       }
     ],
     "crm.activityType": [
       {
         "code": "NOTE",
-        "label": "Nota"
+        "label": "Nota",
+        "help": "Apunte interno sin contacto con el cliente."
       },
       {
         "code": "CALL",
-        "label": "Llamada"
+        "label": "Llamada",
+        "help": "Conversación telefónica; conviene anotar con quién y el acuerdo."
       },
       {
         "code": "MEETING",
-        "label": "Reunión"
+        "label": "Reunión",
+        "help": "Encuentro presencial o por video con el comercio."
       },
       {
         "code": "EMAIL",
-        "label": "Correo"
+        "label": "Correo",
+        "help": "Intercambio escrito que deja constancia de lo ofrecido."
       },
       {
         "code": "WHATSAPP",
-        "label": "WhatsApp"
+        "label": "WhatsApp",
+        "help": "Mensajería con el contacto; el canal más usado con comercios."
       },
       {
         "code": "VISIT",
-        "label": "Visita"
+        "label": "Visita",
+        "help": "Se fue al local del comercio; sirve para verificar la actividad."
       },
       {
         "code": "TASK",
-        "label": "Tarea"
+        "label": "Tarea",
+        "help": "Pendiente con responsable y fecha, no un hecho ya ocurrido."
       },
       {
         "code": "OTHER",
-        "label": "Otra"
+        "label": "Otra",
+        "help": "Gestión que no encaja en los canales anteriores."
       }
     ],
     "crm.segmentSubject": [
       {
         "code": "CREDIT_APPLICANT",
-        "label": "Clientes solicitantes de crédito"
+        "label": "Clientes solicitantes de crédito",
+        "help": "Personas que pidieron financiamiento; se agrupan por su perfil."
       },
       {
         "code": "PARTNER",
-        "label": "Comercios y aliados"
+        "label": "Comercios y aliados",
+        "help": "Cuentas del CRM; se agrupan por rubro, volumen o territorio."
       }
     ],
     "crm.segmentStatus": [
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Se evalúa y puede usarse para campañas o reglas comerciales."
       },
       {
         "code": "INACTIVE",
-        "label": "Inactivo"
+        "label": "Inactivo",
+        "help": "Se deja de evaluar sin borrar su definición ni su historia."
       }
     ],
     "platform.segmentOperator": [
       {
         "code": "EQUALS",
-        "label": "Es igual a"
+        "label": "Es igual a",
+        "help": "Coincidencia exacta con un único valor escrito."
       },
       {
         "code": "NOT_EQUALS",
-        "label": "Es distinto de"
+        "label": "Es distinto de",
+        "help": "Excluye a quien tenga exactamente ese valor."
       },
       {
         "code": "IN",
@@ -1329,267 +1595,329 @@
       },
       {
         "code": "EXISTS",
-        "label": "Tiene valor"
+        "label": "Tiene valor",
+        "help": "Basta con que el dato esté cargado, sea cual sea."
       }
     ],
     "platform.segmentMatch": [
       {
         "code": "ALL",
-        "label": "Cumple todas las reglas"
+        "label": "Cumple todas las reglas",
+        "help": "Más restrictivo: cada condición tiene que darse a la vez."
       },
       {
         "code": "ANY",
-        "label": "Cumple al menos una regla"
+        "label": "Cumple al menos una regla",
+        "help": "Más amplio: con una sola condición que se dé, ya entra."
       }
     ],
     "crm.riskTier": [
       {
         "code": "LOW",
-        "label": "Bajo"
+        "label": "Bajo",
+        "help": "Historial limpio y actividad estable; no exige controles extra."
       },
       {
         "code": "MEDIUM",
-        "label": "Medio"
+        "label": "Medio",
+        "help": "Señales menores a vigilar; se revisa en el seguimiento habitual."
       },
       {
         "code": "HIGH",
-        "label": "Alto"
+        "label": "Alto",
+        "help": "Exige garantías o límites más estrictos antes de operar."
       },
       {
         "code": "CRITICAL",
-        "label": "Crítico"
+        "label": "Crítico",
+        "help": "No se opera sin aprobación expresa de riesgo y cumplimiento."
       }
     ],
     "crm.merchantCategory": [
       {
         "code": "RETAIL",
-        "label": "Retail / Comercio"
+        "label": "Retail / Comercio",
+        "help": "Venta al público de productos variados en local propio."
       },
       {
         "code": "SERVICIOS",
-        "label": "Servicios profesionales"
+        "label": "Servicios profesionales",
+        "help": "Consultoría, estudios jurídicos, contables y afines."
       },
       {
         "code": "EDUCACION",
-        "label": "Educación"
+        "label": "Educación",
+        "help": "Colegios, institutos, academias y cursos de preparación."
       },
       {
         "code": "SALUD",
-        "label": "Salud y farmacia"
+        "label": "Salud y farmacia",
+        "help": "Clínicas, consultorios, laboratorios y venta de medicamentos."
       },
       {
         "code": "ALIMENTOS",
-        "label": "Alimentos y bebidas"
+        "label": "Alimentos y bebidas",
+        "help": "Restaurantes, cafeterías, abarrotes y supermercados."
       },
       {
         "code": "TECNOLOGIA",
-        "label": "Tecnología y electrónica"
+        "label": "Tecnología y electrónica",
+        "help": "Computación, celulares, electrodomésticos y reparación."
       },
       {
         "code": "HOGAR",
-        "label": "Hogar y muebles"
+        "label": "Hogar y muebles",
+        "help": "Mueblería, decoración, línea blanca y artículos del hogar."
       },
       {
         "code": "VESTIMENTA",
-        "label": "Vestimenta y calzado"
+        "label": "Vestimenta y calzado",
+        "help": "Boutiques, zapaterías y venta de ropa en general."
       },
       {
         "code": "AUTOMOTOR",
-        "label": "Automotor y repuestos"
+        "label": "Automotor y repuestos",
+        "help": "Venta de vehículos, talleres, llanteras y autopartes."
       },
       {
         "code": "CONSTRUCCION",
-        "label": "Construcción y ferretería"
+        "label": "Construcción y ferretería",
+        "help": "Materiales, ferreterías y servicios de obra."
       },
       {
         "code": "TURISMO",
-        "label": "Turismo y transporte"
+        "label": "Turismo y transporte",
+        "help": "Agencias de viaje, hoteles, buses y traslados."
       },
       {
         "code": "OTRO",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "Ningún rubro anterior aplica; conviene revisarlo luego."
       }
     ],
     "crm.industry": [
       {
         "code": "RETAIL",
-        "label": "Retail / Comercio"
+        "label": "Retail / Comercio",
+        "help": "Vende al consumidor final en tienda o por internet."
       },
       {
         "code": "SERVICES",
-        "label": "Servicios"
+        "label": "Servicios",
+        "help": "Su producto es el trabajo de personas, no un bien físico."
       },
       {
         "code": "MANUFACTURING",
-        "label": "Manufactura"
+        "label": "Manufactura",
+        "help": "Transforma materia prima en productos terminados."
       },
       {
         "code": "TECHNOLOGY",
-        "label": "Tecnología"
+        "label": "Tecnología",
+        "help": "Software, hardware y servicios informáticos."
       },
       {
         "code": "FINANCE",
-        "label": "Finanzas"
+        "label": "Finanzas",
+        "help": "Bancos, cooperativas, seguros y casas de cambio."
       },
       {
         "code": "HEALTHCARE",
-        "label": "Salud"
+        "label": "Salud",
+        "help": "Atención médica, seguros de salud y laboratorios."
       },
       {
         "code": "EDUCATION",
-        "label": "Educación"
+        "label": "Educación",
+        "help": "Formación reglada y capacitación de cualquier nivel."
       },
       {
         "code": "LOGISTICS",
-        "label": "Transporte y logística"
+        "label": "Transporte y logística",
+        "help": "Mueve carga o personas: flotas, couriers, almacenes."
       },
       {
         "code": "FOOD_BEVERAGE",
-        "label": "Alimentos y bebidas"
+        "label": "Alimentos y bebidas",
+        "help": "Produce o vende comida y bebida, incluida la gastronomía."
       },
       {
         "code": "OTHER",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "La actividad no encaja en las industrias listadas."
       }
     ],
     "crm.businessLine": [
       {
         "code": "ELECTRODOMESTICOS",
-        "label": "Venta de electrodomésticos y tecnología"
+        "label": "Venta de electrodomésticos y tecnología",
+        "help": "Línea blanca, celulares y computación; ticket alto y financiable."
       },
       {
         "code": "ABARROTES",
-        "label": "Supermercado y abarrotes"
+        "label": "Supermercado y abarrotes",
+        "help": "Canasta familiar con compras frecuentes y de monto bajo."
       },
       {
         "code": "FARMACIA",
-        "label": "Farmacia"
+        "label": "Farmacia",
+        "help": "Medicamentos y cuidado personal; venta recurrente y regulada."
       },
       {
         "code": "RESTAURANTE",
-        "label": "Restaurante y comida rápida"
+        "label": "Restaurante y comida rápida",
+        "help": "Consumo en el local o para llevar, con alta rotación diaria."
       },
       {
         "code": "PREPARACION_ACADEMICA",
-        "label": "Preparación académica y cursos"
+        "label": "Preparación académica y cursos",
+        "help": "Preuniversitarios y capacitaciones cobradas por módulo."
       },
       {
         "code": "INSTITUCION_EDUCATIVA",
-        "label": "Colegio o instituto"
+        "label": "Colegio o instituto",
+        "help": "Educación reglada con matrícula y pensiones mensuales."
       },
       {
         "code": "ROPA_CALZADO",
-        "label": "Tienda de ropa y calzado"
+        "label": "Tienda de ropa y calzado",
+        "help": "Moda y calzado; la venta sigue la temporada."
       },
       {
         "code": "MUEBLERIA",
-        "label": "Mueblería y decoración"
+        "label": "Mueblería y decoración",
+        "help": "Muebles y equipamiento del hogar; compras grandes y espaciadas."
       },
       {
         "code": "FERRETERIA",
-        "label": "Ferretería y materiales"
+        "label": "Ferretería y materiales",
+        "help": "Herramientas y material de obra para maestros y familias."
       },
       {
         "code": "TALLER_REPUESTOS",
-        "label": "Taller y repuestos"
+        "label": "Taller y repuestos",
+        "help": "Mantenimiento vehicular y venta de autopartes."
       },
       {
         "code": "VIAJES_TRANSPORTE",
-        "label": "Agencia de viajes y transporte"
+        "label": "Agencia de viajes y transporte",
+        "help": "Pasajes, paquetes turísticos y traslados."
       },
       {
         "code": "SERVICIOS_PROFESIONALES",
-        "label": "Servicios profesionales"
+        "label": "Servicios profesionales",
+        "help": "Honorarios de estudios, consultorios y oficinas técnicas."
       },
       {
         "code": "OTRO",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "Actividad que no coincide con ninguna de las anteriores."
       }
     ],
     "crm.contactRoleTitle": [
       {
         "code": "PROPIETARIO",
-        "label": "Propietario / Dueño"
+        "label": "Propietario / Dueño",
+        "help": "Es el titular del negocio; en comercios chicos decide todo."
       },
       {
         "code": "GERENTE_GENERAL",
-        "label": "Gerente general"
+        "label": "Gerente general",
+        "help": "Máxima autoridad ejecutiva de la empresa."
       },
       {
         "code": "GERENTE_COMERCIAL",
-        "label": "Gerente comercial"
+        "label": "Gerente comercial",
+        "help": "Responde por las ventas; es el interlocutor natural del ejecutivo."
       },
       {
         "code": "GERENTE_FINANZAS",
-        "label": "Gerente de finanzas"
+        "label": "Gerente de finanzas",
+        "help": "Decide sobre comisiones, cobros y condiciones de pago."
       },
       {
         "code": "GERENTE_OPERACIONES",
-        "label": "Gerente de operaciones"
+        "label": "Gerente de operaciones",
+        "help": "Manda sobre sucursales, personal y puesta en marcha."
       },
       {
         "code": "ADMINISTRADOR",
-        "label": "Administrador"
+        "label": "Administrador",
+        "help": "Lleva el día a día administrativo del local."
       },
       {
         "code": "CONTADOR",
-        "label": "Contador"
+        "label": "Contador",
+        "help": "Ve las facturas y los impuestos; útil para temas tributarios."
       },
       {
         "code": "ENCARGADO_SUCURSAL",
-        "label": "Encargado de sucursal"
+        "label": "Encargado de sucursal",
+        "help": "Responde por un punto de venta concreto, no por toda la cuenta."
       },
       {
         "code": "VENDEDOR",
-        "label": "Vendedor / Cajero"
+        "label": "Vendedor / Cajero",
+        "help": "Atiende el mostrador; es quien usa el QR en la práctica."
       },
       {
         "code": "OTRO",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "Cargo distinto a los listados; conviene aclararlo en la nota."
       }
     ],
     "crm.decisionRole": [
       {
         "code": "DECISOR",
-        "label": "Decisor final"
+        "label": "Decisor final",
+        "help": "Su sí cierra el trato; sin él la negociación no avanza."
       },
       {
         "code": "INFLUENCIADOR",
-        "label": "Influenciador"
+        "label": "Influenciador",
+        "help": "No firma, pero su opinión pesa sobre quien decide."
       },
       {
         "code": "APROBADOR",
-        "label": "Aprobador de presupuesto"
+        "label": "Aprobador de presupuesto",
+        "help": "Libera el dinero aunque no elija al proveedor."
       },
       {
         "code": "USUARIO",
-        "label": "Usuario del servicio"
+        "label": "Usuario del servicio",
+        "help": "Lo usará a diario; su comodidad define la renovación."
       },
       {
         "code": "GESTOR",
-        "label": "Contacto de gestión"
+        "label": "Contacto de gestión",
+        "help": "Coordina papeles y reuniones; es la puerta de entrada operativa."
       },
       {
         "code": "BLOQUEADOR",
-        "label": "Bloqueador / Portero"
+        "label": "Bloqueador / Portero",
+        "help": "Puede frenar el trato; hay que neutralizar su objeción."
       }
     ],
     "ads.advertiserStatus": [
       {
         "code": "PENDING_REVIEW",
-        "label": "Pendiente de revisión"
+        "label": "Pendiente de revisión",
+        "help": "Se registró pero nadie validó sus datos; no puede entregar anuncios."
       },
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Habilitado para crear campañas y consumir presupuesto."
       },
       {
         "code": "SUSPENDED",
-        "label": "Suspendido"
+        "label": "Suspendido",
+        "help": "Se le cortó la entrega por mora o incumplimiento; es reversible."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazado"
+        "label": "Rechazado",
+        "help": "No pasó la revisión de alta; no llega a operar."
       }
     ],
     "ads.billingMode": [
@@ -1607,110 +1935,131 @@
     "ads.riskStatus": [
       {
         "code": "NORMAL",
-        "label": "Normal"
+        "label": "Normal",
+        "help": "Sin alertas: opera con los límites ordinarios."
       },
       {
         "code": "WATCHLIST",
-        "label": "En observación"
+        "label": "En observación",
+        "help": "Hay señales que vigilar; sigue entregando pero se le revisa."
       },
       {
         "code": "BLOCKED",
-        "label": "Bloqueado"
+        "label": "Bloqueado",
+        "help": "Riesgo confirmado: se detiene la entrega y el gasto."
       }
     ],
     "ads.campaignStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "En preparación; no consume presupuesto ni se muestra."
       },
       {
         "code": "PENDING_REVIEW",
-        "label": "Pendiente de revisión"
+        "label": "Pendiente de revisión",
+        "help": "Enviada a moderación y a la espera de veredicto."
       },
       {
         "code": "APPROVED",
-        "label": "Aprobada"
+        "label": "Aprobada",
+        "help": "Pasó moderación; entregará cuando llegue su fecha de inicio."
       },
       {
         "code": "ACTIVE",
-        "label": "Activa"
+        "label": "Activa",
+        "help": "Entregando ahora mismo y descontando del presupuesto."
       },
       {
         "code": "PAUSED",
-        "label": "Pausada"
+        "label": "Pausada",
+        "help": "Se detuvo la entrega a voluntad; se reanuda sin volver a aprobarla."
       },
       {
         "code": "ENDED",
-        "label": "Finalizada"
+        "label": "Finalizada",
+        "help": "Llegó a su fecha final o agotó el presupuesto."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazada"
+        "label": "Rechazada",
+        "help": "Moderación la negó; hay que corregirla y reenviarla."
       },
       {
         "code": "ARCHIVED",
-        "label": "Archivada"
+        "label": "Archivada",
+        "help": "Retirada de las listas de trabajo; sólo queda para consulta."
       }
     ],
     "ads.approvalStatus": [
       {
         "code": "NOT_SUBMITTED",
-        "label": "Sin enviar"
+        "label": "Sin enviar",
+        "help": "Todavía no se pidió revisión; nadie la está mirando."
       },
       {
         "code": "PENDING",
-        "label": "Pendiente"
+        "label": "Pendiente",
+        "help": "En la cola de moderación esperando que la tomen."
       },
       {
         "code": "APPROVED",
-        "label": "Aprobada"
+        "label": "Aprobada",
+        "help": "Cumple las políticas y ya puede salir al aire."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazada"
+        "label": "Rechazada",
+        "help": "Incumple una política; no puede entregarse tal como está."
       },
       {
         "code": "CHANGES_REQUESTED",
-        "label": "Cambios solicitados"
+        "label": "Cambios solicitados",
+        "help": "Se puede aprobar si el anunciante corrige lo observado."
       }
     ],
     "ads.campaignObjective": [
       {
         "code": "AWARENESS",
-        "label": "Reconocimiento de marca"
+        "label": "Reconocimiento de marca",
+        "help": "Que el público recuerde la marca; se mide por alcance, no por clics."
       },
       {
         "code": "TRAFFIC",
-        "label": "Tráfico"
+        "label": "Tráfico",
+        "help": "Llevar gente a una página o a la ficha del comercio."
       },
       {
         "code": "LEADS",
-        "label": "Contactos"
+        "label": "Contactos",
+        "help": "Conseguir datos de personas interesadas para contactarlas."
       },
       {
         "code": "CONVERSIONS",
-        "label": "Conversiones"
+        "label": "Conversiones",
+        "help": "Que ocurra una acción concreta: compra, alta o solicitud."
       },
       {
         "code": "PROMOTION",
-        "label": "Promoción"
+        "label": "Promoción",
+        "help": "Difundir una oferta puntual con fecha de caducidad."
       }
     ],
     "ads.buyingModel": [
       {
         "code": "CPM",
         "label": "CPM",
-        "help": "Costo por mil impresiones."
+        "help": "Costo por cada mil impresiones entregadas."
       },
       {
         "code": "CPC",
         "label": "CPC",
-        "help": "Costo por clic."
+        "help": "Costo por cada clic recibido."
       },
       {
         "code": "CPA",
         "label": "CPA",
-        "help": "Costo por acción o conversión."
+        "help": "Costo por acción o conversión conseguida."
       },
       {
         "code": "FIXED",
@@ -1721,175 +2070,214 @@
     "ads.creativeType": [
       {
         "code": "IMAGE",
-        "label": "Imagen"
+        "label": "Imagen",
+        "help": "Una sola pieza gráfica estática; es el formato más compatible."
       },
       {
         "code": "VIDEO",
-        "label": "Video"
+        "label": "Video",
+        "help": "Pieza en movimiento; sólo en espacios que declaran admitirlo."
       },
       {
         "code": "CAROUSEL",
-        "label": "Carrusel"
+        "label": "Carrusel",
+        "help": "Varias piezas que el usuario desliza en un mismo espacio."
       },
       {
         "code": "TEXT_CARD",
-        "label": "Tarjeta de texto"
+        "label": "Tarjeta de texto",
+        "help": "Título y texto sin imagen; pesa poco y se lee en pantallas chicas."
       }
     ],
     "ads.moderationDecision": [
       {
         "code": "PENDING_REVIEW",
-        "label": "Pendiente de revisión"
+        "label": "Pendiente de revisión",
+        "help": "Aún sin veredicto; el anuncio no sale mientras tanto."
       },
       {
         "code": "APPROVED",
-        "label": "Aprobado"
+        "label": "Aprobado",
+        "help": "Quien revisó no halló incumplimiento; puede entregarse."
       },
       {
         "code": "REJECTED",
-        "label": "Rechazado"
+        "label": "Rechazado",
+        "help": "Se halló una infracción; exige registrar qué política se incumplió."
       },
       {
         "code": "CHANGES_REQUESTED",
-        "label": "Cambios solicitados"
+        "label": "Cambios solicitados",
+        "help": "Se devuelve al anunciante con observaciones concretas que corregir."
       },
       {
         "code": "ESCALATED",
-        "label": "Escalado"
+        "label": "Escalado",
+        "help": "El caso es dudoso y pasa a un revisor con más facultades."
       }
     ],
     "ads.eventType": [
       {
         "code": "IMPRESSION",
-        "label": "Impresión"
+        "label": "Impresión",
+        "help": "El anuncio se mostró en pantalla, aunque nadie lo tocara."
       },
       {
         "code": "CLICK",
-        "label": "Clic"
+        "label": "Clic",
+        "help": "Alguien pulsó el anuncio y fue al destino."
       },
       {
         "code": "CONVERSION",
-        "label": "Conversión"
+        "label": "Conversión",
+        "help": "Tras el clic ocurrió la acción que la campaña perseguía."
       }
     ],
     "ads.invoiceStatus": [
       {
         "code": "DRAFT",
-        "label": "Borrador"
+        "label": "Borrador",
+        "help": "Aún editable; el anunciante todavía no la recibió."
       },
       {
         "code": "ISSUED",
-        "label": "Emitida"
+        "label": "Emitida",
+        "help": "Entregada al anunciante y a la espera de su pago."
       },
       {
         "code": "PARTIALLY_PAID",
-        "label": "Pagada en parte"
+        "label": "Pagada en parte",
+        "help": "Se recibió un abono y queda saldo abierto."
       },
       {
         "code": "PAID",
-        "label": "Pagada"
+        "label": "Pagada",
+        "help": "Cobrada por completo; sin saldo pendiente."
       },
       {
         "code": "OVERDUE",
-        "label": "Vencida"
+        "label": "Vencida",
+        "help": "Superó el plazo de pago; puede frenar la entrega de campañas."
       },
       {
         "code": "VOID",
-        "label": "Anulada"
+        "label": "Anulada",
+        "help": "Se dejó sin efecto y no se reclama su cobro."
       }
     ],
     "ads.spendLedgerEntryType": [
       {
         "code": "CHARGE",
-        "label": "Cargo"
+        "label": "Cargo",
+        "help": "Consumo de la entrega: reduce el saldo del anunciante."
       },
       {
         "code": "CREDIT",
-        "label": "Abono"
+        "label": "Abono",
+        "help": "Recarga o bonificación que aumenta el saldo disponible."
       },
       {
         "code": "ADJUSTMENT",
-        "label": "Ajuste"
+        "label": "Ajuste",
+        "help": "Corrección manual de un importe mal registrado."
       },
       {
         "code": "REFUND",
-        "label": "Devolución"
+        "label": "Devolución",
+        "help": "Dinero que se regresa al anunciante, por ejemplo por tráfico inválido."
       },
       {
         "code": "TAX",
-        "label": "Impuesto"
+        "label": "Impuesto",
+        "help": "Componente tributario del movimiento, separado del consumo."
       }
     ],
     "ads.policyRuleType": [
       {
         "code": "AUTO_REJECT",
-        "label": "Rechazo automático"
+        "label": "Rechazo automático",
+        "help": "El sistema lo niega solo, sin pasar por una persona."
       },
       {
         "code": "MANUAL_REVIEW_REQUIRED",
-        "label": "Exige revisión manual"
+        "label": "Exige revisión manual",
+        "help": "Manda el anuncio a la cola para que alguien decida."
       },
       {
         "code": "WARNING",
-        "label": "Sólo advertencia"
+        "label": "Sólo advertencia",
+        "help": "Deja pasar el anuncio pero deja constancia del aviso."
       },
       {
         "code": "BLOCK_DELIVERY",
-        "label": "Bloquea la entrega"
+        "label": "Bloquea la entrega",
+        "help": "El anuncio queda aprobado pero no se muestra."
       }
     ],
     "ads.policySeverity": [
       {
         "code": "LOW",
-        "label": "Baja"
+        "label": "Baja",
+        "help": "Incumplimiento menor de forma; no pone en riesgo a nadie."
       },
       {
         "code": "MEDIUM",
-        "label": "Media"
+        "label": "Media",
+        "help": "Puede confundir al público; conviene corregirlo antes de salir."
       },
       {
         "code": "HIGH",
-        "label": "Alta"
+        "label": "Alta",
+        "help": "Riesgo reputacional o legal claro; no debería entregarse."
       },
       {
         "code": "CRITICAL",
-        "label": "Crítica"
+        "label": "Crítica",
+        "help": "Ilegal o dañino: se corta la entrega de inmediato."
       }
     ],
     "ads.auditSeverity": [
       {
         "code": "INFO",
-        "label": "Informativo"
+        "label": "Informativo",
+        "help": "Deja rastro de algo normal; no pide ninguna acción."
       },
       {
         "code": "LOW",
-        "label": "Baja"
+        "label": "Baja",
+        "help": "Anomalía menor: se revisa cuando haya tiempo."
       },
       {
         "code": "MEDIUM",
-        "label": "Media"
+        "label": "Media",
+        "help": "Merece mirarse dentro de la jornada."
       },
       {
         "code": "HIGH",
-        "label": "Alta"
+        "label": "Alta",
+        "help": "Afecta dinero o entrega; se atiende cuanto antes."
       },
       {
         "code": "CRITICAL",
-        "label": "Crítica"
+        "label": "Crítica",
+        "help": "Exige intervención inmediata y aviso a los responsables."
       }
     ],
     "ads.segmentType": [
       {
         "code": "CORPORATE_CONTEXTUAL",
-        "label": "Contextual corporativo"
+        "label": "Contextual corporativo",
+        "help": "Mira rubro, riesgo, volumen y antigüedad del comercio, nunca a la persona."
       },
       {
         "code": "MERCHANT_CATEGORY",
-        "label": "Por rubro del comercio"
+        "label": "Por rubro del comercio",
+        "help": "Se define con una sola condición: la categoría del negocio."
       },
       {
         "code": "GEO",
-        "label": "Geográfico"
+        "label": "Geográfico",
+        "help": "Filtra por ciudad, región o país y por nada más."
       },
       {
         "code": "CUSTOM_ALLOWLIST",
@@ -1898,31 +2286,37 @@
       },
       {
         "code": "LOOKUP_STATIC",
-        "label": "Búsqueda estática"
+        "label": "Búsqueda estática",
+        "help": "Combina rubro, geografía y superficie en una lista fija que no cambia sola."
       }
     ],
     "ads.segmentPrivacyLevel": [
       {
         "code": "CORPORATE_CONTEXTUAL",
-        "label": "Contextual corporativo"
+        "label": "Contextual corporativo",
+        "help": "El menos invasivo: sólo datos del negocio, ninguno de personas."
       },
       {
         "code": "AGGREGATED",
-        "label": "Agregado"
+        "label": "Agregado",
+        "help": "Usa bandas y promedios; no se puede llegar a un individuo."
       },
       {
         "code": "HASHED_ALLOWLIST",
-        "label": "Lista hasheada"
+        "label": "Lista hasheada",
+        "help": "El más estricto: apunta a clientes concretos, aunque sea por su huella."
       }
     ],
     "ads.deliveryBillableStatus": [
       {
         "code": "BILLABLE",
-        "label": "Facturable"
+        "label": "Facturable",
+        "help": "Entrega válida: se cobra al anunciante con normalidad."
       },
       {
         "code": "NON_BILLABLE",
-        "label": "No facturable"
+        "label": "No facturable",
+        "help": "Ocurrió pero no se cobra: pruebas, cortesías o entregas internas."
       },
       {
         "code": "SUSPICIOUS",
@@ -1933,141 +2327,172 @@
     "ads.emailSuppressionReason": [
       {
         "code": "UNSUBSCRIBE",
-        "label": "Se dio de baja"
+        "label": "Se dio de baja",
+        "help": "La persona pidió no recibir más; volver a escribirle es ilegal."
       },
       {
         "code": "HARD_BOUNCE",
-        "label": "Rebote permanente"
+        "label": "Rebote permanente",
+        "help": "La casilla no existe; insistir daña la reputación de envío."
       },
       {
         "code": "SPAM_REPORT",
-        "label": "Lo marcó como spam"
+        "label": "Lo marcó como spam",
+        "help": "Denunció el correo; seguir enviando bloquea el dominio entero."
       },
       {
         "code": "MANUAL",
-        "label": "Exclusión manual"
+        "label": "Exclusión manual",
+        "help": "Alguien de Atlas la excluyó a mano; conviene anotar el motivo."
       }
     ],
     "ads.performanceGrouping": [
       {
         "code": "CAMPAIGN",
-        "label": "Por campaña"
+        "label": "Por campaña",
+        "help": "Una fila por campaña: la vista más gruesa del resultado."
       },
       {
         "code": "AD_SET",
-        "label": "Por conjunto de anuncios"
+        "label": "Por conjunto de anuncios",
+        "help": "Separa por segmentación y puja para comparar audiencias."
       },
       {
         "code": "AD",
-        "label": "Por anuncio"
+        "label": "Por anuncio",
+        "help": "Baja a cada pieza; sirve para ver qué creatividad rinde."
       },
       {
         "code": "DAY",
-        "label": "Por día"
+        "label": "Por día",
+        "help": "Serie diaria: muestra la evolución en el tiempo."
       }
     ],
     "ads.surface": [
       {
         "code": "MERCHANT_PORTAL",
-        "label": "Portal del comercio"
+        "label": "Portal del comercio",
+        "help": "Lo ven los dueños y operadores de comercios afiliados."
       },
       {
         "code": "CONSUMER_APP",
-        "label": "App del cliente"
+        "label": "App del cliente",
+        "help": "Lo ven las personas que compran con Atlas desde su teléfono."
       },
       {
         "code": "EMAIL",
-        "label": "Correo"
+        "label": "Correo",
+        "help": "Va dentro de un envío; respeta la lista de supresión."
       }
     ],
     "ads.placementFormat": [
       {
         "code": "IMAGE_BANNER",
-        "label": "Banner de imagen"
+        "label": "Banner de imagen",
+        "help": "Franja gráfica de medidas fijas; el formato más habitual."
       },
       {
         "code": "TEXT_CARD",
-        "label": "Tarjeta de texto"
+        "label": "Tarjeta de texto",
+        "help": "Sólo título y cuerpo; útil donde la imagen no carga bien."
       },
       {
         "code": "VIDEO",
-        "label": "Video"
+        "label": "Video",
+        "help": "Sólo en espacios que declaran soportar reproducción."
       },
       {
         "code": "CAROUSEL",
-        "label": "Carrusel"
+        "label": "Carrusel",
+        "help": "Varias piezas deslizables en un mismo hueco."
       }
     ],
     "ads.policyCategory": [
       {
         "code": "FINANCIAL_CLAIMS",
-        "label": "Promesas financieras"
+        "label": "Promesas financieras",
+        "help": "Tasas, cuotas y rendimientos que se anuncian sin respaldo."
       },
       {
         "code": "PRIVACY",
-        "label": "Privacidad"
+        "label": "Privacidad",
+        "help": "Uso de datos personales sin consentimiento o fuera de lo declarado."
       },
       {
         "code": "PROHIBITED_PRODUCTS",
-        "label": "Productos prohibidos"
+        "label": "Productos prohibidos",
+        "help": "Bienes que no se pueden anunciar: armas, drogas y afines."
       },
       {
         "code": "MISLEADING_CONTENT",
-        "label": "Contenido engañoso"
+        "label": "Contenido engañoso",
+        "help": "Afirmaciones falsas o que inducen a error sobre la oferta."
       },
       {
         "code": "SENSITIVE_CONTENT",
-        "label": "Contenido sensible"
+        "label": "Contenido sensible",
+        "help": "Violencia, sexo o temas delicados para el público general."
       },
       {
         "code": "INTELLECTUAL_PROPERTY",
-        "label": "Propiedad intelectual"
+        "label": "Propiedad intelectual",
+        "help": "Uso de marcas, obras o imágenes ajenas sin autorización."
       },
       {
         "code": "OTHER",
-        "label": "Otra"
+        "label": "Otra",
+        "help": "Materia no prevista; exige detallarla en la descripción."
       }
     ],
     "ads.taxRegime": [
       {
         "code": "REGIMEN GENERAL",
-        "label": "Régimen General"
+        "label": "Régimen General",
+        "help": "Lleva contabilidad y emite factura; declara IVA, IT e IUE."
       },
       {
         "code": "REGIMEN SIMPLIFICADO",
-        "label": "Régimen Tributario Simplificado (RTS)"
+        "label": "Régimen Tributario Simplificado (RTS)",
+        "help": "Pequeños comerciantes y artesanos: pagan una cuota fija y no facturan."
       },
       {
         "code": "SISTEMA TRIBUTARIO INTEGRADO",
-        "label": "Sistema Tributario Integrado (STI)"
+        "label": "Sistema Tributario Integrado (STI)",
+        "help": "Transporte público urbano e interprovincial con vehículos propios."
       },
       {
         "code": "REGIMEN AGROPECUARIO UNIFICADO",
-        "label": "Régimen Agropecuario Unificado (RAU)"
+        "label": "Régimen Agropecuario Unificado (RAU)",
+        "help": "Actividad agrícola y pecuaria; tributa por hectárea, no por venta."
       }
     ],
     "portal.planTier": [
       {
         "code": "STARTER",
-        "label": "Inicial"
+        "label": "Inicial",
+        "help": "El más barato y acotado; para un comercio que recién prueba Atlas."
       },
       {
         "code": "STANDARD",
-        "label": "Estándar"
+        "label": "Estándar",
+        "help": "El plan de referencia: cubre a la mayoría de los comercios."
       },
       {
         "code": "PREMIUM",
-        "label": "Premium"
+        "label": "Premium",
+        "help": "Más alcance y prioridad; para comercios con varias sucursales."
       },
       {
         "code": "ENTERPRISE",
-        "label": "Empresarial"
+        "label": "Empresarial",
+        "help": "Condiciones negociadas caso por caso para cadenas grandes."
       }
     ],
     "portal.planStatus": [
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Se puede contratar y aparece en el catálogo del portal."
       },
       {
         "code": "INACTIVE",
@@ -2076,77 +2501,94 @@
       },
       {
         "code": "ARCHIVED",
-        "label": "Archivado"
+        "label": "Archivado",
+        "help": "Fuera de uso; se conserva por los contratos que aún lo citan."
       }
     ],
     "portal.campaignToggle": [
       {
         "code": "ACTIVE",
-        "label": "Activa"
+        "label": "Activa",
+        "help": "Reanuda la entrega; el presupuesto vuelve a consumirse."
       },
       {
         "code": "PAUSED",
-        "label": "Pausada"
+        "label": "Pausada",
+        "help": "Detiene la entrega sin perder lo configurado ni la aprobación."
       }
     ],
     "platform.activeInactive": [
       {
         "code": "ACTIVE",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "En funcionamiento y disponible para usarse."
       },
       {
         "code": "INACTIVE",
-        "label": "Inactivo"
+        "label": "Inactivo",
+        "help": "Apagado, pero se conserva para volver a encenderlo."
       }
     ],
     "portal.bankInstitution": [
       {
         "code": "BNB",
-        "label": "Banco Nacional de Bolivia"
+        "label": "Banco Nacional de Bolivia",
+        "help": "Sigla ASFI BNB; elige si el QR lo emitió este banco."
       },
       {
         "code": "BME",
-        "label": "Banco Mercantil Santa Cruz"
+        "label": "Banco Mercantil Santa Cruz",
+        "help": "Sigla ASFI BME; el QR suele decir «Mercantil Santa Cruz»."
       },
       {
         "code": "BUN",
-        "label": "Banco Unión"
+        "label": "Banco Unión",
+        "help": "Sigla ASFI BUN; es el banco estatal con el que cobra mucho comercio."
       },
       {
         "code": "BCR",
-        "label": "Banco de Crédito de Bolivia (BCP)"
+        "label": "Banco de Crédito de Bolivia (BCP)",
+        "help": "Sigla ASFI BCR aunque la marca visible sea BCP."
       },
       {
         "code": "BIS",
-        "label": "Banco BISA"
+        "label": "Banco BISA",
+        "help": "Sigla ASFI BIS; elige si el QR lleva la marca BISA."
       },
       {
         "code": "BGA",
-        "label": "Banco Ganadero"
+        "label": "Banco Ganadero",
+        "help": "Sigla ASFI BGA; fuerte en el oriente del país."
       },
       {
         "code": "BEC",
-        "label": "Banco Económico"
+        "label": "Banco Económico",
+        "help": "Sigla ASFI BEC; elige si el QR dice «Banco Económico»."
       },
       {
         "code": "BSO",
-        "label": "Banco Solidario (BancoSol)"
+        "label": "Banco Solidario (BancoSol)",
+        "help": "Sigla ASFI BSO; banca para microempresa, la marca dice BancoSol."
       },
       {
         "code": "BIE",
-        "label": "Banco FIE"
+        "label": "Banco FIE",
+        "help": "Sigla ASFI BIE, no FIE; es la que espera el validador."
       },
       {
         "code": "BPR",
-        "label": "Banco Prodem"
+        "label": "Banco Prodem",
+        "help": "Sigla ASFI BPR; común en comercios de área rural y periurbana."
       },
       {
         "code": "BFO",
-        "label": "Banco Fortaleza"
+        "label": "Banco Fortaleza",
+        "help": "Sigla ASFI BFO; elige si el QR lleva la marca Fortaleza."
       },
       {
         "code": "BDP",
-        "label": "Banco de Desarrollo Productivo"
+        "label": "Banco de Desarrollo Productivo",
+        "help": "Sigla ASFI BDP; banca de segundo piso, poco habitual en un QR."
       },
       {
         "code": "OTRA",
@@ -2162,123 +2604,151 @@
       },
       {
         "code": "BRANCH_MANAGER",
-        "label": "Gerente de sucursal"
+        "label": "Gerente de sucursal",
+        "help": "Manda sobre un solo local: su equipo, sus ventas y sus cobros."
       },
       {
         "code": "MERCHANT_OPERATOR",
-        "label": "Operador"
+        "label": "Operador",
+        "help": "Atiende el mostrador: cobra con QR y consulta sus propias ventas."
       },
       {
         "code": "FINANCIAL_AUDITOR",
-        "label": "Auditor financiero"
+        "label": "Auditor financiero",
+        "help": "Sólo lectura de liquidaciones y facturas; no puede operar nada."
       }
     ],
     "files.ownerType": [
       {
         "code": "GL_ACCOUNT",
-        "label": "Cuenta contable"
+        "label": "Cuenta contable",
+        "help": "Respaldo de la cuenta en sí: su apertura o su reclasificación."
       },
       {
         "code": "BUSINESS_PARTNER",
-        "label": "Business partner"
+        "label": "Business partner",
+        "help": "Papeles del tercero: NIT, poderes, datos bancarios."
       },
       {
         "code": "ACCOUNTING_DOCUMENT",
-        "label": "Documento contable"
+        "label": "Documento contable",
+        "help": "Comprobante escaneado que respalda el documento completo."
       },
       {
         "code": "JOURNAL_ENTRY",
-        "label": "Asiento"
+        "label": "Asiento",
+        "help": "Respaldo de una línea concreta del asiento, no de todo el documento."
       },
       {
         "code": "CONTRACT",
-        "label": "Contrato"
+        "label": "Contrato",
+        "help": "El contrato firmado y sus anexos o adendas."
       },
       {
         "code": "B2B_ACCOUNT",
-        "label": "Cuenta comercial"
+        "label": "Cuenta comercial",
+        "help": "Documentación de la cuenta del CRM: fichas y evaluaciones."
       },
       {
         "code": "OPPORTUNITY",
-        "label": "Oportunidad"
+        "label": "Oportunidad",
+        "help": "Material de la negociación: propuestas, cotizaciones, actas."
       },
       {
         "code": "MERCHANT",
-        "label": "Comercio"
+        "label": "Comercio",
+        "help": "Evidencia del alta del comercio: fotos del local, licencias."
       },
       {
         "code": "LEGAL_ENTITY",
-        "label": "Entidad legal"
+        "label": "Entidad legal",
+        "help": "Documentos societarios de una empresa del grupo Atlas."
       },
       {
         "code": "OTHER",
-        "label": "Otro"
+        "label": "Otro",
+        "help": "No pertenece a ninguno de los registros anteriores."
       }
     ],
     "files.contentType": [
       {
         "code": "application/pdf",
-        "label": "PDF"
+        "label": "PDF",
+        "help": "Lo preferible para contratos y facturas: conserva varias páginas."
       },
       {
         "code": "image/jpeg",
-        "label": "Imagen JPEG"
+        "label": "Imagen JPEG",
+        "help": "Fotos tomadas con el teléfono; pesa poco pero pierde detalle."
       },
       {
         "code": "image/png",
-        "label": "Imagen PNG"
+        "label": "Imagen PNG",
+        "help": "Capturas de pantalla y QR: no pierde nitidez al comprimirse."
       }
     ],
     "auth.internalDepartment": [
       {
         "code": "OPERATIONS",
-        "label": "Operaciones"
+        "label": "Operaciones",
+        "help": "Lleva el día a día: altas de comercios y atención del circuito."
       },
       {
         "code": "RISK",
-        "label": "Riesgo"
+        "label": "Riesgo",
+        "help": "Decide límites y políticas de crédito antes de prestar."
       },
       {
         "code": "COLLECTIONS",
-        "label": "Cobranza"
+        "label": "Cobranza",
+        "help": "Recupera la cartera vencida y gestiona los acuerdos de pago."
       },
       {
         "code": "COMPLIANCE",
-        "label": "Cumplimiento"
+        "label": "Cumplimiento",
+        "help": "KYB, listas restrictivas y prevención de lavado de dinero."
       },
       {
         "code": "FINANCE",
-        "label": "Finanzas"
+        "label": "Finanzas",
+        "help": "Contabilidad, tesorería, impuestos y reportes a la dirección."
       },
       {
         "code": "SUPPORT",
-        "label": "Soporte"
+        "label": "Soporte",
+        "help": "Atiende a clientes y comercios y resuelve incidencias."
       },
       {
         "code": "SYSTEMS",
-        "label": "Sistemas"
+        "label": "Sistemas",
+        "help": "Mantiene la plataforma; suele tener accesos técnicos amplios."
       },
       {
         "code": "AUDIT",
-        "label": "Auditoría"
+        "label": "Auditoría",
+        "help": "Revisa a las demás áreas; en general sólo lectura."
       },
       {
         "code": "EXECUTIVE",
-        "label": "Dirección"
+        "label": "Dirección",
+        "help": "Gerencia y directorio: aprueban lo que excede a las áreas."
       }
     ],
     "auth.internalUserStatus": [
       {
         "code": "active",
-        "label": "Activo"
+        "label": "Activo",
+        "help": "Puede entrar y usar todo lo que su rol le permite."
       },
       {
         "code": "invited",
-        "label": "Invitado"
+        "label": "Invitado",
+        "help": "Se le creó la cuenta pero todavía no completó su primer ingreso."
       },
       {
         "code": "suspended",
-        "label": "Suspendido"
+        "label": "Suspendido",
+        "help": "Acceso cortado por decisión administrativa, por ejemplo una licencia."
       },
       {
         "code": "locked",
@@ -2287,35 +2757,42 @@
       },
       {
         "code": "disabled",
-        "label": "Deshabilitado"
+        "label": "Deshabilitado",
+        "help": "Se fue de la empresa; la cuenta queda cerrada de forma definitiva."
       }
     ],
     "audit.businessActionStatus": [
       {
         "code": "SUCCESS",
-        "label": "Correcta"
+        "label": "Correcta",
+        "help": "La acción terminó e hizo todo lo que prometía."
       },
       {
         "code": "FAILED",
-        "label": "Fallida"
+        "label": "Fallida",
+        "help": "No llegó a hacer nada; el error queda en el registro."
       },
       {
         "code": "PARTIAL",
-        "label": "Parcial"
+        "label": "Parcial",
+        "help": "Una parte se aplicó y otra no; es la que exige revisión manual."
       }
     ],
     "documents.noticeLevel": [
       {
         "code": "positive",
-        "label": "Informativo"
+        "label": "Informativo",
+        "help": "Dato útil en verde; no pide ninguna acción a quien lo lee."
       },
       {
         "code": "caution",
-        "label": "Precaución"
+        "label": "Precaución",
+        "help": "Advierte algo a tener en cuenta, como una fecha límite."
       },
       {
         "code": "critical",
-        "label": "Crítico"
+        "label": "Crítico",
+        "help": "Destaca en rojo lo que no se puede pasar por alto."
       }
     ]
   }
