@@ -90,6 +90,7 @@ const camposDeVinculo: ActionField[] = [
     optionsLoaderFor: async (tipo) => (await LISTADO_POR_TIPO[tipo]?.()) ?? [],
     hint: 'Las del tipo elegido.',
   },
+  // campo-libre: «Otro» es el tipo sin catálogo (por definición no hay listado del que elegir).
   { name: 'otherEntityId', label: 'Identificador (sólo tipo «Otro»)', optional: true, span: 2, placeholder: '00000000-0000-4000-8000-000000000000', hint: '«Otro» no tiene listado del que elegir: pega el UUID de la entidad.' },
   // Su ayuda inventaba GASTO/INGRESO, que el backend no acepta: ahora es su vocabulario.
   { name: 'relation', label: 'Relación', optional: true, defaultValue: 'DEFAULT', optionsSource: 'domain:accounting.entityLinkRelation', hint: 'Para qué se ata la entidad. Vacío = DEFAULT.' },

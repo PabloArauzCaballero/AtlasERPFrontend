@@ -76,7 +76,8 @@ for (const carpeta of CARPETAS) {
     const texto = readFileSync(archivo, 'utf8');
     const lineas = texto.split('\n');
     lineas.forEach((linea, indice) => {
-      if (EXCEPCION.test(linea)) return;
+      // La excepción vale en la propia línea o justo encima (el campo suele ocupar una línea larga).
+      if (EXCEPCION.test(linea) || EXCEPCION.test(lineas[indice - 1] ?? '')) return;
       const donde = `${relative(RAIZ, archivo)}:${indice + 1}`;
       if (CORRELATIVO.test(linea)) hallazgos.push(`${donde}  placeholder de correlativo: lo asigna el backend (assignedByBackend)`);
       if (UUID_EN_PLACEHOLDER.test(linea)) hallazgos.push(`${donde}  placeholder de UUID: elige el registro en un select`);

@@ -1,0 +1,2322 @@
+{
+  "domains": {
+    "accounting.recordStatus": [
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactivo"
+      },
+      {
+        "code": "ARCHIVED",
+        "label": "Archivado"
+      }
+    ],
+    "accounting.glAccountStatus": [
+      {
+        "code": "ACTIVE",
+        "label": "Activa"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactiva",
+        "help": "No admite asientos nuevos; conserva su historial."
+      },
+      {
+        "code": "ARCHIVED",
+        "label": "Archivada",
+        "help": "Retirada del plan; sólo se consulta."
+      }
+    ],
+    "accounting.businessPartnerStatus": [
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactivo"
+      },
+      {
+        "code": "BLOCKED",
+        "label": "Bloqueado",
+        "help": "No se le puede facturar ni pagar hasta desbloquearlo."
+      },
+      {
+        "code": "ARCHIVED",
+        "label": "Archivado"
+      }
+    ],
+    "accounting.glAccountType": [
+      {
+        "code": "ASSET",
+        "label": "Activo"
+      },
+      {
+        "code": "LIABILITY",
+        "label": "Pasivo"
+      },
+      {
+        "code": "EQUITY",
+        "label": "Patrimonio"
+      },
+      {
+        "code": "REVENUE",
+        "label": "Ingreso"
+      },
+      {
+        "code": "EXPENSE",
+        "label": "Gasto"
+      },
+      {
+        "code": "CONTRA_ASSET",
+        "label": "Contra-activo",
+        "help": "Resta de un activo: depreciación, previsión."
+      }
+    ],
+    "accounting.normalBalance": [
+      {
+        "code": "D",
+        "label": "Débito"
+      },
+      {
+        "code": "C",
+        "label": "Crédito"
+      }
+    ],
+    "accounting.partnerType": [
+      {
+        "code": "PERSON",
+        "label": "Persona"
+      },
+      {
+        "code": "COMPANY",
+        "label": "Empresa"
+      },
+      {
+        "code": "BANK",
+        "label": "Banco"
+      },
+      {
+        "code": "GROUP_ENTITY",
+        "label": "Entidad del grupo"
+      },
+      {
+        "code": "GOVERNMENT",
+        "label": "Entidad pública"
+      }
+    ],
+    "accounting.kybStatus": [
+      {
+        "code": "PENDING",
+        "label": "Pendiente"
+      },
+      {
+        "code": "IN_REVIEW",
+        "label": "En revisión"
+      },
+      {
+        "code": "APPROVED",
+        "label": "Aprobado"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazado"
+      }
+    ],
+    "accounting.statementType": [
+      {
+        "code": "BALANCE_SHEET",
+        "label": "Balance general"
+      },
+      {
+        "code": "INCOME_STATEMENT",
+        "label": "Estado de resultados"
+      },
+      {
+        "code": "CASH_FLOW",
+        "label": "Flujo de efectivo"
+      },
+      {
+        "code": "EQUITY_CHANGES",
+        "label": "Cambios en el patrimonio"
+      },
+      {
+        "code": "MEMORANDUM",
+        "label": "Cuentas de orden"
+      }
+    ],
+    "accounting.accountClassification": [
+      {
+        "code": "ASSET",
+        "label": "Activo"
+      },
+      {
+        "code": "LIABILITY",
+        "label": "Pasivo"
+      },
+      {
+        "code": "EQUITY",
+        "label": "Patrimonio"
+      },
+      {
+        "code": "REVENUE",
+        "label": "Ingreso"
+      },
+      {
+        "code": "EXPENSE",
+        "label": "Gasto"
+      }
+    ],
+    "accounting.accountSubClassification": [
+      {
+        "code": "CURRENT",
+        "label": "Corriente"
+      },
+      {
+        "code": "NON_CURRENT",
+        "label": "No corriente"
+      },
+      {
+        "code": "CAPITAL",
+        "label": "Capital"
+      },
+      {
+        "code": "RESERVES",
+        "label": "Reservas"
+      },
+      {
+        "code": "RESULTS",
+        "label": "Resultados acumulados"
+      },
+      {
+        "code": "OCI",
+        "label": "Otro resultado integral",
+        "help": "Partidas que no pasan por resultados (ORI)."
+      },
+      {
+        "code": "OPERATING",
+        "label": "Operativo"
+      },
+      {
+        "code": "NON_OPERATING",
+        "label": "No operativo"
+      },
+      {
+        "code": "COST_OF_SERVICE",
+        "label": "Costo del servicio"
+      },
+      {
+        "code": "FINANCIAL",
+        "label": "Financiero"
+      },
+      {
+        "code": "DEPRECIATION",
+        "label": "Depreciación y amortización"
+      },
+      {
+        "code": "CREDIT_LOSS",
+        "label": "Pérdida crediticia"
+      },
+      {
+        "code": "TAX",
+        "label": "Impuestos"
+      }
+    ],
+    "accounting.entityLinkType": [
+      {
+        "code": "BUSINESS_PARTNER",
+        "label": "Business partner"
+      },
+      {
+        "code": "COST_CENTER",
+        "label": "Centro de costo"
+      },
+      {
+        "code": "PROFIT_CENTER",
+        "label": "Centro de beneficio"
+      },
+      {
+        "code": "CONTRACT",
+        "label": "Contrato"
+      },
+      {
+        "code": "LEGAL_ENTITY",
+        "label": "Entidad legal"
+      },
+      {
+        "code": "TAX_CODE",
+        "label": "Código de impuesto"
+      },
+      {
+        "code": "BANK_ACCOUNT",
+        "label": "Cuenta bancaria"
+      },
+      {
+        "code": "LEDGER",
+        "label": "Ledger"
+      },
+      {
+        "code": "BRANCH",
+        "label": "Sucursal"
+      },
+      {
+        "code": "ACCOUNTING_DOCUMENT",
+        "label": "Documento contable"
+      },
+      {
+        "code": "OTHER",
+        "label": "Otro"
+      }
+    ],
+    "accounting.entityLinkRelation": [
+      {
+        "code": "DEFAULT",
+        "label": "Por defecto"
+      },
+      {
+        "code": "AR_CONTROL",
+        "label": "Cuentas por cobrar (control)"
+      },
+      {
+        "code": "AP_CONTROL",
+        "label": "Cuentas por pagar (control)"
+      },
+      {
+        "code": "ADVANCE",
+        "label": "Anticipos"
+      },
+      {
+        "code": "SURCHARGE",
+        "label": "Recargos"
+      },
+      {
+        "code": "REVENUE",
+        "label": "Ingreso"
+      },
+      {
+        "code": "EXPENSE",
+        "label": "Gasto"
+      },
+      {
+        "code": "TAX",
+        "label": "Impuesto"
+      }
+    ],
+    "accounting.partnerAccountPurpose": [
+      {
+        "code": "AR_CONTROL",
+        "label": "Cuentas por cobrar (control)"
+      },
+      {
+        "code": "AP_CONTROL",
+        "label": "Cuentas por pagar (control)"
+      },
+      {
+        "code": "CUSTOMER_ADVANCES",
+        "label": "Anticipos de cliente"
+      },
+      {
+        "code": "SUPPLIER_ADVANCES",
+        "label": "Anticipos a proveedor"
+      },
+      {
+        "code": "SURCHARGES",
+        "label": "Recargos"
+      },
+      {
+        "code": "DISCOUNTS",
+        "label": "Descuentos"
+      },
+      {
+        "code": "WITHHOLDINGS",
+        "label": "Retenciones"
+      }
+    ],
+    "accounting.partnerRole": [
+      {
+        "code": "CUSTOMER",
+        "label": "Cliente"
+      },
+      {
+        "code": "SUPPLIER",
+        "label": "Proveedor"
+      },
+      {
+        "code": "MERCHANT",
+        "label": "Comercio afiliado"
+      },
+      {
+        "code": "LENDER",
+        "label": "Prestamista"
+      },
+      {
+        "code": "BANK",
+        "label": "Banco"
+      },
+      {
+        "code": "INTERCOMPANY",
+        "label": "Empresa del grupo"
+      }
+    ],
+    "accounting.ledgerBasis": [
+      {
+        "code": "LOCAL_BO",
+        "label": "Norma local (Bolivia)"
+      },
+      {
+        "code": "MANAGEMENT",
+        "label": "Gestión interna"
+      },
+      {
+        "code": "IFRS",
+        "label": "NIIF (IFRS)"
+      }
+    ],
+    "accounting.taxType": [
+      {
+        "code": "IVA",
+        "label": "IVA — Impuesto al Valor Agregado"
+      },
+      {
+        "code": "IT",
+        "label": "IT — Impuesto a las Transacciones"
+      },
+      {
+        "code": "IUE",
+        "label": "IUE — Impuesto sobre las Utilidades"
+      },
+      {
+        "code": "RETENTION",
+        "label": "Retención"
+      },
+      {
+        "code": "OTHER",
+        "label": "Otro"
+      }
+    ],
+    "accounting.contractType": [
+      {
+        "code": "CUSTOMER_BILLING",
+        "label": "Facturación a cliente"
+      },
+      {
+        "code": "SUPPLIER",
+        "label": "Proveedor"
+      },
+      {
+        "code": "LOAN",
+        "label": "Préstamo"
+      },
+      {
+        "code": "INTERCOMPANY",
+        "label": "Entre empresas del grupo"
+      },
+      {
+        "code": "MERCHANT",
+        "label": "Comercio afiliado"
+      }
+    ],
+    "accounting.contractStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "ACTIVE",
+        "label": "Vigente"
+      },
+      {
+        "code": "SUSPENDED",
+        "label": "Suspendido"
+      },
+      {
+        "code": "TERMINATED",
+        "label": "Terminado"
+      }
+    ],
+    "accounting.billingEventType": [
+      {
+        "code": "MDR",
+        "label": "Comisión por venta (MDR)",
+        "help": "Porcentaje sobre lo que vende el comercio."
+      },
+      {
+        "code": "SAAS",
+        "label": "Suscripción"
+      },
+      {
+        "code": "SETUP",
+        "label": "Cargo de alta"
+      },
+      {
+        "code": "INTERCOMPANY",
+        "label": "Servicio entre empresas del grupo"
+      },
+      {
+        "code": "SUPPORT",
+        "label": "Soporte"
+      }
+    ],
+    "accounting.arInvoiceStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "ISSUED",
+        "label": "Emitida"
+      },
+      {
+        "code": "PARTIALLY_PAID",
+        "label": "Pagada en parte"
+      },
+      {
+        "code": "PAID",
+        "label": "Pagada"
+      },
+      {
+        "code": "CREDITED",
+        "label": "Acreditada",
+        "help": "Anulada total o parcialmente con nota de crédito."
+      },
+      {
+        "code": "VOID",
+        "label": "Anulada"
+      }
+    ],
+    "accounting.receiptStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "RECORDED",
+        "label": "Registrado"
+      },
+      {
+        "code": "POSTED",
+        "label": "Contabilizado"
+      },
+      {
+        "code": "VOID",
+        "label": "Anulado"
+      }
+    ],
+    "accounting.documentApprovalStatus": [
+      {
+        "code": "NOT_REQUIRED",
+        "label": "No requiere aprobación"
+      },
+      {
+        "code": "PENDING",
+        "label": "Pendiente de aprobación"
+      },
+      {
+        "code": "APPROVED",
+        "label": "Aprobado"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazado"
+      }
+    ],
+    "accounting.documentSourceSystem": [
+      {
+        "code": "ATLAS_ERP",
+        "label": "ERP Atlas"
+      },
+      {
+        "code": "ACCOUNTING",
+        "label": "Contabilidad (manual)"
+      },
+      {
+        "code": "BILLING",
+        "label": "Facturación"
+      },
+      {
+        "code": "TREASURY",
+        "label": "Tesorería"
+      },
+      {
+        "code": "CRM",
+        "label": "CRM comercial"
+      },
+      {
+        "code": "ADS",
+        "label": "Publicidad"
+      },
+      {
+        "code": "SMOKE",
+        "label": "Prueba técnica",
+        "help": "Sólo para las pruebas de humo del sistema."
+      }
+    ],
+    "accounting.documentSourceType": [
+      {
+        "code": "MANUAL",
+        "label": "Asiento manual"
+      },
+      {
+        "code": "AR_INVOICE",
+        "label": "Factura por cobrar"
+      },
+      {
+        "code": "RECEIPT",
+        "label": "Recibo de cobro"
+      },
+      {
+        "code": "MERCHANT_INVOICE",
+        "label": "Factura a comercio"
+      },
+      {
+        "code": "REVERSAL",
+        "label": "Reversión"
+      },
+      {
+        "code": "CLOSING",
+        "label": "Cierre de período"
+      },
+      {
+        "code": "BATCH_VALIDATION",
+        "label": "Prueba técnica",
+        "help": "Sólo para las pruebas de humo."
+      }
+    ],
+    "accounting.documentType": [
+      {
+        "code": "JOURNAL",
+        "label": "Asiento de diario"
+      },
+      {
+        "code": "AR_INVOICE",
+        "label": "Factura por cobrar"
+      },
+      {
+        "code": "RECEIPT",
+        "label": "Recibo"
+      },
+      {
+        "code": "REVERSAL",
+        "label": "Reversión"
+      },
+      {
+        "code": "ADJUSTMENT",
+        "label": "Ajuste"
+      },
+      {
+        "code": "CLOSING",
+        "label": "Cierre"
+      }
+    ],
+    "accounting.siatStatus": [
+      {
+        "code": "PENDING",
+        "label": "Pendiente de envío"
+      },
+      {
+        "code": "SENT",
+        "label": "Enviada"
+      },
+      {
+        "code": "ACCEPTED",
+        "label": "Aceptada"
+      },
+      {
+        "code": "OBSERVED",
+        "label": "Observada"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazada"
+      },
+      {
+        "code": "VOIDED",
+        "label": "Anulada ante el SIAT"
+      }
+    ],
+    "accounting.periodCloseType": [
+      {
+        "code": "MONTHLY",
+        "label": "Mensual"
+      },
+      {
+        "code": "ANNUAL",
+        "label": "Anual"
+      }
+    ],
+    "accounting.paymentTermModality": [
+      {
+        "code": "CONTADO",
+        "label": "Contado",
+        "help": "Se paga al recibir la factura. El vencimiento es la propia fecha de factura."
+      },
+      {
+        "code": "CREDITO",
+        "label": "Crédito",
+        "help": "Se paga a un plazo acordado desde la base de cómputo."
+      },
+      {
+        "code": "ANTICIPO",
+        "label": "Anticipo",
+        "help": "Se adelanta un porcentaje antes de recibir el bien o servicio."
+      },
+      {
+        "code": "CONTRA_ENTREGA",
+        "label": "Contra entrega",
+        "help": "Se paga al recibir conforme. La base de cómputo es la recepción, no la factura."
+      },
+      {
+        "code": "PARCIAL",
+        "label": "Pago parcial",
+        "help": "Se liquida en varios pagos dentro del plazo acordado."
+      },
+      {
+        "code": "HITOS",
+        "label": "Por hitos",
+        "help": "Cada pago se libera al cumplirse un hito del contrato, no por calendario."
+      },
+      {
+        "code": "RECURRENTE",
+        "label": "Recurrente",
+        "help": "Importe periódico mientras el contrato siga vigente."
+      }
+    ],
+    "accounting.paymentTermBase": [
+      {
+        "code": "FECHA_FACTURA",
+        "label": "Fecha de factura",
+        "help": "El plazo corre desde la fecha que la factura declara."
+      },
+      {
+        "code": "FECHA_RECEPCION",
+        "label": "Fecha de recepción",
+        "help": "El plazo corre desde que se recibe conforme el bien o servicio."
+      },
+      {
+        "code": "FIN_DE_MES",
+        "label": "Fin de mes de factura",
+        "help": "El plazo corre desde el último día del mes de la factura."
+      }
+    ],
+    "accounting.paymentMethod": [
+      {
+        "code": "TRANSFERENCIA",
+        "label": "Transferencia bancaria"
+      },
+      {
+        "code": "CHEQUE",
+        "label": "Cheque"
+      },
+      {
+        "code": "EFECTIVO",
+        "label": "Efectivo"
+      },
+      {
+        "code": "TARJETA",
+        "label": "Tarjeta"
+      },
+      {
+        "code": "QR",
+        "label": "Pago con QR"
+      },
+      {
+        "code": "COMPENSACION",
+        "label": "Compensación de saldos"
+      }
+    ],
+    "accounting.paymentFrequency": [
+      {
+        "code": "UNICA",
+        "label": "Pago único"
+      },
+      {
+        "code": "SEMANAL",
+        "label": "Semanal"
+      },
+      {
+        "code": "QUINCENAL",
+        "label": "Quincenal"
+      },
+      {
+        "code": "MENSUAL",
+        "label": "Mensual"
+      },
+      {
+        "code": "BIMESTRAL",
+        "label": "Bimestral"
+      },
+      {
+        "code": "TRIMESTRAL",
+        "label": "Trimestral"
+      },
+      {
+        "code": "SEMESTRAL",
+        "label": "Semestral"
+      },
+      {
+        "code": "ANUAL",
+        "label": "Anual"
+      }
+    ],
+    "accounting.paymentTermStatus": [
+      {
+        "code": "BORRADOR",
+        "label": "Borrador"
+      },
+      {
+        "code": "ACTIVA",
+        "label": "Activa"
+      },
+      {
+        "code": "SUSPENDIDA",
+        "label": "Suspendida"
+      },
+      {
+        "code": "VENCIDA",
+        "label": "Vencida"
+      },
+      {
+        "code": "ARCHIVADA",
+        "label": "Archivada"
+      }
+    ],
+    "crm.accountType": [
+      {
+        "code": "MERCHANT",
+        "label": "Comercio afiliado"
+      },
+      {
+        "code": "PARTNER",
+        "label": "Aliado"
+      },
+      {
+        "code": "DISTRIBUTOR",
+        "label": "Distribuidor"
+      },
+      {
+        "code": "FINANCIAL_ALLY",
+        "label": "Aliado financiero"
+      }
+    ],
+    "crm.accountLifecycleStatus": [
+      {
+        "code": "LEAD",
+        "label": "Prospecto"
+      },
+      {
+        "code": "QUALIFIED",
+        "label": "Calificada"
+      },
+      {
+        "code": "CUSTOMER",
+        "label": "Cliente"
+      },
+      {
+        "code": "SUSPENDED",
+        "label": "Suspendida"
+      },
+      {
+        "code": "TERMINATED",
+        "label": "Terminada"
+      },
+      {
+        "code": "DISQUALIFIED",
+        "label": "Descartada"
+      }
+    ],
+    "crm.opportunityStage": [
+      {
+        "code": "DISCOVERY",
+        "label": "Descubrimiento"
+      },
+      {
+        "code": "QUALIFICATION",
+        "label": "Calificación"
+      },
+      {
+        "code": "PROPOSAL",
+        "label": "Propuesta"
+      },
+      {
+        "code": "NEGOTIATION",
+        "label": "Negociación"
+      },
+      {
+        "code": "CONTRACTING",
+        "label": "Contratación"
+      },
+      {
+        "code": "CLOSED_WON",
+        "label": "Ganada"
+      },
+      {
+        "code": "CLOSED_LOST",
+        "label": "Perdida",
+        "help": "Exige registrar el motivo de pérdida."
+      }
+    ],
+    "crm.opportunityType": [
+      {
+        "code": "NEW_MERCHANT",
+        "label": "Comercio nuevo"
+      },
+      {
+        "code": "RENEWAL",
+        "label": "Renovación"
+      },
+      {
+        "code": "UPSELL",
+        "label": "Ampliación (upsell)"
+      },
+      {
+        "code": "CROSS_SELL",
+        "label": "Venta cruzada"
+      },
+      {
+        "code": "REACTIVATION",
+        "label": "Reactivación"
+      }
+    ],
+    "crm.proposalStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "PENDING_APPROVAL",
+        "label": "Pendiente de aprobación"
+      },
+      {
+        "code": "SENT",
+        "label": "Enviada al cliente"
+      },
+      {
+        "code": "ACCEPTED",
+        "label": "Aceptada"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazada"
+      }
+    ],
+    "crm.approvalDecision": [
+      {
+        "code": "APPROVED",
+        "label": "Aprobar"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazar"
+      }
+    ],
+    "crm.termType": [
+      {
+        "code": "MDR",
+        "label": "Comisión por venta (MDR)",
+        "help": "Porcentaje sobre lo que vende el comercio."
+      },
+      {
+        "code": "SUBSCRIPTION",
+        "label": "Suscripción"
+      },
+      {
+        "code": "SETUP_FEE",
+        "label": "Cargo de alta"
+      },
+      {
+        "code": "SERVICE_FEE",
+        "label": "Cargo por servicio"
+      },
+      {
+        "code": "PENALTY",
+        "label": "Penalidad"
+      },
+      {
+        "code": "MINIMUM_MONTHLY_FEE",
+        "label": "Mínimo mensual"
+      }
+    ],
+    "crm.billingTiming": [
+      {
+        "code": "PER_TRANSACTION",
+        "label": "Por transacción"
+      },
+      {
+        "code": "MONTHLY",
+        "label": "Mensual"
+      },
+      {
+        "code": "ONE_TIME",
+        "label": "Una sola vez"
+      },
+      {
+        "code": "ON_DEMAND",
+        "label": "Bajo demanda"
+      }
+    ],
+    "crm.contractBillingCycle": [
+      {
+        "code": "MONTHLY",
+        "label": "Mensual"
+      },
+      {
+        "code": "QUARTERLY",
+        "label": "Trimestral"
+      },
+      {
+        "code": "SEMIANNUAL",
+        "label": "Semestral"
+      },
+      {
+        "code": "ANNUAL",
+        "label": "Anual"
+      }
+    ],
+    "crm.contractSettlementPolicy": [
+      {
+        "code": "PER_CONTRACT",
+        "label": "Por contrato",
+        "help": "Una liquidación por cada contrato."
+      },
+      {
+        "code": "PER_BRANCH",
+        "label": "Por sucursal",
+        "help": "Una liquidación por cada sucursal del comercio."
+      },
+      {
+        "code": "PER_ACCOUNT",
+        "label": "Consolidada por cuenta",
+        "help": "Una sola liquidación con todos los contratos de la cuenta."
+      }
+    ],
+    "crm.contractStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "PENDING_SIGNATURE",
+        "label": "Pendiente de firma"
+      },
+      {
+        "code": "ACTIVE",
+        "label": "Vigente"
+      },
+      {
+        "code": "EXPIRED",
+        "label": "Vencido"
+      },
+      {
+        "code": "TERMINATED",
+        "label": "Terminado"
+      },
+      {
+        "code": "SUSPENDED",
+        "label": "Suspendido"
+      }
+    ],
+    "crm.merchantInvoiceStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "ISSUED",
+        "label": "Emitida"
+      },
+      {
+        "code": "PARTIALLY_PAID",
+        "label": "Pagada en parte"
+      },
+      {
+        "code": "PAID",
+        "label": "Pagada"
+      },
+      {
+        "code": "OVERDUE",
+        "label": "Vencida"
+      },
+      {
+        "code": "CANCELLED",
+        "label": "Anulada"
+      }
+    ],
+    "crm.receivableStatus": [
+      {
+        "code": "PENDING",
+        "label": "Pendiente"
+      },
+      {
+        "code": "PARTIALLY_PAID",
+        "label": "Pagada en parte"
+      },
+      {
+        "code": "PAID",
+        "label": "Pagada"
+      },
+      {
+        "code": "OVERDUE",
+        "label": "Vencida"
+      },
+      {
+        "code": "CANCELLED",
+        "label": "Anulada"
+      },
+      {
+        "code": "DISPUTED",
+        "label": "En disputa"
+      }
+    ],
+    "crm.payableStatus": [
+      {
+        "code": "SCHEDULED",
+        "label": "Programado"
+      },
+      {
+        "code": "DUE",
+        "label": "Por pagar"
+      },
+      {
+        "code": "PAID",
+        "label": "Pagado"
+      },
+      {
+        "code": "CANCELLED",
+        "label": "Anulado"
+      },
+      {
+        "code": "DISPUTED",
+        "label": "En disputa"
+      }
+    ],
+    "crm.recoveryStatus": [
+      {
+        "code": "OPEN",
+        "label": "Abierto"
+      },
+      {
+        "code": "IN_COLLECTION",
+        "label": "En cobranza"
+      },
+      {
+        "code": "PARTIALLY_RECOVERED",
+        "label": "Recuperado en parte"
+      },
+      {
+        "code": "RECOVERED",
+        "label": "Recuperado"
+      },
+      {
+        "code": "WRITTEN_OFF",
+        "label": "Castigado"
+      }
+    ],
+    "crm.branchStatus": [
+      {
+        "code": "PENDING",
+        "label": "Pendiente"
+      },
+      {
+        "code": "ACTIVE",
+        "label": "Activa"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactiva"
+      },
+      {
+        "code": "SUSPENDED",
+        "label": "Suspendida"
+      }
+    ],
+    "crm.merchantUserStatus": [
+      {
+        "code": "INVITED",
+        "label": "Invitado"
+      },
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "SUSPENDED",
+        "label": "Suspendido"
+      },
+      {
+        "code": "DISABLED",
+        "label": "Deshabilitado"
+      }
+    ],
+    "crm.onboardingCaseStatus": [
+      {
+        "code": "OPEN",
+        "label": "Abierto"
+      },
+      {
+        "code": "IN_PROGRESS",
+        "label": "En curso",
+        "help": "Valor heredado; equivale a abierto."
+      },
+      {
+        "code": "BLOCKED",
+        "label": "Bloqueado",
+        "help": "Valor heredado; equivale a revisión."
+      },
+      {
+        "code": "EN_VERIFICACION",
+        "label": "En verificación"
+      },
+      {
+        "code": "REVISION_MANUAL",
+        "label": "En revisión manual"
+      },
+      {
+        "code": "RECHAZADO",
+        "label": "Rechazado"
+      },
+      {
+        "code": "VERIFICADO",
+        "label": "Verificado"
+      },
+      {
+        "code": "ALTA_PENDIENTE",
+        "label": "Credenciales pedidas"
+      },
+      {
+        "code": "LISTO",
+        "label": "Listo para activar"
+      },
+      {
+        "code": "COMPLETED",
+        "label": "Activado"
+      }
+    ],
+    "crm.onboardingScope": [
+      {
+        "code": "abiertos",
+        "label": "Abiertos"
+      },
+      {
+        "code": "historial",
+        "label": "Historial"
+      },
+      {
+        "code": "todos",
+        "label": "Todos"
+      }
+    ],
+    "crm.checklistStatus": [
+      {
+        "code": "PENDING",
+        "label": "Pendiente"
+      },
+      {
+        "code": "COMPLETED",
+        "label": "Cumplido"
+      },
+      {
+        "code": "WAIVED",
+        "label": "Dispensado",
+        "help": "No se exige para este comercio; queda registrado quién lo dispensó."
+      },
+      {
+        "code": "BLOCKED",
+        "label": "Bloqueado"
+      }
+    ],
+    "crm.checklistItemType": [
+      {
+        "code": "LEGAL",
+        "label": "Legal"
+      },
+      {
+        "code": "OPERATIONS",
+        "label": "Operaciones"
+      },
+      {
+        "code": "TECHNICAL",
+        "label": "Técnico"
+      },
+      {
+        "code": "FINANCE",
+        "label": "Finanzas"
+      },
+      {
+        "code": "COMPLIANCE",
+        "label": "Cumplimiento"
+      }
+    ],
+    "crm.activityType": [
+      {
+        "code": "NOTE",
+        "label": "Nota"
+      },
+      {
+        "code": "CALL",
+        "label": "Llamada"
+      },
+      {
+        "code": "MEETING",
+        "label": "Reunión"
+      },
+      {
+        "code": "EMAIL",
+        "label": "Correo"
+      },
+      {
+        "code": "WHATSAPP",
+        "label": "WhatsApp"
+      },
+      {
+        "code": "VISIT",
+        "label": "Visita"
+      },
+      {
+        "code": "TASK",
+        "label": "Tarea"
+      },
+      {
+        "code": "OTHER",
+        "label": "Otra"
+      }
+    ],
+    "crm.segmentSubject": [
+      {
+        "code": "CREDIT_APPLICANT",
+        "label": "Clientes solicitantes de crédito"
+      },
+      {
+        "code": "PARTNER",
+        "label": "Comercios y aliados"
+      }
+    ],
+    "crm.segmentStatus": [
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactivo"
+      }
+    ],
+    "platform.segmentOperator": [
+      {
+        "code": "EQUALS",
+        "label": "Es igual a"
+      },
+      {
+        "code": "NOT_EQUALS",
+        "label": "Es distinto de"
+      },
+      {
+        "code": "IN",
+        "label": "Está entre",
+        "help": "Varios valores separados por coma."
+      },
+      {
+        "code": "NOT_IN",
+        "label": "No está entre",
+        "help": "Varios valores separados por coma."
+      },
+      {
+        "code": "BETWEEN",
+        "label": "Entre dos números",
+        "help": "Mínimo y máximo, separados por coma."
+      },
+      {
+        "code": "EXISTS",
+        "label": "Tiene valor"
+      }
+    ],
+    "platform.segmentMatch": [
+      {
+        "code": "ALL",
+        "label": "Cumple todas las reglas"
+      },
+      {
+        "code": "ANY",
+        "label": "Cumple al menos una regla"
+      }
+    ],
+    "crm.riskTier": [
+      {
+        "code": "LOW",
+        "label": "Bajo"
+      },
+      {
+        "code": "MEDIUM",
+        "label": "Medio"
+      },
+      {
+        "code": "HIGH",
+        "label": "Alto"
+      },
+      {
+        "code": "CRITICAL",
+        "label": "Crítico"
+      }
+    ],
+    "crm.merchantCategory": [
+      {
+        "code": "RETAIL",
+        "label": "Retail / Comercio"
+      },
+      {
+        "code": "SERVICIOS",
+        "label": "Servicios profesionales"
+      },
+      {
+        "code": "EDUCACION",
+        "label": "Educación"
+      },
+      {
+        "code": "SALUD",
+        "label": "Salud y farmacia"
+      },
+      {
+        "code": "ALIMENTOS",
+        "label": "Alimentos y bebidas"
+      },
+      {
+        "code": "TECNOLOGIA",
+        "label": "Tecnología y electrónica"
+      },
+      {
+        "code": "HOGAR",
+        "label": "Hogar y muebles"
+      },
+      {
+        "code": "VESTIMENTA",
+        "label": "Vestimenta y calzado"
+      },
+      {
+        "code": "AUTOMOTOR",
+        "label": "Automotor y repuestos"
+      },
+      {
+        "code": "CONSTRUCCION",
+        "label": "Construcción y ferretería"
+      },
+      {
+        "code": "TURISMO",
+        "label": "Turismo y transporte"
+      },
+      {
+        "code": "OTRO",
+        "label": "Otro"
+      }
+    ],
+    "crm.industry": [
+      {
+        "code": "RETAIL",
+        "label": "Retail / Comercio"
+      },
+      {
+        "code": "SERVICES",
+        "label": "Servicios"
+      },
+      {
+        "code": "MANUFACTURING",
+        "label": "Manufactura"
+      },
+      {
+        "code": "TECHNOLOGY",
+        "label": "Tecnología"
+      },
+      {
+        "code": "FINANCE",
+        "label": "Finanzas"
+      },
+      {
+        "code": "HEALTHCARE",
+        "label": "Salud"
+      },
+      {
+        "code": "EDUCATION",
+        "label": "Educación"
+      },
+      {
+        "code": "LOGISTICS",
+        "label": "Transporte y logística"
+      },
+      {
+        "code": "FOOD_BEVERAGE",
+        "label": "Alimentos y bebidas"
+      },
+      {
+        "code": "OTHER",
+        "label": "Otro"
+      }
+    ],
+    "crm.businessLine": [
+      {
+        "code": "ELECTRODOMESTICOS",
+        "label": "Venta de electrodomésticos y tecnología"
+      },
+      {
+        "code": "ABARROTES",
+        "label": "Supermercado y abarrotes"
+      },
+      {
+        "code": "FARMACIA",
+        "label": "Farmacia"
+      },
+      {
+        "code": "RESTAURANTE",
+        "label": "Restaurante y comida rápida"
+      },
+      {
+        "code": "PREPARACION_ACADEMICA",
+        "label": "Preparación académica y cursos"
+      },
+      {
+        "code": "INSTITUCION_EDUCATIVA",
+        "label": "Colegio o instituto"
+      },
+      {
+        "code": "ROPA_CALZADO",
+        "label": "Tienda de ropa y calzado"
+      },
+      {
+        "code": "MUEBLERIA",
+        "label": "Mueblería y decoración"
+      },
+      {
+        "code": "FERRETERIA",
+        "label": "Ferretería y materiales"
+      },
+      {
+        "code": "TALLER_REPUESTOS",
+        "label": "Taller y repuestos"
+      },
+      {
+        "code": "VIAJES_TRANSPORTE",
+        "label": "Agencia de viajes y transporte"
+      },
+      {
+        "code": "SERVICIOS_PROFESIONALES",
+        "label": "Servicios profesionales"
+      },
+      {
+        "code": "OTRO",
+        "label": "Otro"
+      }
+    ],
+    "crm.contactRoleTitle": [
+      {
+        "code": "PROPIETARIO",
+        "label": "Propietario / Dueño"
+      },
+      {
+        "code": "GERENTE_GENERAL",
+        "label": "Gerente general"
+      },
+      {
+        "code": "GERENTE_COMERCIAL",
+        "label": "Gerente comercial"
+      },
+      {
+        "code": "GERENTE_FINANZAS",
+        "label": "Gerente de finanzas"
+      },
+      {
+        "code": "GERENTE_OPERACIONES",
+        "label": "Gerente de operaciones"
+      },
+      {
+        "code": "ADMINISTRADOR",
+        "label": "Administrador"
+      },
+      {
+        "code": "CONTADOR",
+        "label": "Contador"
+      },
+      {
+        "code": "ENCARGADO_SUCURSAL",
+        "label": "Encargado de sucursal"
+      },
+      {
+        "code": "VENDEDOR",
+        "label": "Vendedor / Cajero"
+      },
+      {
+        "code": "OTRO",
+        "label": "Otro"
+      }
+    ],
+    "crm.decisionRole": [
+      {
+        "code": "DECISOR",
+        "label": "Decisor final"
+      },
+      {
+        "code": "INFLUENCIADOR",
+        "label": "Influenciador"
+      },
+      {
+        "code": "APROBADOR",
+        "label": "Aprobador de presupuesto"
+      },
+      {
+        "code": "USUARIO",
+        "label": "Usuario del servicio"
+      },
+      {
+        "code": "GESTOR",
+        "label": "Contacto de gestión"
+      },
+      {
+        "code": "BLOQUEADOR",
+        "label": "Bloqueador / Portero"
+      }
+    ],
+    "ads.advertiserStatus": [
+      {
+        "code": "PENDING_REVIEW",
+        "label": "Pendiente de revisión"
+      },
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "SUSPENDED",
+        "label": "Suspendido"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazado"
+      }
+    ],
+    "ads.billingMode": [
+      {
+        "code": "PREPAID",
+        "label": "Prepago",
+        "help": "Carga saldo antes de que se entreguen anuncios."
+      },
+      {
+        "code": "POSTPAID",
+        "label": "Pospago",
+        "help": "Se le factura al cierre del período."
+      }
+    ],
+    "ads.riskStatus": [
+      {
+        "code": "NORMAL",
+        "label": "Normal"
+      },
+      {
+        "code": "WATCHLIST",
+        "label": "En observación"
+      },
+      {
+        "code": "BLOCKED",
+        "label": "Bloqueado"
+      }
+    ],
+    "ads.campaignStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "PENDING_REVIEW",
+        "label": "Pendiente de revisión"
+      },
+      {
+        "code": "APPROVED",
+        "label": "Aprobada"
+      },
+      {
+        "code": "ACTIVE",
+        "label": "Activa"
+      },
+      {
+        "code": "PAUSED",
+        "label": "Pausada"
+      },
+      {
+        "code": "ENDED",
+        "label": "Finalizada"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazada"
+      },
+      {
+        "code": "ARCHIVED",
+        "label": "Archivada"
+      }
+    ],
+    "ads.approvalStatus": [
+      {
+        "code": "NOT_SUBMITTED",
+        "label": "Sin enviar"
+      },
+      {
+        "code": "PENDING",
+        "label": "Pendiente"
+      },
+      {
+        "code": "APPROVED",
+        "label": "Aprobada"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazada"
+      },
+      {
+        "code": "CHANGES_REQUESTED",
+        "label": "Cambios solicitados"
+      }
+    ],
+    "ads.campaignObjective": [
+      {
+        "code": "AWARENESS",
+        "label": "Reconocimiento de marca"
+      },
+      {
+        "code": "TRAFFIC",
+        "label": "Tráfico"
+      },
+      {
+        "code": "LEADS",
+        "label": "Contactos"
+      },
+      {
+        "code": "CONVERSIONS",
+        "label": "Conversiones"
+      },
+      {
+        "code": "PROMOTION",
+        "label": "Promoción"
+      }
+    ],
+    "ads.buyingModel": [
+      {
+        "code": "CPM",
+        "label": "CPM",
+        "help": "Costo por mil impresiones."
+      },
+      {
+        "code": "CPC",
+        "label": "CPC",
+        "help": "Costo por clic."
+      },
+      {
+        "code": "CPA",
+        "label": "CPA",
+        "help": "Costo por acción o conversión."
+      },
+      {
+        "code": "FIXED",
+        "label": "Precio fijo",
+        "help": "Importe cerrado por el período."
+      }
+    ],
+    "ads.creativeType": [
+      {
+        "code": "IMAGE",
+        "label": "Imagen"
+      },
+      {
+        "code": "VIDEO",
+        "label": "Video"
+      },
+      {
+        "code": "CAROUSEL",
+        "label": "Carrusel"
+      },
+      {
+        "code": "TEXT_CARD",
+        "label": "Tarjeta de texto"
+      }
+    ],
+    "ads.moderationDecision": [
+      {
+        "code": "PENDING_REVIEW",
+        "label": "Pendiente de revisión"
+      },
+      {
+        "code": "APPROVED",
+        "label": "Aprobado"
+      },
+      {
+        "code": "REJECTED",
+        "label": "Rechazado"
+      },
+      {
+        "code": "CHANGES_REQUESTED",
+        "label": "Cambios solicitados"
+      },
+      {
+        "code": "ESCALATED",
+        "label": "Escalado"
+      }
+    ],
+    "ads.eventType": [
+      {
+        "code": "IMPRESSION",
+        "label": "Impresión"
+      },
+      {
+        "code": "CLICK",
+        "label": "Clic"
+      },
+      {
+        "code": "CONVERSION",
+        "label": "Conversión"
+      }
+    ],
+    "ads.invoiceStatus": [
+      {
+        "code": "DRAFT",
+        "label": "Borrador"
+      },
+      {
+        "code": "ISSUED",
+        "label": "Emitida"
+      },
+      {
+        "code": "PARTIALLY_PAID",
+        "label": "Pagada en parte"
+      },
+      {
+        "code": "PAID",
+        "label": "Pagada"
+      },
+      {
+        "code": "OVERDUE",
+        "label": "Vencida"
+      },
+      {
+        "code": "VOID",
+        "label": "Anulada"
+      }
+    ],
+    "ads.spendLedgerEntryType": [
+      {
+        "code": "CHARGE",
+        "label": "Cargo"
+      },
+      {
+        "code": "CREDIT",
+        "label": "Abono"
+      },
+      {
+        "code": "ADJUSTMENT",
+        "label": "Ajuste"
+      },
+      {
+        "code": "REFUND",
+        "label": "Devolución"
+      },
+      {
+        "code": "TAX",
+        "label": "Impuesto"
+      }
+    ],
+    "ads.policyRuleType": [
+      {
+        "code": "AUTO_REJECT",
+        "label": "Rechazo automático"
+      },
+      {
+        "code": "MANUAL_REVIEW_REQUIRED",
+        "label": "Exige revisión manual"
+      },
+      {
+        "code": "WARNING",
+        "label": "Sólo advertencia"
+      },
+      {
+        "code": "BLOCK_DELIVERY",
+        "label": "Bloquea la entrega"
+      }
+    ],
+    "ads.policySeverity": [
+      {
+        "code": "LOW",
+        "label": "Baja"
+      },
+      {
+        "code": "MEDIUM",
+        "label": "Media"
+      },
+      {
+        "code": "HIGH",
+        "label": "Alta"
+      },
+      {
+        "code": "CRITICAL",
+        "label": "Crítica"
+      }
+    ],
+    "ads.auditSeverity": [
+      {
+        "code": "INFO",
+        "label": "Informativo"
+      },
+      {
+        "code": "LOW",
+        "label": "Baja"
+      },
+      {
+        "code": "MEDIUM",
+        "label": "Media"
+      },
+      {
+        "code": "HIGH",
+        "label": "Alta"
+      },
+      {
+        "code": "CRITICAL",
+        "label": "Crítica"
+      }
+    ],
+    "ads.segmentType": [
+      {
+        "code": "CORPORATE_CONTEXTUAL",
+        "label": "Contextual corporativo"
+      },
+      {
+        "code": "MERCHANT_CATEGORY",
+        "label": "Por rubro del comercio"
+      },
+      {
+        "code": "GEO",
+        "label": "Geográfico"
+      },
+      {
+        "code": "CUSTOM_ALLOWLIST",
+        "label": "Lista propia",
+        "help": "Identificadores hasheados; nunca en claro."
+      },
+      {
+        "code": "LOOKUP_STATIC",
+        "label": "Búsqueda estática"
+      }
+    ],
+    "ads.segmentPrivacyLevel": [
+      {
+        "code": "CORPORATE_CONTEXTUAL",
+        "label": "Contextual corporativo"
+      },
+      {
+        "code": "AGGREGATED",
+        "label": "Agregado"
+      },
+      {
+        "code": "HASHED_ALLOWLIST",
+        "label": "Lista hasheada"
+      }
+    ],
+    "ads.deliveryBillableStatus": [
+      {
+        "code": "BILLABLE",
+        "label": "Facturable"
+      },
+      {
+        "code": "NON_BILLABLE",
+        "label": "No facturable"
+      },
+      {
+        "code": "SUSPICIOUS",
+        "label": "Sospechosa",
+        "help": "Posible tráfico inválido; no se cobra hasta revisarla."
+      }
+    ],
+    "ads.emailSuppressionReason": [
+      {
+        "code": "UNSUBSCRIBE",
+        "label": "Se dio de baja"
+      },
+      {
+        "code": "HARD_BOUNCE",
+        "label": "Rebote permanente"
+      },
+      {
+        "code": "SPAM_REPORT",
+        "label": "Lo marcó como spam"
+      },
+      {
+        "code": "MANUAL",
+        "label": "Exclusión manual"
+      }
+    ],
+    "ads.performanceGrouping": [
+      {
+        "code": "CAMPAIGN",
+        "label": "Por campaña"
+      },
+      {
+        "code": "AD_SET",
+        "label": "Por conjunto de anuncios"
+      },
+      {
+        "code": "AD",
+        "label": "Por anuncio"
+      },
+      {
+        "code": "DAY",
+        "label": "Por día"
+      }
+    ],
+    "ads.surface": [
+      {
+        "code": "MERCHANT_PORTAL",
+        "label": "Portal del comercio"
+      },
+      {
+        "code": "CONSUMER_APP",
+        "label": "App del cliente"
+      },
+      {
+        "code": "EMAIL",
+        "label": "Correo"
+      }
+    ],
+    "ads.placementFormat": [
+      {
+        "code": "IMAGE_BANNER",
+        "label": "Banner de imagen"
+      },
+      {
+        "code": "TEXT_CARD",
+        "label": "Tarjeta de texto"
+      },
+      {
+        "code": "VIDEO",
+        "label": "Video"
+      },
+      {
+        "code": "CAROUSEL",
+        "label": "Carrusel"
+      }
+    ],
+    "ads.policyCategory": [
+      {
+        "code": "FINANCIAL_CLAIMS",
+        "label": "Promesas financieras"
+      },
+      {
+        "code": "PRIVACY",
+        "label": "Privacidad"
+      },
+      {
+        "code": "PROHIBITED_PRODUCTS",
+        "label": "Productos prohibidos"
+      },
+      {
+        "code": "MISLEADING_CONTENT",
+        "label": "Contenido engañoso"
+      },
+      {
+        "code": "SENSITIVE_CONTENT",
+        "label": "Contenido sensible"
+      },
+      {
+        "code": "INTELLECTUAL_PROPERTY",
+        "label": "Propiedad intelectual"
+      },
+      {
+        "code": "OTHER",
+        "label": "Otra"
+      }
+    ],
+    "ads.taxRegime": [
+      {
+        "code": "REGIMEN GENERAL",
+        "label": "Régimen General"
+      },
+      {
+        "code": "REGIMEN SIMPLIFICADO",
+        "label": "Régimen Tributario Simplificado (RTS)"
+      },
+      {
+        "code": "SISTEMA TRIBUTARIO INTEGRADO",
+        "label": "Sistema Tributario Integrado (STI)"
+      },
+      {
+        "code": "REGIMEN AGROPECUARIO UNIFICADO",
+        "label": "Régimen Agropecuario Unificado (RAU)"
+      }
+    ],
+    "portal.planTier": [
+      {
+        "code": "STARTER",
+        "label": "Inicial"
+      },
+      {
+        "code": "STANDARD",
+        "label": "Estándar"
+      },
+      {
+        "code": "PREMIUM",
+        "label": "Premium"
+      },
+      {
+        "code": "ENTERPRISE",
+        "label": "Empresarial"
+      }
+    ],
+    "portal.planStatus": [
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactivo",
+        "help": "No se ofrece a comercios nuevos."
+      },
+      {
+        "code": "ARCHIVED",
+        "label": "Archivado"
+      }
+    ],
+    "portal.campaignToggle": [
+      {
+        "code": "ACTIVE",
+        "label": "Activa"
+      },
+      {
+        "code": "PAUSED",
+        "label": "Pausada"
+      }
+    ],
+    "platform.activeInactive": [
+      {
+        "code": "ACTIVE",
+        "label": "Activo"
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactivo"
+      }
+    ],
+    "portal.bankInstitution": [
+      {
+        "code": "BNB",
+        "label": "Banco Nacional de Bolivia"
+      },
+      {
+        "code": "BME",
+        "label": "Banco Mercantil Santa Cruz"
+      },
+      {
+        "code": "BUN",
+        "label": "Banco Unión"
+      },
+      {
+        "code": "BCR",
+        "label": "Banco de Crédito de Bolivia (BCP)"
+      },
+      {
+        "code": "BIS",
+        "label": "Banco BISA"
+      },
+      {
+        "code": "BGA",
+        "label": "Banco Ganadero"
+      },
+      {
+        "code": "BEC",
+        "label": "Banco Económico"
+      },
+      {
+        "code": "BSO",
+        "label": "Banco Solidario (BancoSol)"
+      },
+      {
+        "code": "BIE",
+        "label": "Banco FIE"
+      },
+      {
+        "code": "BPR",
+        "label": "Banco Prodem"
+      },
+      {
+        "code": "BFO",
+        "label": "Banco Fortaleza"
+      },
+      {
+        "code": "BDP",
+        "label": "Banco de Desarrollo Productivo"
+      },
+      {
+        "code": "OTRA",
+        "label": "Otra entidad",
+        "help": "La confirma quien revisa el QR."
+      }
+    ],
+    "portal.merchantUserRole": [
+      {
+        "code": "MERCHANT_ADMIN",
+        "label": "Administrador del comercio",
+        "help": "Gestiona todo el comercio."
+      },
+      {
+        "code": "BRANCH_MANAGER",
+        "label": "Gerente de sucursal"
+      },
+      {
+        "code": "MERCHANT_OPERATOR",
+        "label": "Operador"
+      },
+      {
+        "code": "FINANCIAL_AUDITOR",
+        "label": "Auditor financiero"
+      }
+    ],
+    "files.ownerType": [
+      {
+        "code": "GL_ACCOUNT",
+        "label": "Cuenta contable"
+      },
+      {
+        "code": "BUSINESS_PARTNER",
+        "label": "Business partner"
+      },
+      {
+        "code": "ACCOUNTING_DOCUMENT",
+        "label": "Documento contable"
+      },
+      {
+        "code": "JOURNAL_ENTRY",
+        "label": "Asiento"
+      },
+      {
+        "code": "CONTRACT",
+        "label": "Contrato"
+      },
+      {
+        "code": "B2B_ACCOUNT",
+        "label": "Cuenta comercial"
+      },
+      {
+        "code": "OPPORTUNITY",
+        "label": "Oportunidad"
+      },
+      {
+        "code": "MERCHANT",
+        "label": "Comercio"
+      },
+      {
+        "code": "LEGAL_ENTITY",
+        "label": "Entidad legal"
+      },
+      {
+        "code": "OTHER",
+        "label": "Otro"
+      }
+    ],
+    "files.contentType": [
+      {
+        "code": "application/pdf",
+        "label": "PDF"
+      },
+      {
+        "code": "image/jpeg",
+        "label": "Imagen JPEG"
+      },
+      {
+        "code": "image/png",
+        "label": "Imagen PNG"
+      }
+    ],
+    "auth.internalDepartment": [
+      {
+        "code": "OPERATIONS",
+        "label": "Operaciones"
+      },
+      {
+        "code": "RISK",
+        "label": "Riesgo"
+      },
+      {
+        "code": "COLLECTIONS",
+        "label": "Cobranza"
+      },
+      {
+        "code": "COMPLIANCE",
+        "label": "Cumplimiento"
+      },
+      {
+        "code": "FINANCE",
+        "label": "Finanzas"
+      },
+      {
+        "code": "SUPPORT",
+        "label": "Soporte"
+      },
+      {
+        "code": "SYSTEMS",
+        "label": "Sistemas"
+      },
+      {
+        "code": "AUDIT",
+        "label": "Auditoría"
+      },
+      {
+        "code": "EXECUTIVE",
+        "label": "Dirección"
+      }
+    ],
+    "auth.internalUserStatus": [
+      {
+        "code": "active",
+        "label": "Activo"
+      },
+      {
+        "code": "invited",
+        "label": "Invitado"
+      },
+      {
+        "code": "suspended",
+        "label": "Suspendido"
+      },
+      {
+        "code": "locked",
+        "label": "Bloqueado",
+        "help": "Por intentos fallidos; se desbloquea sin cambiar el rol."
+      },
+      {
+        "code": "disabled",
+        "label": "Deshabilitado"
+      }
+    ],
+    "audit.businessActionStatus": [
+      {
+        "code": "SUCCESS",
+        "label": "Correcta"
+      },
+      {
+        "code": "FAILED",
+        "label": "Fallida"
+      },
+      {
+        "code": "PARTIAL",
+        "label": "Parcial"
+      }
+    ],
+    "documents.noticeLevel": [
+      {
+        "code": "positive",
+        "label": "Informativo"
+      },
+      {
+        "code": "caution",
+        "label": "Precaución"
+      },
+      {
+        "code": "critical",
+        "label": "Crítico"
+      }
+    ]
+  }
+}

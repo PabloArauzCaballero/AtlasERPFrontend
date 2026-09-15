@@ -46,7 +46,8 @@ let inflight: Promise<Record<string, DomainOption[]>> | null = null;
 function readStorage(): Record<string, DomainOption[]> | null {
   try {
     const raw = typeof window === 'undefined' ? null : window.sessionStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, DomainOption[]>) : null;
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, DomainOption[]>) : null;
   } catch {
     return null;
   }
@@ -71,6 +72,11 @@ export function loadDomains(): Promise<Record<string, DomainOption[]>> {
   if (!inflight) {
     inflight = apiRequest<{ domains: Record<string, DomainOption[]> }>('catalog/domains')
       .then((response) => {
+        // Un proxy o un backend viejo sin el endpoint contesta otra cosa: se trata como fallo y no se
+        // guarda, para que un select vacío no parezca un catálogo vacío.
+        if (!response || typeof response.domains !== 'object' || response.domains === null) {
+          throw new Error('El servidor no publica los catálogos (GET /catalog/domains).');
+        }
         memory = response.domains;
         writeStorage(response.domains);
         return response.domains;

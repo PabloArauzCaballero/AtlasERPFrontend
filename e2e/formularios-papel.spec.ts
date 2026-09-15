@@ -7,6 +7,7 @@
  * del papel en las cabeceras. El PDF real lo imprime el worker; eso se mide aparte.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { stubCatalogDomains } from './support/catalog-domains';
 
 const ADMIN = {
   id: '1', tenantId: '1', email: 'admin@atlas.test', fullName: 'Admin de pruebas', name: 'Admin de pruebas',
@@ -32,6 +33,8 @@ async function sesionFingida(page: Page, capturadas: Capturada[]) {
     // Catálogos y listados: vacíos pero con la forma que las pantallas esperan.
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { items: [], total: 0 } }) });
   });
+  // Los dominios cerrados (estados, monedas, siglas…) con sus valores reales: van detrás del comodín.
+  await stubCatalogDomains(page);
 }
 
 test.describe('cuaderno de formularios en papel (operaciones)', () => {
@@ -111,6 +114,7 @@ test.describe('cuaderno del portal del comercio', () => {
       }
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { items: [], total: 0 } }) });
     });
+    await stubCatalogDomains(page);
     await page.goto('/portal-comercio/formularios');
     await expect(page.getByRole('heading', { name: /formularios en papel/i })).toBeVisible({ timeout: 60_000 });
     const descarga = page.waitForEvent('download');
