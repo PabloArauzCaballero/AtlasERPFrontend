@@ -88,7 +88,7 @@ export const SECCIONES_SUCURSAL: FormSectionDefinition[] = [
     description: 'Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte.',
     fields: [
       { name: 'name', label: 'Nombre de sucursal', required: true, placeholder: 'Sucursal Norte' },
-      { name: 'city', label: 'Ciudad', placeholder: 'Santa Cruz de la Sierra' },
+      { name: 'city', label: 'Ciudad', optionsSource: 'catalog:city' },
       { name: 'address', label: 'Dirección', type: 'address', span: 3, placeholder: 'Av. principal, zona y referencia' },
     ],
   },
@@ -160,7 +160,7 @@ export const SECCIONES_QR_COBRO: FormSectionDefinition[] = [
     title: 'QR bancario de cobro',
     description: 'El QR con el que sus clientes le pagan cada cuota. El dinero entra en su cuenta, no en la de Atlas.',
     fields: [
-      { name: 'bankInstitutionCode', label: 'Entidad (sigla ASFI)', required: true, hint: 'BNB, BME, BCR…' },
+      { name: 'bankInstitutionCode', label: 'Entidad (sigla ASFI)', required: true, optionsSource: 'domain:portal.bankInstitution' },
       { name: 'accountNumberMasked', label: 'Cuenta enmascarada', hint: '****7890' },
       { name: 'titular', label: 'Titular de la cuenta', span: 3 },
     ],

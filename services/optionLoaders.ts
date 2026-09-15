@@ -232,3 +232,17 @@ export const loadMerchantInvoices = async (): Promise<Option[]> =>
 export const loadDeliveryEvents = async (): Promise<Option[]> =>
   toOptions(rowsOf(await adsService.getDeliveryMonitor({ page: 1, pageSize: 100 })), (r) =>
     `${s(r.eventType)} — ${s(r.occurredAt).slice(0, 16).replace('T', ' ')} — ${s(r.billableStatus)}`);
+
+/**
+ * Códigos de motivo de una decisión de moderación: «cumple» y los códigos de las políticas que
+ * existen (se administran en Ads › Inventario). Antes cada moderador tecleaba el suyo.
+ */
+export const MODERATION_REASON_OK: Option = { value: 'POLICY_OK', label: 'POLICY_OK — Cumple las políticas' };
+export const loadModerationReasonCodes = async (): Promise<Option[]> => {
+  const result = await adsService.listPolicies({ page: 1, limit: 100 });
+  const politicas = rowsOf(result)
+    .map((row) => ({ code: s(row.policyCode ?? row.code), detail: s(row.description ?? row.category) }))
+    .filter((row) => row.code && row.code !== MODERATION_REASON_OK.value)
+    .map((row) => ({ value: row.code, label: row.detail ? `${row.code} — ${row.detail}` : row.code }));
+  return [MODERATION_REASON_OK, ...politicas];
+};

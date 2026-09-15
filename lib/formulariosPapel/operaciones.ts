@@ -1,13 +1,11 @@
 import type { FormSectionDefinition } from '@/components/screens/StructuredActionForm';
 import { armarFormularioPapel, type FormularioPapel } from '@/lib/formularioPapel';
 import {
-  accountClassificationOptions,
   countryOptions,
   kybStatusOptions,
   merchantCategoryOptions,
   recordStatusOptions,
   riskTierOptions,
-  statementTypeOptions,
 } from '@/lib/catalogs';
 import {
   loadAccountGroups,
@@ -21,6 +19,7 @@ import {
   loadInternalUsers,
   loadLedgers,
   loadLegalEntities,
+  loadModerationReasonCodes,
   loadOpportunities,
 } from '@/services/optionLoaders';
 
@@ -40,12 +39,12 @@ export const SECCIONES_DOCUMENTO_CONTABLE: FormSectionDefinition[] = [
     title: 'Datos de cabecera',
     fields: [
       { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, optionsLoader: loadLegalEntities, span: 2 },
-      { name: 'sourceSystem', label: 'Sistema origen', required: true, defaultValue: 'ATLAS_ERP' },
-      { name: 'sourceType', label: 'Tipo origen', required: true, defaultValue: 'MANUAL' },
+      { name: 'sourceSystem', label: 'Sistema origen', required: true, defaultValue: 'ATLAS_ERP', optionsSource: 'domain:accounting.documentSourceSystem' },
+      { name: 'sourceType', label: 'Tipo origen', required: true, defaultValue: 'MANUAL', optionsSource: 'domain:accounting.documentSourceType' },
       { name: 'sourceId', label: 'ID origen', required: true },
-      { name: 'documentType', label: 'Tipo documento', required: true, defaultValue: 'JOURNAL' },
-      { name: 'documentNo', label: 'Número documento', required: true },
-      { name: 'currencyCode', label: 'Moneda', required: true, defaultValue: 'BOB' },
+      { name: 'documentType', label: 'Tipo documento', required: true, defaultValue: 'JOURNAL', optionsSource: 'domain:accounting.documentType' },
+      { name: 'documentNo', label: 'Número documento', assignedByBackend: true },
+      { name: 'currencyCode', label: 'Moneda', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
       { name: 'documentDate', label: 'Fecha documento', type: 'date', required: true },
       { name: 'postingDate', label: 'Fecha contabilización', type: 'date', required: true },
       { name: 'accountingPeriodId', label: 'Período contable', type: 'select', required: true, optionsLoader: loadAccountingPeriods },
@@ -109,10 +108,10 @@ export const SECCIONES_RECIBO: FormSectionDefinition[] = [
     fields: [
       { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, optionsLoader: loadLegalEntities, span: 2 },
       { name: 'payerBpId', label: 'Pagador (Business Partner)', type: 'select', required: true, optionsLoader: loadBusinessPartners, span: 2 },
-      { name: 'receiptNo', label: 'Número recibo', required: true },
+      { name: 'receiptNo', label: 'Número recibo', assignedByBackend: true },
       { name: 'receiptDate', label: 'Fecha recibo', type: 'date', required: true },
       { name: 'amount', label: 'Monto', type: 'number', required: true },
-      { name: 'currencyCode', label: 'Moneda', required: true, defaultValue: 'BOB' },
+      { name: 'currencyCode', label: 'Moneda', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
       { name: 'bankAccountId', label: 'Cuenta bancaria', type: 'select', optionsLoader: loadBankAccounts },
       { name: 'bankGlAccountId', label: 'Cuenta GL banco', type: 'select', required: true, optionsLoader: loadGlAccounts },
       { name: 'arControlGlAccountId', label: 'Cuenta GL control AR', type: 'select', required: true, optionsLoader: loadGlAccounts },
@@ -153,7 +152,7 @@ export const SECCIONES_PROPUESTA: FormSectionDefinition[] = [
     title: 'Cabecera',
     fields: [
       { name: 'opportunityId', label: 'Oportunidad', type: 'select', required: true, optionsLoader: loadOpportunities, span: 2 },
-      { name: 'proposalNumber', label: 'Número de propuesta', required: true, placeholder: 'CP-2026-001' },
+      { name: 'proposalNumber', label: 'Número de propuesta', assignedByBackend: true },
       { name: 'validUntil', label: 'Válida hasta', type: 'date' },
       { name: 'totalEstimatedMonthlyRevenue', label: 'Ingreso mensual estimado', type: 'number' },
     ],
@@ -252,9 +251,9 @@ export const SECCIONES_GRUPO_CUENTA: FormSectionDefinition[] = [
       { name: 'code', label: 'Código', required: true, placeholder: 'BG-ACT-CORR' },
       { name: 'sortOrder', label: 'Orden', type: 'number' },
       { name: 'name', label: 'Nombre', required: true, placeholder: 'Activo Corriente' },
-      { name: 'statementType', label: 'Estado financiero', type: 'select', options: statementTypeOptions },
-      { name: 'classification', label: 'Clasificación', type: 'select', options: accountClassificationOptions },
-      { name: 'subClassification', label: 'Subclasificación (opcional)', placeholder: 'CURRENT / NON_CURRENT…' },
+      { name: 'statementType', label: 'Estado financiero', type: 'select', optionsSource: 'domain:accounting.statementType' },
+      { name: 'classification', label: 'Clasificación', type: 'select', optionsSource: 'domain:accounting.accountClassification' },
+      { name: 'subClassification', label: 'Subclasificación (opcional)', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
     ],
   },
 ];
@@ -401,13 +400,9 @@ export const SECCIONES_DECISION_MODERACION: FormSectionDefinition[] = [
         label: 'Decisión',
         type: 'select',
         required: true,
-        options: [
-          { label: 'Aprobada', value: 'APPROVED' },
-          { label: 'Rechazada', value: 'REJECTED' },
-          { label: 'Requiere cambios', value: 'CHANGES_REQUESTED' },
-        ],
+        optionsSource: 'domain:ads.moderationDecision',
       },
-      { name: 'policyCode', label: 'Política aplicada', span: 1 },
+      { name: 'reasonCode', label: 'Código de motivo', required: true, span: 1, optionsLoader: loadModerationReasonCodes },
       { name: 'notes', label: 'Observaciones', type: 'textarea', span: 3 },
       { name: 'escalate', label: 'Escalar a supervisor', type: 'select', options: SI_NO },
     ],

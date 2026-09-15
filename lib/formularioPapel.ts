@@ -1,4 +1,5 @@
 import type { ActionField, FormSectionDefinition } from '@/components/screens/StructuredActionForm';
+import { resolveOptions } from '@/services/domains';
 
 /**
  * De la definición de un formulario de pantalla al formulario EN PAPEL.
@@ -144,9 +145,11 @@ function esBooleano(options: Array<{ label: string; value: string }>): boolean {
 
 async function opcionesDe(field: ActionField): Promise<Array<{ label: string; value: string }> | undefined> {
   if (field.options) return field.options;
-  if (!field.optionsLoader) return undefined;
+  if (!field.optionsLoader && !field.optionsSource) return undefined;
   try {
-    return await field.optionsLoader();
+    // Un dominio del backend (`domain:…`) o una lista ISO (`catalog:…`) sale como anexo de códigos.
+    if (field.optionsSource) return await resolveOptions(field.optionsSource);
+    return await field.optionsLoader!();
   } catch {
     // Sin catálogo (sin red, sin permiso): el papel pide el código y quien transcribe lo resuelve.
     // Un anexo vacío que pareciera completo sería peor que ninguno.
@@ -159,7 +162,12 @@ interface ContextoConversion {
 }
 
 async function campoAPapel(field: ActionField, contexto: ContextoConversion): Promise<CampoPapel> {
-  const kind = kindDe(field);
+  // Con fuente de opciones y sin `type`, el campo es un select (así lo pinta la pantalla); la selección
+  // múltiple se imprime igual: casillas o anexo, marcando las que correspondan.
+  const kind =
+    field.type === 'multiselect' || (!field.type && (field.optionsSource || field.optionsLoader || field.options))
+      ? 'select'
+      : kindDe(field);
   const campo: CampoPapel = {
     label: field.label,
     kind,
@@ -229,7 +237,11 @@ export async function armarFormularioPapel(
   const secciones: SeccionPapel[] = [];
   for (const section of sections) {
     const fields: CampoPapel[] = [];
-    for (const field of section.fields) fields.push(await campoAPapel(field, contexto));
+    for (const field of section.fields) {
+      // Lo que asigna el backend (un correlativo) no lo escribe nadie a mano: no va en el papel.
+      if (field.assignedByBackend) continue;
+      fields.push(await campoAPapel(field, contexto));
+    }
     if (fields.length) {
       secciones.push({
         title: section.title,

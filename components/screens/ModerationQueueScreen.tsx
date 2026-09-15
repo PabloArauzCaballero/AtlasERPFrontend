@@ -17,21 +17,8 @@ import { formularioDecisionModeracion } from '@/lib/formulariosPapel/operaciones
 import type { JsonObject, ResourceRow } from '@/services/types';
 import { useOptions } from '@/hooks/useOptions';
 import { resolveOptions } from '@/services/domains';
+import { loadModerationReasonCodes } from '@/services/optionLoaders';
 
-/*
- * El código de motivo se tecleaba («POLICY_OK / CLAIM_UNVERIFIED») y cada moderador escribía el suyo:
- * no se podía agrupar por motivo ni saber qué política se aplicó. Ahora se elige entre «cumple» y las
- * políticas que existen de verdad (se administran en Ads › Inventario).
- */
-const POLITICA_CUMPLE = { value: 'POLICY_OK', label: 'POLICY_OK — Cumple las políticas' };
-async function loadReasonCodes() {
-  const result = await adsService.listPolicies({ page: 1, limit: 100 });
-  const politicas = (result.items ?? result.rows ?? [])
-    .map((row) => ({ code: String(row.policyCode ?? row.code ?? ''), detail: String(row.description ?? row.category ?? '') }))
-    .filter((row) => row.code && row.code !== POLITICA_CUMPLE.value)
-    .map((row) => ({ value: row.code, label: row.detail ? `${row.code} — ${row.detail}` : row.code }));
-  return [POLITICA_CUMPLE, ...politicas];
-}
 /** Las decisiones posibles: el dominio de moderación menos «pendiente», que no es una decisión. */
 async function loadDecisions() {
   return (await resolveOptions('domain:ads.moderationDecision')).filter((option) => option.value !== 'PENDING_REVIEW');
@@ -42,7 +29,7 @@ export function ModerationQueueScreen() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('PENDING_REVIEW');
   const [selected, setSelected] = useState<ResourceRow | null>(null);
-  const reasonOptions = useOptions(loadReasonCodes);
+  const reasonOptions = useOptions(loadModerationReasonCodes);
   const decisionOptions = useOptions(loadDecisions);
   const loader = useCallback(() => adsService.listModerationQueue({ page, limit: 8, status }), [page, status]);
   const resource = useAsyncResource(loader);
