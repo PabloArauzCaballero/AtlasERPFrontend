@@ -44,6 +44,12 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
   const active = tabs.find((tab) => tab.id === currentId) ?? tabs[0];
 
   if (!tabs.length) return null;
+  /*
+   * Una sola pestaña no es una barra de secciones: es una etiqueta que no lleva a ningún sitio.
+   * Pasaba al sacar las acciones de la barra —«Nueva propuesta», «Rechazar»— y quedaba la tabla
+   * sola bajo un rótulo inútil. Sin barra, el contenido se pinta tal cual.
+   */
+  if (tabs.length === 1) return <div className={className}>{tabs[0]!.content}</div>;
 
   return (
     <div className={cn('space-y-4', className)}>
