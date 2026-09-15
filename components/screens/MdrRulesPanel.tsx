@@ -11,7 +11,7 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
 import { b2bService } from '@/services/b2bService';
-import { merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
+import { domainLoader } from '@/services/domains';
 import { loadContracts2 } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -32,6 +32,9 @@ const CUALQUIERA = { label: '— Cualquiera —', value: '' };
  */
 export function MdrRulesPanel() {
   const contratos = useOptions(loadContracts2);
+  // Rubro y banda de riesgo salen del backend: la regla de comisión se cruza con lo que él guarda.
+  const categoriaOptions = useOptions(domainLoader('domain:crm.merchantCategory'));
+  const riesgoOptions = useOptions(domainLoader('domain:crm.riskTier'));
   const [contractVersionId, setContractVersionId] = useState('');
   const [reglas, setReglas] = useState<ResourceRow[]>([]);
   const [cargando, setCargando] = useState(false);
@@ -108,8 +111,8 @@ export function MdrRulesPanel() {
         <>
           <form onSubmit={agregar} className="mt-4 grid gap-3 rounded-md bg-slate-50 p-3 grid-cols-1 md:grid-cols-3">
             <FormField label="Comisión (%)" name="ratePercent" type="number" step="0.01" min="0" max="100" required placeholder="3.50" />
-            <FormField kind="select" label="Categoría de producto" name="productCategory" options={[CUALQUIERA, ...merchantCategoryOptions]} hint="Vacío: aplica a todas." />
-            <FormField kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riskTierOptions]} hint="Vacío: aplica a todos." />
+            <FormField kind="select" label="Categoría de producto" name="productCategory" options={[CUALQUIERA, ...categoriaOptions]} hint="Vacío: aplica a todas." />
+            <FormField kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riesgoOptions]} hint="Vacío: aplica a todos." />
             <FormField label="Piso (Bs)" name="minFeeAmount" type="number" step="0.01" min="0" hint="Una venta de Bs 20 al 3 % deja Bs 0,60." />
             <FormField label="Techo (Bs)" name="maxFeeAmount" type="number" step="0.01" min="0" hint="Evita comisiones desproporcionadas en ventas grandes." />
             <div className="flex items-end">

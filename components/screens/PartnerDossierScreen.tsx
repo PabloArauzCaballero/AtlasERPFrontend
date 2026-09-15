@@ -15,7 +15,8 @@ import { formularioExpediente } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
-import { merchantCategoryOptions } from '@/lib/catalogs';
+import { domainLoader } from '@/services/domains';
+import { useOptions } from '@/hooks/useOptions';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import {
   partnerOnboardingService,
@@ -51,9 +52,9 @@ function camposEscritos(form: FormData): JsonObject {
  * Ahora un valor fuera de catálogo se añade como opción y se dice que lo está: se ve lo que hay
  * guardado, se puede corregir, y nadie lo pisa sin querer.
  */
-function opcionesDeRubro(actual: string | null) {
-  const opciones = [{ label: '— Sin definir —', value: '' }, ...merchantCategoryOptions];
-  if (actual && !merchantCategoryOptions.some((opcion) => opcion.value === actual)) {
+function opcionesDeRubro(actual: string | null, rubros: Array<{ label: string; value: string }>) {
+  const opciones = [{ label: '— Sin definir —', value: '' }, ...rubros];
+  if (actual && !rubros.some((opcion) => opcion.value === actual)) {
     opciones.push({ label: `${actual} (fuera de catálogo)`, value: actual });
   }
   return opciones;
@@ -72,6 +73,8 @@ function opcionesDeRubro(actual: string | null) {
  */
 export function PartnerDossierScreen() {
   const [partnerId, setPartnerId] = useState('');
+  // El rubro lo publica el backend (AtlasBackend es su dueño): la pantalla ya no lleva su propia copia.
+  const rubros = useOptions(domainLoader('domain:crm.merchantCategory'));
   /*
    * `null` mientras no se sabe si este usuario ya tiene expediente. Distinguirlo de «no tiene» es
    * lo que evita el fallo que tenia esta pantalla: sin este estado, el primer render ya ofrecia
@@ -278,7 +281,7 @@ export function PartnerDossierScreen() {
               label="Rubro del negocio"
               name="businessCategory"
               data-testid="campo-businessCategory"
-              options={[{ label: '— Seleccione —', value: '' }, ...merchantCategoryOptions]}
+              options={[{ label: '— Seleccione —', value: '' }, ...rubros]}
               hint="Agrupa tu cartera y las reglas de comisión. Se puede corregir después."
             />
             <FormField label="Correo de contacto" name="contactEmail" type="email" required data-testid="campo-contactEmail" />
@@ -374,7 +377,7 @@ export function PartnerDossierScreen() {
                     name="businessCategory"
                     defaultValue={state.profile.businessCategory ?? ''}
                     data-testid="campo-rubro"
-                    options={opcionesDeRubro(state.profile.businessCategory)}
+                    options={opcionesDeRubro(state.profile.businessCategory, rubros)}
                   />
                   <FormField
                     label="Teléfono de contacto"

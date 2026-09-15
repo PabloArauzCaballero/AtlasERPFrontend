@@ -15,7 +15,8 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioCuentaGlEdicion } from '@/lib/formulariosPapel/operaciones';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
-import { recordStatusOptions } from '@/lib/catalogs';
+import { domainLoader } from '@/services/domains';
+import { useOptions } from '@/hooks/useOptions';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 const boolOptions = [
@@ -62,6 +63,7 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
   const resource = useAsyncResource(load, Boolean(requestedId));
   const account = useMemo(() => resource.data ?? {}, [resource.data]);
   const mutation = useAtlasMutation((body: JsonObject) => accountingService.updateGlAccount(requestedId, body));
+  const estadoOptions = useOptions(domainLoader('domain:accounting.glAccountStatus'));
 
   const [form, setForm] = useState<EditState | null>(null);
   useEffect(() => {
@@ -132,7 +134,7 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
               <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                   <FormField label="Nombre" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="md:col-span-2" />
-                  <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={recordStatusOptions} />
+                  <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={estadoOptions} />
                   {flagFields.map((flag) => (
                     <FormField key={flag.key} kind="select" label={flag.label} name={flag.key} value={form[flag.key]} onChange={(e) => setForm({ ...form, [flag.key]: e.target.value })} options={boolOptions} />
                   ))}

@@ -1,6 +1,5 @@
 import type { FormSectionDefinition } from '@/components/screens/StructuredActionForm';
 import { armarFormularioPapel, type FormularioPapel } from '@/lib/formularioPapel';
-import { merchantCategoryOptions } from '@/lib/catalogs';
 
 /**
  * Definiciones en papel de los formularios del PORTAL DEL COMERCIO.
@@ -31,7 +30,7 @@ export const SECCIONES_EXPEDIENTE: FormSectionDefinition[] = [
       { name: 'taxId', label: 'NIT', type: 'number', required: true, hint: 'Sólo dígitos.' },
       { name: 'tradeName', label: 'Nombre comercial', span: 2 },
       { name: 'commercialRegistry', label: 'Matrícula de comercio' },
-      { name: 'businessCategory', label: 'Rubro del negocio', type: 'select', options: merchantCategoryOptions, span: 3 },
+      { name: 'businessCategory', label: 'Rubro del negocio', type: 'select', optionsSource: 'domain:crm.merchantCategory', span: 3 },
       { name: 'contactEmail', label: 'Correo de contacto', type: 'email', required: true, span: 2, hint: 'Ahí llegarán las credenciales del portal.' },
       { name: 'contactPhone', label: 'Teléfono' },
     ],

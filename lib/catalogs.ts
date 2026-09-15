@@ -1,7 +1,10 @@
 /**
- * Catálogos estáticos para campos normalizados que antes eran texto libre.
- * Se exponen como arrays `{ label, value }` listos para `FormField kind="select"`
- * o el `type: 'select'` de `StructuredActionForm`. LatAm-first donde aplica.
+ * Listas geográficas e ISO: moneda, país, ciudad y zona horaria. LatAm-first.
+ *
+ * Aquí NO vive vocabulario de negocio. Los estados, tipos, rubros y demás dominios cerrados los
+ * publica el backend en `GET /catalog/domains` y se piden con `optionsSource: 'domain:…'`; tenerlos
+ * también aquí era la copia que se separaba el día que el backend añadía un valor. Estas listas se
+ * quedan porque no pertenecen a ningún módulo del backend: se leen con `optionsSource: 'catalog:…'`.
  */
 
 export interface CatalogOption {
@@ -73,67 +76,6 @@ export const timezoneOptions: CatalogOption[] = [
   { label: 'UTC', value: 'UTC' },
 ];
 
-export const kybStatusOptions: CatalogOption[] = [
-  { label: 'Pendiente', value: 'PENDING' },
-  { label: 'En revisión', value: 'IN_REVIEW' },
-  { label: 'Aprobado', value: 'APPROVED' },
-  { label: 'Rechazado', value: 'REJECTED' },
-];
-
-export const recordStatusOptions: CatalogOption[] = [
-  { label: 'Activo', value: 'ACTIVE' },
-  { label: 'Inactivo', value: 'INACTIVE' },
-  { label: 'Archivado', value: 'ARCHIVED' },
-];
-
-export const partnerTypeOptions: CatalogOption[] = [
-  { label: 'Persona', value: 'PERSON' },
-  { label: 'Empresa', value: 'COMPANY' },
-  { label: 'Banco', value: 'BANK' },
-  { label: 'Entidad del grupo', value: 'GROUP_ENTITY' },
-];
-
-export const glAccountTypeOptions: CatalogOption[] = [
-  { label: 'Activo', value: 'ASSET' },
-  { label: 'Pasivo', value: 'LIABILITY' },
-  { label: 'Patrimonio', value: 'EQUITY' },
-  { label: 'Ingreso', value: 'REVENUE' },
-  { label: 'Gasto', value: 'EXPENSE' },
-  { label: 'Contra-activo', value: 'CONTRA_ASSET' },
-];
-
-export const normalBalanceOptions: CatalogOption[] = [
-  { label: 'Débito', value: 'D' },
-  { label: 'Crédito', value: 'C' },
-];
-
-export const statementTypeOptions: CatalogOption[] = [
-  { label: 'Balance General', value: 'BALANCE_SHEET' },
-  { label: 'Estado de Resultados', value: 'INCOME_STATEMENT' },
-  { label: 'Flujo de Efectivo', value: 'CASH_FLOW' },
-  { label: 'Cambios en el Patrimonio', value: 'EQUITY_CHANGES' },
-  { label: 'Memorándum / Orden', value: 'MEMORANDUM' },
-];
-
-export const accountClassificationOptions: CatalogOption[] = [
-  { label: 'Activo', value: 'ASSET' },
-  { label: 'Pasivo', value: 'LIABILITY' },
-  { label: 'Patrimonio', value: 'EQUITY' },
-  { label: 'Ingreso', value: 'REVENUE' },
-  { label: 'Gasto', value: 'EXPENSE' },
-];
-
-/** Vocabulario controlado para el rol de un vínculo multientidad de cuenta. */
-export const entityLinkRelationOptions: CatalogOption[] = [
-  { label: 'Por defecto', value: 'DEFAULT' },
-  { label: 'Cuenta por cobrar (control)', value: 'AR_CONTROL' },
-  { label: 'Cuenta por pagar (control)', value: 'AP_CONTROL' },
-  { label: 'Anticipos', value: 'ADVANCE' },
-  { label: 'Recargos', value: 'SURCHARGE' },
-  { label: 'Ingreso', value: 'REVENUE' },
-  { label: 'Impuesto', value: 'TAX' },
-];
-
 export const partnerAccountPurposeOptions: CatalogOption[] = [
   { label: 'Cuentas por cobrar (control)', value: 'AR_CONTROL' },
   { label: 'Cuentas por pagar (control)', value: 'AP_CONTROL' },
@@ -146,118 +88,4 @@ export const partnerAccountPurposeOptions: CatalogOption[] = [
 
 export function purposeLabel(value: string): string {
   return partnerAccountPurposeOptions.find((option) => option.value === value)?.label ?? value;
-}
-
-export const entityLinkTypeOptions: CatalogOption[] = [
-  { label: 'Business Partner', value: 'BUSINESS_PARTNER' },
-  { label: 'Centro de costo', value: 'COST_CENTER' },
-  { label: 'Centro de beneficio', value: 'PROFIT_CENTER' },
-  { label: 'Contrato', value: 'CONTRACT' },
-  { label: 'Entidad legal', value: 'LEGAL_ENTITY' },
-  { label: 'Código de impuesto', value: 'TAX_CODE' },
-  { label: 'Cuenta bancaria', value: 'BANK_ACCOUNT' },
-  { label: 'Ledger', value: 'LEDGER' },
-  { label: 'Sucursal', value: 'BRANCH' },
-  { label: 'Documento contable', value: 'ACCOUNTING_DOCUMENT' },
-  { label: 'Otro', value: 'OTHER' },
-];
-
-export const riskTierOptions: CatalogOption[] = [
-  { label: 'Bajo', value: 'LOW' },
-  { label: 'Medio', value: 'MEDIUM' },
-  { label: 'Alto', value: 'HIGH' },
-  { label: 'Crítico', value: 'CRITICAL' },
-];
-
-/**
- * Cargo del contacto principal de la cuenta. Catálogo cerrado para que la cartera se pueda
- * agrupar y filtrar por tipo de interlocutor, en vez de recibir texto libre irrepetible.
- */
-export const contactRoleTitleOptions: CatalogOption[] = [
-  { label: 'Propietario / Dueño', value: 'PROPIETARIO' },
-  { label: 'Gerente general', value: 'GERENTE_GENERAL' },
-  { label: 'Gerente comercial', value: 'GERENTE_COMERCIAL' },
-  { label: 'Gerente de finanzas', value: 'GERENTE_FINANZAS' },
-  { label: 'Gerente de operaciones', value: 'GERENTE_OPERACIONES' },
-  { label: 'Administrador', value: 'ADMINISTRADOR' },
-  { label: 'Contador', value: 'CONTADOR' },
-  { label: 'Encargado de sucursal', value: 'ENCARGADO_SUCURSAL' },
-  { label: 'Vendedor / Cajero', value: 'VENDEDOR' },
-  { label: 'Otro', value: 'OTRO' },
-];
-
-/**
- * Peso del contacto en la decisión de compra. Vocabulario clásico de venta B2B: sirve para que
- * el ejecutivo sepa a quién convencer y quién solo influye.
- */
-export const decisionRoleOptions: CatalogOption[] = [
-  { label: 'Decisor final', value: 'DECISOR' },
-  { label: 'Influenciador', value: 'INFLUENCIADOR' },
-  { label: 'Aprobador de presupuesto', value: 'APROBADOR' },
-  { label: 'Usuario del servicio', value: 'USUARIO' },
-  { label: 'Contacto de gestión', value: 'GESTOR' },
-  { label: 'Bloqueador / Portero', value: 'BLOQUEADOR' },
-];
-
-export const industryOptions: CatalogOption[] = [
-  { label: 'Retail / Comercio', value: 'RETAIL' },
-  { label: 'Servicios', value: 'SERVICES' },
-  { label: 'Manufactura', value: 'MANUFACTURING' },
-  { label: 'Tecnología', value: 'TECHNOLOGY' },
-  { label: 'Finanzas', value: 'FINANCE' },
-  { label: 'Salud', value: 'HEALTHCARE' },
-  { label: 'Educación', value: 'EDUCATION' },
-  { label: 'Transporte y logística', value: 'LOGISTICS' },
-  { label: 'Alimentos y bebidas', value: 'FOOD_BEVERAGE' },
-  { label: 'Otro', value: 'OTHER' },
-];
-
-/**
- * Categoria comercial del comercio afiliado. Antes era texto libre con un `placeholder` de ejemplo
- * («Retail, Servicios, Manufactura»): cada vendedor escribia lo que le parecia y la columna
- * `b2b_accounts.category` acababa con variantes que no agrupan ni filtran. Un dato que sirve para
- * segmentar tiene que venir de un catalogo cerrado.
- */
-/*
- * Estos valores tienen que coincidir EXACTAMENTE con `PARTNER_BUSINESS_CATEGORIES` de AtlasBackend:
- * son los que el borde acepta y los que agrupan el gasto del cliente y segmentan la comisión. Una
- * etiqueta se puede retocar aquí; un `value`, no —cambiarlo por su cuenta hace que el select deje
- * de reflejar lo que hay guardado, que es como el rubro de un comercio real llegó a verse como
- * «Sin definir» teniéndolo puesto—.
- */
-export const merchantCategoryOptions: CatalogOption[] = [
-  { label: 'Retail / Comercio', value: 'RETAIL' },
-  { label: 'Servicios profesionales', value: 'SERVICIOS' },
-  { label: 'Educacion', value: 'EDUCACION' },
-  { label: 'Salud y farmacia', value: 'SALUD' },
-  { label: 'Alimentos y bebidas', value: 'ALIMENTOS' },
-  { label: 'Tecnologia y electronica', value: 'TECNOLOGIA' },
-  { label: 'Hogar y muebles', value: 'HOGAR' },
-  { label: 'Vestimenta y calzado', value: 'VESTIMENTA' },
-  { label: 'Automotor y repuestos', value: 'AUTOMOTOR' },
-  { label: 'Construccion y ferreteria', value: 'CONSTRUCCION' },
-  { label: 'Turismo y transporte', value: 'TURISMO' },
-  { label: 'Otro', value: 'OTRO' },
-];
-
-/** Rubro o actividad principal. Mismo motivo que la categoria: se usa para agrupar cartera. */
-export const businessLineOptions: CatalogOption[] = [
-  { label: 'Venta de electrodomesticos y tecnologia', value: 'ELECTRODOMESTICOS' },
-  { label: 'Supermercado y abarrotes', value: 'ABARROTES' },
-  { label: 'Farmacia', value: 'FARMACIA' },
-  { label: 'Restaurante y comida rapida', value: 'RESTAURANTE' },
-  { label: 'Preparacion academica y cursos', value: 'PREPARACION_ACADEMICA' },
-  { label: 'Colegio o instituto', value: 'INSTITUCION_EDUCATIVA' },
-  { label: 'Tienda de ropa y calzado', value: 'ROPA_CALZADO' },
-  { label: 'Muebleria y decoracion', value: 'MUEBLERIA' },
-  { label: 'Ferreteria y materiales', value: 'FERRETERIA' },
-  { label: 'Taller y repuestos', value: 'TALLER_REPUESTOS' },
-  { label: 'Agencia de viajes y transporte', value: 'VIAJES_TRANSPORTE' },
-  { label: 'Servicios profesionales', value: 'SERVICIOS_PROFESIONALES' },
-  { label: 'Otro', value: 'OTRO' },
-];
-
-/** Helper para `StructuredActionForm` (usa `type: 'select'` + `options`). */
-export function asFormOptions(options: CatalogOption[]): CatalogOption[] {
-  return options;
 }

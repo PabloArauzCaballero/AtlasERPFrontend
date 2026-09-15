@@ -2,10 +2,6 @@ import type { FormSectionDefinition } from '@/components/screens/StructuredActio
 import { armarFormularioPapel, type FormularioPapel } from '@/lib/formularioPapel';
 import {
   countryOptions,
-  kybStatusOptions,
-  merchantCategoryOptions,
-  recordStatusOptions,
-  riskTierOptions,
 } from '@/lib/catalogs';
 import {
   loadAccountGroups,
@@ -274,7 +270,7 @@ export const SECCIONES_CUENTA_GL_EDICION: FormSectionDefinition[] = [
     fields: [
       { name: 'accountNumber', label: 'Número de cuenta (la que se edita)', required: true },
       { name: 'name', label: 'Nombre', span: 2 },
-      { name: 'status', label: 'Estado', type: 'select', options: recordStatusOptions },
+      { name: 'status', label: 'Estado', type: 'select', optionsSource: 'domain:accounting.glAccountStatus' },
       { name: 'isPostingAllowed', label: 'Permite asientos', type: 'select', options: SI_NO },
       { name: 'isBankAccount', label: 'Es cuenta bancaria', type: 'select', options: SI_NO },
       { name: 'isReconcilable', label: 'Conciliable', type: 'select', options: SI_NO },
@@ -303,8 +299,8 @@ export const SECCIONES_PARTNER_EDICION: FormSectionDefinition[] = [
       { name: 'tradeName', label: 'Nombre comercial' },
       { name: 'taxId', label: 'NIT / documento' },
       { name: 'countryCode', label: 'País', type: 'select', options: countryOptions },
-      { name: 'kybStatus', label: 'Estado KYB', type: 'select', options: kybStatusOptions },
-      { name: 'status', label: 'Estado', type: 'select', options: recordStatusOptions },
+      { name: 'kybStatus', label: 'Estado KYB', type: 'select', optionsSource: 'domain:accounting.kybStatus' },
+      { name: 'status', label: 'Estado', type: 'select', optionsSource: 'domain:accounting.businessPartnerStatus' },
     ],
   },
 ];
@@ -324,8 +320,8 @@ export const SECCIONES_REGLA_MDR: FormSectionDefinition[] = [
     fields: [
       { name: 'contractVersionId', label: 'Contrato (versión vigente)', type: 'select', required: true, optionsLoader: loadContracts2, span: 3 },
       { name: 'ratePercent', label: 'Comisión (%)', type: 'number', required: true, placeholder: '3.50' },
-      { name: 'productCategory', label: 'Categoría de producto', type: 'select', options: merchantCategoryOptions, hint: 'Vacío: aplica a todas.' },
-      { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', options: riskTierOptions, hint: 'Vacío: aplica a todos.' },
+      { name: 'productCategory', label: 'Categoría de producto', type: 'select', optionsSource: 'domain:crm.merchantCategory', hint: 'Vacío: aplica a todas.' },
+      { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', optionsSource: 'domain:crm.riskTier', hint: 'Vacío: aplica a todos.' },
       { name: 'minFeeAmount', label: 'Piso (Bs)', type: 'number', hint: 'Una venta de Bs 20 al 3 % deja Bs 0,60.' },
       { name: 'maxFeeAmount', label: 'Techo (Bs)', type: 'number', hint: 'Evita comisiones desproporcionadas en ventas grandes.' },
     ],

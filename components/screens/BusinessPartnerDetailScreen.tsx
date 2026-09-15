@@ -16,7 +16,9 @@ import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioPartnerEdicion } from '@/lib/formulariosPapel/operaciones';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { PartnerDefaultAccountsPanel } from '@/components/screens/PartnerDefaultAccountsPanel';
-import { countryOptions, kybStatusOptions, recordStatusOptions } from '@/lib/catalogs';
+import { countryOptions } from '@/lib/catalogs';
+import { domainLoader } from '@/services/domains';
+import { useOptions } from '@/hooks/useOptions';
 import { maskPii } from '@/lib/formatters';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -56,6 +58,9 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
   const resource = useAsyncResource(load, Boolean(requestedId));
   const partner = useMemo(() => resource.data ?? {}, [resource.data]);
   const mutation = useAtlasMutation((body: JsonObject) => accountingService.updateBusinessPartner(requestedId, body));
+  // Estado KYB y estado del socio salen del backend: el suyo admite BLOCKED, que la lista local no tenía.
+  const kybOptions = useOptions(domainLoader('domain:accounting.kybStatus'));
+  const estadoOptions = useOptions(domainLoader('domain:accounting.businessPartnerStatus'));
 
   const [form, setForm] = useState<EditState | null>(null);
   useEffect(() => {
@@ -128,8 +133,8 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
                   <FormField label="Nombre comercial" name="tradeName" value={form.tradeName} onChange={(e) => setForm({ ...form, tradeName: e.target.value })} />
                   <FormField label="NIT / documento" name="taxId" value={form.taxId} onChange={(e) => setForm({ ...form, taxId: e.target.value })} />
                   <FormField kind="select" label="País" name="countryCode" value={form.countryCode} onChange={(e) => setForm({ ...form, countryCode: e.target.value })} options={countryOptions} />
-                  <FormField kind="select" label="Estado KYB" name="kybStatus" value={form.kybStatus} onChange={(e) => setForm({ ...form, kybStatus: e.target.value })} options={kybStatusOptions} />
-                  <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={recordStatusOptions} />
+                  <FormField kind="select" label="Estado KYB" name="kybStatus" value={form.kybStatus} onChange={(e) => setForm({ ...form, kybStatus: e.target.value })} options={kybOptions} />
+                  <FormField kind="select" label="Estado" name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} options={estadoOptions} />
                 </div>
                 <div className="flex items-center gap-3">
                   <AtlasButton icon="save" loading={mutation.isLoading} disabled={!dirty} onClick={handleSave}>Guardar cambios</AtlasButton>
