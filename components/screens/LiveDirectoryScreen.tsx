@@ -79,8 +79,6 @@ interface LiveDirectoryScreenProps {
   metrics: MetricDefinition[];
   createHref?: string;
   createLabel?: string;
-  /** Alternativa a `createHref` cuando el alta vive en otra pestaña de la misma vista. */
-  createOnClick?: (() => void) | undefined;
   /** Alta en un modal sobre la propia tabla: la forma estándar del ERP. */
   create?: {
     title?: string | undefined;
@@ -265,8 +263,6 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
 
   const crear = props.create
     ? <AtlasButton icon="add" data-tutorial-id="directory-create" data-testid="directorio-crear" onClick={() => setCreating(true)}>{props.createLabel ?? 'Crear registro'}</AtlasButton>
-    : props.createOnClick
-    ? <AtlasButton icon="add" data-tutorial-id="directory-create" onClick={props.createOnClick}>{props.createLabel ?? 'Crear registro'}</AtlasButton>
     : props.createHref
       ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link>
       : null;

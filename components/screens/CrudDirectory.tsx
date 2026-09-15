@@ -95,12 +95,10 @@ interface CrudDirectoryProps {
     description?: string | undefined;
     fields?: ActionField[] | undefined;
     submit?: ((payload: JsonObject) => Promise<unknown>) | undefined;
-    /** Alternativa al modal: para altas que necesitan un formulario grande con secciones propias. */
-    onClick?: (() => void) | undefined;
     /**
      * Alta en su propia página (`…/crear`): para las que llevan líneas dinámicas o columna lateral y
-     * no caben en un modal. Es la alternativa correcta a `onClick`, que sólo servía para saltar a
-     * una pestaña de alta —un verbo metido en la barra de secciones—.
+     * no caben en un modal. Sustituye al antiguo `onClick`, que sólo servía para saltar a una
+     * pestaña de alta —un verbo metido en la barra de secciones— y se quitó para que no vuelva.
      */
     href?: string | undefined;
   } | undefined;
@@ -380,7 +378,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           <AtlasButton icon="add" tabIndex={-1}>{create.label ?? 'Crear'}</AtlasButton>
         </Link>
       ) : create ? (
-        <AtlasButton icon="add" data-testid="crud-crear" onClick={() => (create.onClick ? create.onClick() : setCreating(true))}>{create.label ?? 'Crear'}</AtlasButton>
+        <AtlasButton icon="add" data-testid="crud-crear" onClick={() => setCreating(true)}>{create.label ?? 'Crear'}</AtlasButton>
       ) : null}
     </>
   );
