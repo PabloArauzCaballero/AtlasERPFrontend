@@ -47,7 +47,7 @@ test.describe('cuaderno de formularios en papel (operaciones)', () => {
     await descarga;
 
     expect(capturadas).toHaveLength(1);
-    const [peticion] = capturadas;
+    const peticion = capturadas[0]!;
     expect(peticion.templateId).toBe('blank-form');
     expect(peticion.payload?.formCode).toBe('ERP-CONTABILIDAD-DOCUMENTO-CREAR');
     expect(peticion.payload?.formVersion).toMatch(/^[0-9a-f]{8}$/);
@@ -79,7 +79,7 @@ test.describe('cuaderno de formularios en papel (operaciones)', () => {
     const descarga = page.waitForEvent('download');
     await page.getByTestId('papel-imprimir-ERP-CONTABILIDAD-RECIBO-REGISTRAR').click();
     await descarga;
-    const [peticion] = capturadas;
+    const peticion = capturadas[0]!;
     expect(peticion.headers['x-atlas-entry-channel']).toBe('PAPER');
     expect(peticion.headers['x-atlas-paper-serial']).toBe('DOC-4F3A9C2E7B10');
     expect(peticion.headers['x-atlas-paper-form']).toBe('ERP-CONTABILIDAD-DOCUMENTO-CREAR@a91f3c2e');
