@@ -8,6 +8,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
+import { Modal } from '@/components/atlas/Modal';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -65,6 +66,8 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
   const resource = useAsyncResource(load);
   const tree = (resource.data ?? []) as unknown as GroupNode[];
 
+  /* El alta ocupaba una columna fija a la derecha del árbol: ahora es un modal de su botón. */
+  const [creando, setCreando] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
   const mutation = useAtlasMutation((body: JsonObject) => accountingService.createAccountGroup(body));
 
@@ -83,6 +86,7 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
     };
     try {
       await mutation.execute(body);
+      setCreando(false);
       setForm((current) => ({ ...emptyForm, coaId: current.coaId, statementType: current.statementType, classification: current.classification }));
       await resource.reload();
     } catch {
@@ -103,8 +107,13 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
         />
       )}
 
-      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,.8fr)]">
-        <Panel title="Estructura jerárquica" description="Árbol de grupos ordenado por statement / clasificación." icon="account_tree">
+      <div className="space-y-4">
+        <Panel
+          title="Estructura jerárquica"
+          description="Árbol de grupos ordenado por statement / clasificación."
+          icon="account_tree"
+          action={<AtlasButton icon="add" data-testid="grupo-cuenta-crear" onClick={() => setCreando(true)}>Nuevo grupo</AtlasButton>}
+        >
           <div className="mb-3 flex items-center gap-2">
             <FormField kind="select" label="Filtrar por plan de cuentas (COA)" name="coaFilter" value={coaFilter} onChange={(e) => setCoaFilter(e.target.value)} options={[{ label: 'Todos los COA', value: '' }, ...coaOptions]} className="flex-1" />
           </div>
@@ -113,7 +122,7 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
             <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
               <Icon name="account_tree" className="text-[34px] text-slate-400" />
               <p className="mt-2 text-xs font-bold text-slate-700">Aún no hay grupos de cuenta</p>
-              <p className="mt-1 text-[11px] text-slate-500">Cree el primer grupo raíz (p. ej. «Balance General») con el panel de la derecha.</p>
+              <p className="mt-1 text-[11px] text-slate-500">Cree el primer grupo raíz (p. ej. «Balance General») con el botón «Nuevo grupo».</p>
             </div>
           ) : (
             <ul className="space-y-1">
@@ -121,25 +130,32 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
             </ul>
           )}
         </Panel>
-
-        <Panel title="Nuevo grupo" description="Cree un grupo raíz o hijo (indicando el grupo padre)." icon="add_circle">
-          {mutation.status === 'success' ? <InlineNotice tone="success" title="Grupo creado">El grupo se agregó al árbol.</InlineNotice> : null}
-          {mutation.error ? <InlineNotice tone="danger" title="No se pudo crear">{mutation.error}</InlineNotice> : null}
-          <div className="space-y-3">
-            <FormField kind="select" label="Plan de cuentas (COA)" name="coaId" required value={form.coaId} onChange={(e) => setField('coaId')(e.target.value)} options={[{ label: '— Seleccione un COA —', value: '' }, ...coaOptions]} />
-            <FormField kind="select" label="Grupo padre" name="parentGroupId" value={form.parentGroupId} onChange={(e) => setField('parentGroupId')(e.target.value)} options={withEmpty(groupOptions, '— Grupo raíz —')} hint="Vacío = grupo raíz" />
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="Código" name="code" required value={form.code} onChange={(e) => setField('code')(e.target.value)} placeholder="BG-ACT-CORR" />
-              <FormField label="Orden" name="sortOrder" type="number" value={form.sortOrder} onChange={(e) => setField('sortOrder')(e.target.value)} />
-            </div>
-            <FormField label="Nombre" name="name" required value={form.name} onChange={(e) => setField('name')(e.target.value)} placeholder="Activo Corriente" />
-            <FormField kind="select" label="Estado financiero" name="statementType" value={form.statementType} onChange={(e) => setField('statementType')(e.target.value)} options={statementTypeOptions} />
-            <FormField kind="select" label="Clasificación" name="classification" value={form.classification} onChange={(e) => setField('classification')(e.target.value)} options={classificationOptions} />
-            <FormField kind="select" label="Subclasificación (opcional)" name="subClassification" value={form.subClassification} onChange={(e) => setField('subClassification')(e.target.value)} options={withEmpty(subClassificationOptions, '— Sin subclasificación —')} />
-            <AtlasButton icon="save" loading={mutation.isLoading} disabled={!canCreate} onClick={handleCreate}>Crear grupo</AtlasButton>
-          </div>
-        </Panel>
       </div>
+
+      <Modal
+        open={creando}
+        title="Nuevo grupo de cuenta"
+        description="Cree un grupo raíz o hijo (indicando el grupo padre)."
+        icon="add_circle"
+        width="md"
+        onClose={() => setCreando(false)}
+      >
+        {mutation.status === 'success' ? <InlineNotice tone="success" title="Grupo creado">El grupo se agregó al árbol.</InlineNotice> : null}
+        {mutation.error ? <InlineNotice tone="danger" title="No se pudo crear">{mutation.error}</InlineNotice> : null}
+        <div className="space-y-3">
+          <FormField kind="select" label="Plan de cuentas (COA)" name="coaId" required value={form.coaId} onChange={(e) => setField('coaId')(e.target.value)} options={[{ label: '— Seleccione un COA —', value: '' }, ...coaOptions]} />
+          <FormField kind="select" label="Grupo padre" name="parentGroupId" value={form.parentGroupId} onChange={(e) => setField('parentGroupId')(e.target.value)} options={withEmpty(groupOptions, '— Grupo raíz —')} hint="Vacío = grupo raíz" />
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Código" name="code" required value={form.code} onChange={(e) => setField('code')(e.target.value)} placeholder="BG-ACT-CORR" />
+            <FormField label="Orden" name="sortOrder" type="number" value={form.sortOrder} onChange={(e) => setField('sortOrder')(e.target.value)} />
+          </div>
+          <FormField label="Nombre" name="name" required value={form.name} onChange={(e) => setField('name')(e.target.value)} placeholder="Activo Corriente" />
+          <FormField kind="select" label="Estado financiero" name="statementType" value={form.statementType} onChange={(e) => setField('statementType')(e.target.value)} options={statementTypeOptions} />
+          <FormField kind="select" label="Clasificación" name="classification" value={form.classification} onChange={(e) => setField('classification')(e.target.value)} options={classificationOptions} />
+          <FormField kind="select" label="Subclasificación (opcional)" name="subClassification" value={form.subClassification} onChange={(e) => setField('subClassification')(e.target.value)} options={withEmpty(subClassificationOptions, '— Sin subclasificación —')} />
+          <AtlasButton icon="save" loading={mutation.isLoading} disabled={!canCreate} onClick={handleCreate}>Crear grupo</AtlasButton>
+        </div>
+      </Modal>
     </div>
   );
 }
