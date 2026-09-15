@@ -95,23 +95,23 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
 
   '/operaciones/admin/notificaciones': {
     eyebrow: 'Control',
-    title: 'Centro de notificaciones',
-    intro: 'La vista de alertas operativas por módulo y severidad.',
+    title: 'Campañas de notificación',
+    intro: 'Avisos a clientes de la app con segmento, fecha de inicio, fecha de fin y cadencia, por bandeja, push y correo.',
     sections: [
       {
-        title: 'Aviso importante',
-        body: 'Este backend todavía NO tiene módulo de notificaciones. La pantalla existe con su diseño definitivo, pero no hay una fuente real de alertas detrás: no la uses como si fuera un canal de aviso fiable.',
+        title: 'Cómo se arma una campaña',
+        body: 'Cuatro pasos: el contenido (título, mensaje, canales y a qué pantalla lleva tocarlo), la audiencia (condiciones sobre los datos del cliente o un segmento guardado), la programación (inicio, fin y cuántos avisos por minuto) y la revisión con el número real de personas. Guardar un borrador no envía nada.',
       },
       {
-        title: 'Por qué se conserva',
-        body: 'Documenta una carencia concreta en lugar de esconderla, y deja el hueco listo para cuando el módulo exista. Fingir alertas habría sido peor: se confiaría en algo que no vigila nada.',
+        title: 'A quién le llega',
+        body: 'La bandeja de la app llega a toda la audiencia. El push sólo a quien tiene la app con los avisos activados, y el correo sólo a quien lo tiene verificado. Una campaña comercial descuenta a quien no aceptó promociones; los clientes bloqueados nunca reciben.',
       },
       {
-        title: 'Mientras tanto',
-        body: 'Lo que sí es real y sí se puede vigilar está en el Business Action Log y en el monitor de entrega.',
+        title: 'Después de programarla',
+        body: 'Empieza sola a su hora. Se puede pausar, reanudar o cancelar con un motivo (se anulan los avisos que aún no salieron). El detalle muestra alcanzados, entregados, leídos y fallidos por canal, y permite enviarte una prueba antes de lanzarla.',
       },
     ],
-    backend: 'Sin módulo de notificaciones en este backend',
+    backend: 'GET/POST/PATCH /admin/notification-campaigns (pasarela a AtlasBackend)',
   },
 
   '/operaciones/admin/busqueda-global': {

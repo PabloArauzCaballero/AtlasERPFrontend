@@ -1,2 +1,5 @@
-import { NotificationsCenterScreen } from '@/components/screens/NotificationsCenterScreen';
-export default function NotificationsPage() { return <NotificationsCenterScreen />; }
+import { NotificationCampaignsScreen } from '@/components/campaigns/NotificationCampaignsScreen';
+
+export default function NotificationsPage() {
+  return <NotificationCampaignsScreen />;
+}
