@@ -106,7 +106,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
   const acciones = <><AtlasButton variant="secondary" icon="close" type="reset" onClick={mutation.reset}>Descartar</AtlasButton><AtlasButton type="submit" data-tutorial-id="action-submit" icon={props.submitIcon ?? 'save'} loading={mutation.isLoading}>{props.submitLabel}</AtlasButton></>;
 
   return (
-    <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit}>
+    <form data-tutorial-id="action-form" className="space-y-5" onSubmit={handleSubmit} noValidate={tabbed}>
       {props.embedded ? null : (
         <WorkspaceHeader
           breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]}
@@ -147,7 +147,10 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
                     field={field}
                     className={clases[fieldIndex] ?? ''}
                     dynamicOptions={dynamicOptions}
-                    nativeRequired={tabbed ? undefined : field.required}
+                    // `false`, no `undefined`: con `undefined` el control cae al `required` del campo y el
+                    // navegador bloquea el envío por un campo de una pestaña OCULTA («not focusable»), sin
+                    // ningún aviso en pantalla. Era la causa de «no me deja crear la empresa».
+                    nativeRequired={tabbed ? false : field.required}
                     softRequired={tabbed ? field.required : undefined}
                   />
                 ));
