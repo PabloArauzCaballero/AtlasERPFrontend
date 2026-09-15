@@ -8,6 +8,15 @@ import { ToastHost } from '@/components/atlas/ToastHost';
 export const metadata: Metadata = {
   title: { default: 'ATLAS ERP', template: '%s | ATLAS ERP' },
   description: 'Plataforma operacional y financiera ATLAS.',
+  // El logo de la app móvil, servido desde `public/`: es el icono de la pestaña en todos los portales.
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: { url: '/apple-touch-icon.png', sizes: '180x180' },
+  },
 };
 
 /**

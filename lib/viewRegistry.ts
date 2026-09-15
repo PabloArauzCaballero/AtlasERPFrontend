@@ -61,3 +61,47 @@ export const atlasViewLinks: AtlasViewLink[] = [
   { area: 'Panel operaciones', phase: 'Usuarios', title: 'Gestión de roles y permisos', href: '/operaciones/admin/roles', status: 'integrada', backend: 'GET /internal/roles, /internal/permissions (solo lectura)' },
   { area: 'Panel operaciones', phase: 'Navegación', title: 'Mapa del sitio y navegación', href: '/operaciones/admin/mapa-sitio', status: 'integrada', backend: 'Registro local de vistas y contratos' },
 ];
+
+/**
+ * Cómo se le cuenta cada estado a quien USA el ERP.
+ *
+ * Las claves (`solo-accion`, `brecha-backend`) son vocabulario de quien lo programa. Pintarlas tal
+ * cual, junto con la ruta del endpoint, convertía el centro de comando y el mapa del sistema en un
+ * informe técnico, y quien entraba a buscar una pantalla no sabía qué estaba mirando.
+ */
+export const viewStatusInfo: Readonly<Record<ViewStatus, { label: string; tone: 'success' | 'warning' | 'danger'; meaning: string }>> = {
+  integrada: { label: 'Completa', tone: 'success', meaning: 'Muestra la información guardada y permite trabajar con ella.' },
+  'solo-accion': { label: 'Sólo registrar', tone: 'warning', meaning: 'Sirve para crear o cambiar algo, pero todavía no muestra la lista de lo que ya se registró.' },
+  'brecha-backend': { label: 'En construcción', tone: 'danger', meaning: 'La pantalla existe, pero al sistema aún le falta la parte que la alimenta. No es una avería.' },
+};
+
+export interface ViewModule {
+  name: string;
+  icon: string;
+  /** Para qué sirve el módulo, en una frase y sin jerga. */
+  purpose: string;
+  phases: readonly string[];
+}
+
+/** Los módulos con el MISMO nombre que en el menú lateral: así el mapa y el menú se reconocen. */
+export const viewModules: readonly ViewModule[] = [
+  { name: 'CRM', icon: 'business_center', purpose: 'Comercios y empresas clientes: cuentas, oportunidades, contratos, tarifas y facturación.', phases: ['CRM B2B', 'CRM'] },
+  { name: 'Contabilidad', icon: 'account_balance_wallet', purpose: 'Plan de cuentas, documentos contables, recibos, periodos y cierres.', phases: ['Contabilidad'] },
+  { name: 'Ads', icon: 'campaign', purpose: 'Publicidad: anunciantes, campañas, audiencias y su facturación.', phases: ['Ads'] },
+  { name: 'Portal del comercio', icon: 'storefront', purpose: 'Lo que ve el propio comercio: su empresa, sus sucursales y su QR de cobro.', phases: ['Comercio'] },
+  { name: 'Control', icon: 'verified_user', purpose: 'Usuarios, permisos, auditoría y las herramientas para orientarse en el ERP.', phases: ['Usuarios', 'Auditoría', 'Brecha documentada', 'Navegación'] },
+];
+
+const OTHER_VIEWS: ViewModule = { name: 'Otras pantallas', icon: 'apps', purpose: 'Pantallas que todavía no tienen un módulo asignado.', phases: [] };
+
+/** El módulo de una vista. Nunca la deja fuera: lo que no encaja cae en «Otras pantallas». */
+export function moduleOfView(view: AtlasViewLink): ViewModule {
+  return viewModules.find((module) => module.phases.includes(view.phase)) ?? OTHER_VIEWS;
+}
+
+/** Todas las vistas repartidas por módulo, sin módulos vacíos. */
+export function viewsByModule(views: readonly AtlasViewLink[] = atlasViewLinks): Array<{ module: ViewModule; views: AtlasViewLink[] }> {
+  return [...viewModules, OTHER_VIEWS]
+    .map((module) => ({ module, views: views.filter((view) => moduleOfView(view) === module) }))
+    .filter((group) => group.views.length > 0);
+}

@@ -142,7 +142,7 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
     sections: [
       {
         title: 'Qué significa cada estado',
-        body: '«Integrada» lee y escribe contra el backend; «sólo acción» envía operaciones pero no tiene listado propio; «brecha backend» es una vista cuyo endpoint todavía no existe.',
+        body: '«Completa» muestra lo guardado y deja trabajar con ello; «Sólo registrar» crea o cambia registros pero aún no lista los que ya existen; «En construcción» es una pantalla a la que todavía le falta la parte del sistema que la alimenta.',
       },
       {
         title: 'Para qué sirve en el día a día',
