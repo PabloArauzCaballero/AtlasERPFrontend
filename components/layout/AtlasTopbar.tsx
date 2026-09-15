@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/atlas/Icon';
+import { TranscripcionChapa } from '@/components/atlas/TranscripcionBar';
 import { useAuth } from '@/lib/authContext';
 
 function initialsFrom(name: string | undefined): string {
@@ -86,6 +87,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           </form>
         </div>
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
+          <TranscripcionChapa />
           <button
             type="button"
             onClick={() => setSearchOpen((open) => !open)}

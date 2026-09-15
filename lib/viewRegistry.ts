@@ -64,6 +64,8 @@ export const atlasViewLinks: AtlasViewLink[] = [
   { area: 'Panel operaciones', phase: 'Brecha documentada', title: 'Centro de comando y búsqueda global', href: '/operaciones/admin/busqueda-global', status: 'brecha-backend', backend: 'Sin endpoint de búsqueda global federada' },
   { area: 'Panel operaciones', phase: 'Usuarios', title: 'Gestión de roles y permisos', href: '/operaciones/admin/roles', status: 'integrada', backend: 'GET /internal/roles, /internal/permissions (solo lectura)' },
   { area: 'Panel operaciones', phase: 'Navegación', title: 'Mapa del sitio y navegación', href: '/operaciones/admin/mapa-sitio', status: 'integrada', backend: 'Registro local de vistas y contratos' },
+  { area: 'Panel operaciones', phase: 'Navegación', title: 'Formularios en papel (cuaderno para rellenar a mano)', href: '/operaciones/admin/formularios-papel', status: 'integrada', backend: 'POST /documents/generate (templateId blank-form)' },
+  { area: 'Portal comercio', phase: 'Comercio', title: 'Formularios en papel', href: '/portal-comercio/formularios', status: 'integrada', backend: 'POST /documents/generate (templateId blank-form) | GET /documents/forms' },
 ];
 
 /**

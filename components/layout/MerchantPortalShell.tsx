@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { Icon } from '@/components/atlas/Icon';
+import { TranscripcionChapa } from '@/components/atlas/TranscripcionBar';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
 import { NavDrawer } from './NavDrawer';
@@ -26,6 +27,7 @@ const links = [
   { href: '/portal-comercio/sucursales-usuarios', label: 'Sucursales', icon: 'storefront' },
   /* La ficha del negocio y el QR que se imprime: existia la pantalla, pero no habia como llegar. */
   { href: '/portal-comercio/expediente', label: 'Mi empresa', icon: 'badge' },
+  { href: '/portal-comercio/formularios', label: 'Formularios en papel', icon: 'print' },
   { href: '/portal-comercio/tutoriales', label: 'Centro de Tutoriales', icon: 'school' },
   /* Hablar con Atlas. Va al final y no arriba a proposito: no es trabajo diario del comercio, pero
      tiene que estar SIEMPRE a la vista — un soporte que hay que buscar termina siendo un WhatsApp
@@ -91,6 +93,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          <TranscripcionChapa />
           <button className="hidden h-11 w-11 place-items-center rounded-full text-slate-500 hover:bg-slate-100 sm:grid" aria-label="Notificaciones"><Icon name="notifications" className="text-[19px]" /></button>
           <div className="hidden h-7 w-px bg-slate-200 sm:block" />
           {/* El nombre del comercio se retira en pantallas muy estrechas: con la
