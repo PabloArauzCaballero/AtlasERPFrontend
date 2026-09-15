@@ -8,6 +8,7 @@ import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
+import { Modal } from '@/components/atlas/Modal';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioSucursales } from '@/lib/formulariosPapel/portal';
@@ -153,6 +154,8 @@ export function MerchantStructureScreen() {
   /* La ciudad se elige del catálogo: escrita a mano, «Sta. Cruz» y «Santa Cruz» eran dos plazas distintas. */
   const ciudades = useOptions(domainLoader('catalog:city'));
 
+  /* El alta vive en un modal: un formulario siempre abierto empujaba la lista fuera de la pantalla. */
+  const [creando, setCreando] = useState(false);
   const [editando, setEditando] = useState<ResourceRow | null>(null);
   const editMutation = useAtlasMutation(useCallback(
     ({ id, body }: { id: string; body: JsonObject }) => portalService.updateBranch(id, body),
@@ -211,6 +214,8 @@ export function MerchantStructureScreen() {
         formDataToPayload(new FormData(form), [{ name: 'name' }, { name: 'city', optional: true }, { name: 'address', optional: true }]),
       );
       form.reset();
+      setCreando(false);
+      setFeedback({ tone: 'success', text: 'Sucursal registrada correctamente.' });
       if (ready) await branches.reload();
       /*
        * La sucursal se declara sola en el expediente.
@@ -274,6 +279,7 @@ export function MerchantStructureScreen() {
               ],
             })}
           />
+          <AtlasButton icon="add_location" data-testid="btn-agregar-sucursal" disabled={!ready} onClick={() => setCreando(true)}>Agregar sucursal</AtlasButton>
           </>
         }
       />
@@ -307,24 +313,38 @@ export function MerchantStructureScreen() {
         </div>
       ) : null}
 
-      <form onSubmit={submitBranch}>
-        <Panel title="Agregar sucursal" description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte." icon="add_location">
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            <FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
-            <FormField kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
-            <FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
-          </div>
-          {branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}
-          {branchMutation.status === 'success' ? <InlineNotice className="mt-4" tone="success">Sucursal registrada correctamente.</InlineNotice> : null}
-          <div className="mt-5 flex justify-end">
+      <Modal
+        open={creando}
+        title="Agregar sucursal"
+        description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte."
+        icon="add_location"
+        width="md"
+        onClose={() => setCreando(false)}
+      >
+        <form onSubmit={submitBranch} className="space-y-4">
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
+          <FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
+          <FormField kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
+          <FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
+        </div>
+          {branchMutation.error ? <InlineNotice tone="danger">{branchMutation.error}</InlineNotice> : null}
+          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+            <AtlasButton variant="secondary" type="button" onClick={() => setCreando(false)}>Cancelar</AtlasButton>
             <AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading} disabled={!ready}>Registrar sucursal</AtlasButton>
           </div>
-        </Panel>
-      </form>
+        </form>
+      </Modal>
 
       {editando ? (
+        <Modal
+          open
+          title={`Editar ${String(editando.name ?? 'sucursal')}`}
+          description="La sucursal no cambia de negocio: eso movería sus ventas de cuenta."
+          icon="edit_location"
+          width="md"
+          onClose={() => setEditando(null)}
+        >
         <form onSubmit={guardarEdicion}>
-          <Panel title={`Editar ${String(editando.name ?? 'sucursal')}`} description="La sucursal no cambia de negocio: eso movería sus ventas de cuenta." icon="edit_location">
             <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
               <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
               {/* La ciudad guardada se conserva aunque no esté en el catálogo (texto libre de antes); y el
@@ -350,8 +370,8 @@ export function MerchantStructureScreen() {
               <AtlasButton variant="secondary" type="button" onClick={() => setEditando(null)}>Cancelar</AtlasButton>
               <AtlasButton type="submit" icon="save" loading={editMutation.isLoading}>Guardar cambios</AtlasButton>
             </div>
-          </Panel>
         </form>
+        </Modal>
       ) : null}
       {statusMutation.error ? <InlineNotice tone="danger" title="No se pudo cambiar el estado">{statusMutation.error}</InlineNotice> : null}
 
