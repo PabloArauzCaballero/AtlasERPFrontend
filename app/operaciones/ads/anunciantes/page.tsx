@@ -1,9 +1,17 @@
 'use client';
 
 import { LiveDirectoryScreen } from '@/components/screens/LiveDirectoryScreen';
+import { useOptions } from '@/hooks/useOptions';
 import { adsService } from '@/services/adsService';
+import { domainLoader } from '@/services/domains';
 
 export default function AdvertisersPage() {
+  /*
+   * El filtro de estado lee el dominio del backend. La lista copiada ofrecía `PENDING`, que no es
+   * un estado de anunciante (es `PENDING_REVIEW`): filtrar por «Pendiente» devolvía siempre vacío.
+   */
+  const estados = useOptions(domainLoader('domain:ads.advertiserStatus'));
+
   return (
     <LiveDirectoryScreen
       moduleLabel="Ads"
@@ -13,7 +21,7 @@ export default function AdvertisersPage() {
       createHref="/operaciones/ads/anunciantes/crear"
       createLabel="Nuevo anunciante"
       searchPlaceholder="Buscar anunciante, marca o NIT..."
-      statusOptions={[{ label: 'Activo', value: 'ACTIVE' }, { label: 'Pendiente', value: 'PENDING' }, { label: 'Suspendido', value: 'SUSPENDED' }]}
+      statusOptions={estados}
       columns={[
         { key: 'tradeName', label: 'Anunciante' },
         { key: 'legalName', label: 'Razón social' },
@@ -45,29 +53,8 @@ export default function AdvertisersPage() {
             title: () => `Estado de ${String(row.tradeName ?? row.legalName ?? '')}`,
             description: 'El motivo queda en la auditoría del módulo: suspender a un anunciante corta su entrega, y quien lo revise después necesita saber por qué.',
             fields: [
-              {
-                name: 'status',
-                label: 'Estado',
-                type: 'select',
-                required: true,
-                options: [
-                  { label: 'Pendiente de revisión', value: 'PENDING_REVIEW' },
-                  { label: 'Activo', value: 'ACTIVE' },
-                  { label: 'Suspendido', value: 'SUSPENDED' },
-                  { label: 'Rechazado', value: 'REJECTED' },
-                ],
-              },
-              {
-                name: 'riskStatus',
-                label: 'Riesgo',
-                type: 'select',
-                optional: true,
-                options: [
-                  { label: 'Normal', value: 'NORMAL' },
-                  { label: 'En vigilancia', value: 'WATCHLIST' },
-                  { label: 'Bloqueado', value: 'BLOCKED' },
-                ],
-              },
+              { name: 'status', label: 'Estado', required: true, optionsSource: 'domain:ads.advertiserStatus' },
+              { name: 'riskStatus', label: 'Riesgo', optional: true, optionsSource: 'domain:ads.riskStatus' },
               { name: 'reason', label: 'Motivo', required: true, span: 3, placeholder: 'Documentación fiscal verificada' },
             ],
             submit: (target, payload) => adsService.updateAdvertiserStatus(String(target.id ?? ''), payload),
@@ -85,10 +72,12 @@ export default function AdvertisersPage() {
               { name: 'fiscalName', label: 'Razón social fiscal', required: true, span: 2 },
               { name: 'taxId', label: 'NIT', required: true },
               { name: 'billingEmail', label: 'Correo de facturación', type: 'email', required: true, span: 2 },
-              { name: 'taxRegime', label: 'Régimen tributario', optional: true },
+              // El régimen es un dominio cerrado (sus códigos llevan espacios: «REGIMEN GENERAL»); como texto libre, el backend lo rechazaba.
+              { name: 'taxRegime', label: 'Régimen tributario', optional: true, optionsSource: 'domain:ads.taxRegime' },
               { name: 'addressLine', label: 'Dirección', optional: true, span: 2 },
-              { name: 'city', label: 'Ciudad', optional: true },
-              { name: 'country', label: 'País', optional: true, defaultValue: 'BO', hint: 'Dos letras: BO, AR, BR…' },
+              { name: 'city', label: 'Ciudad', optional: true, optionsSource: 'catalog:city' },
+              { name: 'country', label: 'País', optional: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
+              // Lo asigna el SIN, fuera de Atlas: se copia tal cual y no hay dominio que ofrecer.
               { name: 'sinCustomerCode', label: 'Código de cliente SIN', optional: true },
             ],
             submit: (target, payload) => adsService.createBillingProfile(String(target.id ?? ''), payload),

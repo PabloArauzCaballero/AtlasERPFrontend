@@ -11,8 +11,10 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { InlineActionForm } from '@/components/screens/InlineActionForm';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useOptions } from '@/hooks/useOptions';
 import { formatDate, statusTone } from '@/lib/formatters';
 import { adsService } from '@/services/adsService';
+import { domainLoader } from '@/services/domains';
 import { loadCampaigns } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -34,13 +36,6 @@ import type { JsonObject, ResourceRow } from '@/services/types';
  *    haber salido entero.
  */
 
-const RAZONES = [
-  { label: 'Baja voluntaria', value: 'UNSUBSCRIBE' },
-  { label: 'Rebote duro', value: 'HARD_BOUNCE' },
-  { label: 'Reporte de spam', value: 'SPAM_REPORT' },
-  { label: 'Alta manual', value: 'MANUAL' },
-];
-
 function s(value: unknown): string {
   return value === null || value === undefined ? '' : String(value);
 }
@@ -53,6 +48,11 @@ export function AdsEmailScreen() {
   const [tab, setTab] = useState('envio');
   const [trackingId, setTrackingId] = useState('');
   const [version, setVersion] = useState(0);
+  /*
+   * Los motivos de supresión son un dominio cerrado del backend. Antes eran una lista copiada aquí;
+   * ahora el filtro y el alta leen la misma fuente, y un motivo nuevo aparece sin tocar la pantalla.
+   */
+  const razones = useOptions(domainLoader('domain:ads.emailSuppressionReason'));
 
   const tracking = useAsyncResource(
     useCallback(
@@ -211,14 +211,14 @@ export function AdsEmailScreen() {
                   { key: 'reason', label: 'Motivo', kind: 'status' },
                   { key: 'details', label: 'Detalle' },
                 ]}
-                filters={[{ key: 'reason', label: 'Motivo', options: RAZONES }]}
+                filters={[{ key: 'reason', label: 'Motivo', options: razones }]}
                 create={{
                   label: 'Suprimir dirección',
                   title: 'Suprimir una dirección',
                   description: 'Volver a suprimir una dirección ya suprimida no la duplica: actualiza el motivo y la reactiva si estaba dada de baja.',
                   fields: [
                     { name: 'email', label: 'Dirección', type: 'email', required: true, span: 2 },
-                    { name: 'reason', label: 'Motivo', type: 'select', required: true, options: RAZONES },
+                    { name: 'reason', label: 'Motivo', required: true, optionsSource: 'domain:ads.emailSuppressionReason' },
                     { name: 'details', label: 'Detalle', optional: true, span: 3, placeholder: 'Pidió la baja por teléfono el 12/03' },
                   ],
                   submit: async (payload) => {

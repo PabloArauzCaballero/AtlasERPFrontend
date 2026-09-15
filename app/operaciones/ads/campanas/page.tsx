@@ -79,8 +79,9 @@ export default function CampaignsPage() {
         fields: [
           { name: 'advertiserId', label: 'Anunciante', type: 'select', required: true, span: 2, optionsLoader: loadAdvertisers },
           { name: 'name', label: 'Nombre de la campaña', required: true, span: 2 },
-          { name: 'objective', label: 'Objetivo', type: 'select', required: true, options: ['AWARENESS', 'TRAFFIC', 'LEADS', 'CONVERSIONS', 'PROMOTION'].map((value) => ({ label: value, value })) },
-          { name: 'currency', label: 'Moneda', required: true, defaultValue: 'BOB' },
+          // Objetivo y moneda salen de su dominio y del catálogo ISO, no de listas copiadas ni de texto libre.
+          { name: 'objective', label: 'Objetivo', required: true, optionsSource: 'domain:ads.campaignObjective' },
+          { name: 'currency', label: 'Moneda', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
           { name: 'budgetTotalMicros', label: 'Presupuesto total (micros)', required: true, valueKind: 'number' },
           { name: 'budgetDailyMicros', label: 'Tope diario (micros)', valueKind: 'number', optional: true, hint: 'No puede superar al total.' },
           { name: 'startsAt', label: 'Inicio', type: 'datetime', required: true },
@@ -107,17 +108,12 @@ export default function CampaignsPage() {
             fields: [
               { name: 'from', label: 'Desde', type: 'date', optional: true },
               { name: 'to', label: 'Hasta', type: 'date', optional: true },
-              {
-                name: 'groupBy',
-                label: 'Agrupar por',
-                type: 'select',
-                optional: true,
-                options: [
-                  { label: 'Día', value: 'day' },
-                  { label: 'Semana', value: 'week' },
-                  { label: 'Mes', value: 'month' },
-                ],
-              },
+              /*
+               * El backend agrupa por CAMPAIGN, AD_SET, AD o DAY (`ads.performanceGrouping`). La lista
+               * copiada mandaba day/week/month, que su validación rechaza con 400: la consulta sólo
+               * funcionaba dejando el campo vacío. Semana y mes desaparecen porque nunca existieron.
+               */
+              { name: 'groupBy', label: 'Agrupar por', optional: true, optionsSource: 'domain:ads.performanceGrouping' },
             ],
           },
         },
@@ -133,7 +129,7 @@ export default function CampaignsPage() {
             submit: (fila, payload) => adsService.createAdSet(String(fila.id ?? ''), payload),
             fields: [
               { name: 'name', label: 'Nombre del conjunto', required: true, span: 2 },
-              { name: 'buyingModel', label: 'Modelo de compra', type: 'select', required: true, options: ['CPM', 'CPC', 'CPA', 'FIXED'].map((value) => ({ label: value, value })) },
+              { name: 'buyingModel', label: 'Modelo de compra', required: true, optionsSource: 'domain:ads.buyingModel' },
               { name: 'bidAmountMicros', label: 'Puja (micros)', required: true, valueKind: 'number' },
               { name: 'targetSegmentId', label: 'Segmento de audiencia', type: 'select', optional: true, span: 2, optionsLoader: async () => [{ label: '— Toda la audiencia —', value: '' }, ...(await loadSegments())], hint: 'Sin segmento, el conjunto entrega a toda la audiencia.' },
               { name: 'placementIds', label: 'Espacio publicitario', type: 'select', required: true, span: 2, optionsLoader: loadPlacements, valueKind: 'stringList' },
@@ -154,7 +150,7 @@ export default function CampaignsPage() {
             submit: (fila, payload) => adsService.createCreative({ ...payload, advertiserId: String(fila.advertiserId ?? '') }),
             fields: [
               { name: 'name', label: 'Nombre', required: true, span: 2 },
-              { name: 'creativeType', label: 'Tipo', type: 'select', required: true, options: ['IMAGE', 'VIDEO', 'CAROUSEL', 'TEXT_CARD'].map((value) => ({ label: value, value })) },
+              { name: 'creativeType', label: 'Tipo', required: true, optionsSource: 'domain:ads.creativeType' },
               { name: 'headline', label: 'Titular', optional: true },
               { name: 'ctaText', label: 'Texto del botón', optional: true },
               { name: 'destinationUrl', label: 'URL de destino', required: true, span: 2 },
@@ -191,7 +187,7 @@ export default function CampaignsPage() {
             submitLabel: 'Actualizar estado',
             submit: cambiarEstado,
             fields: [
-              { name: 'status', label: 'Nuevo estado', type: 'select', required: true, span: 2, defaultValue: String(row.status ?? 'DRAFT'), options: ['DRAFT', 'PENDING_REVIEW', 'APPROVED', 'ACTIVE', 'PAUSED', 'ENDED', 'REJECTED', 'ARCHIVED'].map((value) => ({ label: value.replaceAll('_', ' '), value })) },
+              { name: 'status', label: 'Nuevo estado', required: true, span: 2, defaultValue: String(row.status ?? 'DRAFT'), optionsSource: 'domain:ads.campaignStatus' },
               { name: 'reason', label: 'Razón', required: true, span: 2, placeholder: 'Mínimo 8 caracteres' },
             ],
           },

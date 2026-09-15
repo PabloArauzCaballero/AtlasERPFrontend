@@ -119,11 +119,17 @@ export default function AdsBillingPage() {
         successMessage="El cobro quedó registrado."
         onSubmit={registrarPago}
         fields={[
+          /*
+           * Sigue siendo texto: el backend no expone un listado de facturas de anunciante
+           * (`/admin/ads` sólo tiene el cierre que las crea y el cobro que las salda), así que no
+           * hay de dónde cargar un desplegable. Pulsar una factura del cierre la deja escrita aquí.
+           */
           { name: 'invoiceId', label: 'Factura', required: true, span: 2, ...(seleccionada ? { defaultValue: seleccionada } : {}) },
           { name: 'amountMicros', label: 'Importe (micros)', type: 'number', required: true },
           { name: 'paymentDate', label: 'Fecha del cobro', type: 'date', required: true },
-          { name: 'paymentMethod', label: 'Medio', required: true, placeholder: 'TRANSFERENCIA' },
-          { name: 'currency', label: 'Moneda', optional: true, defaultValue: 'BOB' },
+          // El medio es un dominio cerrado del backend: como texto libre, cualquier cosa distinta del código exacto era un 400.
+          { name: 'paymentMethod', label: 'Medio', required: true, defaultValue: 'TRANSFERENCIA', optionsSource: 'domain:accounting.paymentMethod' },
+          { name: 'currency', label: 'Moneda', optional: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
           { name: 'reference', label: 'Referencia', optional: true, span: 2, placeholder: 'Nº de transferencia' },
         ]}
       />

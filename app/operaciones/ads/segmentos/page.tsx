@@ -63,19 +63,11 @@ export default function AdSegmentsPage() {
         submit: createSegment,
         fields: [
           { name: 'name', label: 'Nombre del segmento', required: true, span: 2 },
-          {
-            name: 'segmentType',
-            label: 'Tipo',
-            type: 'select',
-            required: true,
-            options: [
-              { label: 'Rubro del comercio', value: 'MERCHANT_CATEGORY' },
-              { label: 'Geografía', value: 'GEO' },
-              { label: 'Perfil corporativo', value: 'CORPORATE_CONTEXTUAL' },
-              { label: 'Lista de clientes (hash)', value: 'CUSTOM_ALLOWLIST' },
-              { label: 'Lista estática', value: 'LOOKUP_STATIC' },
-            ],
-          },
+          /*
+           * Tipo y operador son dominios cerrados del backend: se leen de `/catalog/domains` en vez
+           * de copiarlos aquí, para que un tipo nuevo aparezca sin tocar la pantalla.
+           */
+          { name: 'segmentType', label: 'Tipo', required: true, optionsSource: 'domain:ads.segmentType' },
           {
             name: 'advertiserId',
             label: 'Anunciante',
@@ -102,13 +94,7 @@ export default function AdSegmentsPage() {
               { label: 'Huella del cliente', value: 'corporateClientHash' },
             ],
           },
-          {
-            name: 'operator',
-            label: 'Operador',
-            type: 'select',
-            required: true,
-            options: ['EQUALS', 'NOT_EQUALS', 'IN', 'NOT_IN', 'BETWEEN', 'EXISTS'].map((value) => ({ label: value, value })),
-          },
+          { name: 'operator', label: 'Operador', required: true, optionsSource: 'domain:platform.segmentOperator' },
           {
             name: 'value',
             label: 'Valor',

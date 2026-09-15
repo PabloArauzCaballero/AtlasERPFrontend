@@ -53,25 +53,20 @@ export default function AdsInventoryPage() {
                   icon: 'add_box',
                   fields: [
                     { name: 'placementCode', label: 'Código', required: true, span: 2, placeholder: 'MERCHANT_DASHBOARD_TOP_BANNER' },
-                    { name: 'surface', label: 'Superficie', required: true, placeholder: 'MERCHANT_PORTAL' },
-                    { name: 'allowedFormats', label: 'Formatos admitidos', type: 'chips', required: true, span: 2, hint: 'IMAGE_BANNER, TEXT_CARD, VIDEO…' },
-                    {
-                      name: 'billingModel',
-                      label: 'Modelo de cobro',
-                      type: 'select',
-                      required: true,
-                      options: ['CPM', 'CPC', 'CPA', 'FIXED'].map((value) => ({ label: value, value })),
-                    },
+                    /*
+                     * Superficie, formatos, modelo de cobro y estado son dominios cerrados: el backend
+                     * rechaza con 400 cualquier otro valor. Antes superficie y formatos eran texto libre
+                     * (y los formatos, chips que viajaban como un único texto «A,B» donde el backend pide
+                     * una lista), así que el alta sólo pasaba escribiendo el código exacto.
+                     */
+                    { name: 'surface', label: 'Superficie', required: true, optionsSource: 'domain:ads.surface' },
+                    // `multiselect` viaja como lista de códigos sin pasar a minúsculas (IMAGE_BANNER, no image_banner).
+                    { name: 'allowedFormats', label: 'Formatos admitidos', type: 'multiselect', required: true, span: 2, optionsSource: 'domain:ads.placementFormat' },
+                    { name: 'billingModel', label: 'Modelo de cobro', required: true, optionsSource: 'domain:ads.buyingModel' },
                     { name: 'floorPriceMicros', label: 'Precio suelo (micros)', type: 'number', optional: true, hint: '2500000 = Bs 2,50 el millar.' },
                     { name: 'widthPx', label: 'Ancho (px)', type: 'number', optional: true },
                     { name: 'heightPx', label: 'Alto (px)', type: 'number', optional: true },
-                    {
-                      name: 'status',
-                      label: 'Estado',
-                      type: 'select',
-                      optional: true,
-                      options: [{ label: 'Activo', value: 'ACTIVE' }, { label: 'Inactivo', value: 'INACTIVE' }],
-                    },
+                    { name: 'status', label: 'Estado', optional: true, optionsSource: 'domain:platform.activeInactive' },
                   ],
                   submit: (payload) => adsService.createInventory(payload),
                 }}
@@ -110,26 +105,10 @@ export default function AdsInventoryPage() {
                   icon: 'gavel',
                   fields: [
                     { name: 'policyCode', label: 'Código', required: true, span: 2, placeholder: 'NO_UNVERIFIED_FINANCIAL_CLAIMS' },
-                    { name: 'category', label: 'Categoría', required: true, placeholder: 'FINANCIAL_CLAIMS' },
-                    {
-                      name: 'ruleType',
-                      label: 'Tipo de regla',
-                      type: 'select',
-                      required: true,
-                      options: [
-                        { label: 'Rechazo automático', value: 'AUTO_REJECT' },
-                        { label: 'Revisión manual', value: 'MANUAL_REVIEW_REQUIRED' },
-                        { label: 'Aviso', value: 'WARNING' },
-                        { label: 'Cortar entrega', value: 'BLOCK_DELIVERY' },
-                      ],
-                    },
-                    {
-                      name: 'severity',
-                      label: 'Severidad',
-                      type: 'select',
-                      optional: true,
-                      options: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((value) => ({ label: value, value })),
-                    },
+                    // Categoría era texto libre con FINANCIAL_CLAIMS de ejemplo; el backend sólo acepta su dominio.
+                    { name: 'category', label: 'Categoría', required: true, optionsSource: 'domain:ads.policyCategory' },
+                    { name: 'ruleType', label: 'Tipo de regla', required: true, optionsSource: 'domain:ads.policyRuleType' },
+                    { name: 'severity', label: 'Severidad', optional: true, optionsSource: 'domain:ads.policySeverity' },
                     { name: 'description', label: 'Qué prohíbe', type: 'textarea', optional: true, span: 3 },
                   ],
                   submit: (payload) => adsService.createPolicy(payload),
