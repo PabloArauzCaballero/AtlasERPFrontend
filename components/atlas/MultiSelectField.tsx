@@ -40,7 +40,22 @@ export function MultiSelectField(props: MultiSelectFieldProps) {
         {props.label}
         {requiredMark}
       </legend>
-      <input type="hidden" name={props.name} value={selected.join(',')} />
+      {/*
+       * El valor viaja en un input visualmente oculto pero NO `type="hidden"`: el navegador no valida
+       * `required` en un campo oculto, y el alta salía con la lista vacía hasta que el backend la
+       * rechazaba. Así el formulario no se envía sin al menos una opción marcada.
+       */}
+      <input
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        name={props.name}
+        value={selected.join(',')}
+        required={props.required}
+        onChange={() => {}}
+        onInvalid={(event) => event.currentTarget.setCustomValidity('Elige al menos una opción.')}
+        onInput={(event) => event.currentTarget.setCustomValidity('')}
+      />
       <div className="flex flex-wrap gap-1.5">
         {props.options.length === 0 ? (
           <span className="text-xs text-slate-500">— No hay datos registrados —</span>
