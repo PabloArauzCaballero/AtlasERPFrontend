@@ -71,7 +71,7 @@ export default function OpportunitiesPage() {
                     { name: 'accountId', label: 'Cuenta B2B', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
                     { name: 'ownerUserId', label: 'Ejecutivo responsable', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
                     { name: 'name', label: 'Nombre de la oportunidad', required: true, span: 2, placeholder: 'Beta Market — RENEWAL' },
-                    { name: 'opportunityType', label: 'Tipo', type: 'select', required: true, options: ['NEW_MERCHANT', 'RENEWAL', 'UPSELL', 'CROSS_SELL', 'REACTIVATION'].map((value) => ({ label: value.replaceAll('_', ' '), value })) },
+                    { name: 'opportunityType', label: 'Tipo', type: 'select', required: true, optionsSource: 'domain:crm.opportunityType' },
                     { name: 'expectedMonthlyVolume', label: 'Volumen mensual esperado', type: 'number', valueKind: 'number', optional: true },
                     { name: 'expectedMdrRate', label: 'Tasa de MDR esperada (%)', type: 'number', valueKind: 'number', optional: true },
                     { name: 'probability', label: 'Probabilidad (%)', type: 'number', valueKind: 'number', defaultValue: 0 },

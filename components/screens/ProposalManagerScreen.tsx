@@ -17,7 +17,8 @@ import { formatBob } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { JsonObject } from '@/services/types';
 import { useOptions } from '@/hooks/useOptions';
-import { loadOpportunities } from '@/services/optionLoaders';
+import { domainLoader } from '@/services/domains';
+import { loadOpportunities, type Option } from '@/services/optionLoaders';
 
 interface ProposalLine {
   id: string;
@@ -31,6 +32,15 @@ interface ProposalLine {
 
 const emptyLine = (id: string): ProposalLine => ({ id, termType: 'MDR', description: '', ratePercent: '', fixedAmount: '', billingTiming: 'PER_TRANSACTION', minimumMonthlyAmount: '' });
 
+/*
+ * Las opciones de un <select> controlado de línea. Mientras el dominio no ha llegado (o si no
+ * carga), el valor actual de la línea se sigue ofreciendo: sin él el select se vería vacío aunque
+ * la línea ya lleve `MDR`, y lo que se envía no coincidiría con lo que se ve.
+ */
+function lineOptions(options: Option[], current: string): Option[] {
+  return current && !options.some((option) => option.value === current) ? [...options, { value: current, label: current }] : options;
+}
+
 interface ProposalManagerScreenProps {
   /** Se llama tras guardar o enviar. */
   onDone?: (() => void | Promise<void>) | undefined;
@@ -40,8 +50,13 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
   const router = useRouter();
   /* Las oportunidades se ELIGEN: el backend las expone y nadie se sabe un uuid. */
   const oportunidades = useOptions(loadOpportunities);
+  /* Tipo de término y momento de cobro son dominios cerrados del backend: se piden, no se copian. */
+  const tiposDeTermino = useOptions(domainLoader('domain:crm.termType'));
+  const momentosDeCobro = useOptions(domainLoader('domain:crm.billingTiming'));
   const [lines, setLines] = useState<ProposalLine[]>([emptyLine('line-0')]);
   const [proposalId, setProposalId] = useState('');
+  /* El correlativo lo asigna el backend al guardar; aquí sólo se enseña el que devolvió. */
+  const [proposalNumber, setProposalNumber] = useState('');
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createProposal(payload), []));
   const sendMutation = useAtlasMutation(useCallback((id: string) => b2bService.sendProposal(id), []));
   const estimated = useMemo(() => lines.reduce((sum, line) => sum + Number(line.fixedAmount || 0) + Number(line.minimumMonthlyAmount || 0), 0), [lines]);
@@ -55,7 +70,7 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
     const form = new FormData(event.currentTarget);
     const payload: JsonObject = {
       opportunityId: String(form.get('opportunityId') ?? ''),
-      proposalNumber: String(form.get('proposalNumber') ?? ''),
+      // Sin `proposalNumber`: el backend asigna el correlativo si no llega.
       validUntil: String(form.get('validUntil') ?? '') || undefined,
       totalEstimatedMonthlyRevenue: Number(form.get('totalEstimatedMonthlyRevenue') ?? 0),
       pricingExceptionReason: String(form.get('pricingExceptionReason') ?? '') || undefined,
@@ -70,6 +85,7 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
     try {
       const created = await createMutation.execute(payload);
       if (created.id) setProposalId(String(created.id));
+      if (created.proposalNumber) setProposalNumber(String(created.proposalNumber));
       await onDone?.();
     } catch { /* controlled */ }
   }
@@ -98,17 +114,17 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
         <div className="space-y-4">
           <Panel title="Identificación de la propuesta" icon="description">
-            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField label="Número de propuesta" name="proposalNumber" required placeholder="CP-2026-001" /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="Propuesta creada" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Lo asigna el sistema al guardar." /></div>
+            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField name="" label="Número de propuesta" value={proposalNumber} placeholder="Se asigna al guardar" readOnly tabIndex={-1} hint="Lo asigna el sistema al guardar." /><FormField label="Válida hasta" name="validUntil" type="date" /><FormField label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField label="Propuesta creada" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Lo asigna el sistema al guardar." /></div>
           </Panel>
 
           <Panel title="Términos comerciales" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>
             <div className="table-scroll">
               <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo</th><th className="px-2 py-2">Facturación</th><th className="px-2 py-2">Mínimo mensual</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
-                <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.termType} onChange={(event) => updateLine(line.id, 'termType', event.target.value)}>{['MDR','SUBSCRIPTION','SETUP_FEE','SERVICE_FEE','PENALTY','MINIMUM_MONTHLY_FEE'].map((value) => <option key={value}>{value}</option>)}</select></td>
+                <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.termType} onChange={(event) => updateLine(line.id, 'termType', event.target.value)}>{lineOptions(tiposDeTermino, line.termType).map((option) => <option key={option.value} value={option.value} title={option.description}>{option.label}</option>)}</select></td>
                 <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" required /></td>
                 <td className="p-2"><input className="h-9 w-24 rounded border border-slate-300 px-2 text-right" type="number" value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>
                 <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" value={line.fixedAmount} onChange={(event) => updateLine(line.id, 'fixedAmount', event.target.value)} /></td>
-                <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.billingTiming} onChange={(event) => updateLine(line.id, 'billingTiming', event.target.value)}>{['PER_TRANSACTION','MONTHLY','ONE_TIME','ON_DEMAND'].map((value) => <option key={value}>{value}</option>)}</select></td>
+                <td className="p-2"><select className="h-9 w-full rounded border border-slate-300 px-2" value={line.billingTiming} onChange={(event) => updateLine(line.id, 'billingTiming', event.target.value)}>{lineOptions(momentosDeCobro, line.billingTiming).map((option) => <option key={option.value} value={option.value} title={option.description}>{option.label}</option>)}</select></td>
                 <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" value={line.minimumMonthlyAmount} onChange={(event) => updateLine(line.id, 'minimumMonthlyAmount', event.target.value)} /></td>
                 <td className="p-2"><button type="button" aria-label="Eliminar línea" className="grid h-8 w-8 place-items-center rounded text-red-600 hover:bg-red-50" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((item) => item.id !== line.id))}><Icon name="delete" className="text-[18px]" /></button></td>
               </tr>)}</tbody></table>

@@ -147,6 +147,24 @@ export async function installPartnerDossierBackend(page: Page) {
   await page.route('**/api/v1/auth/merchant/me', (route) => json(route, 200, { user: MERCHANT }));
 
   /*
+   * Los dominios cerrados que publica el backend. La entidad del QR bancario se ELIGE de
+   * `portal.bankInstitution`: sin esta ruta el select sólo tendría la opción vacía y la prueba no
+   * podría elegir la sigla ASFI que luego afirma que llegó.
+   */
+  await page.route('**/api/v1/catalog/domains*', (route) =>
+    json(route, 200, {
+      domains: {
+        'portal.bankInstitution': [
+          { code: 'BNB', label: 'Banco Nacional de Bolivia' },
+          { code: 'BME', label: 'Banco Mercantil Santa Cruz' },
+          { code: 'BCR', label: 'Banco de Crédito de Bolivia' },
+          { code: 'OTRA', label: 'Otra entidad' },
+        ],
+      },
+    }),
+  );
+
+  /*
    * Sobre qué negocio opera quien mira. Una sola cuenta: el comercio no elige comercio.
    *
    * Sin esta ruta el alcance no se resuelve y las pantallas del portal se quedan sin nada que

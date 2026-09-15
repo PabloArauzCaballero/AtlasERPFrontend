@@ -63,7 +63,7 @@ export default function MerchantBranchesPage() {
         fields: [
           { name: 'accountId', label: 'Comercio', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
           { name: 'name', label: 'Nombre de la sucursal', required: true, span: 2 },
-          { name: 'city', label: 'Ciudad', optional: true },
+          { name: 'city', label: 'Ciudad', optional: true, optionsSource: 'catalog:city' },
           { name: 'address', label: 'Dirección', optional: true, span: 3 },
         ],
         submit: async (payload: JsonObject) => {
@@ -76,7 +76,8 @@ export default function MerchantBranchesPage() {
         description: 'El comercio al que pertenece no se cambia: una sucursal que cambia de dueño es otra sucursal.',
         fields: [
           { name: 'name', label: 'Nombre de la sucursal', required: true, span: 2 },
-          { name: 'city', label: 'Ciudad', optional: true },
+          // Una ciudad escrita a mano antes y fuera del catálogo se conserva como «valor anterior».
+          { name: 'city', label: 'Ciudad', optional: true, optionsSource: 'catalog:city' },
           { name: 'address', label: 'Dirección', optional: true, span: 3 },
         ],
         submit: (id, payload) => b2bService.updateBranch(id, payload),
@@ -97,7 +98,8 @@ export default function MerchantBranchesPage() {
                 required: true,
                 span: 2 as const,
                 defaultValue: String(row.status ?? 'PENDING'),
-                options: ESTADOS,
+                // Del backend: la lista local no tenía SUSPENDED, que el esquema sí acepta.
+                optionsSource: 'domain:crm.branchStatus' as const,
               },
             ],
             submit: (row, payload) => b2bService.setBranchStatus(String(row.id ?? ''), payload),

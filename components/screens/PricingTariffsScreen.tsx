@@ -8,14 +8,6 @@ import { portalService } from '@/services/portalService';
 import type { ActionField } from '@/components/screens/StructuredActionForm';
 import type { JsonObject } from '@/services/types';
 
-const tierOptions = ['STARTER', 'STANDARD', 'PREMIUM', 'ENTERPRISE'].map((value) => ({ label: value, value }));
-
-const statusOptions = [
-  { label: 'ACTIVE — visible y contratable', value: 'ACTIVE' },
-  { label: 'INACTIVE — oculta para nuevos comercios', value: 'INACTIVE' },
-  { label: 'ARCHIVED — retirada del catálogo', value: 'ARCHIVED' },
-];
-
 /** Una viñeta por línea: es como se escribe la lista y como se lee después en el portal. */
 function parseFeatures(text: unknown): string[] {
   return String(text ?? '')
@@ -24,14 +16,20 @@ function parseFeatures(text: unknown): string[] {
     .filter(Boolean);
 }
 
-/** Los campos comunes al alta y a la edición: el código sólo existe en el alta. */
+/**
+ * Los campos comunes al alta y a la edición: el código sólo existe en el alta.
+ *
+ * Nivel, moneda y estado salen del backend (`portal.planTier`, `portal.planStatus`) y del catálogo
+ * ISO de monedas: la moneda era texto libre y el alta fallaba con cualquier cosa que no fuera un
+ * código ISO exacto.
+ */
 const camposComunes: ActionField[] = [
   { name: 'name', label: 'Nombre visible', required: true, span: 2, placeholder: 'Crecimiento' },
   { name: 'description', label: 'Descripción', type: 'textarea', span: 2, placeholder: 'Tarifa más baja a cambio de un compromiso mensual de inversión.' },
   { name: 'cpmPrice', label: 'Alcance (CPM)', type: 'number', valueKind: 'number', required: true, hint: 'Por cada 1.000 personas' },
   { name: 'cpcPrice', label: 'Clic (CPC)', type: 'number', valueKind: 'number', required: true, hint: 'Por clic recibido' },
-  { name: 'tier', label: 'Nivel', type: 'select', required: true, defaultValue: 'STANDARD', options: tierOptions },
-  { name: 'currency', label: 'Moneda', defaultValue: 'BOB' },
+  { name: 'tier', label: 'Nivel', type: 'select', required: true, defaultValue: 'STANDARD', optionsSource: 'domain:portal.planTier' },
+  { name: 'currency', label: 'Moneda', defaultValue: 'BOB', optionsSource: 'catalog:currency' },
   { name: 'sortOrder', label: 'Orden', type: 'number', valueKind: 'number', defaultValue: 0, hint: 'Posición en el portal del comercio.' },
   { name: 'features', label: 'Qué incluye', type: 'textarea', span: 2, hint: 'Una línea por viñeta. Es el texto que lee el comercio en su portal.' },
 ];
@@ -132,7 +130,7 @@ export function PricingTariffsScreen() {
                   description: 'El código no se modifica: identifica a la tarifa en el histórico y en los informes.',
                   fields: [
                     ...camposComunes,
-                    { name: 'status', label: 'Estado', type: 'select', required: true, span: 2, options: statusOptions, hint: 'Retirarla no cancela a quien ya la tiene contratada.' },
+                    { name: 'status', label: 'Estado', type: 'select', required: true, span: 2, optionsSource: 'domain:portal.planStatus', hint: 'Retirarla no cancela a quien ya la tiene contratada.' },
                   ],
                   submit: async (id, payload) => {
                     const resultado = await portalService.updatePlan(id, { ...cuerpoComun(payload), status: payload.status });

@@ -56,11 +56,12 @@ export default function CommercialContractsPage() {
         description: 'Cabecera contractual heredada de una propuesta ya aceptada.',
         fields: [
           { name: 'proposalId', label: 'Propuesta aceptada', type: 'select', required: true, span: 2, optionsLoader: loadProposals },
-          { name: 'contractNumber', label: 'Número de contrato', required: true, placeholder: 'CTR-2026-001' },
+          // El correlativo lo asigna el backend al generar el contrato.
+          { name: 'contractNumber', label: 'Número de contrato', assignedByBackend: true },
           { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true },
           { name: 'endDate', label: 'Fecha final', type: 'date', optional: true },
-          { name: 'billingCycle', label: 'Ciclo de facturación', required: true, defaultValue: 'MONTHLY' },
-          { name: 'settlementPolicy', label: 'Política de liquidación', required: true, defaultValue: 'PER_CONTRACT' },
+          { name: 'billingCycle', label: 'Ciclo de facturación', required: true, defaultValue: 'MONTHLY', optionsSource: 'domain:crm.contractBillingCycle' },
+          { name: 'settlementPolicy', label: 'Política de liquidación', required: true, defaultValue: 'PER_CONTRACT', optionsSource: 'domain:crm.contractSettlementPolicy' },
           { name: 'documentUrl', label: 'URL del documento', type: 'url', optional: true, span: 2 },
         ],
         submit: (payload: JsonObject) => b2bService.createContractFromProposal(payload),
@@ -78,7 +79,9 @@ export default function CommercialContractsPage() {
         fields={[
           { name: 'contractId', label: 'Contrato', type: 'select', required: true, span: 2, optionsLoader: loadContracts2 },
           { name: 'approvedByUserId', label: 'Aprobador', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
-          { name: 'signedAt', label: 'Fecha y hora de firma', optional: true, placeholder: '2026-07-10T20:00:00-04:00', span: 2 },
+          /* Selector de fecha y hora: el control entrega la hora local y se envía como ISO, en vez de
+             pedir que se teclee un ISO con su zona horaria. */
+          { name: 'signedAt', label: 'Fecha y hora de firma', type: 'datetime', optional: true, span: 2 },
         ]}
       />
       {/* La comisión cuelga de la versión del contrato: se administra junto al contrato, no en el

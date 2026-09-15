@@ -16,6 +16,9 @@ import { tablaPdf } from '@/lib/pdf';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import { partnerOnboardingService, uploadQrFile, type PartnerQrCode } from '@/services/partnerOnboardingService';
 import { AVISO_SIN_QR, imagenTieneQr } from '@/lib/qrImagen';
+import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
+import { withEmpty } from '@/services/optionLoaders';
 
 /**
  * Los estados del expediente en los que AtlasBackend admite subir o cambiar el QR
@@ -87,6 +90,8 @@ export function MerchantPaymentQrScreen() {
   const [aviso, setAviso] = useState<{ tono: 'success' | 'danger' | 'info'; texto: string } | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [entidad, setEntidad] = useState('');
+  /* Las entidades con sigla ASFI las publica el backend: tecleada, una sigla mal escrita no cruza con el padrón. */
+  const entidades = useOptions(domainLoader('domain:portal.bankInstitution'));
   const [cuenta, setCuenta] = useState('');
   const archivo = useRef<HTMLInputElement>(null);
   /*
@@ -156,7 +161,7 @@ export function MerchantPaymentQrScreen() {
       return;
     }
     if (!entidad.trim()) {
-      setAviso({ tono: 'info', texto: 'Indique la sigla de su banco (BNB, BME, BCR…): es lo que permite cruzarlo con ASFI.' });
+      setAviso({ tono: 'info', texto: 'Elija la entidad de su banco: su sigla es lo que permite cruzarlo con ASFI.' });
       return;
     }
 
@@ -432,12 +437,14 @@ export function MerchantPaymentQrScreen() {
               {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y frenar
                   un cobro contra una entidad sin licencia vigente. */}
               <FormField
+                kind="select"
                 label="Entidad (sigla ASFI)"
                 name="bankInstitutionCode"
                 required
                 value={entidad}
-                onChange={(evento) => setEntidad(evento.target.value.toUpperCase())}
-                hint="BNB, BME, BCR…"
+                onChange={(evento) => setEntidad(evento.target.value)}
+                options={withEmpty(entidades, '— Elija su banco —')}
+                hint="La entidad que emitió el QR."
                 data-testid="campo-entidad"
               />
               <FormField

@@ -25,7 +25,7 @@ import type { JsonObject, ResourceRow } from '@/services/types';
  * con tres.
  */
 
-const OPERADORES = ['EQUALS', 'NOT_EQUALS', 'IN', 'NOT_IN', 'BETWEEN', 'EXISTS'];
+/** Operadores que llevan varios valores. Los operadores válidos los publica el backend. */
 const LISTA = ['IN', 'NOT_IN', 'BETWEEN'];
 
 /** El alta y la corrección de la regla piden lo mismo; sólo cambia de dónde salen los valores. */
@@ -47,7 +47,7 @@ function camposDeRegla(actual?: { attribute?: string; operator?: string; value?:
       label: 'Operador',
       type: 'select',
       required: true,
-      options: OPERADORES.map((value) => ({ label: value, value })),
+      optionsSource: 'domain:platform.segmentOperator',
       ...(actual?.operator ? { defaultValue: actual.operator } : {}),
     },
     {
@@ -148,10 +148,7 @@ export default function CrmSegmentsPage() {
             type: 'select',
             required: true,
             span: 2,
-            options: [
-              { label: 'Clientes solicitantes de crédito', value: 'CREDIT_APPLICANT' },
-              { label: 'Partners', value: 'PARTNER' },
-            ],
+            optionsSource: 'domain:crm.segmentSubject',
           },
           { name: 'name', label: 'Nombre del segmento', required: true, span: 2 },
           { name: 'description', label: 'Para qué se usa', optional: true, span: 2 },
@@ -178,10 +175,10 @@ export default function CrmSegmentsPage() {
             name: 'status',
             label: 'Estado',
             type: 'select',
-            options: [
-              { label: 'Activo', value: 'ACTIVE' },
-              { label: 'Inactivo', value: 'INACTIVE' },
-            ],
+            /* `required` para que el select no ofrezca la opción vacía (antes no la tenía): un
+               segmento siempre tiene estado, y enviarlo vacío lo rechazaría el backend. */
+            required: true,
+            optionsSource: 'domain:crm.segmentStatus',
           },
         ],
         submit: (id, payload) => b2bService.updateCrmSegment(id, payload),

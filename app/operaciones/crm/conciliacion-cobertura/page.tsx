@@ -93,7 +93,8 @@ export default function CoverageReconciliationPage() {
       { name: 'cuotas', label: 'Número de cuotas', type: 'number' as const, required: true, defaultValue: '3' },
       { name: 'primeraCuota', label: 'Primera cuota vence', type: 'date' as const, required: true },
       { name: 'mdrReceivableDueDate', label: 'Vence la comisión al comercio', type: 'date' as const, required: true },
-      { name: 'productCategory', label: 'Categoría del producto', optional: true, span: 2 as const },
+      /* Mismo vocabulario que las reglas de comisión: una categoría tecleada no casaría con ninguna. */
+      { name: 'productCategory', label: 'Categoría del producto', optional: true, span: 2 as const, optionsSource: 'domain:crm.merchantCategory' as const },
     ],
     submit: async (payload: JsonObject) => {
       const redondear = (valor: number) => Math.round((valor + Number.EPSILON) * 100) / 100;

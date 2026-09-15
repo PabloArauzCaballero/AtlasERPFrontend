@@ -12,6 +12,7 @@ import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioCasoOnboarding } from '@/lib/formulariosPapel/operaciones';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
 import { loadB2BAccounts, loadInternalUsers } from '@/services/optionLoaders';
 import type { JsonObject } from '@/services/types';
 
@@ -38,6 +39,8 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
   const [items, setItems] = useState<ChecklistDraft[]>([newChecklistItem('item-0')]);
   const accounts = useOptions(loadB2BAccounts);
   const owners = useOptions(loadInternalUsers);
+  /* Tipos de requisito del backend: la lista copiada aquí no tenía COMPLIANCE. */
+  const tiposDeRequisito = useOptions(domainLoader('domain:crm.checklistItemType'));
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createOnboardingCase(payload), []));
 
   function updateItem(id: string, key: 'itemType' | 'description', value: string) {
@@ -82,7 +85,11 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
             {items.map((item, index) => (
               <div key={item.id} className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 grid-cols-1 md:grid-cols-[160px_minmax(0,1fr)_36px]">
                 <select className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs" value={item.itemType} onChange={(event) => updateItem(item.id, 'itemType', event.target.value)}>
-                  <option>LEGAL</option><option>OPERATIONS</option><option>TECHNICAL</option><option>FINANCE</option>
+                  {/* Mientras el dominio no llega, el valor de la línea se sigue ofreciendo: sin él el
+                      select se vería vacío aunque el requisito ya lleve LEGAL. */}
+                  {(tiposDeRequisito.some((option) => option.value === item.itemType) ? tiposDeRequisito : [...tiposDeRequisito, { value: item.itemType, label: item.itemType }]).map((option) => (
+                    <option key={option.value} value={option.value} title={option.description}>{option.label}</option>
+                  ))}
                 </select>
                 <input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito ${index + 1}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} />
                 <button type="button" disabled={items.length === 1} className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50 disabled:opacity-30" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))} aria-label="Quitar requisito">

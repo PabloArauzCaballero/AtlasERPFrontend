@@ -19,7 +19,6 @@ import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/lib/authContext';
 import { b2bService } from '@/services/b2bService';
 import { portalService } from '@/services/portalService';
-import { merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
 import { engineExecutionUrl, engineManualReviewUrl } from '@/lib/engineLinks';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -42,14 +41,14 @@ const PERMISO_PEDIR_CREDENCIALES = 'merchant.users.request';
 /** Estados en los que el desenlace puede cambiar sin que el ERP haga nada: hay que ir a mirar. */
 const ESPERA_AL_MOTOR = new Set(['EN_VERIFICACION', 'REVISION_MANUAL']);
 
-const CUALQUIERA = { label: '— Cualquiera —', value: '' };
+/** Opción vacía de los filtros opcionales de la regla de comisión: vacío es «aplica a todos». */
+const CUALQUIERA = '— Cualquiera —';
 
-const ROLES_DEL_COMERCIO = [
-  { label: 'Administrador del comercio', value: 'MERCHANT_ADMIN' },
-  { label: 'Gerente de sucursal', value: 'BRANCH_MANAGER' },
-  { label: 'Operador', value: 'MERCHANT_OPERATOR' },
-  { label: 'Auditor financiero', value: 'FINANCIAL_AUDITOR' },
-];
+/*
+ * Roles del comercio, estados del requisito, categorías y segmentos de riesgo salen de
+ * `GET /catalog/domains`: eran listas copiadas aquí que había que mantener a mano en paralelo al
+ * esquema del backend.
+ */
 
 /**
  * Onboarding de comercios: la cola y su tablero; el alta, en su propia página (`/crear`).
@@ -163,12 +162,7 @@ export default function OnboardingPage() {
                     required: true,
                     span: 2,
                     defaultValue: 'COMPLETED',
-                    options: [
-                      { label: 'Completado', value: 'COMPLETED' },
-                      { label: 'Eximido', value: 'WAIVED' },
-                      { label: 'Bloqueado', value: 'BLOCKED' },
-                      { label: 'Pendiente', value: 'PENDING' },
-                    ],
+                    optionsSource: 'domain:crm.checklistStatus',
                   },
                 ],
                 submit: (row, payload: JsonObject) => b2bService.updateChecklist(String(row.id ?? ''), payload),
@@ -272,8 +266,8 @@ export default function OnboardingPage() {
                 description: 'Lo que Atlas cobra por cada venta, sobre el contrato pactado en este caso. Gana la regla más específica.',
                 fields: [
                   { name: 'ratePercent', label: 'Comisión (%)', type: 'number', valueKind: 'number', required: true, placeholder: '3.50' },
-                  { name: 'productCategory', label: 'Categoría de producto', type: 'select', optional: true, options: [CUALQUIERA, ...merchantCategoryOptions], hint: 'Vacío: aplica a todas.' },
-                  { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', optional: true, options: [CUALQUIERA, ...riskTierOptions], hint: 'Vacío: aplica a todos.' },
+                  { name: 'productCategory', label: 'Categoría de producto', type: 'select', optional: true, optionsSource: 'domain:crm.merchantCategory', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todas.' },
+                  { name: 'riskSegment', label: 'Segmento de riesgo', type: 'select', optional: true, optionsSource: 'domain:crm.riskTier', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todos.' },
                   { name: 'minFeeAmount', label: 'Piso (Bs)', type: 'number', valueKind: 'number', optional: true },
                   { name: 'maxFeeAmount', label: 'Techo (Bs)', type: 'number', valueKind: 'number', optional: true },
                 ],
@@ -293,7 +287,7 @@ export default function OnboardingPage() {
                 fields: (row) => [
                   { name: 'fullName', label: 'Nombre completo', required: true, placeholder: 'Nombre del responsable' },
                   { name: 'email', label: 'Correo corporativo', type: 'email', required: true, placeholder: 'usuario@empresa.com' },
-                  { name: 'roleCode', label: 'Rol', type: 'select', required: true, defaultValue: 'MERCHANT_OPERATOR', options: ROLES_DEL_COMERCIO },
+                  { name: 'roleCode', label: 'Rol', type: 'select', required: true, defaultValue: 'MERCHANT_OPERATOR', optionsSource: 'domain:portal.merchantUserRole' },
                   {
                     name: 'branchId',
                     label: 'Sucursal',

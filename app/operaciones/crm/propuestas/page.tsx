@@ -106,7 +106,8 @@ export default function ProposalsPage() {
         description: 'Solo la cabecera, y solo mientras es borrador. Los términos comerciales son el acuerdo: cambiarlos bajo el mismo número es pactar otra cosa, y eso se hace con una propuesta nueva.',
         enabled: (row) => EDITABLES.has(estado(row)),
         fields: [
-          { name: 'proposalNumber', label: 'Número de propuesta', required: true, placeholder: 'CP-2026-001' },
+          // El correlativo lo asignó el backend: se enseña, no se reescribe (y no viaja en el envío).
+          { name: 'proposalNumber', label: 'Número de propuesta', assignedByBackend: true },
           { name: 'validUntil', label: 'Válida hasta', type: 'date', optional: true },
           { name: 'totalEstimatedMonthlyRevenue', label: 'Ingreso mensual estimado', type: 'number', valueKind: 'number', optional: true },
         ],

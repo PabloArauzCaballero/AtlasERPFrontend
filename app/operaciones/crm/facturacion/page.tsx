@@ -183,9 +183,9 @@ export default function B2BBillingPage() {
                       fields: (row) => [
                         { name: 'amount', label: 'Monto total', type: 'number', valueKind: 'number', required: true, defaultValue: String(row.amountOpen ?? '') },
                         { name: 'amountApplied', label: 'Monto aplicado a esta CxC', type: 'number', valueKind: 'number', required: true, defaultValue: String(row.amountOpen ?? '') },
-                        { name: 'currency', label: 'Moneda', defaultValue: String(row.currency ?? 'BOB') },
+                        { name: 'currency', label: 'Moneda', defaultValue: String(row.currency ?? 'BOB'), optionsSource: 'catalog:currency' },
                         { name: 'paidAt', label: 'Fecha y hora del pago', type: 'datetime', required: true },
-                        { name: 'paymentMethod', label: 'Método', optional: true },
+                        { name: 'paymentMethod', label: 'Método', optional: true, optionsSource: 'domain:accounting.paymentMethod' },
                         { name: 'externalRef', label: 'Referencia externa', optional: true },
                       ],
                     },

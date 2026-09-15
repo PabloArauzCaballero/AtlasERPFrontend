@@ -32,9 +32,9 @@ export default function QualifyAccountPage() {
           title: 'Qualification Framework', icon: 'fact_check', description: 'Oportunidad opcional asociada a la decisión positiva.', fields: [
             { name: 'createOpportunity', label: 'Crear oportunidad', type: 'select', valueKind: 'boolean', required: true, defaultValue: 'false', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
             { name: 'opportunity.name', label: 'Nombre de oportunidad', optional: true, span: 2 },
-            { name: 'opportunity.opportunityType', label: 'Tipo de oportunidad', type: 'select', optional: true, options: [
-              { label: 'Nuevo comercio', value: 'NEW_MERCHANT' }, { label: 'Expansión', value: 'EXPANSION' }, { label: 'Renovación', value: 'RENEWAL' },
-            ] },
+            /* Del backend: la lista local ofrecía EXPANSION, que el esquema rechaza, y le faltaban
+               UPSELL, CROSS_SELL y REACTIVATION. */
+            { name: 'opportunity.opportunityType', label: 'Tipo de oportunidad', type: 'select', optional: true, optionsSource: 'domain:crm.opportunityType' },
             { name: 'opportunity.expectedMonthlyVolume', label: 'Volumen mensual (BOB)', type: 'number', valueKind: 'number', optional: true },
             { name: 'opportunity.expectedMdrRate', label: 'MDR esperado (%)', type: 'number', valueKind: 'number', optional: true },
             { name: 'opportunity.probability', label: 'Probabilidad (%)', type: 'number', valueKind: 'number', optional: true, defaultValue: 0 },

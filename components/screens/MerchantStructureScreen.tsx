@@ -16,6 +16,9 @@ import { tablaPdf } from '@/lib/pdf';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useMerchantScope } from '@/hooks/useMerchantScope';
+import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
+import { withEmpty } from '@/services/optionLoaders';
 import { formDataToPayload } from '@/lib/formPayload';
 import { portalService } from '@/services/portalService';
 import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
@@ -147,6 +150,8 @@ export function MerchantStructureScreen() {
   );
 
   const branchMutation = useAtlasMutation(useCallback((body: JsonObject) => portalService.createBranch(body), []));
+  /* La ciudad se elige del catálogo: escrita a mano, «Sta. Cruz» y «Santa Cruz» eran dos plazas distintas. */
+  const ciudades = useOptions(domainLoader('catalog:city'));
 
   const [editando, setEditando] = useState<ResourceRow | null>(null);
   const editMutation = useAtlasMutation(useCallback(
@@ -306,7 +311,7 @@ export function MerchantStructureScreen() {
         <Panel title="Agregar sucursal" description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte." icon="add_location">
           <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
             <FormField label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
-            <FormField label="Ciudad" name="city" placeholder="Santa Cruz de la Sierra" />
+            <FormField kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
             <FormField label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
           </div>
           {branchMutation.error ? <InlineNotice className="mt-4" tone="danger">{branchMutation.error}</InlineNotice> : null}
@@ -322,7 +327,22 @@ export function MerchantStructureScreen() {
           <Panel title={`Editar ${String(editando.name ?? 'sucursal')}`} description="La sucursal no cambia de negocio: eso movería sus ventas de cuenta." icon="edit_location">
             <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
               <FormField label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
-              <FormField label="Ciudad" name="city" required defaultValue={String(editando.city ?? '')} />
+              {/* La ciudad guardada se conserva aunque no esté en el catálogo (texto libre de antes); y el
+                  select se remonta cuando llegan las opciones, porque su defaultValue sólo se aplica al montar. */}
+              <FormField
+                key={`city:${ciudades.length}`}
+                kind="select"
+                label="Ciudad"
+                name="city"
+                required
+                defaultValue={String(editando.city ?? '')}
+                options={withEmpty(
+                  editando.city && !ciudades.some((option) => option.value === String(editando.city))
+                    ? [...ciudades, { value: String(editando.city), label: `${String(editando.city)} (valor anterior)` }]
+                    : ciudades,
+                  '— Elija la ciudad —',
+                )}
+              />
               <FormField label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />
             </div>
             {editMutation.error ? <InlineNotice className="mt-4" tone="danger">{editMutation.error}</InlineNotice> : null}

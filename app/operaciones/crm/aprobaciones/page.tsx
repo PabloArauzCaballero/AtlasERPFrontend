@@ -63,7 +63,7 @@ export default function ApprovalsPage() {
             submitLabel: 'Registrar decisión',
             submit: decidir,
             fields: [
-              { name: 'status', label: 'Decisión', type: 'select', required: true, span: 2, defaultValue: 'APPROVED', options: [{ label: 'Aprobar', value: 'APPROVED' }, { label: 'Rechazar', value: 'REJECTED' }] },
+              { name: 'status', label: 'Decisión', type: 'select', required: true, span: 2, defaultValue: 'APPROVED', optionsSource: 'domain:crm.approvalDecision' },
               { name: 'reason', label: 'Justificación', type: 'textarea', required: true, span: 2, placeholder: 'Decisión fundamentada para auditoría…' },
             ],
           },

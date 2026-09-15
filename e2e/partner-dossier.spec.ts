@@ -107,7 +107,8 @@ test.describe('expediente del negocio', () => {
 
     // --- La sucursal NUEVA se declara sola ----------------------------------------------------
     await page.getByLabel('Nombre de sucursal').fill('Sucursal Norte');
-    await page.getByLabel('Ciudad').fill('Santa Cruz');
+    // La ciudad se elige del catálogo; ya no se teclea.
+    await page.getByLabel('Ciudad').selectOption('Santa Cruz de la Sierra');
     await page.getByRole('button', { name: 'Registrar sucursal' }).click();
 
     /*
@@ -136,7 +137,8 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('btn-subir-qr-negocio').click();
     await expect(page.getByTestId('qr-negocio-vigente')).toBeVisible();
 
-    await page.getByTestId('campo-entidad').fill('BNB');
+    // La entidad se elige de `portal.bankInstitution`; ya no se teclea la sigla.
+    await page.getByTestId('campo-entidad').selectOption('BNB');
     await page.getByTestId('campo-cuenta').fill('****7890');
     await page.getByTestId('input-qr-cobro').setInputFiles({ name: 'qr-bank.png', mimeType: 'image/png', buffer: PNG });
     await page.getByTestId('btn-subir-qr-cobro').click();

@@ -119,10 +119,12 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
           submitLabel="Añadir contacto"
           fields={[
             { name: 'fullName', label: 'Nombre completo', required: true, span: 2 },
-            { name: 'roleTitle', label: 'Cargo', optional: true },
+            /* Cargo y rol en la decisión son vocabularios cerrados (los mismos del alta de la cuenta):
+               como texto libre, la cartera no se podía agrupar por interlocutor. */
+            { name: 'roleTitle', label: 'Cargo', optional: true, optionsSource: 'domain:crm.contactRoleTitle' },
             { name: 'email', label: 'Correo', type: 'email', optional: true, span: 2 },
             { name: 'phone', label: 'Teléfono', optional: true },
-            { name: 'decisionRole', label: 'Rol en la decisión', optional: true, placeholder: 'Decisor, influyente, usuario' },
+            { name: 'decisionRole', label: 'Rol en la decisión', optional: true, optionsSource: 'domain:crm.decisionRole' },
             {
               name: 'isPrimary',
               label: 'Es el contacto principal',
