@@ -68,7 +68,12 @@ export interface PartnerQrCode {
   fingerprint: string;
   bankInstitutionCode: string | null;
   accountNumberMasked: string | null;
+  /** `pending_review` | `active` | `rejected` | `replaced`. Sólo `active` lo ven los clientes. */
   status: string;
+  /** Cuándo una persona de Atlas lo revisó (aprobado o rechazado). */
+  verifiedAt?: string | null;
+  /** En un rechazo, lo que hay que corregir. */
+  reviewNote?: string | null;
   replacedById: string | null;
   createdAt: string;
 }

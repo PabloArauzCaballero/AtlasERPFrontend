@@ -16,6 +16,32 @@ import { partnerOnboardingService, uploadQrFile, type PartnerQrCode } from '@/se
 import { AVISO_SIN_QR, imagenTieneQr } from '@/lib/qrImagen';
 
 /**
+ * Los estados del expediente en los que AtlasBackend admite subir o cambiar el QR
+ * (`PAYMENT_QR_EDITABLE_STATUSES`). Fuera de ellos responde 422, y es mejor decirlo ANTES de que el
+ * comercio gaste la subida que después con un error rojo.
+ */
+const ESTADOS_QUE_ADMITEN_QR = new Set(['draft', 'contact_verified', 'documents_submitted', 'approved']);
+
+function motivoSinSubida(estadoExpediente: string): string | null {
+  if (!estadoExpediente || ESTADOS_QUE_ADMITEN_QR.has(estadoExpediente)) return null;
+  if (estadoExpediente === 'under_review') {
+    return 'Atlas está revisando su expediente. Mientras dure la revisión no se puede cambiar el QR de cobro.';
+  }
+  if (estadoExpediente === 'rejected') {
+    return 'Su expediente fue rechazado. Corrija lo que se le indicó y vuelva a enviarlo antes de subir un QR.';
+  }
+  return `Con el expediente en «${estadoExpediente}» no se admite cambiar el QR de cobro.`;
+}
+
+/** Lo que significa cada estado del QR para el comercio, sin la clave interna. */
+const ESTADO_QR: Record<string, { tono: 'success' | 'warning' | 'danger' | 'neutral'; texto: string }> = {
+  active: { tono: 'success', texto: 'Aprobado · sus clientes ya lo ven' },
+  pending_review: { tono: 'warning', texto: 'Esperando revisión de Atlas · sus clientes aún no lo ven' },
+  rejected: { tono: 'danger', texto: 'Rechazado' },
+  replaced: { tono: 'neutral', texto: 'Archivado' },
+};
+
+/**
  * El QR de cobro del comercio: el que ve el cliente cuando pulsa «pagar».
  *
  * ## Por qué existe esta pantalla
@@ -48,6 +74,11 @@ export function MerchantPaymentQrScreen() {
   const [partnerId, setPartnerId] = useState('');
   const [nombre, setNombre] = useState('');
   const [estadoExpediente, setEstadoExpediente] = useState('');
+  /*
+   * Un usuario puede tener MÁS de un expediente. Antes se tomaba el primero sin decirlo, y el QR
+   * podía subirse al comercio equivocado sin ningún aviso. Se guardan todos y se elige explícito.
+   */
+  const [expedientes, setExpedientes] = useState<{ partnerId: string; legalName: string | null; tradeName: string | null; status: string }[]>([]);
   const [codigos, setCodigos] = useState<PartnerQrCode[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,12 +116,15 @@ export function MerchantPaymentQrScreen() {
       .misExpedientes()
       .then((resultado) => {
         if (cancelado) return;
-        const propio = resultado.profiles?.[0];
+        const perfiles = resultado.profiles ?? [];
+        // Con varios, el aprobado primero: es el que cobra. Y se enseña cuál se eligió (ver selector).
+        const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
           setError('Su usuario no tiene un expediente de comercio asignado.');
           setCargando(false);
           return;
         }
+        setExpedientes(perfiles);
         setPartnerId(propio.partnerId);
         setNombre(propio.tradeName ?? propio.legalName ?? '');
         setEstadoExpediente(propio.status);
@@ -204,11 +238,31 @@ export function MerchantPaymentQrScreen() {
     }
   }
 
-  const vigente = codigos.find((codigo) => codigo.qrKind === 'bank' && codigo.status !== 'replaced' && codigo.status !== 'rejected');
+  /*
+   * «Vigente» es el APROBADO si lo hay; si no, el que espera revisión. Los dos pueden convivir: el
+   * comercio sube uno nuevo y el aprobado sigue cobrando hasta que Atlas apruebe el nuevo.
+   */
+  const bancarios = codigos.filter((codigo) => codigo.qrKind === 'bank');
+  const aprobado = bancarios.find((codigo) => codigo.status === 'active');
+  const enRevision = bancarios.find((codigo) => codigo.status === 'pending_review');
+  const vigente = aprobado ?? enRevision;
+  const ultimoRechazo = bancarios.find((codigo) => codigo.status === 'rejected');
   const negocioVigente = codigos.find(
-    (codigo) => codigo.qrKind === 'business' && codigo.status !== 'replaced' && codigo.status !== 'rejected',
+    (codigo) => codigo.qrKind === 'business' && (codigo.status === 'active' || codigo.status === 'pending_review'),
   );
-  const historial = codigos.filter((codigo) => codigo.qrKind === 'bank' && codigo !== vigente);
+  const historial = bancarios.filter((codigo) => codigo !== vigente && codigo !== enRevision);
+  const bloqueo = motivoSinSubida(estadoExpediente);
+  const estadoVigente = vigente ? (ESTADO_QR[vigente.status] ?? { tono: 'neutral' as const, texto: vigente.status }) : null;
+
+  function elegirExpediente(id: string) {
+    const elegido = expedientes.find((perfil) => perfil.partnerId === id);
+    if (!elegido) return;
+    setPartnerId(elegido.partnerId);
+    setNombre(elegido.tradeName ?? elegido.legalName ?? '');
+    setEstadoExpediente(elegido.status);
+    setCodigos([]);
+    void recargar(elegido.partnerId);
+  }
 
   return (
     <div className="space-y-5">
@@ -276,6 +330,41 @@ export function MerchantPaymentQrScreen() {
         <MetricCard label="Reemplazos" value={cargando ? '…' : historial.length} detail="Los anteriores quedan archivados" icon="history" tone="purple" />
       </div>
 
+      {expedientes.length > 1 ? (
+        <InlineNotice tone="info" title="Su usuario tiene varios expedientes">
+          <label className="flex flex-wrap items-center gap-2 text-xs">
+            <span>El QR se sube al expediente elegido:</span>
+            <select
+              className="rounded border border-slate-300 px-2 py-1 text-xs"
+              value={partnerId}
+              onChange={(evento) => elegirExpediente(evento.target.value)}
+              data-testid="selector-expediente-qr"
+            >
+              {expedientes.map((perfil) => (
+                <option key={perfil.partnerId} value={perfil.partnerId}>
+                  {(perfil.tradeName ?? perfil.legalName ?? `Expediente ${perfil.partnerId}`) + ` · ${perfil.status}`}
+                </option>
+              ))}
+            </select>
+          </label>
+        </InlineNotice>
+      ) : null}
+      {bloqueo ? (
+        <InlineNotice tone="warning" title="Ahora mismo no se puede cambiar el QR" data-testid="qr-cobro-bloqueo">
+          {bloqueo}
+        </InlineNotice>
+      ) : null}
+      {ultimoRechazo && !aprobado && !enRevision ? (
+        <InlineNotice tone="danger" title="Atlas rechazó su último QR" data-testid="qr-cobro-rechazo">
+          {ultimoRechazo.reviewNote ?? 'No se indicó el motivo. Suba una imagen nítida del QR de su banco.'}
+        </InlineNotice>
+      ) : null}
+      {enRevision && !aprobado ? (
+        <InlineNotice tone="info" title="Su QR está en revisión">
+          Atlas lo revisa antes de enseñárselo a sus clientes. Hasta entonces, la app les dice que el QR está pendiente de
+          aprobación.
+        </InlineNotice>
+      ) : null}
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       {aviso ? (
         <div data-testid="qr-cobro-aviso">
@@ -308,7 +397,13 @@ export function MerchantPaymentQrScreen() {
                 <Dato termino="Huella del archivo" valor={vigente.fingerprint} mono />
                 <Dato termino="Subido" valor={new Date(vigente.createdAt).toLocaleString('es-BO')} />
               </dl>
-              <StatusPill tone={vigente.status === 'active' ? 'success' : 'warning'}>{vigente.status}</StatusPill>
+              <StatusPill tone={estadoVigente?.tono ?? 'neutral'}>{estadoVigente?.texto ?? vigente.status}</StatusPill>
+              {aprobado && enRevision ? (
+                <p className="text-[11px] text-slate-500" data-testid="qr-cobro-nuevo-en-revision">
+                  Hay un QR nuevo esperando revisión (huella {enRevision.fingerprint}). Sus clientes siguen viendo el
+                  aprobado hasta que Atlas lo apruebe.
+                </p>
+              ) : null}
             </div>
           ) : (
             <div className="py-10 text-center">
@@ -351,7 +446,15 @@ export function MerchantPaymentQrScreen() {
                 data-testid="campo-cuenta"
               />
             </div>
-            <AtlasButton type="button" icon="upload" loading={subiendo} disabled={!partnerId} onClick={() => void subir()} data-testid="btn-subir-qr-cobro">
+            <AtlasButton
+              type="button"
+              icon="upload"
+              loading={subiendo}
+              disabled={!partnerId || bloqueo !== null}
+              title={bloqueo ?? undefined}
+              onClick={() => void subir()}
+              data-testid="btn-subir-qr-cobro"
+            >
               {vigente ? 'Reemplazar QR de cobro' : 'Subir QR de cobro'}
             </AtlasButton>
             <p className="text-[11px] text-slate-500">
@@ -390,7 +493,8 @@ export function MerchantPaymentQrScreen() {
               type="button"
               icon="upload"
               loading={subiendoNegocio}
-              disabled={!partnerId}
+              disabled={!partnerId || bloqueo !== null}
+              title={bloqueo ?? undefined}
               onClick={() => void subirNegocio()}
               data-testid="btn-subir-qr-negocio"
             >
@@ -407,8 +511,8 @@ export function MerchantPaymentQrScreen() {
                 <div className="flex justify-between gap-3">
                   <dt className="text-slate-500">Estado</dt>
                   <dd>
-                    <StatusPill tone={negocioVigente.status === 'active' ? 'success' : 'warning'}>
-                      {negocioVigente.status}
+                    <StatusPill tone={ESTADO_QR[negocioVigente.status]?.tono ?? 'neutral'}>
+                      {ESTADO_QR[negocioVigente.status]?.texto ?? negocioVigente.status}
                     </StatusPill>
                   </dd>
                 </div>
@@ -443,7 +547,10 @@ export function MerchantPaymentQrScreen() {
                   <td className="py-1.5 font-mono text-slate-500">{codigo.fingerprint}</td>
                   <td className="py-1.5">{new Date(codigo.createdAt).toLocaleDateString('es-BO')}</td>
                   <td className="py-1.5">
-                    <StatusPill tone="neutral">{codigo.status}</StatusPill>
+                    <StatusPill tone={ESTADO_QR[codigo.status]?.tono ?? 'neutral'}>{ESTADO_QR[codigo.status]?.texto ?? codigo.status}</StatusPill>
+                    {codigo.status === 'rejected' && codigo.reviewNote ? (
+                      <p className="mt-0.5 text-[11px] text-slate-500">{codigo.reviewNote}</p>
+                    ) : null}
                   </td>
                 </tr>
               ))}
