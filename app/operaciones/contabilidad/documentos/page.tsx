@@ -55,7 +55,8 @@ export default function AccountingDocumentsPage() {
             title: (row) => `Reversar ${String(row.documentNo ?? '')}`,
             description: 'Se crea un asiento CONTRARIO; el original no se toca. El período de la reversión puede ser distinto al del asiento: si aquél ya está cerrado, la reversión va al abierto.',
             fields: [
-              { name: 'reversalDocumentNo', label: 'Número del asiento de reversión', required: true, span: 2 },
+              // El número de la reversión lo asigna el backend (DOC-…), como el de cualquier documento.
+              { name: 'reversalDocumentNo', label: 'Número del asiento de reversión', assignedByBackend: true, span: 2 },
               { name: 'reversalDate', label: 'Fecha de reversión', type: 'date', required: true },
               { name: 'accountingPeriodId', label: 'Período contable', type: 'select', required: true, span: 2, optionsLoader: loadAccountingPeriods },
               { name: 'reason', label: 'Motivo', required: true, span: 3, placeholder: 'Documento cargado con la cuenta equivocada' },

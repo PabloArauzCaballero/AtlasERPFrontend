@@ -58,7 +58,7 @@ export default function BranchesFiscalYearsPage() {
                     { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
                     { name: 'code', label: 'Código', required: true, placeholder: 'SCZ-CENTRAL' },
                     { name: 'name', label: 'Nombre', required: true, placeholder: 'Oficina central' },
-                    { name: 'city', label: 'Ciudad', optional: true, placeholder: 'Santa Cruz de la Sierra', span: 2 },
+                    { name: 'city', label: 'Ciudad', optional: true, span: 2, optionsSource: 'catalog:city' },
                   ],
                   submit: async (payload) => { const created = await accountingService.createBranch(payload); bump(); return created; },
                 }}
@@ -91,7 +91,8 @@ export default function BranchesFiscalYearsPage() {
                   title: 'Nuevo año fiscal',
                   fields: [
                     { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
-                    { name: 'yearLabel', label: 'Etiqueta', required: true, defaultValue: '2026' },
+                    // La etiqueta la deriva el backend de las fechas: teclearla podía contradecirlas.
+                    { name: 'yearLabel', label: 'Etiqueta', assignedByBackend: true },
                     { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true, defaultValue: '2026-01-01' },
                     { name: 'endDate', label: 'Fecha final', type: 'date', required: true, defaultValue: '2026-12-31', span: 2 },
                   ],

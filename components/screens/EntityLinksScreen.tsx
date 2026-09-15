@@ -9,10 +9,24 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { InlineActionForm } from '@/components/screens/InlineActionForm';
+import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { formatDate } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import { accountingService } from '@/services/accountingService';
+import {
+  loadAccountingBranches,
+  loadAccountingDocuments,
+  loadBankAccounts,
+  loadBusinessPartners,
+  loadContracts,
+  loadCostCenters,
+  loadLedgers,
+  loadLegalEntities,
+  loadProfitCenters,
+  loadTaxCodes,
+  type Option,
+} from '@/services/optionLoaders';
 import type { JsonObject, PaginatedResult, ResourceRow } from '@/services/types';
 
 /**
@@ -29,19 +43,22 @@ import type { JsonObject, PaginatedResult, ResourceRow } from '@/services/types'
  * la API ya ofrece.
  */
 
-const TIPOS = [
-  'BUSINESS_PARTNER',
-  'COST_CENTER',
-  'PROFIT_CENTER',
-  'CONTRACT',
-  'LEGAL_ENTITY',
-  'TAX_CODE',
-  'BANK_ACCOUNT',
-  'LEDGER',
-  'BRANCH',
-  'ACCOUNTING_DOCUMENT',
-  'OTHER',
-].map((value) => ({ label: value.replaceAll('_', ' '), value }));
+/**
+ * De qué listado sale cada tipo de entidad. BRANCH es la sucursal CONTABLE (estructura financiera),
+ * no la del comercio: el vínculo vive en el módulo de contabilidad. OTHER no tiene listado.
+ */
+const LISTADO_POR_TIPO: Record<string, (() => Promise<Option[]>) | undefined> = {
+  BUSINESS_PARTNER: loadBusinessPartners,
+  COST_CENTER: loadCostCenters,
+  PROFIT_CENTER: loadProfitCenters,
+  CONTRACT: loadContracts,
+  LEGAL_ENTITY: loadLegalEntities,
+  TAX_CODE: loadTaxCodes,
+  BANK_ACCOUNT: loadBankAccounts,
+  LEDGER: loadLedgers,
+  BRANCH: loadAccountingBranches,
+  ACCOUNTING_DOCUMENT: loadAccountingDocuments,
+};
 
 function s(value: unknown): string {
   return value === null || value === undefined ? '' : String(value);
@@ -53,18 +70,49 @@ function rowsOf(data: PaginatedResult<ResourceRow> | ResourceRow[] | null): Reso
   return data.items ?? data.rows ?? [];
 }
 
-/** Los campos del alta son los mismos en los dos casos: cambia sobre qué se crea. */
-const camposDeVinculo = [
-  { name: 'entityType', label: 'Tipo de entidad', type: 'select' as const, required: true, options: TIPOS },
-  { name: 'entityId', label: 'UUID de la entidad', required: true, span: 2 as const, placeholder: '00000000-0000-4000-8000-000000000000' },
-  { name: 'relation', label: 'Relación', optional: true, defaultValue: 'DEFAULT', hint: 'Para qué se ata: DEFAULT, GASTO, INGRESO…' },
+/**
+ * Los campos del alta son los mismos en los dos casos: cambia sobre qué se crea.
+ *
+ * La entidad se ELIGE del listado que corresponde al tipo; antes se pedía su UUID a mano. El tipo
+ * arranca en BUSINESS_PARTNER para que la lista de entidades ya esté cargada al abrir. OTHER no
+ * tiene listado del que elegir, así que sólo para él queda un texto donde pegar el identificador.
+ */
+const camposDeVinculo: ActionField[] = [
+  { name: 'entityType', label: 'Tipo de entidad', required: true, defaultValue: 'BUSINESS_PARTNER', optionsSource: 'domain:accounting.entityLinkType' },
+  {
+    name: 'entityId',
+    label: 'Entidad',
+    span: 2,
+    // No es `required` nativo: con OTHER el select queda vacío y bloquearía el envío. Se valida al enviar.
+    optional: true,
+    emptyOption: '— Elige la entidad —',
+    dependsOn: 'entityType',
+    optionsLoaderFor: async (tipo) => (await LISTADO_POR_TIPO[tipo]?.()) ?? [],
+    hint: 'Las del tipo elegido.',
+  },
+  { name: 'otherEntityId', label: 'Identificador (sólo tipo «Otro»)', optional: true, span: 2, placeholder: '00000000-0000-4000-8000-000000000000', hint: '«Otro» no tiene listado del que elegir: pega el UUID de la entidad.' },
+  // Su ayuda inventaba GASTO/INGRESO, que el backend no acepta: ahora es su vocabulario.
+  { name: 'relation', label: 'Relación', optional: true, defaultValue: 'DEFAULT', optionsSource: 'domain:accounting.entityLinkRelation', hint: 'Para qué se ata la entidad. Vacío = DEFAULT.' },
 ];
+
+/** Resuelve de qué control sale el identificador y avisa si falta, antes de viajar al backend. */
+function payloadDeVinculo(payload: JsonObject): JsonObject {
+  const { entityId, otherEntityId, ...resto } = payload;
+  const otro = s(resto.entityType) === 'OTHER';
+  const id = otro ? s(otherEntityId).trim() : s(entityId);
+  if (!id) throw new Error(otro ? 'Pega el identificador de la entidad: «Otro» no tiene listado.' : 'Elige la entidad a la que se ata.');
+  return { ...resto, entityId: id };
+}
 
 export function EntityLinksScreen() {
   const [tab, setTab] = useState('cuentas');
   const [accountId, setAccountId] = useState('');
   const [documentId, setDocumentId] = useState('');
   const [borrando, setBorrando] = useState<ResourceRow | null>(null);
+  /* Tras crear, el formulario se remonta: `reset()` devuelve el tipo a su valor inicial sin avisar
+     al campo dependiente, que se quedaría con las entidades del tipo anterior. */
+  const [formularioCuenta, setFormularioCuenta] = useState(0);
+  const [formularioAsiento, setFormularioAsiento] = useState(0);
 
   const accounts = useAsyncResource(
     useCallback(() => accountingService.listGlAccounts({ page: 1, pageSize: 100 }), []),
@@ -99,13 +147,13 @@ export function EntityLinksScreen() {
   const documentos = useMemo(() => rowsOf(documents.data), [documents.data]);
 
   async function crearVinculoCuenta(payload: JsonObject) {
-    const created = await accountingService.createGlAccountLink(accountId, payload);
+    const created = await accountingService.createGlAccountLink(accountId, payloadDeVinculo(payload));
     await accountLinks.reload();
     return created;
   }
 
   async function crearVinculoAsiento(payload: JsonObject) {
-    const created = await accountingService.createJournalLink(journalId, payload);
+    const created = await accountingService.createJournalLink(journalId, payloadDeVinculo(payload));
     await journalLinks.reload();
     return created;
   }
@@ -184,12 +232,14 @@ export function EntityLinksScreen() {
                   <>
                     <Panel title="Vínculos de la cuenta" icon="link">{tablaDeVinculos(rowsOf(accountLinks.data), (row) => setBorrando(row))}</Panel>
                     <InlineActionForm
+                      key={`cuenta-${formularioCuenta}`}
                       title="Atar la cuenta a otra entidad"
-                      description="El identificador es el UUID de la entidad destino; el tipo dice de qué tabla sale."
+                      description="Elige el tipo y, después, la entidad de ese tipo."
                       icon="add_link"
                       submitLabel="Crear vínculo"
                       successMessage="El vínculo quedó creado."
                       onSubmit={crearVinculoCuenta}
+                      onDone={() => setFormularioCuenta((value) => value + 1)}
                       fields={camposDeVinculo}
                     />
                   </>
@@ -226,6 +276,8 @@ export function EntityLinksScreen() {
                       {tablaDeVinculos(rowsOf(journalLinks.data))}
                     </Panel>
                     <InlineActionForm
+                      key={`asiento-${formularioAsiento}`}
+                      onDone={() => setFormularioAsiento((value) => value + 1)}
                       title="Atar el asiento a otra entidad"
                       description="El backend no expone borrado para los vínculos de asiento: un asiento contabilizado no se corrige quitándole ataduras, se reversa."
                       icon="add_link"

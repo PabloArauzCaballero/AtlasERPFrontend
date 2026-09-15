@@ -4,7 +4,9 @@ import { useCallback, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { useOptions } from '@/hooks/useOptions';
 import { accountingService } from '@/services/accountingService';
+import { domainLoader } from '@/services/domains';
 
 const soloAlta = {
   tone: 'warning' as const,
@@ -19,6 +21,7 @@ export default function TaxesCoaPage() {
   const loadCharts = useCallback(() => accountingService.listChartsOfAccounts(), [version]);
   const loadTaxes = useCallback(() => accountingService.listTaxCodes(), [version]);
   /* eslint-enable react-hooks/exhaustive-deps */
+  const tiposImpuesto = useOptions(domainLoader('domain:accounting.taxType'));
 
   return (
     <div className="space-y-5">
@@ -88,16 +91,14 @@ export default function TaxesCoaPage() {
                   { key: 'effectiveFrom', label: 'Vigente desde', kind: 'date' },
                   { key: 'effectiveTo', label: 'Vigente hasta', kind: 'date' },
                 ]}
-                filters={[{ key: 'taxType', label: 'Tipo' }]}
+                filters={[{ key: 'taxType', label: 'Tipo', options: tiposImpuesto }]}
                 notice={soloAlta}
                 create={{
                   label: 'Crear código tributario',
                   title: 'Nuevo código tributario',
                   fields: [
                     { name: 'code', label: 'Código', required: true, placeholder: 'IVA13_VENTA' },
-                    { name: 'taxType', label: 'Tipo', type: 'select', required: true, options: [
-                      { label: 'IVA', value: 'IVA' }, { label: 'IT', value: 'IT' }, { label: 'IUE', value: 'IUE' }, { label: 'Retención', value: 'RETENTION' }, { label: 'Otro', value: 'OTHER' },
-                    ] },
+                    { name: 'taxType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.taxType' },
                     { name: 'rate', label: 'Tasa (%)', type: 'number', valueKind: 'number', required: true, defaultValue: 13 },
                     { name: 'recoverablePercent', label: 'Recuperable (%)', type: 'number', valueKind: 'number', required: true, defaultValue: 0 },
                     { name: 'effectiveFrom', label: 'Vigente desde', type: 'date', required: true },

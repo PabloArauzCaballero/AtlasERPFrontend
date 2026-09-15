@@ -64,7 +64,7 @@ export default function PeriodClosingPage() {
             title: (row) => `Cerrar el período ${String(row.periodNo ?? '')}`,
             description: 'Bloquea nuevas contabilizaciones en el período. Antes de cerrarlo, el backend comprueba sus controles de cierre.',
             fields: [
-              { name: 'closeType', label: 'Tipo de cierre', type: 'select', required: true, span: 2, defaultValue: 'MONTHLY', options: [{ label: 'Mensual', value: 'MONTHLY' }, { label: 'Anual', value: 'ANNUAL' }] },
+              { name: 'closeType', label: 'Tipo de cierre', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
             ],
             submit: async (row, payload) =>
               accountingService.closePeriod({ legalEntityId: await entidadLegalDe(row), periodId: String(row.id ?? ''), closeType: String(payload.closeType ?? 'MONTHLY') }),

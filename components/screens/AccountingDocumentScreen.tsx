@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { domainLoader } from '@/services/domains';
 import { accountingService } from '@/services/accountingService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
@@ -59,6 +60,21 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
   const glAccounts = useOptions(loadGlAccounts);
   const partners = useOptions(loadBusinessPartners);
   const costCenters = useOptions(loadCostCenters);
+  /* Dominios cerrados del backend: antes eran textos libres y el alta fallaba si no se escribía el
+     código exacto (ATLAS_ERP, MANUAL, JOURNAL…). */
+  const sistemasOrigen = useOptions(domainLoader('domain:accounting.documentSourceSystem'));
+  const tiposOrigen = useOptions(domainLoader('domain:accounting.documentSourceType'));
+  const tiposDocumento = useOptions(domainLoader('domain:accounting.documentType'));
+  const aprobaciones = useOptions(domainLoader('domain:accounting.documentApprovalStatus'));
+  const monedas = useOptions(domainLoader('catalog:currency'));
+  /* El número del documento lo asigna el backend (DOC-…); tras guardar se enseña el que asignó. */
+  const [numeroAsignado, setNumeroAsignado] = useState('');
+  /* «ID origen» es la referencia del documento en su sistema de origen, y junto con sistema y tipo
+     no se puede repetir. En un asiento manual no hay tal sistema, así que se propone una referencia
+     única y editable. Se genera tras montar —no al renderizar en el servidor— para no desalinear la
+     hidratación, y se renueva tras cada guardado para que el siguiente borrador no choque. */
+  const [sourceIdSugerido, setSourceIdSugerido] = useState('');
+  useEffect(() => { setSourceIdSugerido(`MANUAL-${Date.now()}`); }, []);
 
   function updateLine(id: string, key: keyof JournalLine, value: string) { setLines((current) => current.map((line) => line.id === id ? { ...line, [key]: value } : line)); }
 
@@ -69,7 +85,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
     const payload: JsonObject = {
       legalEntityId: String(form.get('legalEntityId') ?? ''), sourceSystem: String(form.get('sourceSystem') ?? ''),
       sourceType: String(form.get('sourceType') ?? ''), sourceId: String(form.get('sourceId') ?? ''),
-      documentType: String(form.get('documentType') ?? ''), documentNo: String(form.get('documentNo') ?? ''),
+      documentType: String(form.get('documentType') ?? ''),
       documentDate: String(form.get('documentDate') ?? ''), postingDate: String(form.get('postingDate') ?? ''),
       accountingPeriodId: String(form.get('accountingPeriodId') ?? ''), ledgerId: String(form.get('ledgerId') ?? ''),
       currencyCode, approvalStatus: String(form.get('approvalStatus') ?? 'NOT_REQUIRED'),
@@ -80,7 +96,13 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
         ...(line.description ? { description: line.description } : {}),
       })),
     };
-    try { const created = await createMutation.execute(payload); if (created.id) setDocumentId(String(created.id)); await onDone?.(); } catch { /* controlled */ }
+    try {
+      const created = await createMutation.execute(payload);
+      if (created.id) setDocumentId(String(created.id));
+      setNumeroAsignado(created.documentNo ? String(created.documentNo) : '');
+      setSourceIdSugerido(`MANUAL-${Date.now()}`);
+      await onDone?.();
+    } catch { /* controlled */ }
   }
 
   async function postDocument() { if (!documentId) return; try { await postMutation.execute(documentId); await onDone?.(); } catch { /* controlled */ } }
@@ -95,7 +117,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
 
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_310px]">
         <div className="space-y-4">
-          <Panel data-tutorial-id="document-header" title="Datos de Cabecera" icon="description"><div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Entidad legal" name="legalEntityId" required className="xl:col-span-2" options={legalEntities} /><FormField label="Sistema origen" name="sourceSystem" required defaultValue="ATLAS_ERP" /><FormField label="Tipo origen" name="sourceType" required defaultValue="MANUAL" /><FormField label="ID origen" name="sourceId" required /><FormField label="Tipo documento" name="documentType" required defaultValue="JOURNAL" /><FormField label="Número documento" name="documentNo" required /><FormField label="Moneda" name="currencyCode" required defaultValue="BOB" /><FormField label="Fecha documento" name="documentDate" type="date" required /><FormField label="Fecha contabilización" name="postingDate" type="date" required /><FormField kind="select" label="Período contable" name="accountingPeriodId" required options={periods} /><FormField kind="select" label="Ledger" name="ledgerId" required options={ledgers} /><FormField kind="select" label="Aprobación" name="approvalStatus" options={[{ label: 'No requerida', value: 'NOT_REQUIRED' }, { label: 'Pendiente', value: 'PENDING' }, { label: 'Aprobada', value: 'APPROVED' }]} /></div></Panel>
+          <Panel data-tutorial-id="document-header" title="Datos de Cabecera" icon="description"><div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField kind="select" label="Entidad legal" name="legalEntityId" required className="xl:col-span-2" options={legalEntities} />{/* Los selects se remontan cuando llegan sus opciones: un <select> no controlado sólo aplica su defaultValue al montar. */}<FormField key={`sourceSystem:${sistemasOrigen.length}`} kind="select" label="Sistema origen" name="sourceSystem" required defaultValue="ATLAS_ERP" options={sistemasOrigen} /><FormField key={`sourceType:${tiposOrigen.length}`} kind="select" label="Tipo origen" name="sourceType" required defaultValue="MANUAL" options={tiposOrigen} /><FormField key={`sourceId:${sourceIdSugerido}`} label="ID origen" name="sourceId" required defaultValue={sourceIdSugerido} hint="Referencia del documento en su sistema de origen. En un asiento manual basta la propuesta." /><FormField key={`documentType:${tiposDocumento.length}`} kind="select" label="Tipo documento" name="documentType" required defaultValue="JOURNAL" options={tiposDocumento} /><FormField name="" label="Número documento" value={numeroAsignado} placeholder="Se asigna al guardar" readOnly tabIndex={-1} hint="Lo asigna el sistema al guardar." /><FormField key={`currencyCode:${monedas.length}`} kind="select" label="Moneda" name="currencyCode" required defaultValue="BOB" options={monedas} /><FormField label="Fecha documento" name="documentDate" type="date" required /><FormField label="Fecha contabilización" name="postingDate" type="date" required /><FormField kind="select" label="Período contable" name="accountingPeriodId" required options={periods} /><FormField kind="select" label="Ledger" name="ledgerId" required options={ledgers} /><FormField key={`approvalStatus:${aprobaciones.length}`} kind="select" label="Aprobación" name="approvalStatus" defaultValue="NOT_REQUIRED" options={aprobaciones} /></div></Panel>
           <Panel title={`Líneas de Asiento (${lines.length})`} icon="list_alt" action={<AtlasButton variant="secondary" icon="add_box" onClick={() => setLines((current) => [...current, createLine(crypto.randomUUID(), current.length)])}>Agregar línea</AtlasButton>}>
             <div data-tutorial-id="document-lines" className="table-scroll"><table className="min-w-[1080px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2">Cuenta GL</th><th className="p-2 text-right">Debe</th><th className="p-2 text-right">Haber</th><th className="p-2">Descripción</th><th className="p-2">Partner</th><th className="p-2">Centro costo</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}><td className="p-2"><select required className="h-9 w-72 rounded border border-slate-300 px-2 text-[11px]" value={line.glAccountId} onChange={(event) => updateLine(line.id, 'glAccountId', event.target.value)}><option value="">— Cuenta GL —</option>{glAccounts.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></td><td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" min="0" step="0.01" value={line.debit} onChange={(event) => updateLine(line.id, 'debit', event.target.value)} /></td><td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" min="0" step="0.01" value={line.credit} onChange={(event) => updateLine(line.id, 'credit', event.target.value)} /></td><td className="p-2"><input className="h-9 w-52 rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} /></td><td className="p-2"><select className="h-9 w-48 rounded border border-slate-300 px-2 text-[10px]" value={line.partnerId} onChange={(event) => updateLine(line.id, 'partnerId', event.target.value)}><option value="">— Ninguno —</option>{partners.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></td><td className="p-2"><select className="h-9 w-48 rounded border border-slate-300 px-2 text-[10px]" value={line.costCenterId} onChange={(event) => updateLine(line.id, 'costCenterId', event.target.value)}><option value="">{costCenters.length ? '— Ninguno —' : '— No hay datos registrados —'}</option>{costCenters.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></td><td className="p-2"><button type="button" disabled={lines.length <= 2} className="grid h-8 w-8 place-items-center text-red-600 disabled:opacity-30" onClick={() => setLines((current) => current.filter((entry) => entry.id !== line.id))}><Icon name="delete" className="text-[18px]" /></button></td></tr>)}</tbody><tfoot data-tutorial-id="document-totals" className="border-t-2 border-slate-200 bg-slate-50 font-bold"><tr><td className="p-3">Totales</td><td className="p-3 text-right">{formatBob(totals.debit)}</td><td className="p-3 text-right">{formatBob(totals.credit)}</td><td colSpan={4} className="p-3 text-right"><StatusPill tone={balanced ? 'success' : 'danger'}>{balanced ? 'CUADRADO' : `DIFERENCIA ${formatBob(Math.abs(totals.debit - totals.credit))}`}</StatusPill></td></tr></tfoot></table></div>
           </Panel>

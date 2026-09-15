@@ -6,7 +6,7 @@ import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { formatDate } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import { accountingService } from '@/services/accountingService';
-import { loadBusinessPartners, loadLegalEntities } from '@/services/optionLoaders';
+import { loadBankAccounts, loadBusinessPartners, loadLegalEntities } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 /**
@@ -53,7 +53,8 @@ export default function SupplierPaymentTermsPage() {
     { name: 'termDays', label: 'Plazo (días)', type: 'number', optional: true, hint: 'Las modalidades de días fijos —contado, contra entrega— lo ignoran.' },
     { name: 'paymentMethod', label: 'Medio de pago', type: 'select', required: true, options: opciones(catalogo.mediosDePago) },
     { name: 'frequency', label: 'Frecuencia', type: 'select', optional: true, options: opciones(catalogo.frecuencias) },
-    { name: 'bpBankAccountId', label: 'Cuenta bancaria del proveedor', optional: true, span: 2, hint: 'UUID. Transferencia y QR la exigen: sin ella la condición no se puede ejecutar.' },
+    // Se elige de la lista: pedir el UUID a mano obligaba a copiarlo de otra pantalla.
+    { name: 'bpBankAccountId', label: 'Cuenta bancaria del proveedor', type: 'select', optional: true, span: 2, optionsLoader: loadBankAccounts, emptyOption: '— Sin cuenta —', hint: 'Transferencia y QR la exigen: sin ella la condición no se puede ejecutar.' },
     { name: 'advancePercentage', label: 'Anticipo (%)', type: 'number', optional: true },
     { name: 'earlyPaymentDiscount', label: 'Descuento pronto pago (%)', type: 'number', optional: true },
     { name: 'status', label: 'Estado', type: 'select', optional: true, options: opciones(catalogo.estados) },
@@ -100,7 +101,7 @@ export default function SupplierPaymentTermsPage() {
           { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
           { name: 'supplierBpId', label: 'Proveedor', type: 'select', required: true, span: 2, optionsLoader: loadBusinessPartners },
           { name: 'code', label: 'Código', required: true, placeholder: 'NETO30', hint: 'Para citarla en un contrato sin pegar un UUID.' },
-          { name: 'currencyCode', label: 'Moneda', required: true, defaultValue: 'BOB' },
+          { name: 'currencyCode', label: 'Moneda', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
           ...camposComunes,
         ],
         submit: async (payload: JsonObject) => {

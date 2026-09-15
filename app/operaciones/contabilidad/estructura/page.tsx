@@ -5,7 +5,6 @@ import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
-import { countryOptions, currencyOptions, timezoneOptions } from '@/lib/catalogs';
 
 /** Aviso común: el maestro se da de alta desde aquí, pero el backend todavía no expone corregirlo. */
 const soloAlta = {
@@ -64,9 +63,9 @@ export default function FinancialStructurePage() {
                     { name: 'code', label: 'Código interno', required: true, placeholder: 'ATLAS-BO' },
                     { name: 'legalName', label: 'Razón social', required: true, placeholder: 'Razón social registrada', span: 2 },
                     { name: 'taxId', label: 'NIT', optional: true, placeholder: 'NIT oficial' },
-                    { name: 'countryCode', label: 'País', type: 'select', required: true, defaultValue: 'BO', options: countryOptions },
-                    { name: 'baseCurrency', label: 'Moneda base', type: 'select', required: true, defaultValue: 'BOB', options: currencyOptions },
-                    { name: 'timezone', label: 'Zona horaria', type: 'select', required: true, defaultValue: 'America/La_Paz', options: timezoneOptions, span: 2 },
+                    { name: 'countryCode', label: 'País', required: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
+                    { name: 'baseCurrency', label: 'Moneda base', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
+                    { name: 'timezone', label: 'Zona horaria', required: true, defaultValue: 'America/La_Paz', optionsSource: 'catalog:timezone', span: 2 },
                   ],
                   submit: async (payload) => { const created = await accountingService.createLegalEntity(payload); bump(); return created; },
                 }}

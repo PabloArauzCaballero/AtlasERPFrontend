@@ -45,23 +45,11 @@ export default function ArInvoicePage() {
     submitLabel: 'Registrar evento',
     fields: [
       { name: 'contractId', label: 'Contrato', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadContracts },
-      {
-        name: 'eventType',
-        label: 'Tipo',
-        type: 'select' as const,
-        required: true,
-        options: [
-          { label: 'Comisión (MDR)', value: 'MDR' },
-          { label: 'Suscripción', value: 'SAAS' },
-          { label: 'Implantación', value: 'SETUP' },
-          { label: 'Intercompañía', value: 'INTERCOMPANY' },
-          { label: 'Soporte', value: 'SUPPORT' },
-        ],
-      },
+      { name: 'eventType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.billingEventType' as const },
       { name: 'eventTime', label: 'Cuándo ocurrió', type: 'datetime' as const, required: true },
       { name: 'baseAmount', label: 'Importe base', type: 'number' as const, required: true },
       { name: 'quantity', label: 'Cantidad', type: 'number' as const, optional: true, defaultValue: '1' },
-      { name: 'currencyCode', label: 'Moneda', optional: true, defaultValue: 'BOB' },
+      { name: 'currencyCode', label: 'Moneda', optional: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' as const },
       { name: 'externalRef', label: 'Referencia externa', optional: true, span: 2 as const },
     ],
     submit: async (payload: Record<string, unknown>) => {
@@ -111,7 +99,7 @@ export default function ArInvoicePage() {
           { name: 'contractId', label: 'Contrato', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
           { name: 'invoiceDate', label: 'Fecha factura', type: 'date', required: true },
           { name: 'dueDate', label: 'Fecha vencimiento', type: 'date', required: true },
-          { name: 'currencyCode', label: 'Moneda', defaultValue: 'BOB', required: true },
+          { name: 'currencyCode', label: 'Moneda', defaultValue: 'BOB', required: true, optionsSource: 'catalog:currency' },
           { name: 'description', label: 'Descripción', required: true, span: 2 },
           { name: 'netAmount', label: 'Importe neto', type: 'number', valueKind: 'number', required: true },
           { name: 'taxAmount', label: 'Impuesto', type: 'number', valueKind: 'number', defaultValue: 0 },
@@ -122,11 +110,11 @@ export default function ArInvoicePage() {
           { name: 'billingEventId', label: 'Evento de facturación', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadBillingEvents()) },
           { name: 'accountingPeriodId', label: 'Período contable', type: 'select', required: true, optionsLoader: loadAccountingPeriods },
           { name: 'ledgerId', label: 'Ledger', type: 'select', required: true, optionsLoader: loadLedgers },
-          { name: 'electronicTaxDocument.cuf', label: 'CUF', optional: true },
-          { name: 'electronicTaxDocument.cufd', label: 'CUFD', optional: true },
-          { name: 'electronicTaxDocument.siatStatus', label: 'Estado SIAT', defaultValue: 'PENDING' },
-          { name: 'electronicTaxDocument.xmlHash', label: 'Hash XML', optional: true },
-          { name: 'electronicTaxDocument.graphicRepresentationUrl', label: 'URL representación gráfica', type: 'url', optional: true, span: 2 },
+          /*
+           * CUF, CUFD, hash del XML, representación gráfica y estado SIAT ya no se piden: los devuelve
+           * el SIAT al autorizar la factura, y quien factura no los tiene. El backend deja el estado en
+           * PENDING cuando no llega. La contingencia sí la sabe quien emite, y se queda.
+           */
           { name: 'electronicTaxDocument.contingencyFlag', label: 'Contingencia', type: 'select', valueKind: 'boolean', defaultValue: 'false', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
         ],
       }}
@@ -136,7 +124,7 @@ export default function ArInvoicePage() {
         fields: [
           { name: 'invoiceDate', label: 'Fecha de emisión', type: 'date', required: true },
           { name: 'dueDate', label: 'Fecha de vencimiento', type: 'date', required: true },
-          { name: 'status', label: 'Estado', type: 'select', required: true, options: ['DRAFT', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'CREDITED', 'VOID'].map((value) => ({ label: value.replaceAll('_', ' '), value })) },
+          { name: 'status', label: 'Estado', required: true, optionsSource: 'domain:accounting.arInvoiceStatus' },
         ],
         submit: (id, payload) => accountingService.updateArInvoice(id, payload),
       }}

@@ -246,3 +246,6 @@ export const loadModerationReasonCodes = async (): Promise<Option[]> => {
     .map((row) => ({ value: row.code, label: row.detail ? `${row.code} — ${row.detail}` : row.code }));
   return [MODERATION_REASON_OK, ...politicas];
 };
+/** Sucursales contables (las de la estructura financiera), para los vínculos de tipo BRANCH. */
+export const loadAccountingBranches = async (): Promise<Option[]> =>
+  toOptions(await accountingService.listBranches(), (r) => `${s(r.code)} — ${s(r.name)}`);

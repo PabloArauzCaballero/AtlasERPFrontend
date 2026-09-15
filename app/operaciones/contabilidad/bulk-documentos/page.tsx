@@ -13,7 +13,8 @@ export default function BulkAccountingDocumentsPage() {
       description="Prepare documentos balanceados de dos líneas y publíquelos como un batch transaccional de hasta 50 registros."
       templateName="atlas-accounting-documents-template.csv"
       headers={headers}
-      requiredHeaders={['legalEntityId','sourceSystem','sourceType','sourceId','documentType','documentNo','documentDate','postingDate','accountingPeriodId','ledgerId','debitGlAccountId','creditGlAccountId','amount']}
+      // `documentNo` ya no es obligatorio: si la fila no lo trae, el backend asigna el correlativo (DOC-…).
+      requiredHeaders={['legalEntityId','sourceSystem','sourceType','sourceId','documentType','documentDate','postingDate','accountingPeriodId','ledgerId','debitGlAccountId','creditGlAccountId','amount']}
       maxRows={50}
       submit={accountingService.bulkCreateDocuments}
       transformRow={(row) => {
@@ -21,7 +22,7 @@ export default function BulkAccountingDocumentsPage() {
         if (!Number.isFinite(amount) || amount <= 0) throw new Error('Monto inválido');
         return {
           legalEntityId: row.legalEntityId, sourceSystem: row.sourceSystem, sourceType: row.sourceType,
-          sourceId: row.sourceId, documentType: row.documentType, documentNo: row.documentNo,
+          sourceId: row.sourceId, documentType: row.documentType, documentNo: row.documentNo?.trim() || undefined,
           documentDate: row.documentDate, postingDate: row.postingDate, accountingPeriodId: row.accountingPeriodId,
           ledgerId: row.ledgerId, currencyCode: row.currencyCode || 'BOB', approvalStatus: 'NOT_REQUIRED',
           lines: [

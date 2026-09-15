@@ -4,7 +4,8 @@ import { useCallback, useState } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
 import { cargarTodo } from '@/lib/cargarTodo';
-import { glAccountTypeOptions, recordStatusOptions } from '@/lib/catalogs';
+import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
 import { loadChartsOfAccounts, loadGlAccounts, withEmpty } from '@/services/optionLoaders';
 
 const detailBase = '/operaciones/contabilidad/cuentas-gl/detalle';
@@ -15,6 +16,9 @@ export default function GlAccountsPage() {
   const [version, setVersion] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(() => cargarTodo((query) => accountingService.listGlAccounts(query)), [version]);
+  const tiposCuenta = useOptions(domainLoader('domain:accounting.glAccountType'));
+  const estadosCuenta = useOptions(domainLoader('domain:accounting.glAccountStatus'));
+  const naturalezas = useOptions(domainLoader('domain:accounting.normalBalance'));
 
   return (
     <CrudDirectory
@@ -35,9 +39,9 @@ export default function GlAccountsPage() {
         { key: 'requiresPartner', label: 'Partner', kind: 'bool' },
       ]}
       filters={[
-        { key: 'accountType', label: 'Clasificación', options: glAccountTypeOptions },
-        { key: 'status', label: 'Estado', options: recordStatusOptions },
-        { key: 'normalBalance', label: 'Naturaleza', options: [{ label: 'Débito', value: 'D' }, { label: 'Crédito', value: 'C' }] },
+        { key: 'accountType', label: 'Clasificación', options: tiposCuenta },
+        { key: 'status', label: 'Estado', options: estadosCuenta },
+        { key: 'normalBalance', label: 'Naturaleza', options: naturalezas },
       ]}
       notice={{
         tone: 'info',
@@ -53,8 +57,8 @@ export default function GlAccountsPage() {
           { name: 'parentAccountId', label: 'Cuenta padre', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadGlAccounts()) },
           { name: 'accountNo', label: 'Número de cuenta', required: true },
           { name: 'name', label: 'Nombre', required: true },
-          { name: 'accountType', label: 'Tipo', type: 'select', required: true, options: ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE', 'CONTRA_ASSET'].map((value) => ({ label: value, value })) },
-          { name: 'normalBalance', label: 'Naturaleza', type: 'select', required: true, options: [{ label: 'Débito', value: 'D' }, { label: 'Crédito', value: 'C' }] },
+          { name: 'accountType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.glAccountType' },
+          { name: 'normalBalance', label: 'Naturaleza', required: true, optionsSource: 'domain:accounting.normalBalance' },
           ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, defaultValue: 'false', options: siNo })),
         ],
         submit: async (payload) => { const created = await accountingService.createGlAccount(payload); setVersion((value) => value + 1); return created; },
@@ -63,8 +67,9 @@ export default function GlAccountsPage() {
         description: 'El número de cuenta y su plan no se cambian: son la referencia de los asientos ya contabilizados.',
         fields: [
           { name: 'name', label: 'Nombre', required: true, span: 2 },
-          { name: 'accountType', label: 'Tipo', type: 'select', options: ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE', 'CONTRA_ASSET'].map((value) => ({ label: value, value })) },
-          { name: 'normalBalance', label: 'Naturaleza', type: 'select', options: [{ label: 'Débito', value: 'D' }, { label: 'Crédito', value: 'C' }] },
+          // `required` para que el select no ofrezca «— Sin definir —»: la cuenta siempre tiene tipo y naturaleza.
+          { name: 'accountType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.glAccountType' },
+          { name: 'normalBalance', label: 'Naturaleza', required: true, optionsSource: 'domain:accounting.normalBalance' },
           ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, options: siNo })),
         ],
         submit: (id, payload) => accountingService.updateGlAccount(id, payload),

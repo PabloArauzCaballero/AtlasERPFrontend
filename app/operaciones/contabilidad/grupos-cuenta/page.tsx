@@ -7,13 +7,17 @@ import { AccountGroupsScreen } from '@/components/screens/AccountGroupsScreen';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
 import { cargarTodo } from '@/lib/cargarTodo';
-import { accountClassificationOptions, statementTypeOptions } from '@/lib/catalogs';
+import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
 import { loadAccountGroups, loadChartsOfAccounts, withEmpty } from '@/services/optionLoaders';
 
 export default function AccountGroupsPage() {
   const [version, setVersion] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(() => cargarTodo((query) => accountingService.listAccountGroups(query)), [version]);
+  const tiposEstado = useOptions(domainLoader('domain:accounting.statementType'));
+  const clasificaciones = useOptions(domainLoader('domain:accounting.accountClassification'));
+  const estadosGrupo = useOptions(domainLoader('domain:accounting.recordStatus'));
 
   return (
     <div className="space-y-5">
@@ -47,9 +51,9 @@ export default function AccountGroupsPage() {
                   { key: 'status', label: 'Estado', kind: 'status' },
                 ]}
                 filters={[
-                  { key: 'statementType', label: 'Estado financiero', options: statementTypeOptions },
-                  { key: 'classification', label: 'Clasificación', options: accountClassificationOptions },
-                  { key: 'status', label: 'Estado' },
+                  { key: 'statementType', label: 'Estado financiero', options: tiposEstado },
+                  { key: 'classification', label: 'Clasificación', options: clasificaciones },
+                  { key: 'status', label: 'Estado', options: estadosGrupo },
                 ]}
                 notice={{
                   tone: 'info',
@@ -64,9 +68,10 @@ export default function AccountGroupsPage() {
                     { name: 'parentGroupId', label: 'Grupo padre', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadAccountGroups()) },
                     { name: 'code', label: 'Código', required: true },
                     { name: 'name', label: 'Nombre', required: true },
-                    { name: 'statementType', label: 'Estado financiero', type: 'select', required: true, defaultValue: 'BALANCE_SHEET', options: statementTypeOptions },
-                    { name: 'classification', label: 'Clasificación', type: 'select', required: true, defaultValue: 'ASSET', options: accountClassificationOptions },
-                    { name: 'subClassification', label: 'Subclasificación', optional: true },
+                    { name: 'statementType', label: 'Estado financiero', required: true, defaultValue: 'BALANCE_SHEET', optionsSource: 'domain:accounting.statementType' },
+                    { name: 'classification', label: 'Clasificación', required: true, defaultValue: 'ASSET', optionsSource: 'domain:accounting.accountClassification' },
+                    // Era texto libre y el backend sólo acepta su vocabulario (CURRENT, NON_CURRENT…).
+                    { name: 'subClassification', label: 'Subclasificación', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
                     { name: 'sortOrder', label: 'Orden', type: 'number', valueKind: 'number', defaultValue: 0 },
                   ],
                   submit: async (payload) => { const created = await accountingService.createAccountGroup(payload); setVersion((value) => value + 1); return created; },
@@ -75,9 +80,10 @@ export default function AccountGroupsPage() {
                   description: 'El plan y el código no se cambian: son la referencia con la que las cuentas cuelgan del grupo.',
                   fields: [
                     { name: 'name', label: 'Nombre', required: true, span: 2 },
-                    { name: 'statementType', label: 'Estado financiero', type: 'select', options: statementTypeOptions },
-                    { name: 'classification', label: 'Clasificación', type: 'select', options: accountClassificationOptions },
-                    { name: 'subClassification', label: 'Subclasificación', optional: true },
+                    // `required` evita la opción vacía: un grupo siempre tiene estado financiero y clasificación.
+                    { name: 'statementType', label: 'Estado financiero', required: true, optionsSource: 'domain:accounting.statementType' },
+                    { name: 'classification', label: 'Clasificación', required: true, optionsSource: 'domain:accounting.accountClassification' },
+                    { name: 'subClassification', label: 'Subclasificación', optional: true, optionsSource: 'domain:accounting.accountSubClassification' },
                     { name: 'sortOrder', label: 'Orden', type: 'number', valueKind: 'number' },
                   ],
                   submit: (id, payload) => accountingService.updateAccountGroup(id, payload),

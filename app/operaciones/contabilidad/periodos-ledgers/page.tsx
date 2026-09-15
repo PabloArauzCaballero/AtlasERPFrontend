@@ -4,7 +4,9 @@ import { useCallback, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { useOptions } from '@/hooks/useOptions';
 import { accountingService } from '@/services/accountingService';
+import { domainLoader } from '@/services/domains';
 import { loadFiscalYears, loadLegalEntities } from '@/services/optionLoaders';
 
 const soloAlta = {
@@ -20,6 +22,7 @@ export default function PeriodsLedgersPage() {
   const loadPeriods = useCallback(() => accountingService.listAccountingPeriods(), [version]);
   const loadLedgers = useCallback(() => accountingService.listLedgers(), [version]);
   /* eslint-enable react-hooks/exhaustive-deps */
+  const basesContables = useOptions(domainLoader('domain:accounting.ledgerBasis'));
 
   return (
     <div className="space-y-5">
@@ -56,7 +59,8 @@ export default function PeriodsLedgersPage() {
                   title: 'Nuevo período contable',
                   fields: [
                     { name: 'fiscalYearId', label: 'Año fiscal', type: 'select', required: true, span: 2, optionsLoader: loadFiscalYears },
-                    { name: 'periodNo', label: 'Número de período', type: 'number', valueKind: 'number', required: true, defaultValue: 1 },
+                    // El backend toma el siguiente número libre del año fiscal: pedirlo chocaba con el que ya existía.
+                    { name: 'periodNo', label: 'Número de período', assignedByBackend: true },
                     { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true },
                     { name: 'endDate', label: 'Fecha final', type: 'date', required: true, span: 2 },
                   ],
@@ -85,7 +89,7 @@ export default function PeriodsLedgersPage() {
                   { key: 'isDefault', label: 'Predeterminado', kind: 'bool' },
                   { key: 'status', label: 'Estado', kind: 'status' },
                 ]}
-                filters={[{ key: 'accountingBasis', label: 'Base contable' }, { key: 'status', label: 'Estado' }]}
+                filters={[{ key: 'accountingBasis', label: 'Base contable', options: basesContables }, { key: 'status', label: 'Estado' }]}
                 notice={soloAlta}
                 create={{
                   label: 'Crear ledger',
@@ -94,9 +98,7 @@ export default function PeriodsLedgersPage() {
                     { name: 'legalEntityId', label: 'Entidad legal', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
                     { name: 'code', label: 'Código', required: true, placeholder: 'LOCAL-BO' },
                     { name: 'name', label: 'Nombre', required: true, placeholder: 'Libro local Bolivia' },
-                    { name: 'accountingBasis', label: 'Base contable', type: 'select', required: true, defaultValue: 'LOCAL_BO', span: 2, options: [
-                      { label: 'Local Bolivia', value: 'LOCAL_BO' }, { label: 'Gerencial', value: 'MANAGEMENT' }, { label: 'IFRS', value: 'IFRS' },
-                    ] },
+                    { name: 'accountingBasis', label: 'Base contable', required: true, defaultValue: 'LOCAL_BO', span: 2, optionsSource: 'domain:accounting.ledgerBasis' },
                     { name: 'isDefault', label: 'Libro predeterminado', type: 'select', valueKind: 'boolean', defaultValue: 'false', span: 2, options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
                   ],
                   submit: async (payload) => { const created = await accountingService.createLedger(payload); bump(); return created; },

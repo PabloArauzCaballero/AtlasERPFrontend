@@ -5,7 +5,8 @@ import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
 import { cargarTodo } from '@/lib/cargarTodo';
 import { loadLegalEntities } from '@/services/optionLoaders';
-import { countryOptions, kybStatusOptions, partnerTypeOptions, recordStatusOptions } from '@/lib/catalogs';
+import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
 
 const detailBase = '/operaciones/contabilidad/business-partners/detalle';
 
@@ -13,6 +14,14 @@ export default function BusinessPartnersPage() {
   const [version, setVersion] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(() => cargarTodo((query) => accountingService.listBusinessPartners(query)), [version]);
+  /*
+   * Los filtros leen los mismos dominios que el alta. La lista local de estados era la genérica
+   * (activo/inactivo/archivado) y un partner también puede estar BLOQUEADO; la de tipos no tenía
+   * GOVERNMENT. Filtrar por un valor que el backend sí guarda era imposible.
+   */
+  const tiposPartner = useOptions(domainLoader('domain:accounting.partnerType'));
+  const estadosKyb = useOptions(domainLoader('domain:accounting.kybStatus'));
+  const estadosPartner = useOptions(domainLoader('domain:accounting.businessPartnerStatus'));
 
   return (
     <CrudDirectory
@@ -32,9 +41,9 @@ export default function BusinessPartnersPage() {
         { key: 'kybStatus', label: 'KYB', kind: 'status' },
       ]}
       filters={[
-        { key: 'partnerType', label: 'Tipo', options: partnerTypeOptions },
-        { key: 'kybStatus', label: 'KYB', options: kybStatusOptions },
-        { key: 'status', label: 'Estado', options: recordStatusOptions },
+        { key: 'partnerType', label: 'Tipo', options: tiposPartner },
+        { key: 'kybStatus', label: 'KYB', options: estadosKyb },
+        { key: 'status', label: 'Estado', options: estadosPartner },
         { key: 'countryCode', label: 'País' },
       ]}
       notice={{
@@ -47,24 +56,26 @@ export default function BusinessPartnersPage() {
         title: 'Nuevo business partner',
         description: 'Contraparte financiera con identidad legal y estado KYB controlado.',
         fields: [
-          { name: 'partnerNo', label: 'Código de partner', required: true },
-          { name: 'partnerType', label: 'Tipo', type: 'select', required: true, defaultValue: 'COMPANY', options: partnerTypeOptions },
+          // El código lo asigna el backend (BP-AAAA-NNNNNN): pedirlo obligaba a inventar una serie.
+          { name: 'partnerNo', label: 'Código de partner', assignedByBackend: true },
+          { name: 'partnerType', label: 'Tipo', required: true, defaultValue: 'COMPANY', optionsSource: 'domain:accounting.partnerType' },
           { name: 'legalName', label: 'Razón social / nombre legal', required: true, span: 2 },
           { name: 'tradeName', label: 'Nombre comercial', optional: true },
           { name: 'taxId', label: 'NIT / documento', optional: true },
-          { name: 'countryCode', label: 'País', type: 'select', defaultValue: 'BO', options: countryOptions },
-          { name: 'kybStatus', label: 'Estado KYB', type: 'select', defaultValue: 'PENDING', options: kybStatusOptions },
+          { name: 'countryCode', label: 'País', required: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
+          { name: 'kybStatus', label: 'Estado KYB', required: true, defaultValue: 'PENDING', optionsSource: 'domain:accounting.kybStatus' },
         ],
         submit: async (payload) => { const created = await accountingService.createBusinessPartner(payload); setVersion((value) => value + 1); return created; },
       }}
       edit={{
         description: 'El código de partner no se cambia: es la referencia con la que lo citan los documentos ya emitidos.',
         fields: [
+          { name: 'partnerNo', label: 'Código de partner', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
           { name: 'legalName', label: 'Razón social', required: true, span: 2 },
           { name: 'tradeName', label: 'Nombre comercial', optional: true },
           { name: 'taxId', label: 'NIT / documento', optional: true },
-          { name: 'countryCode', label: 'País', type: 'select', options: countryOptions },
-          { name: 'kybStatus', label: 'Estado KYB', type: 'select', options: kybStatusOptions },
+          { name: 'countryCode', label: 'País', required: true, optionsSource: 'catalog:country' },
+          { name: 'kybStatus', label: 'Estado KYB', required: true, optionsSource: 'domain:accounting.kybStatus' },
         ],
         submit: (id, payload) => accountingService.updateBusinessPartner(id, payload),
       }}
@@ -87,16 +98,8 @@ export default function BusinessPartnersPage() {
               {
                 name: 'roleCode',
                 label: 'Rol',
-                type: 'select',
                 required: true,
-                options: [
-                  { label: 'Cliente', value: 'CUSTOMER' },
-                  { label: 'Proveedor', value: 'SUPPLIER' },
-                  { label: 'Comercio', value: 'MERCHANT' },
-                  { label: 'Prestamista', value: 'LENDER' },
-                  { label: 'Banco', value: 'BANK' },
-                  { label: 'Intercompañía', value: 'INTERCOMPANY' },
-                ],
+                optionsSource: 'domain:accounting.partnerRole',
               },
               { name: 'legalEntityId', label: 'Entidad legal', type: 'select', optional: true, span: 2, optionsLoader: loadLegalEntities, hint: 'Vacío = el rol vale para todas.' },
               { name: 'effectiveFrom', label: 'Vigente desde', type: 'date', required: true },

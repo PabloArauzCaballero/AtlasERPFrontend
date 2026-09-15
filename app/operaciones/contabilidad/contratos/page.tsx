@@ -4,24 +4,27 @@ import { useCallback, useState } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { InlineActionForm } from '@/components/screens/InlineActionForm';
 import { accountingService } from '@/services/accountingService';
+import type { ActionField } from '@/components/screens/StructuredActionForm';
+import { useOptions } from '@/hooks/useOptions';
+import { domainLoader } from '@/services/domains';
 import { loadBusinessPartners, loadContracts, loadLegalEntities } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
-const contractTypes = ['CUSTOMER_BILLING', 'SUPPLIER', 'LOAN', 'INTERCOMPANY', 'MERCHANT'];
-const typeOptions = contractTypes.map((value) => ({ label: value.replaceAll('_', ' '), value }));
-
-const headerFields = [
-  { name: 'contractNo', label: 'Número de contrato', required: true, placeholder: 'CTR-2026-001' },
-  { name: 'contractType', label: 'Tipo', type: 'select' as const, required: true, options: typeOptions },
+const headerFields: ActionField[] = [
+  // El número lo asigna el backend (CTA-…): pedirlo obligaba a adivinar el siguiente de la serie.
+  { name: 'contractNo', label: 'Número de contrato', assignedByBackend: true },
+  { name: 'contractType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.contractType' },
   { name: 'legalEntityId', label: 'Entidad legal', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadLegalEntities },
   { name: 'counterpartyBpId', label: 'Contraparte (Business Partner)', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadBusinessPartners },
   { name: 'startDate', label: 'Fecha inicial', type: 'date' as const, required: true },
   { name: 'endDate', label: 'Fecha final', type: 'date' as const, optional: true },
-  { name: 'currencyCode', label: 'Moneda', defaultValue: 'BOB', required: true, span: 2 as const },
+  { name: 'currencyCode', label: 'Moneda', defaultValue: 'BOB', required: true, span: 2 as const, optionsSource: 'catalog:currency' },
 ];
 
 export default function AccountingContractsPage() {
   const [recargar, setRecargar] = useState(0);
+  const tiposContrato = useOptions(domainLoader('domain:accounting.contractType'));
+  const estadosContrato = useOptions(domainLoader('domain:accounting.contractStatus'));
 
   /*
    * La contraparte se guarda como UUID y así llegaba a la tabla: una columna de 36 caracteres que
@@ -62,8 +65,8 @@ export default function AccountingContractsPage() {
         { key: 'status', label: 'Estado', kind: 'status' },
       ]}
       filters={[
-        { key: 'contractType', label: 'Tipo', options: typeOptions },
-        { key: 'status', label: 'Estado' },
+        { key: 'contractType', label: 'Tipo', options: tiposContrato },
+        { key: 'status', label: 'Estado', options: estadosContrato },
         { key: 'currencyCode', label: 'Moneda' },
       ]}
       create={{
@@ -76,11 +79,11 @@ export default function AccountingContractsPage() {
       edit={{
         description: 'La contraparte y la entidad legal no se cambian: eso movería el contrato de libro.',
         fields: [
-          { name: 'contractNo', label: 'Número de contrato', required: true },
-          { name: 'contractType', label: 'Tipo', type: 'select', required: true, options: typeOptions },
+          { name: 'contractNo', label: 'Número de contrato', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
+          { name: 'contractType', label: 'Tipo', required: true, optionsSource: 'domain:accounting.contractType' },
           { name: 'startDate', label: 'Fecha inicial', type: 'date', required: true },
           { name: 'endDate', label: 'Fecha final', type: 'date', optional: true },
-          { name: 'status', label: 'Estado', type: 'select', required: true, options: ['DRAFT', 'ACTIVE', 'SUSPENDED', 'TERMINATED'].map((value) => ({ label: value, value })) },
+          { name: 'status', label: 'Estado', required: true, optionsSource: 'domain:accounting.contractStatus' },
         ],
         submit: (id, payload) => accountingService.updateContract(id, payload),
       }}
