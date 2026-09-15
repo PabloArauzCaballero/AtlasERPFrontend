@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 
 interface ModalProps {
@@ -33,10 +34,13 @@ export function Modal(props: ModalProps) {
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = previous; };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') return null;
   const width = props.width === 'md' ? 'w-[min(94vw,560px)]' : 'w-[min(94vw,860px)]';
 
-  return (
+  // Se monta en <body> con un portal: el <main> de la consola es `relative z-10` y abre su propio
+  // contexto de apilamiento, así que un modal pintado dentro quedaba DEBAJO de la barra lateral
+  // (z-40) y de la cabecera (z-50) por mucho z-index que llevara.
+  return createPortal(
     <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto p-4 sm:items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px]" onClick={onClose} />
       <div className={`relative my-auto ${width} rounded-xl border border-slate-200 bg-white shadow-2xl`}>
@@ -59,6 +63,7 @@ export function Modal(props: ModalProps) {
         <div className="px-5 py-4">{props.children}</div>
         {props.footer ? <footer className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50/60 px-5 py-3">{props.footer}</footer> : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -16,7 +16,7 @@ import type { JsonObject, ResourceRow } from '@/services/types';
 export interface ActionField {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'chips';
+  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'chips' | 'countryCity' | 'address';
   valueKind?: FieldValueKind | undefined;
   required?: boolean | undefined;
   optional?: boolean | undefined;
@@ -27,6 +27,12 @@ export interface ActionField {
   /** Carga opciones de un select desde el backend (una sola vez, al montar). Para campos UUID normalizados. */
   optionsLoader?: (() => Promise<Array<{ label: string; value: string }>>) | undefined;
   span?: 1 | 2 | 3;
+  /** `countryCity`: nombre del control de la ciudad (el del campo es el del país). `address`: control de ciudad para situar el mapa. */
+  cityFieldName?: string | undefined;
+  /** `address`: nombre del control del país del mismo formulario, para situar el mapa. */
+  countryFieldName?: string | undefined;
+  /** `countryCity`: ciudad inicial (edición). */
+  defaultCity?: string | undefined;
 }
 
 export interface FormSectionDefinition {

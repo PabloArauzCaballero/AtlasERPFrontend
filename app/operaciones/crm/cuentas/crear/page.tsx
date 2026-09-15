@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { b2bService } from '@/services/b2bService';
-import { businessLineOptions, cityOptions, contactRoleTitleOptions, countryOptions, decisionRoleOptions, industryOptions, merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
+import { businessLineOptions, contactRoleTitleOptions, decisionRoleOptions, industryOptions, merchantCategoryOptions, riskTierOptions } from '@/lib/catalogs';
 import { loadInternalUsers } from '@/services/optionLoaders';
 
 const optionalSelect = <T extends { label: string; value: string }>(options: T[]) => [
@@ -41,9 +41,9 @@ export default function CreateB2BAccountPage() {
             { name: 'businessDescription', label: 'Descripción del negocio', type: 'textarea', optional: true, placeholder: 'Actividad, propuesta de valor y mercado objetivo...', span: 3 },
             { name: 'tags', label: 'Tags de clasificación', type: 'chips', valueKind: 'stringList', optional: true, placeholder: 'mayorista, omnicanal, pyme', hint: 'Escribe cada tag y pulsa Enter.' },
             { name: 'websiteUrl', label: 'Sitio web', type: 'url', optional: true, placeholder: 'https://empresa.com' },
-            { name: 'countryCode', label: 'País', type: 'select', required: true, defaultValue: 'BO', options: countryOptions },
-            { name: 'city', label: 'Ciudad', type: 'select', optional: true, options: optionalSelect(cityOptions) },
-            { name: 'address', label: 'Dirección comercial', optional: true, span: 2 },
+            /* País y ciudad en un árbol con banderas: elegir la ciudad fija el país, y nunca quedan incoherentes. */
+            { name: 'countryCode', label: 'País y ciudad', type: 'countryCity', cityFieldName: 'city', required: true, defaultValue: 'BO', hint: 'Elige la ciudad dentro de su país. Si no está, escríbela en «Otra ciudad».' },
+            { name: 'address', label: 'Casa matriz', type: 'address', cityFieldName: 'city', countryFieldName: 'countryCode', optional: true, span: 2, placeholder: 'Calle, número, zona...', hint: 'Pulsa el pin (o Enter) para verla en Google Maps.' },
             { name: 'employeeCount', label: 'Cantidad de empleados', type: 'number', valueKind: 'number', optional: true },
             { name: 'foundedYear', label: 'Año de fundación', type: 'number', valueKind: 'number', optional: true },
             { name: 'annualRevenue', label: 'Facturación anual (BOB)', type: 'number', valueKind: 'number', optional: true },

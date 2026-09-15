@@ -1,6 +1,8 @@
 'use client';
 
+import { AddressMapField } from '@/components/atlas/AddressMapField';
 import { ChipsField } from '@/components/atlas/ChipsField';
+import { CountryCityField } from '@/components/atlas/CountryCityField';
 import { FormField } from '@/components/atlas/FormField';
 import type { PayloadFieldDefinition } from '@/lib/formPayload';
 import type { ActionField } from './StructuredActionForm';
@@ -25,11 +27,17 @@ export function controlType(field: ActionField): string {
  * `valueKind: 'datetime'` en cada pantalla y olvidarlo en una.
  */
 export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinition[] {
-  return fields.map((field) => ({
-    name: field.name,
-    valueKind: field.valueKind ?? (field.type === 'datetime' ? 'datetime' : undefined),
-    optional: field.optional,
-  }));
+  return fields.flatMap((field) => {
+    const own: PayloadFieldDefinition = {
+      name: field.name,
+      valueKind: field.valueKind ?? (field.type === 'datetime' ? 'datetime' : undefined),
+      optional: field.optional,
+    };
+    // El selector país+ciudad entrega DOS controles: la ciudad es siempre opcional (se puede
+    // elegir sólo el país) y sin esta definición el envío la ignoraría.
+    if (field.type === 'countryCity' && field.cityFieldName) return [own, { name: field.cityFieldName, optional: true }];
+    return [own];
+  });
 }
 
 interface ActionFieldControlProps {
@@ -74,6 +82,39 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
         defaultValue={typeof defaultValue === 'string' ? defaultValue : undefined}
         placeholder={field.placeholder}
         hint={field.hint}
+        className={className}
+      />
+    );
+  }
+
+  if (field.type === 'countryCity') {
+    return (
+      <CountryCityField
+        name={field.name}
+        cityName={field.cityFieldName ?? 'city'}
+        label={field.label}
+        required={required}
+        softRequired={props.softRequired}
+        defaultCountryCode={typeof defaultValue === 'string' ? defaultValue : undefined}
+        defaultCity={field.defaultCity}
+        hint={field.hint}
+        className={className}
+      />
+    );
+  }
+
+  if (field.type === 'address') {
+    return (
+      <AddressMapField
+        name={field.name}
+        label={field.label}
+        required={required}
+        softRequired={props.softRequired}
+        defaultValue={typeof defaultValue === 'string' ? defaultValue : undefined}
+        placeholder={field.placeholder}
+        hint={field.hint}
+        cityFieldName={field.cityFieldName}
+        countryFieldName={field.countryFieldName}
         className={className}
       />
     );
