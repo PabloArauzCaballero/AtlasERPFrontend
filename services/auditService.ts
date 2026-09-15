@@ -12,8 +12,7 @@ const auditKeys = [
   'actorUserId',
   'correlationId',
   'from',
-  'to',
-] as const;
+  'to',, 'sourceSystem'] as const;
 
 export const auditService = {
   listBusinessActions(query: PageQuery) {

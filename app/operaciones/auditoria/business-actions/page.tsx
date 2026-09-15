@@ -11,6 +11,8 @@ export default function BusinessActionLogPage() {
       description="Ledger de acciones de negocio para trazabilidad, investigaciones y control interno."
       load={auditService.listBusinessActions}
       statusOptions={[{ label: 'Exitosa', value: 'SUCCESS' }, { label: 'Fallida', value: 'FAILED' }, { label: 'Parcial', value: 'PARTIAL' }]}
+      // Un registro transcrito de un papel lleva ERP_PAPER y la serie del papel en su resumen de entrada.
+      filters={[{ key: 'sourceSystem', label: 'Origen', kind: 'select', options: [{ label: 'Tecleado (ATLAS)', value: 'ATLAS' }, { label: 'Transcrito de papel (ERP_PAPER)', value: 'ERP_PAPER' }] }]}
       columns={[
         { key: 'createdAt', label: 'Fecha/hora', kind: 'date' },
         { key: 'moduleCode', label: 'Módulo' },
@@ -18,6 +20,7 @@ export default function BusinessActionLogPage() {
         { key: 'actionCode', label: 'Acción' },
         { key: 'aggregateType', label: 'Entidad' },
         { key: 'aggregateId', label: 'ID agregado', kind: 'mono' },
+        { key: 'sourceSystem', label: 'Origen', kind: 'mono' },
         { key: 'status', label: 'Resultado', kind: 'status' },
       ]}
       metrics={[
