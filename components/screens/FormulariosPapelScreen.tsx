@@ -8,13 +8,12 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { TranscripcionPanel } from '@/components/atlas/TranscripcionBar';
-import type { EntradaCatalogoPapel } from '@/lib/formulariosPapel/catalogo';
+import { CATALOGO_OPERACIONES, CATALOGO_PORTAL } from '@/lib/formulariosPapel/catalogo';
 import { descargarFormularioPapel } from '@/lib/pdf';
 import { toast } from '@/lib/toast';
 
 interface FormulariosPapelScreenProps {
   lado: 'portal' | 'operaciones';
-  catalogo: EntradaCatalogoPapel[];
 }
 
 /**
@@ -23,7 +22,10 @@ interface FormulariosPapelScreenProps {
  * Para quien no va a usar la pantalla: se imprime el formulario, se rellena a mano y se entrega;
  * alguien lo transcribe después desde la pantalla indicada, con el número de serie del papel.
  */
-export function FormulariosPapelScreen({ lado, catalogo }: FormulariosPapelScreenProps) {
+export function FormulariosPapelScreen({ lado }: FormulariosPapelScreenProps) {
+  // El catálogo se resuelve aquí y no en la página: una página de servidor no puede pasar las
+  // funciones que arman cada formulario a un componente de cliente.
+  const catalogo = lado === 'portal' ? CATALOGO_PORTAL : CATALOGO_OPERACIONES;
   const [imprimiendoTodo, setImprimiendoTodo] = useState(false);
   const modulos = Array.from(new Set(catalogo.map((entrada) => entrada.modulo)));
 

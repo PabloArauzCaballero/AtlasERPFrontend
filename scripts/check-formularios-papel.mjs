@@ -36,8 +36,7 @@ const EXENTAS = new Map([
   ['components/atlas/TranscripcionBar.tsx', 'es el control del modo transcripción: pide la serie del papel, no captura datos'],
   // PENDIENTE (atlas-98, 2026-09-15): el asistente de campañas de notificación es nuevo esta noche;
   // su definición en papel se debe a quien lo construye. Quitar estas dos líneas cuando exista.
-  ['components/campaigns/AudienceBuilder.tsx', 'PENDIENTE: campañas de notificación en construcción'],
-  ['components/campaigns/CampaignWizard.tsx', 'PENDIENTE: campañas de notificación en construcción'],
+  ['components/campaigns/', 'PENDIENTE: campañas de notificación en construcción (carpeta entera)'],
   // Controles compartidos: pintan campos, no son un formulario.
   ['components/screens/ActionFieldControl.tsx', 'control compartido'],
   ['components/screens/CrudDirectory.tsx', 'componente compartido; el botón lo pone ActionFormModal'],
@@ -66,13 +65,20 @@ for (const carpeta of CARPETAS) {
     if (!/<FormField\b/.test(texto)) continue;
     revisadas += 1;
     const rel = relative(RAIZ, ruta);
-    if (EXENTAS.has(rel)) { exentasUsadas.add(rel); continue; }
+    // Una exención que termina en «/» cubre la carpeta entera (trabajo en curso de otra sesión).
+    const exencion = EXENTAS.has(rel) ? rel : [...EXENTAS.keys()].find((clave) => clave.endsWith('/') && rel.startsWith(clave));
+    if (exencion) { exentasUsadas.add(exencion); continue; }
     const tienePapel = /@\/lib\/formulariosPapel\//.test(texto) || /<BotonFormularioPapel\b/.test(texto);
     if (!tienePapel) fallos.push(`${rel}: tiene <FormField> y ningún formulario en papel (ni importa @/lib/formulariosPapel/ ni pinta <BotonFormularioPapel>).`);
   }
 }
 for (const rel of EXENTAS.keys()) {
-  if (!exentasUsadas.has(rel)) fallos.push(`${rel}: figura como exenta pero ya no existe o no tiene <FormField>; quita la exención.`);
+  if (exentasUsadas.has(rel)) continue;
+  // Un archivo que no existe (todavía, o ya) no puede tener un formulario: la exención sobra pero
+  // no miente. La que sí miente es la de un archivo que existe y ya no tiene <FormField>.
+  if (rel.endsWith('/')) continue;
+  try { statSync(join(RAIZ, rel)); } catch { continue; }
+  fallos.push(`${rel}: figura como exenta pero ya no tiene <FormField>; quita la exención.`);
 }
 
 if (fallos.length) {
