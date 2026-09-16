@@ -115,7 +115,13 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
   const [estimate, setEstimate] = useState<AudienceEstimate | null>(campaign?.audienceEstimate ?? null);
   const [saving, setSaving] = useState<'draft' | 'schedule' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [keys] = useState(() => ({ create: newIdempotencyKey(), schedule: newIdempotencyKey() }));
+  /*
+   * Una clave por intento, no por modal abierto. AtlasBackend registra la clave aunque el intento se
+   * rechace (400), así que reintentar con la misma clave y el cuerpo corregido da 409
+   * IDEMPOTENCY_CONFLICT. Se conserva mientras el intento no falla —un doble clic no crea dos— y se
+   * renueva tras cada error.
+   */
+  const [keys, setKeys] = useState(() => ({ create: newIdempotencyKey(), schedule: newIdempotencyKey() }));
   const segments = useAsyncResource(useCallback(() => notificationCampaignsService.segments('active'), []));
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((current) => ({ ...current, [key]: value }));
   const errors = useMemo(() => stepErrors(step, form), [step, form]);
@@ -162,6 +168,7 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
       onSaved(saved);
     } catch (failure) {
       setError(errorMessage(failure));
+      setKeys({ create: newIdempotencyKey(), schedule: newIdempotencyKey() });
     } finally {
       setSaving(null);
     }
@@ -206,8 +213,8 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
           <div className="space-y-3">
             <FormField tooltip="Nombre interno de la campaña de avisos; sólo lo ve el equipo." label="Nombre interno" name="name" required hint="Sólo lo ve el equipo. Ej.: Recordatorio cuota septiembre." value={form.name} onChange={(event) => set('name', event.target.value)} />
             <FormField tooltip="Tipo de campaña; una comercial respeta a quien no quiere promociones." kind="select" label="Tipo de campaña" name="purpose" hint="Una comercial respeta a quien no quiere promociones." value={form.purpose} options={PURPOSE_OPTIONS} onChange={(event) => set('purpose', event.target.value as CampaignPurpose)} />
-            <FormField tooltip="Primera línea del aviso; en la pantalla de bloqueo se corta a unos 45 caracteres." label={`Título (${form.title.length}/120)`} name="title" required maxLength={120} hint="La primera línea del aviso. Corto: en el bloqueo se corta a unos 45 caracteres." value={form.title} onChange={(event) => set('title', event.target.value)} />
-            <FormField tooltip="Qué tiene que saber o hacer la persona al leer el aviso; corto y concreto." kind="textarea" label={`Mensaje (${form.body.length}/1000)`} name="body" required maxLength={1000} hint="Qué tiene que saber o hacer la persona." value={form.body} onChange={(event) => set('body', event.target.value)} />
+            <FormField label={`Título (${form.title.length}/120)`} tooltip="Primera línea del aviso; en la pantalla de bloqueo se corta a unos 45 caracteres." name="title" required maxLength={120} hint="La primera línea del aviso. Corto: en el bloqueo se corta a unos 45 caracteres." value={form.title} onChange={(event) => set('title', event.target.value)} />
+            <FormField kind="textarea" label={`Mensaje (${form.body.length}/1000)`} tooltip="Qué tiene que saber o hacer la persona al leer el aviso; corto y concreto." name="body" required maxLength={1000} hint="Qué tiene que saber o hacer la persona." value={form.body} onChange={(event) => set('body', event.target.value)} />
             <FormField tooltip="Pantalla de la app que se abre al tocar el aviso." kind="select" label="Al tocar el aviso, abrir" name="deepLink" hint="La pantalla de la app a la que lleva." value={form.deepLink} options={DEEP_LINK_OPTIONS} onChange={(event) => set('deepLink', event.target.value)} />
             <fieldset>
               <legend className="mb-1.5 text-xs font-bold text-slate-700">Canales<span className="ml-1 text-red-600">*</span></legend>
