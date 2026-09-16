@@ -1,4 +1,4 @@
-import { apiRequest } from '@/lib/apiClient';
+import { ApiError, apiRequest } from '@/lib/apiClient';
 import { cityOptions, countryOptions, currencyOptions, timezoneOptions } from '@/lib/catalogs';
 import type { Option } from './optionLoaders';
 
@@ -75,7 +75,7 @@ export function loadDomains(): Promise<Record<string, DomainOption[]>> {
         // Un proxy o un backend viejo sin el endpoint contesta otra cosa: se trata como fallo y no se
         // guarda, para que un select vacío no parezca un catálogo vacío.
         if (!response || typeof response.domains !== 'object' || response.domains === null) {
-          throw new Error('El servidor no publica los catálogos (GET /catalog/domains).');
+          throw new ApiError('No pudimos traer las listas de opciones. Recargue la página; si sigue igual, avísele a soporte.', 0);
         }
         memory = response.domains;
         writeStorage(response.domains);

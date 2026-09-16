@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { mensajeDeError } from '@/lib/apiClient';
 import { toast } from '@/lib/toast';
 import type { Option } from '@/services/optionLoaders';
 
@@ -57,7 +58,7 @@ export function useOptions(loader: () => Promise<Option[]>): OptionsResult {
       })
       .catch((error: unknown) => {
         if (requestIdRef.current !== requestId) return;
-        const message = error instanceof Error ? error.message : 'No se pudo contactar el servidor.';
+        const message = mensajeDeError(error, 'No se pudo contactar el sistema. Inténtelo otra vez.');
         setOptions([]);
         setLoadError(message);
         toast.error('No se pudieron cargar las opciones', message);

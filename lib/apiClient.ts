@@ -42,6 +42,17 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * El texto que se le enseña a una persona cuando algo falla.
+ *
+ * Un `ApiError` ya trae una frase pensada para leerse. Cualquier otro error es un fallo del
+ * programa —«(intermediate value).map is not a function», «Cannot read properties of undefined»— y
+ * ese texto en un aviso no ayuda a nadie: asusta y no dice qué hacer. Se cambia por el respaldo.
+ */
+export function mensajeDeError(error: unknown, respaldo = 'No se pudo contactar el sistema. Inténtelo otra vez.'): string {
+  return error instanceof ApiError && error.message ? error.message : respaldo;
+}
+
 interface ApiEnvelope<T> {
   success?: boolean;
   data?: T;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { peekOptions, resolveOptions } from '@/services/domains';
 import type { Option } from '@/services/optionLoaders';
+import { mensajeDeError } from '@/lib/apiClient';
 import { toast } from '@/lib/toast';
 
 export type DynamicOptions = Record<string, Option[]>;
@@ -49,7 +50,7 @@ export function useFieldOptions(
   const fail = useCallback((field: ActionField, error: unknown) => {
     toast.error(
       `No se pudieron cargar las opciones de «${field.label}»`,
-      error instanceof Error ? error.message : 'No se pudo contactar el servidor.',
+      mensajeDeError(error, 'No se pudo contactar el sistema. Inténtelo otra vez.'),
     );
   }, []);
 
