@@ -152,7 +152,7 @@ export default function OnboardingPage() {
                     span: 2,
                     options: requisitos(row).map((item) => ({
                       value: String(item.id),
-                      label: `${String(item.itemType)} · ${String(item.description)} — ${String(item.status)}${item.hasEvidence ? ' · con archivo' : item.requiresEvidence ? ' · FALTA archivo' : ''}`,
+                      label: `${String(item.description)} (${String(item.itemType)}) · ${item.status === 'COMPLETED' ? 'completado' : item.status === 'WAIVED' ? 'eximido' : item.status === 'BLOCKED' ? 'bloqueado' : 'pendiente'}${item.hasEvidence ? ', con archivo' : item.requiresEvidence ? ', falta el archivo' : ''}`,
                     })),
                   },
                   {
@@ -175,6 +175,7 @@ export default function OnboardingPage() {
               icon: 'upload_file',
               enabled: abierto,
               /* Abre el modal con el archivo; los formularios de fila no admiten adjuntos. */
+              silent: true,
               run: async (row) => {
                 setEvidenciaDe(row);
               },

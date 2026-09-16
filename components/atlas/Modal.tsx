@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 
@@ -12,6 +12,8 @@ interface ModalProps {
   /** `lg` para formularios de varias columnas; `md` para tres o cuatro campos. */
   width?: 'md' | 'lg' | undefined;
   onClose: () => void;
+  /** Hay una operación en curso: no se cierra con Escape, con el fondo ni con la X. */
+  busy?: boolean | undefined;
   children: React.ReactNode;
   footer?: React.ReactNode | undefined;
 }
@@ -24,7 +26,8 @@ interface ModalProps {
  * el modal deja la tabla donde está y devuelve al mismo sitio al cerrarse.
  */
 export function Modal(props: ModalProps) {
-  const { open, onClose } = props;
+  const { open, busy, onClose: cerrar } = props;
+  const onClose = useCallback(() => { if (!busy) cerrar(); }, [busy, cerrar]);
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
@@ -56,7 +59,7 @@ export function Modal(props: ModalProps) {
               {props.description ? <p className="mt-0.5 text-xs text-slate-500">{props.description}</p> : null}
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Cerrar" className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+          <button type="button" onClick={onClose} disabled={busy} aria-label="Cerrar" className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
             <Icon name="close" className="text-[18px]" />
           </button>
         </header>

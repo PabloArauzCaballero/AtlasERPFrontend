@@ -44,6 +44,12 @@ export interface CrudExtraAction {
   tone?: 'default' | 'danger' | 'success' | undefined;
   /** Acción que llama al backend y recarga la tabla. Excluyente con `href` y con `form`. */
   run?: ((row: ResourceRow) => Promise<unknown>) | undefined;
+  /**
+   * `run` sólo abre algo (un modal propio de la pantalla) y no registra nada todavía: sin aviso de
+   * «Operación registrada» ni recarga. Hasta el 2026-09-16 abrir el modal de evidencia ya
+   * anunciaba una operación que aún no había ocurrido.
+   */
+  silent?: boolean | undefined;
   /** Enlace a otra pantalla (ficha, detalle). Excluyente con `run`. */
   href?: ((row: ResourceRow) => string) | undefined;
   /**
@@ -357,6 +363,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
     setActionError('');
     try {
       await action.run(row);
+      if (action.silent) return;
       toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
       await resource.reload();
     } catch (error) {
