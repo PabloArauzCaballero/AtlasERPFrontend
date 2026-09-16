@@ -194,7 +194,7 @@ export default function OnboardingPage() {
               enabled: (row) => puedePedirVerificacion && PUEDE_PEDIR_VERIFICACION.has(String(row.status ?? '')),
               form: {
                 title: (row) => `Verificación KYB de ${String(row.tradeName ?? 'este comercio')}`,
-                description: 'El ERP pide; decide AtlasBackend con el artefacto PARTNER_KYB_REVIEW del Motor. Sin su APROBADO el comercio no se activa. Si el comercio no tiene expediente en Atlas, tiene que abrirlo desde su portal.',
+                description: 'El ERP lo pide y lo decide la revisión de riesgo de Atlas. Sin su aprobación el comercio no se activa. Si el comercio no tiene expediente en Atlas, tiene que abrirlo desde su portal.',
                 fields: [{ name: 'reason', label: 'Motivo (opcional)', tooltip: 'Motivo del cambio, opcional; queda en el historial del caso.', type: 'textarea', optional: true, span: 2, placeholder: 'Por qué se pide ahora: alta comercial, reintento tras corregir…' }],
                 submit: (row, payload: JsonObject) => b2bService.requestKybReview(String(row.id ?? ''), payload),
                 submitLabel: 'Pedir verificación',
@@ -330,7 +330,7 @@ export default function OnboardingPage() {
               },
               confirm: {
                 title: 'Activar el comercio',
-                message: 'El backend vuelve a comprobar el APROBADO del Motor, los requisitos y el contrato vigente: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa a «Activados».',
+                message: 'Atlas vuelve a comprobar la aprobación de riesgo, los requisitos y el contrato vigente: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa a «Activados».',
                 confirmLabel: 'Activar',
               },
             },

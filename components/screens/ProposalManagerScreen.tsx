@@ -8,8 +8,8 @@ import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
+import { Modal } from '@/components/atlas/Modal';
 import { Panel } from '@/components/atlas/Panel';
-import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
 import { formularioPropuesta } from '@/lib/formulariosPapel/operaciones';
@@ -20,6 +20,7 @@ import type { JsonObject } from '@/services/types';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
 import { loadOpportunities, type Option } from '@/services/optionLoaders';
+import { newUuid } from '@/lib/uuid';
 
 interface ProposalLine {
   id: string;
@@ -56,7 +57,8 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
   const momentosDeCobro = useOptions(domainLoader('domain:crm.billingTiming'));
   const [lines, setLines] = useState<ProposalLine[]>([emptyLine('line-0')]);
   const [proposalId, setProposalId] = useState('');
-  /* El correlativo lo asigna el backend al guardar; aquí sólo se enseña el que devolvió. */
+  const [contextoAbierto, setContextoAbierto] = useState(false);
+  /* El correlativo se asigna al guardar; aquí sólo se enseña, y sólo cuando ya existe. */
   const [proposalNumber, setProposalNumber] = useState('');
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createProposal(payload), []));
   const sendMutation = useAtlasMutation(useCallback((id: string) => b2bService.sendProposal(id), []));
@@ -102,47 +104,95 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
     } catch { /* controlled */ }
   }
 
+  // El contexto ya no ocupa un panel fijo: es una consulta puntual, y vive donde el resto de la ayuda.
+  const contexto = <AtlasButton variant="secondary" icon="info" className="w-9 px-0" aria-label="Contexto del cliente" title="Contexto del cliente" onClick={() => setContextoAbierto(true)} />;
   const guardar = <AtlasButton type="submit" icon="save" loading={createMutation.isLoading} disabled={Boolean(proposalId)}>{proposalId ? 'Guardada' : 'Guardar propuesta'}</AtlasButton>;
   // «Enviar» sólo se enciende con la propuesta guardada; sin el título, el botón gris no decía por qué.
   const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal} title={proposalId ? undefined : 'Primero guarda la propuesta'}>Enviar al cliente</AtlasButton>;
 
   return (
     <form className="space-y-5" onSubmit={submit}>
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas', href: '/operaciones/crm/propuestas' }, { label: 'Nueva propuesta' }]} title="Nueva propuesta comercial" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><BotonFormularioPapel data-testid="papel-propuesta" formulario={formularioPropuesta} />{guardar}{enviar}</>} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas', href: '/operaciones/crm/propuestas' }, { label: 'Nueva propuesta' }]} title="Nueva propuesta comercial" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<><BotonFormularioPapel data-testid="papel-propuesta" formulario={formularioPropuesta} />{contexto}{guardar}{enviar}</>} />
       {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
       {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya está en la cartera de propuestas como borrador. El siguiente paso es «Enviar al cliente».</InlineNotice> : null}
 
-      <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_340px]">
-        <div className="space-y-4">
+      <div className="space-y-4">
           <Panel title="Identificación de la propuesta" icon="description">
-            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField tooltip="Oportunidad de la que nace la propuesta." kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField tooltip="Número de la propuesta; lo asigna el sistema al guardar." name="" label="Número de propuesta" value={proposalNumber} placeholder="Se asigna al guardar" readOnly tabIndex={-1} hint="Lo asigna el sistema al guardar." /><FormField tooltip="Fecha hasta la que el cliente puede aceptar la propuesta." label="Válida hasta" name="validUntil" type="date" /><FormField tooltip="Ingreso mensual estimado en bolivianos si se acepta." label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" defaultValue="0" /><FormField tooltip="Identificador de la propuesta recién guardada." label="Propuesta creada" name="createdProposalId" value={proposalId} readOnly className="xl:col-span-3" hint="Lo asigna el sistema al guardar." /></div>
+            {/*
+              * Ni el número de propuesta ni su identificador se pintan al crear: eran dos cajas vacías
+              * con el aviso de que ya se llenarían solas. El número aparece cuando existe; el
+              * identificador interno no se enseña nunca, que a quien vende no le dice nada.
+              */}
+            <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4"><FormField tooltip="Oportunidad de la que nace la propuesta." kind="select" label="Oportunidad" name="opportunityId" required className="xl:col-span-2" options={[{ label: oportunidades.length ? '— Elija la oportunidad —' : '— No hay oportunidades registradas —', value: '' }, ...oportunidades]} /><FormField tooltip="Fecha hasta la que el cliente puede aceptar la propuesta." label="Válida hasta" name="validUntil" type="date" /><FormField tooltip="Ingreso mensual estimado en bolivianos si se acepta." label="Ingreso mensual estimado" name="totalEstimatedMonthlyRevenue" type="number" min="0" step="0.01" defaultValue="0" />{proposalNumber ? <FormField tooltip="Número con el que queda registrada la propuesta." name="" label="Número de propuesta" value={proposalNumber} readOnly tabIndex={-1} /> : null}</div>
           </Panel>
 
-          <Panel title="Términos comerciales" description="Cada línea debe incluir porcentaje o monto fijo." icon="table_chart" action={<AtlasButton variant="secondary" icon="add" onClick={() => setLines((current) => [...current, emptyLine(crypto.randomUUID())])}>Agregar término</AtlasButton>}>
+          <Panel
+            title="Términos comerciales"
+            description="Cada línea debe incluir porcentaje o monto fijo."
+            icon="table_chart"
+            action={
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <ResumenTarjeta icon="fact_check" tone={proposalId ? 'amber' : 'slate'} label="Estado" value={proposalId ? 'Borrador' : 'Sin guardar'} />
+                <ResumenTarjeta icon="format_list_numbered" label="Términos" value={lines.length} />
+                <ResumenTarjeta icon="payments" label="Base estimada" value={formatBob(estimated)} />
+                {/* Sólo el icono: la fila de tarjetas ya dice de qué va la cabecera, y el rótulo la parta en dos líneas. */}
+                <AtlasButton variant="secondary" icon="add" className="h-10 w-10 px-0" aria-label="Agregar término" title="Agregar término" onClick={() => setLines((current) => [...current, emptyLine(newUuid())])} />
+              </div>
+            }
+          >
             <div className="table-scroll">
               <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo</th><th className="px-2 py-2">Facturación</th><th className="px-2 py-2">Mínimo mensual</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
                 <td className="p-2"><OptionSelect name={`termType-${line.id}`} ariaLabel="Tipo de término" compact value={line.termType} onChange={(value) => updateLine(line.id, 'termType', value)} options={lineOptions(tiposDeTermino, line.termType)} /></td>
-                <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" required /></td>
-                <td className="p-2"><input className="h-9 w-24 rounded border border-slate-300 px-2 text-right" type="number" value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>
-                <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" value={line.fixedAmount} onChange={(event) => updateLine(line.id, 'fixedAmount', event.target.value)} /></td>
+                <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" minLength={3} maxLength={240} title="Escriba al menos 3 caracteres." required /></td>
+                <td className="p-2"><input className="h-9 w-24 rounded border border-slate-300 px-2 text-right" type="number" min="0" max="100" step="0.01" title="Entre 0 y 100." value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>
+                <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" min="0" step="0.01" title="0 o más." value={line.fixedAmount} onChange={(event) => updateLine(line.id, 'fixedAmount', event.target.value)} /></td>
                 <td className="p-2"><OptionSelect name={`billingTiming-${line.id}`} ariaLabel="Momento de cobro" compact value={line.billingTiming} onChange={(value) => updateLine(line.id, 'billingTiming', value)} options={lineOptions(momentosDeCobro, line.billingTiming)} /></td>
-                <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" value={line.minimumMonthlyAmount} onChange={(event) => updateLine(line.id, 'minimumMonthlyAmount', event.target.value)} /></td>
+                <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" min="0" step="0.01" title="0 o más." value={line.minimumMonthlyAmount} onChange={(event) => updateLine(line.id, 'minimumMonthlyAmount', event.target.value)} /></td>
                 <td className="p-2"><button type="button" aria-label="Eliminar línea" className="grid h-8 w-8 place-items-center rounded text-red-600 hover:bg-red-50" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((item) => item.id !== line.id))}><Icon name="delete" className="text-[18px]" /></button></td>
               </tr>)}</tbody></table>
             </div>
           </Panel>
-          <Panel title="Excepción de tarifa" icon="warning"><FormField tooltip="Por qué se sale de la tarifa estándar; lo lee quien aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
+          <Panel title="Excepción de tarifa" icon="warning"><FormField tooltip="Por qué se sale de la tarifa estándar; lo lee quien aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" minLength={5} maxLength={1000} hint="Déjela vacía si no hay excepción; si la escribe, al menos 5 caracteres." placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
           <div className="flex justify-end"><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar propuesta</AtlasButton></div>
-        </div>
-
-        <aside className="space-y-4 xl:sticky xl:top-20">
-          <Panel title="Estado de aprobación" icon="fact_check"><div className="flex items-center justify-between"><span className="text-xs text-slate-500">Estado</span><StatusPill tone={proposalId ? 'warning' : 'neutral'}>{proposalId ? 'DRAFT' : 'SIN GUARDAR'}</StatusPill></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded bg-slate-50 p-3"><p className="text-[10px] uppercase text-slate-500">Términos</p><p className="mt-1 text-lg font-bold">{lines.length}</p></div><div className="rounded bg-slate-50 p-3"><p className="text-[10px] uppercase text-slate-500">Base estimada</p><p className="mt-1 text-sm font-bold">{formatBob(estimated)}</p></div></div></Panel>
-          <Panel title="Contexto del cliente" icon="analytics"><div className="space-y-3 text-xs"><Context label="Moneda" value="BOB" /><Context label="Trazabilidad" value="Habilitada" /><Context label="Envío" value={proposalId ? 'Disponible' : 'Pendiente'} /><Context label="Aprobación" value="Según excepción" /></div></Panel>
-          <InlineNotice tone="warning" title="Revisión comercial">Las excepciones de pricing pueden generar una aprobación pendiente antes del envío.</InlineNotice>
-        </aside>
       </div>
+
+      <Modal open={contextoAbierto} title="Contexto del cliente" description="Con qué reglas se guarda y se envía esta propuesta." icon="analytics" width="md" onClose={() => setContextoAbierto(false)}>
+        <div className="space-y-3 text-xs">
+          <Context label="Moneda" value="BOB" />
+          <Context label="Trazabilidad" value="Habilitada" />
+          <Context label="Envío" value={proposalId ? 'Disponible' : 'Pendiente'} />
+          <Context label="Aprobación" value="Según excepción" />
+        </div>
+        <div className="mt-4"><InlineNotice tone="warning" title="Revisión comercial">Las excepciones de pricing pueden generar una aprobación pendiente antes del envío.</InlineNotice></div>
+      </Modal>
     </form>
   );
 }
+
+/**
+ * El resumen vivo de la propuesta, en la cabecera de los términos.
+ *
+ * Estaba en un carril a la derecha, que en una pantalla estrecha caa debajo de todo y en una ancha
+ * robaba 340 px al único sitio donde de verdad se trabaja: la tabla de términos. Aquí cambia a la
+ * vista de quien escribe la línea, que es cuando el número importa.
+ */
+function ResumenTarjeta({ icon, label, value, tone = 'navy' }: { icon: string; label: string; value: React.ReactNode; tone?: keyof typeof tonoDelChip }) {
+  return (
+    <article className="group flex items-center gap-2.5 rounded-xl border border-slate-200/90 bg-white/80 px-3 py-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_-18px_rgba(15,23,42,0.28)] backdrop-blur-[2px] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_4px_10px_rgba(15,23,42,0.06),0_18px_36px_-20px_rgba(15,23,42,0.35)]">
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl transition-transform duration-200 ease-out group-hover:scale-110 ${tonoDelChip[tone]}`}><Icon name={icon} className="text-[18px]" /></span>
+      <div className="min-w-0">
+        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+        <div className="truncate text-sm font-bold tabular-nums tracking-tight text-slate-900">{value}</div>
+      </div>
+    </article>
+  );
+}
+
+/* Dos paradas del mismo tono, como en `MetricCard`: basta para que el chip tenga volumen. */
+const tonoDelChip = {
+  navy: 'bg-gradient-to-br from-[#e2f1ef] to-[#cde5e2] text-[#00544d]',
+  slate: 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700',
+  amber: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700',
+};
 
 function Context({ label, value }: { label: string; value: string }) { return <div className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0"><span className="text-slate-500">{label}</span><b>{value}</b></div>; }

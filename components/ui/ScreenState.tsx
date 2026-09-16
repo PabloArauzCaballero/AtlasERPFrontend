@@ -14,7 +14,7 @@ interface ScreenStateProps {
 function LoadingCard({ compact }: { compact: boolean }) {
   return (
     <Card className="space-y-3 text-sm text-on-surface-variant">
-      <InlineLoading text={compact ? 'Actualizando datos' : 'Cargando datos del backend'} />
+      <InlineLoading text={compact ? 'Actualizando datos' : 'Cargando datos'} />
       {!compact ? (
         <div className="space-y-2 pt-1">
           <SkeletonBlock className="h-8" />

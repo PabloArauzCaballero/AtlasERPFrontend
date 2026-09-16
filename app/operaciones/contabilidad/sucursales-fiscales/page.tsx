@@ -10,7 +10,7 @@ import { loadLegalEntities } from '@/services/optionLoaders';
 const soloAlta = {
   tone: 'warning' as const,
   title: 'Alta sí, modificación todavía no',
-  body: 'El backend expone listar y crear para este maestro, pero aún no PATCH ni DELETE. Si un dato está mal, da de alta el correcto y deja de usar el anterior.',
+  body: 'Este maestro se consulta y se da de alta, pero no se edita ni se borra. Si un dato está mal, da de alta el correcto y deja de usar el anterior.',
 };
 
 export default function BranchesFiscalYearsPage() {

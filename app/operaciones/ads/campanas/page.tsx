@@ -183,7 +183,7 @@ export default function CampaignsPage() {
           form: {
             icon: 'published_with_changes',
             title: () => `Actualizar el estado de «${String(row.name ?? '')}»`,
-            description: 'Aplica una transición permitida por el backend, con una razón que queda auditada.',
+            description: 'Aplica un cambio de estado permitido, con una razón que queda auditada.',
             submitLabel: 'Actualizar estado',
             submit: cambiarEstado,
             fields: [

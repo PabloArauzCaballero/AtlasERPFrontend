@@ -65,7 +65,7 @@ export default function ProposalsPage() {
           run: (row) => b2bService.sendProposal(String(row.id ?? '')),
           confirm: {
             title: 'Enviar la propuesta',
-            message: 'Quedará marcada como enviada y con fecha de envío. Si tiene aprobaciones pendientes, el backend la frenará.',
+            message: 'Quedará marcada como enviada y con fecha de envío. Si tiene aprobaciones pendientes, no saldrá hasta resolverlas.',
             confirmLabel: 'Enviar',
           },
         },

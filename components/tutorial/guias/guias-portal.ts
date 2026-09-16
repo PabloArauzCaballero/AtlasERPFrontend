@@ -32,7 +32,6 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'A propósito. Decides sobre la operación: importe, plazo, que el motor la aprobó. Enseñarte su expediente convertiría cada compra en una consulta de historial crediticio que esa persona no autorizó.',
       },
     ],
-    backend: 'GET/POST /merchant-credit/:partnerId/applications',
     tutorialId: 'portal-solicitudes',
   },
 
@@ -58,7 +57,6 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Cada aviso lleva su propio código y ese código es lo que impide el doble cobro. Si dudas de si ya lo confirmaste, míralo: lo confirmado desaparece de esta lista.',
       },
     ],
-    backend: 'GET/POST /merchant-credit/:partnerId/payment-claims',
     tutorialId: 'portal-comprobantes',
   },
 
@@ -84,7 +82,6 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'El contador de comprobantes es lo que espera tu confirmación, no dinero cobrado. Hasta que verificas, esa cuota sigue en «por cobrar».',
       },
     ],
-    backend: 'GET /merchant-credit/:partnerId/portfolio',
     tutorialId: 'portal-cartera',
   },
 
@@ -110,7 +107,6 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'La tarifa es el precio unitario; el gasto lo fijas en cada campaña con su presupuesto total y diario. Lo consumido se ve en «Consumo y facturación».',
       },
     ],
-    backend: 'GET /portal/plans · POST /portal/subscriptions',
     tutorialId: 'portal-planes',
   },
 

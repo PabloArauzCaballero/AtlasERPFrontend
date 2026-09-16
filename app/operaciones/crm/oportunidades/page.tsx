@@ -61,7 +61,7 @@ export default function OpportunitiesPage() {
                 create={{
                   label: 'Nueva oportunidad',
                   title: 'Registrar una oportunidad',
-                  description: 'Nace en DISCOVERY. El ingreso esperado lo calcula el backend con el volumen y la tasa de MDR.',
+                  description: 'Nace en DISCOVERY. El ingreso esperado se calcula con el volumen y la tasa de MDR.',
                   submit: async (payload) => {
                     const resultado = await b2bService.createOpportunity(payload);
                     setVersion((value) => value + 1);
@@ -81,7 +81,7 @@ export default function OpportunitiesPage() {
                 notice={{
                   tone: 'info',
                   title: 'La etapa se mueve en el tablero',
-                  body: 'El backend solo expone el cambio de etapa —con motivo obligatorio si se pierde— y no permite editar ni borrar una oportunidad. Por eso aquí no hay lápiz ni papelera: para moverla, usa la pestaña «Tablero».',
+                  body: 'De una oportunidad sólo se cambia la etapa —con motivo obligatorio si se pierde—: no se edita ni se borra. Por eso aquí no hay lápiz ni papelera: para moverla, usa la pestaña «Tablero».',
                 }}
               />
             ),

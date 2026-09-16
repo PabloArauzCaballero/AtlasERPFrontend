@@ -62,7 +62,7 @@ export default function PeriodClosingPage() {
           enabled: abierto,
           form: {
             title: (row) => `Cerrar el período ${String(row.periodNo ?? '')}`,
-            description: 'Bloquea nuevas contabilizaciones en el período. Antes de cerrarlo, el backend comprueba sus controles de cierre.',
+            description: 'Bloquea nuevas contabilizaciones en el período. Antes de cerrarlo se comprueban los controles de cierre.',
             fields: [
               { name: 'closeType', label: 'Tipo de cierre', tooltip: 'Cierre blando (se puede reabrir) o duro (definitivo, para auditoría).', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
             ],

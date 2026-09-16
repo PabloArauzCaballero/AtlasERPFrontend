@@ -1,3 +1,5 @@
+import { newUuid } from './uuid';
+
 /**
  * Un identificador por operación, para que lo que hace este portal se pueda seguir en el backend.
  *
@@ -12,21 +14,8 @@
  *
  * El backend sólo acepta el valor entrante si cumple `/^[A-Za-z0-9_-]{1,64}$/`; lo que no encaje se
  * descarta y se genera otro del lado del servidor, con lo que la correlación se pierde en silencio.
- * Un UUID v4 encaja. El respaldo existe porque `crypto.randomUUID` no está en todo contexto —una
- * ventana sin origen seguro, por ejemplo— y ahí es preferible un id peor que ninguno.
+ * Un UUID v4 encaja, y `newUuid` lo da también sin origen seguro.
  */
 export function newCorrelationId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-  // `randomUUID` exige contexto seguro y el portal se sirve también por HTTP plano
-  // (`http://100.101.207.88:3010`). `getRandomValues` no lo exige, así que el respaldo sigue siendo
-  // un UUID v4: el anterior (`erp-<ts>-<rand>`) pasaba el patrón del backend pero no la columna
-  // `uuid` de la auditoría de anuncios, que lo descartaba y perdía la correlación sin avisar.
-  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
-    const b = crypto.getRandomValues(new Uint8Array(16));
-    b[6] = ((b[6] ?? 0) & 0x0f) | 0x40;
-    b[8] = ((b[8] ?? 0) & 0x3f) | 0x80;
-    const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
-    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
-  }
-  return `erp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return newUuid();
 }

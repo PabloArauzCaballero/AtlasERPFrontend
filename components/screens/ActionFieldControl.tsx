@@ -79,17 +79,22 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
   const defaultValue = field.type === 'datetime' ? toDatetimeLocal(bruto) : bruto;
   const required = props.nativeRequired !== undefined ? props.nativeRequired : field.required;
 
+  /*
+   * Un número que asigna el sistema NO se pinta mientras no existe: al crear era una caja vacía con
+   * un aviso de que ya se llenará, que sólo ocupa sitio y hace dudar de si falta rellenarla. Cuando
+   * ya hay valor —al abrir o editar un registro— se enseña, sin explicaciones de quién lo puso.
+   */
   if (field.assignedByBackend) {
     const assigned = defaultValue !== undefined && defaultValue !== null ? String(defaultValue) : '';
+    if (!assigned) return null;
     return (
       <FormField
         name=""
         label={field.label}
         value={assigned}
-        placeholder="Se asigna al guardar"
         readOnly
         tabIndex={-1}
-        hint={field.hint ?? 'Lo asigna el sistema al guardar.'}
+        {...(field.hint ? { hint: field.hint } : {})}
         tooltip={field.tooltip}
         className={className}
       />

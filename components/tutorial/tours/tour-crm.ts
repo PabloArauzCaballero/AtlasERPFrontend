@@ -125,7 +125,7 @@ export const TOURS_CRM: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="onboarding-tablero"]',
         title: 'La activación es el último control',
         content:
-          'Se activa desde la fila del caso. El tablero cuenta los «listos para activar» con la misma regla que aplica el backend: sin requisitos pendientes y con contrato vigente. Al activar, el comercio sale de la cola y pasa a «Activados».',
+          'Se activa desde la fila del caso. El tablero cuenta los «listos para activar» con la misma regla que se aplica al activar: sin requisitos pendientes y con contrato vigente. Al activar, el comercio sale de la cola y pasa a «Activados».',
         tip: 'Revertir una activación afecta a operaciones vivas. Comprueba antes; después, la corrección es otro caso.',
       },
     ],

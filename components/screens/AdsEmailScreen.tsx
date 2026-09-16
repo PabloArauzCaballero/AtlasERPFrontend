@@ -17,6 +17,7 @@ import { adsService } from '@/services/adsService';
 import { domainLoader } from '@/services/domains';
 import { loadCampaigns } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
+import { newUuid } from '@/lib/uuid';
 
 /**
  * Correo de campaña: envío, seguimiento y supresiones.
@@ -73,7 +74,7 @@ export function AdsEmailScreen() {
      * desde la misma pantalla son dos envíos, y compartir clave haría que el segundo devolviera el
      * seguimiento del primero sin mandar nada.
      */
-    const idempotencyKey = globalThis.crypto.randomUUID();
+    const idempotencyKey = newUuid();
     const result = (await adsService.sendCampaignEmail(
       {
         campaignId: payload.campaignId,
@@ -204,7 +205,7 @@ export function AdsEmailScreen() {
                 notice={{
                   tone: 'info',
                   title: 'La dirección no se muestra entera',
-                  body: 'El backend devuelve sólo los últimos caracteres. Es una lista de bajas y reportes de spam: para operarla basta con reconocer la dirección, no hace falta exponerla.',
+                  body: 'Sólo se ven los últimos caracteres de cada dirección. Es una lista de bajas y reportes de spam: para operarla basta con reconocer la dirección, no hace falta exponerla.',
                 }}
                 columns={[
                   { key: 'emailMasked', label: 'Dirección', kind: 'mono' },

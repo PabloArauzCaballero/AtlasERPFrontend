@@ -12,7 +12,7 @@ import { loadFiscalYears, loadLegalEntities } from '@/services/optionLoaders';
 const soloAlta = {
   tone: 'warning' as const,
   title: 'Alta sí, modificación todavía no',
-  body: 'El backend expone listar y crear, pero aún no PATCH ni DELETE. Un período se abre y se cierra desde «Cierres»; un ledger mal configurado se sustituye por otro.',
+  body: 'Aquí se consulta y se da de alta, pero no se edita ni se borra. Un período se abre y se cierra desde «Cierres»; un ledger mal configurado se sustituye por otro.',
 };
 
 export default function PeriodsLedgersPage() {

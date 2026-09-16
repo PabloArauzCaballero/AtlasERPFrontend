@@ -8,7 +8,7 @@ export function requireUuidPathParam(value: string, label: string): string {
   const trimmedValue = value.trim();
 
   if (!trimmedValue) {
-    throw new Error(`Debe indicar ${label} antes de llamar al backend.`);
+    throw new Error(`Debe indicar ${label} antes de continuar.`);
   }
 
   if (!uuidPattern.test(trimmedValue)) {

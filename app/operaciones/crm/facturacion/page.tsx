@@ -139,7 +139,7 @@ export default function B2BBillingPage() {
                 notice={{
                   tone: 'info',
                   title: 'Una factura emitida no se reescribe',
-                  body: 'El número lo asigna el backend con su propio correlativo, y el backend no expone edición ni borrado: una factura emitida se corrige con una nota de crédito y se salda registrando el pago de su cuenta por cobrar.',
+                  body: 'El número lo asigna el sistema con su propio correlativo, y una factura no se edita ni se borra: una factura emitida se corrige con una nota de crédito y se salda registrando el pago de su cuenta por cobrar.',
                 }}
               />
             ),

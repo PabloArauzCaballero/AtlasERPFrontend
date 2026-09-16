@@ -1,4 +1,5 @@
 import { apiRequest } from '@/lib/apiClient';
+import { newUuid } from '@/lib/uuid';
 
 /**
  * Campañas de notificación a clientes de la app: alta, audiencia, programación y resultados.
@@ -154,7 +155,7 @@ export type CampaignAction = 'schedule' | 'unschedule' | 'pause' | 'resume' | 'd
 const BASE = '/admin/notification-campaigns';
 
 export function newIdempotencyKey(): string {
-  return `erp-campaign-${globalThis.crypto.randomUUID()}`;
+  return `erp-campaign-${newUuid()}`;
 }
 
 function campaignPath(id: string, suffix = ''): string {

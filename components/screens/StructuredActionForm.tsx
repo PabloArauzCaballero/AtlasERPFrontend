@@ -44,8 +44,9 @@ export interface ActionField {
   /** Carga las opciones a partir del valor de `dependsOn`; se vuelve a llamar cada vez que cambia. */
   optionsLoaderFor?: ((parentValue: string) => Promise<Array<{ label: string; value: string }>>) | undefined;
   /**
-   * El valor lo asigna el backend (un correlativo): no se pide ni viaja en el envío. En un alta se
-   * muestra «Se asigna al guardar»; en una edición, el valor asignado, de sólo lectura.
+   * El valor lo asigna el sistema (un correlativo): no se pide ni viaja en el envío. En un alta el
+   * campo NO se pinta —una caja vacía con un aviso sólo hace dudar de si falta rellenarla—; en una
+   * edición se enseña el valor, de sólo lectura.
    */
   assignedByBackend?: boolean | undefined;
   /** Carga opciones de un select desde el backend (una sola vez, al montar). Para campos UUID normalizados. */

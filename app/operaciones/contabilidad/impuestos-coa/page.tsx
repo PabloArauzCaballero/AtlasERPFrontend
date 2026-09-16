@@ -11,7 +11,7 @@ import { domainLoader } from '@/services/domains';
 const soloAlta = {
   tone: 'warning' as const,
   title: 'Alta sí, modificación todavía no',
-  body: 'El backend expone listar y crear, pero aún no PATCH ni DELETE. Tanto el plan de cuentas como los impuestos son versionados: lo correcto es cerrar la vigencia del anterior y dar de alta la versión nueva.',
+  body: 'Aquí se consulta y se da de alta, pero no se edita ni se borra. Tanto el plan de cuentas como los impuestos son versionados: lo correcto es cerrar la vigencia del anterior y dar de alta la versión nueva.',
 };
 
 export default function TaxesCoaPage() {

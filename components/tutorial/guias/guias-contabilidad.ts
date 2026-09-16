@@ -33,7 +33,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Los datos fiscales se propagan a documentos ya emitidos. Verifícalos contra el papel antes de guardar.',
       },
     ],
-    backend: 'POST /accounting/financial-structure/*',
   },
 
   '/operaciones/contabilidad/impuestos-coa': {
@@ -54,7 +53,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Una cuenta GL se crea DENTRO de una versión vigente del plan. Si el desplegable de versiones aparece vacío al crear una cuenta, es esta pantalla la que falta.',
       },
     ],
-    backend: 'POST /charts-of-accounts | tax-codes',
   },
 
   '/operaciones/contabilidad/cuentas-gl': {
@@ -75,7 +73,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Una cuenta con movimientos no puede desaparecer sin llevarse la historia por delante. Lo que se hace es dejar de admitir asientos nuevos.',
       },
     ],
-    backend: 'GET/POST /accounting/financial-structure/gl-accounts',
     tutorialId: 'contabilidad-cuentas-gl',
   },
 
@@ -97,7 +94,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Marcar aquí que la cuenta exige centro de costo significa que nadie podrá asentar contra ella sin indicarlo. Es la forma de garantizar analítica completa.',
       },
     ],
-    backend: 'POST /accounting/financial-structure/gl-accounts',
   },
 
   '/operaciones/contabilidad/cuentas-gl/detalle': {
@@ -114,7 +110,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Si un asiento se queja de un campo obligatorio que no esperabas, esta ficha dice por qué.',
       },
     ],
-    backend: 'GET /accounting/financial-structure/gl-accounts/:id',
   },
 
   '/operaciones/contabilidad/grupos-cuenta': {
@@ -131,7 +126,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'El código de la cuenta ya tiene su propio orden. Este árbol es otra vista, pensada para quien lee estados financieros, no para quien registra.',
       },
     ],
-    backend: 'GET/POST /accounting/account-groups',
   },
 
   '/operaciones/contabilidad/periodos-ledgers': {
@@ -152,7 +146,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Aquí se definen; el cierre es una operación aparte, en «Cierre de períodos», con sus propios controles.',
       },
     ],
-    backend: 'POST /fiscal-years | periods | ledgers',
   },
 
   '/operaciones/contabilidad/sucursales-fiscales': {
@@ -173,7 +166,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Ésta es una unidad de los libros de Atlas. Las sucursales de un comercio afiliado se gestionan en su onboarding y en su portal.',
       },
     ],
-    backend: 'POST /branches | fiscal-years',
   },
 
   '/operaciones/contabilidad/business-partners': {
@@ -194,7 +186,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Un partner sin verificación completa tiene limitadas las operaciones que admite. Es un control, no un trámite.',
       },
     ],
-    backend: 'GET/POST /accounting/business-partners',
   },
 
   '/operaciones/contabilidad/business-partners/crear': {
@@ -211,7 +202,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Cliente, proveedor, banco o comercio determinan las cuentas por defecto con las que operará. Se puede ajustar después en su ficha.',
       },
     ],
-    backend: 'POST /accounting/business-partners',
   },
 
   '/operaciones/contabilidad/business-partners/detalle': {
@@ -228,7 +218,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'La ficha necesita el identificador del partner en la dirección; llega hasta ella desde «Business partners».',
       },
     ],
-    backend: 'GET /accounting/business-partners/:id',
   },
 
   '/operaciones/contabilidad/contratos': {
@@ -249,7 +238,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Aquél formaliza la relación con el comercio; éste alimenta la contabilidad. Pueden referirse al mismo acuerdo y aun así son registros distintos.',
       },
     ],
-    backend: 'POST /accounting/contracts',
   },
 
   '/operaciones/contabilidad/documentos': {
@@ -274,7 +262,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Si el sistema rechaza la fecha, revisa «Períodos y libros»: el mes al que apuntas puede no existir o estar cerrado.',
       },
     ],
-    backend: 'POST/PATCH /accounting/documents',
     tutorialId: 'contabilidad-documento',
   },
 
@@ -296,7 +283,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'El lote entra completo o no entra. No hay estado intermedio con la mitad de los asientos publicados.',
       },
     ],
-    backend: 'POST /accounting/documents/bulk',
     tutorialId: 'carga-masiva',
   },
 
@@ -318,7 +304,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'La factura crea la cuenta por cobrar. El dinero se registra aparte, en «Registrar recibo», y es allí donde se aplica contra esta factura.',
       },
     ],
-    backend: 'POST /accounting/billing/ar-invoices',
   },
 
   '/operaciones/contabilidad/recibos': {
@@ -339,7 +324,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'El historial de abajo es de consulta: los recibos, como los asientos, no se editan.',
       },
     ],
-    backend: 'POST /accounting/receipts',
   },
 
   '/operaciones/contabilidad/cierres': {
@@ -360,6 +344,5 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
         body: 'Existe porque a veces hace falta, no porque sea normal. Quién reabrió qué período y cuándo es exactamente lo que mira una auditoría.',
       },
     ],
-    backend: 'POST/PATCH /accounting/closings/*',
   },
 };

@@ -16,6 +16,7 @@ import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
 import { loadB2BAccounts, loadInternalUsers } from '@/services/optionLoaders';
 import type { JsonObject } from '@/services/types';
+import { newUuid } from '@/lib/uuid';
 
 interface ChecklistDraft { id: string; itemType: string; description: string }
 const newChecklistItem = (id: string): ChecklistDraft => ({ id, itemType: 'LEGAL', description: '' });
@@ -80,7 +81,7 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
           title="Requisitos del expediente"
           description="Al menos uno, verificable. Mientras quede uno pendiente, el comercio no se activa."
           icon="fact_check"
-          action={<AtlasButton variant="secondary" icon="add" onClick={() => setItems((current) => [...current, newChecklistItem(crypto.randomUUID())])}>Agregar requisito</AtlasButton>}
+          action={<AtlasButton variant="secondary" icon="add" onClick={() => setItems((current) => [...current, newChecklistItem(newUuid())])}>Agregar requisito</AtlasButton>}
         >
           <div className="space-y-2">
             {items.map((item, index) => (

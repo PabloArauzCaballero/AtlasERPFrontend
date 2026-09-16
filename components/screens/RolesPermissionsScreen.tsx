@@ -37,7 +37,7 @@ export function RolesPermissionsScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Administración' }, { label: 'Seguridad' }, { label: 'Roles' }]}
         title="Roles y permisos"
-        description="Catálogo real de internal_roles / internal_permissions (AtlasBackend)."
+        description="Catálogo real de roles y permisos del sistema."
         actions={<StatusPill tone="success">CONECTADO</StatusPill>}
       />
 

@@ -137,11 +137,6 @@ export interface ScreenGuide {
   /** Una frase, sin jerga: qué es esta pantalla. */
   intro: string;
   sections: readonly GuideSection[];
-  /**
-   * Endpoint o módulo del backend detrás de la vista. Se muestra plegado: a un
-   * usuario final no le dice nada, pero es lo primero que pregunta soporte.
-   */
-  backend?: string;
   /** Recorrido interactivo asociado, si lo hay. */
   tutorialId?: string;
 }

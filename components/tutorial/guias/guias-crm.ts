@@ -34,7 +34,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Vacía significa «no hay cuentas que cumplan estos filtros», no «el sistema está roto». Limpia el buscador y los desplegables antes de dar por hecho que falta información.',
       },
     ],
-    backend: 'GET /b2b/accounts',
     tutorialId: 'crm-cuentas',
   },
 
@@ -44,7 +43,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
     intro: 'Da de alta una empresa nueva en el directorio comercial.',
     sections: [
       {
-        title: 'Los campos con asterisco son los que el backend exige',
+        title: 'Los campos con asterisco son obligatorios',
         body: 'El resto se puede completar después desde la ficha. Empezar con lo mínimo verificable es mejor que rellenar a ojo: lo que se escribe aquí acaba en contratos y facturas.',
       },
       {
@@ -64,7 +63,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'La cuenta nace en el estado inicial del ciclo de vida. No está contratada ni activa: es el punto de partida para calificarla.',
       },
     ],
-    backend: 'POST /b2b/accounts',
   },
 
   '/operaciones/crm/cuentas/detalle': {
@@ -86,7 +84,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Los documentos que se suben aquí sostienen decisiones posteriores —una calificación, una excepción de precio—. Suben con el registro, no con la persona.',
       },
     ],
-    backend: 'GET /b2b/accounts/:id',
   },
 
   '/operaciones/crm/cuentas/calificar': {
@@ -107,7 +104,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Cuando la calificación es favorable, el mismo formulario deja la oportunidad abierta en el pipeline. Evita el paso manual y evita olvidarlo.',
       },
     ],
-    backend: 'POST /b2b/accounts/:accountId/qualify',
   },
 
   '/operaciones/crm/bulk-cuentas': {
@@ -128,7 +124,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'El lote entra entero o no entra. No te quedas con la mitad de las cuentas creadas y la otra mitad perdida.',
       },
     ],
-    backend: 'POST /b2b/accounts/bulk',
     tutorialId: 'carga-masiva',
   },
 
@@ -143,14 +138,13 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Mover la tarjeta cambia el estado de verdad',
-        body: 'No es un tablero decorativo: cambiar de columna escribe en el backend y queda registrado con quién lo hizo. Si la operación falla, la tarjeta vuelve a su sitio.',
+        body: 'No es un tablero decorativo: cambiar de columna guarda el cambio y queda registrado con quién lo hizo. Si la operación falla, la tarjeta vuelve a su sitio.',
       },
       {
         title: 'La etapa condiciona lo que viene después',
         body: 'Una propuesta se emite contra una oportunidad, y un contrato contra una propuesta aceptada. Dejar el tablero desactualizado bloquea el paso siguiente.',
       },
     ],
-    backend: 'POST/PATCH /b2b/opportunities',
     tutorialId: 'crm-pipeline',
   },
 
@@ -172,7 +166,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'El contrato se genera desde una propuesta ACEPTADA. Enviarla al cliente no la acepta; hay que registrar la aceptación para que el flujo continúe.',
       },
     ],
-    backend: 'POST/PATCH /b2b/proposals',
   },
 
   '/operaciones/crm/aprobaciones': {
@@ -193,7 +186,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Sirve para priorizar la revisión, no para sustituirla. Una excepción pequeña repetida cien veces no es pequeña.',
       },
     ],
-    backend: 'PATCH /b2b/proposals/approvals/:id/decision',
   },
 
   '/operaciones/crm/contratos': {
@@ -214,7 +206,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Quién firma por Atlas y quién por el cliente son campos, no un detalle del PDF. Es lo que se consulta cuando hay una disputa.',
       },
     ],
-    backend: 'POST/PATCH /b2b/contracts',
   },
 
   '/operaciones/crm/onboarding': {
@@ -240,10 +231,9 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Activar es el último control',
-        body: 'El backend vuelve a comprobar requisitos y contrato vigente antes de habilitar. Al activar, el comercio empieza a poder originar operaciones y a facturarse; revertirlo afecta a operaciones vivas.',
+        body: 'Atlas vuelve a comprobar requisitos y contrato vigente antes de habilitar. Al activar, el comercio empieza a poder originar operaciones y a facturarse; revertirlo afecta a operaciones vivas.',
       },
     ],
-    backend: 'GET/POST/PATCH /b2b/onboarding · PATCH /b2b/onboarding/cases/:id/activate',
     tutorialId: 'crm-onboarding',
   },
 
@@ -265,7 +255,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'El asiento contable correspondiente vive en Contabilidad. Son dos vistas del mismo hecho, y la contable es la que manda para los estados financieros.',
       },
     ],
-    backend: 'POST /b2b/billing/*',
   },
 
   '/operaciones/crm/conciliacion-cobertura': {
@@ -286,6 +275,5 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Se aplica sobre algo que ya se dio por perdido, y por eso se registra aparte: mezclarlas distorsiona cualquier medida de morosidad.',
       },
     ],
-    backend: 'POST/PATCH /b2b/coverage | reconciliation',
   },
 };

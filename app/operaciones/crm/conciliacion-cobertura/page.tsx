@@ -88,7 +88,7 @@ export default function CoverageReconciliationPage() {
     fields: [
       { name: 'merchantAccountId', label: 'Comercio', tooltip: 'Comercio afiliado sobre el que se opera.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadB2BAccounts },
       { name: 'branchId', label: 'Sucursal', tooltip: 'Sucursal del comercio; sólo las habilitadas pueden originar operaciones.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadMerchantBranches, hint: 'Sólo las sucursales habilitadas pueden originar.' },
-      { name: 'consumerExternalRef', label: 'Documento del cliente', tooltip: 'Documento de identidad del cliente final, como lo tiene el comercio. Ej.: 7654321.', required: true, hint: 'Es lo que el comercio tiene delante; el uuid interno lo resuelve el backend.' },
+      { name: 'consumerExternalRef', label: 'Documento del cliente', tooltip: 'Documento de identidad del cliente final, como lo tiene el comercio. Ej.: 7654321.', required: true, hint: 'Es lo que el comercio tiene delante; el código interno lo resuelve el sistema.' },
       { name: 'purchaseAmount', label: 'Precio de la compra (Bs)', tooltip: 'Precio total de la compra en bolivianos, con hasta dos decimales.', type: 'number' as const, required: true },
       { name: 'cuotas', label: 'Número de cuotas', tooltip: 'En cuántas cuotas se paga. Ej.: 6.', type: 'number' as const, required: true, defaultValue: '3' },
       { name: 'primeraCuota', label: 'Primera cuota vence', tooltip: 'Fecha en que vence la primera cuota; las demás se calculan a partir de ella.', type: 'date' as const, required: true },

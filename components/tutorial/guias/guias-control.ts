@@ -24,11 +24,10 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
         body: 'CRM lleva la relación con los comercios; Contabilidad, los libros; Publicidad, las campañas; Control, quién puede hacer qué y qué se hizo. Casi todo el trabajo diario ocurre en uno solo de ellos.',
       },
       {
-        title: 'Los números vienen del backend',
+        title: 'Los números vienen de los datos reales',
         body: 'Un cero es un cero real, no un dato que falta. Si el tablero no carga, aparece un aviso explícito en lugar de ceros silenciosos.',
       },
     ],
-    backend: 'Agregados de los módulos B2B, contabilidad, ads y auditoría',
     tutorialId: 'primeros-pasos',
   },
 
@@ -50,7 +49,6 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Lo habitual es partir del registro afectado —una cuenta, un documento— y ver todo lo que le pasó, en orden.',
       },
     ],
-    backend: 'GET /audit/business-actions',
     tutorialId: 'control-auditoria',
   },
 
@@ -72,7 +70,6 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Un usuario con historial no puede desaparecer sin dejar acciones huérfanas en la auditoría. Lo que se retira es el acceso.',
       },
     ],
-    backend: 'GET/PATCH /internal/users, /internal/users/:id/roles',
     tutorialId: 'control-usuarios',
   },
 
@@ -83,14 +80,13 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
     sections: [
       {
         title: 'Es de sólo lectura',
-        body: 'Los roles y permisos se definen en el backend, no desde aquí. Esta pantalla existe para consultarlos: antes de asignar un rol conviene saber qué abre.',
+        body: 'Los roles y permisos se definen en la configuración del sistema, no desde aquí. Esta pantalla existe para consultarlos: antes de asignar un rol conviene saber qué abre.',
       },
       {
         title: 'Cómo leer la tabla',
         body: 'Cada fila es un permiso y cada columna un rol. Sirve para responder «¿quién puede hacer esto?» sin preguntar.',
       },
     ],
-    backend: 'GET /internal/roles, /internal/permissions (sólo lectura)',
   },
 
   '/operaciones/admin/notificaciones': {
@@ -111,7 +107,6 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Empieza sola a su hora. Se puede pausar, reanudar o cancelar con un motivo (se anulan los avisos que aún no salieron). El detalle muestra alcanzados, entregados, leídos y fallidos por canal, y permite enviarte una prueba antes de lanzarla.',
       },
     ],
-    backend: 'GET/POST/PATCH /admin/notification-campaigns (pasarela a AtlasBackend)',
   },
 
   '/operaciones/admin/busqueda-global': {
@@ -125,20 +120,19 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Por qué no busca datos',
-        body: 'Este backend no expone un buscador federado sobre todos los módulos. En vez de simular resultados, la pantalla hace lo que sí puede hacer con verdad: navegar.',
+        body: 'Hoy no hay un buscador único que cruce todos los módulos. En vez de simular resultados, la pantalla hace lo que sí puede hacer con verdad: navegar.',
       },
       {
         title: 'Se abre desde la barra superior',
         body: 'El buscador de arriba lleva aquí. En móvil está tras la lupa.',
       },
     ],
-    backend: 'Registro local de vistas; sin endpoint de búsqueda federada',
   },
 
   '/operaciones/admin/mapa-sitio': {
     eyebrow: 'Control',
     title: 'Mapa del sistema',
-    intro: 'El inventario de todas las vistas del ERP y su estado de integración con el backend.',
+    intro: 'El inventario de todas las pantallas del ERP y de qué puede hacer cada una.',
     sections: [
       {
         title: 'Qué significa cada estado',
@@ -153,7 +147,6 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
         body: 'La lista vive junto a las rutas, así que no puede quedarse desfasada sin que se note al añadir una pantalla.',
       },
     ],
-    backend: 'Registro local de vistas y contratos',
   },
 
   '/operaciones/cuenta': {
@@ -170,6 +163,5 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Al entrar se envía un código a tu correo. Por eso importa que la dirección registrada sea una que leas de verdad.',
       },
     ],
-    backend: 'POST /auth/password/change',
   },
 };

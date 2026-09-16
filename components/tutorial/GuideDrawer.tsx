@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Icon } from '@/components/atlas/Icon';
 import { TutorialPortal } from './TutorialPortal';
 import type { ScreenGuide } from './tutorial-types';
@@ -26,7 +26,6 @@ interface Props {
 export function GuideDrawer({ guide, onClose, onStartTour }: Props) {
   const panel = useRef<HTMLElement>(null);
   const opener = useRef<Element | null>(null);
-  const [showBackend, setShowBackend] = useState(false);
 
   useEffect(() => {
     opener.current = document.activeElement;
@@ -98,17 +97,6 @@ export function GuideDrawer({ guide, onClose, onStartTour }: Props) {
             ))}
           </ol>
 
-          {/* Plegado a propósito: a quien opera no le dice nada, y es lo primero
-              que pregunta soporte cuando algo devuelve un error. */}
-          {guide.backend ? (
-            <div className="guide-backend">
-              <button type="button" onClick={() => setShowBackend((open) => !open)} aria-expanded={showBackend}>
-                <Icon name={showBackend ? 'expand_less' : 'expand_more'} className="text-[16px]" />
-                Detalle técnico
-              </button>
-              {showBackend ? <code>{guide.backend}</code> : null}
-            </div>
-          ) : null}
         </div>
 
         <footer className="guide-foot">

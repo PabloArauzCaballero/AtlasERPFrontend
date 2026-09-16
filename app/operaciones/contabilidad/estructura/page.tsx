@@ -10,7 +10,7 @@ import { accountingService } from '@/services/accountingService';
 const soloAlta = {
   tone: 'warning' as const,
   title: 'Alta sí, modificación todavía no',
-  body: 'El backend expone listar y crear para este maestro, pero aún no PATCH ni DELETE, así que no se pinta un lápiz que devolvería 404. Si un dato está mal, corrígelo con un alta nueva y deja de usar la anterior.',
+  body: 'Este maestro se consulta y se da de alta, pero no se edita ni se borra, así que no hay lápiz. Si un dato está mal, corrígelo con un alta nueva y deja de usar la anterior.',
 };
 
 export default function FinancialStructurePage() {
@@ -91,7 +91,7 @@ export default function FinancialStructurePage() {
                 ]}
                 filters={[{ key: 'status', label: 'Estado' }]}
                 emptyHint="Todavía no hay centros de costo cargados en esta base."
-                notice={{ tone: 'info', title: 'Sólo consulta', body: 'El backend expone el listado de centros de costo, pero no su alta ni su edición: hoy se cargan por migración.' }}
+                notice={{ tone: 'info', title: 'Sólo consulta', body: 'Los centros de costo sólo se consultan: hoy se cargan desde la configuración del sistema.' }}
               />
             ),
           },
@@ -114,7 +114,7 @@ export default function FinancialStructurePage() {
                 ]}
                 filters={[{ key: 'status', label: 'Estado' }]}
                 emptyHint="Todavía no hay centros de beneficio cargados en esta base."
-                notice={{ tone: 'info', title: 'Sólo consulta', body: 'El backend expone el listado, pero no el alta ni la edición: hoy se cargan por migración.' }}
+                notice={{ tone: 'info', title: 'Sólo consulta', body: 'Aquí sólo se consulta: hoy estos datos se cargan desde la configuración del sistema.' }}
               />
             ),
           },
@@ -139,7 +139,7 @@ export default function FinancialStructurePage() {
                 ]}
                 filters={[{ key: 'currencyCode', label: 'Moneda' }, { key: 'status', label: 'Estado' }]}
                 emptyHint="Todavía no hay cuentas bancarias registradas en esta base."
-                notice={{ tone: 'info', title: 'Sólo consulta', body: 'El backend expone el listado, pero no el alta ni la edición: hoy se cargan por migración.' }}
+                notice={{ tone: 'info', title: 'Sólo consulta', body: 'Aquí sólo se consulta: hoy estos datos se cargan desde la configuración del sistema.' }}
               />
             ),
           },

@@ -20,7 +20,7 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Responde «¿hay algo que atender hoy?» sin abrir cinco pantallas. Cada bloque es la puerta de entrada a su módulo.',
       },
       {
-        title: 'Los números son del backend, no estimaciones',
+        title: 'Los números son reales, no estimaciones',
         body: 'Si un indicador sale en cero, es que no hay actividad registrada en ese corte, no que falte el dato.',
       },
       {
@@ -28,7 +28,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Marcan tráfico a revisar. La decisión de excluirlo de la facturación se toma en el monitor de delivery.',
       },
     ],
-    backend: 'GET /admin/ads/dashboard',
   },
 
   '/operaciones/ads/anunciantes': {
@@ -49,7 +48,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Cuando lo es, queda enlazado a su cuenta y sus campañas aparecen en el portal del comercio. Sin ese enlace, el comercio no las ve.',
       },
     ],
-    backend: 'GET/POST /admin/ads/advertisers',
     tutorialId: 'ads-anunciantes',
   },
 
@@ -72,7 +70,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Crear el anunciante sólo abre la cuenta. Las campañas se crean después y necesitan aprobación antes de entregar.',
       },
     ],
-    backend: 'POST /admin/ads/advertisers',
   },
 
   '/operaciones/ads/bulk-anunciantes': {
@@ -93,7 +90,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Se valida en tu navegador, fila por fila, antes de tocar la base. Corrige en el archivo y recarga.',
       },
     ],
-    backend: 'POST /admin/ads/advertisers/bulk',
     tutorialId: 'carga-masiva',
   },
 
@@ -115,7 +111,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: '«No aprobada» se resuelve en moderación; «presupuesto agotado», ampliándolo. Son dos problemas distintos con el mismo síntoma.',
       },
     ],
-    backend: 'GET/POST/PATCH /admin/ads/campaigns',
     tutorialId: 'ads-campanas',
   },
 
@@ -133,7 +128,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Se define una vez y lo usan varias campañas. Cambiarlo afecta a todas: revisa quién lo está usando antes de tocarlo.',
       },
     ],
-    backend: 'GET/POST /admin/ads/segments',
   },
 
   '/operaciones/ads/moderacion': {
@@ -154,7 +148,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'La creatividad sigue existiendo, marcada. El anunciante sube una versión nueva; no se pierde la historia de lo que se rechazó y por qué.',
       },
     ],
-    backend: 'GET/POST /admin/ads/moderation',
   },
 
   '/operaciones/ads/delivery-monitor': {
@@ -175,6 +168,5 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
         body: 'Los eventos de entrega son historia. Lo que se cambia es su clasificación de elegibilidad, y ese cambio también queda registrado.',
       },
     ],
-    backend: 'GET/PATCH /admin/ads/delivery-monitor | events',
   },
 };

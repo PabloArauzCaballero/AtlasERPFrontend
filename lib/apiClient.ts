@@ -1,6 +1,7 @@
 import { newCorrelationId } from './correlationId';
 import { conReintentos, esRespuestaDePasarela, repeticionDe } from './reintentos';
 import { cabecerasDeTranscripcion } from './transcripcion';
+import { describirIncidencia } from './mensajesValidacion';
 
 export interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -161,11 +162,10 @@ async function readPayload<T>(response: Response): Promise<ApiEnvelope<T> | T | 
 /**
  * Los detalles campo a campo que acompañan a un rechazo de validación.
  *
- * El backend responde `{ code: 'VALIDATION_ERROR', message: 'Los datos enviados no son válidos.',
- * details: [{ path, message }] }`: el mensaje es genérico A PROPÓSITO —vale para cualquier
- * endpoint— y lo que dice QUÉ está mal viaja en `details`. Mostrando sólo el mensaje, la pantalla
- * pedía corregir un formulario de doce campos sin decir cuál, que es como convertir una validación
- * precisa en un juego de adivinanzas.
+ * La respuesta trae un mensaje genérico —vale para cualquier formulario— y, aparte, quÉ campo
+ * está mal. Mostrando sólo el mensaje, la pantalla pedía corregir un formulario de doce campos sin
+ * decir cuál, que es como convertir una validación precisa en un juego de adivinanzas. El detalle
+ * viene en inglés y por nombre de campo del código, así que pasa por `describirIncidencia`.
  */
 function describeValidationDetails(details: unknown): string | null {
   if (!Array.isArray(details) || details.length === 0) return null;
@@ -175,7 +175,8 @@ function describeValidationDetails(details: unknown): string | null {
       const { path, message } = detail as { path?: unknown; message?: unknown };
       if (typeof message !== 'string' || message.length === 0) return null;
       // La ruta se antepone sólo cuando existe: en un error de nivel raíz añadiría un guion suelto.
-      return typeof path === 'string' && path.length > 0 ? `${path}: ${message}` : message;
+      // Y se dice con el rótulo de pantalla, no con el nombre del campo en el código.
+      return describirIncidencia(typeof path === 'string' && path.length > 0 ? path : undefined, message);
     })
     .filter((line): line is string => line !== null);
   // Se acotan a cuatro: un cuerpo mal formado puede producir docenas de incidencias y una pared de
@@ -190,10 +191,11 @@ function extractErrorMessage<T>(response: Response, payload: ApiEnvelope<T> | T 
     const details = describeValidationDetails(payload.error.details);
     return details ? `${payload.error.message} ${details}` : payload.error.message;
   }
-  if (response.status === 404) return 'Endpoint no encontrado. Revise prefijo /api/v1, módulo e identificadores requeridos.';
-  if (response.status === 401) return 'Sesión no autorizada. Inicie sesión o configure un token Bearer válido.';
+  if (response.status === 404) return 'No encontramos ese registro. Puede que lo hayan borrado o que el enlace ya no sirva.';
+  if (response.status === 401) return 'Su sesión caducó. Vuelva a iniciar sesión.';
   if (response.status === 403) return 'No tiene permisos para ejecutar esta acción.';
-  return `Error HTTP ${response.status}`;
+  // Sin cuerpo con el que explicar nada: el número queda para soporte, la frase para quien opera.
+  return `No se pudo completar la operación (${response.status}). Inténtelo otra vez; si sigue, avísele a soporte.`;
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
@@ -277,14 +279,12 @@ async function performFetch(path: string, options: ApiRequestOptions): Promise<R
     return await fetch(buildUrl(path, options.query), requestInit);
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new ApiError('Tiempo de espera agotado al contactar el backend.', 0, true);
+      throw new ApiError('El sistema tardó demasiado en responder. Inténtelo otra vez.', 0, true);
     }
     // Un fallo de red (servidor caído, DNS, CORS) tampoco tiene respuesta: se normaliza al mismo
     // tipo para que la pantalla no tenga que distinguir `TypeError` de `ApiError` para decidir.
-    throw new ApiError(
-      error instanceof Error ? error.message : 'No se pudo contactar el backend.',
-      0,
-    );
+    // El texto del `TypeError` de fetch («Failed to fetch») no le dice nada a quien opera.
+    throw new ApiError('No hay conexión con el sistema. Revise su internet e inténtelo otra vez.', 0);
   } finally {
     clearTimeout(timeout);
   }

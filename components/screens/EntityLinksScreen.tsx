@@ -279,7 +279,7 @@ export function EntityLinksScreen() {
                       key={`asiento-${formularioAsiento}`}
                       onDone={() => setFormularioAsiento((value) => value + 1)}
                       title="Atar el asiento a otra entidad"
-                      description="El backend no expone borrado para los vínculos de asiento: un asiento contabilizado no se corrige quitándole ataduras, se reversa."
+                      description="Los vínculos de un asiento no se borran: un asiento contabilizado no se corrige quitándole ataduras, se reversa."
                       icon="add_link"
                       submitLabel="Crear vínculo"
                       successMessage="El vínculo quedó creado."
