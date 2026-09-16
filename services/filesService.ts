@@ -1,5 +1,6 @@
 import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
 import { conReintentos } from '@/lib/reintentos';
+import { sha256Hex } from '@/lib/sha256';
 import type { JsonObject, ResourceRow } from './types';
 
 /** El permiso de subida que emite AtlasBackend a través del ERP. */
@@ -41,10 +42,12 @@ export function contentTypeDeArchivo(file: File): FileContentType | null {
   return null;
 }
 
-/** SHA-256 en hexadecimal del archivo, calculado en el navegador: AtlasBackend lo compara con el objeto real. */
-export async function sha256DeArchivo(file: File): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+/**
+ * SHA-256 en hexadecimal del archivo, calculado en el navegador: AtlasBackend lo compara con el
+ * objeto real. En HTTP plano no hay `crypto.subtle`; `sha256Hex` lo resuelve en JavaScript.
+ */
+export function sha256DeArchivo(file: File): Promise<string> {
+  return file.arrayBuffer().then(sha256Hex);
 }
 
 /**

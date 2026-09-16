@@ -209,12 +209,13 @@ export function formularioCasoOnboarding(): Promise<FormularioPapel> {
     title: 'Caso de onboarding de comercio',
     subtitle: 'CRM · Onboarding · Nuevo caso',
     instructions: [
-      'Al menos un requisito, verificable. Mientras quede uno pendiente, el comercio no se activa.',
+      'El NIT vigente del comercio es requisito obligatorio y va siempre en el expediente (LEGAL).',
+      'Anote debajo los requisitos adicionales. Mientras quede uno pendiente, el comercio no se activa.',
       'Tipo de requisito: LEGAL, OPERATIONS, TECHNICAL o FINANCE.',
     ],
     tablas: [
       {
-        title: 'Requisitos del expediente',
+        title: 'Requisitos adicionales del expediente (el NIT ya va incluido)',
         table: {
           columns: [
             { label: 'Tipo (LEGAL / OPERATIONS / TECHNICAL / FINANCE)', width: 1 },

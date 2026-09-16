@@ -21,6 +21,13 @@ interface Requisito {
   evidenceUploadedAt?: string | null;
 }
 
+function etiquetaDeEstado(item: Requisito): string {
+  const estado = item.status === 'COMPLETED' ? 'completado' : 'pendiente';
+  if (item.hasEvidence) return `${estado}, con archivo`;
+  if (item.requiresEvidence) return `${estado}, falta el archivo`;
+  return estado;
+}
+
 /**
  * El archivo que respalda un requisito del caso de onboarding.
  *
@@ -99,10 +106,17 @@ export function OnboardingChecklistEvidenceModal({
       width="md"
       icon="upload_file"
       title={`Evidencia de requisitos · ${String(caso?.tradeName ?? 'comercio')}`}
-      description="PDF, JPEG o PNG hasta 15 MB. Se guarda en el almacén de evidencia de Atlas y respalda la activación del comercio."
+      description="Cada requisito documental (NIT, poderes, contratos) se cierra con su archivo. Elija el requisito, adjunte el PDF o la imagen y después márquelo completado desde la fila del caso."
     >
       <form className="space-y-3" onSubmit={subir} data-testid="form-evidencia-requisito">
-        <div className="flex justify-end"><BotonFormularioPapel data-testid="papel-evidencia" formulario={formularioEvidenciaRequisito} /></div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <ol className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600" aria-label="Pasos">
+            <li><span className="font-bold text-slate-800">1.</span> Elija el requisito</li>
+            <li><span className="font-bold text-slate-800">2.</span> Adjunte el archivo (PDF, JPEG o PNG hasta 15 MB)</li>
+            <li><span className="font-bold text-slate-800">3.</span> Marque el requisito completado en la fila</li>
+          </ol>
+          <BotonFormularioPapel data-testid="papel-evidencia" formulario={formularioEvidenciaRequisito} />
+        </div>
         <FormField tooltip="Requisito del checklist de alta sobre el que se actúa."
           kind="select"
           label="Requisito"
@@ -112,14 +126,14 @@ export function OnboardingChecklistEvidenceModal({
           onChange={(event) => setItemId(event.target.value)}
           options={requisitos.map((item) => ({
             value: item.id,
-            label: `${item.itemType} · ${item.description} — ${item.status}${item.hasEvidence ? ' · con archivo' : item.requiresEvidence ? ' · FALTA archivo' : ''}`,
+            label: `${item.description} (${item.itemType}) · ${etiquetaDeEstado(item)}`,
           }))}
         />
         <label className="block">
           <span className="mb-1.5 block text-xs font-bold text-slate-700">Archivo</span>
           <input ref={archivo} type="file" accept="application/pdf,image/png,image/jpeg" className="text-xs" data-testid="campo-evidencia" required />
           {elegido?.requiresEvidence ? (
-            <span className="mt-1 block text-[11px] text-slate-500">Este requisito es documental: el backend no lo deja completar sin archivo.</span>
+            <span className="mt-1 block text-[11px] text-slate-500">Este requisito es documental: no se puede dar por completado sin su archivo.</span>
           ) : null}
         </label>
         {error ? <InlineNotice tone="danger" title="No se pudo adjuntar">{error}</InlineNotice> : null}

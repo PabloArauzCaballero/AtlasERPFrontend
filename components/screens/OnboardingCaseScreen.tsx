@@ -18,8 +18,15 @@ import { loadB2BAccounts, loadInternalUsers } from '@/services/optionLoaders';
 import type { JsonObject } from '@/services/types';
 import { newUuid } from '@/lib/uuid';
 
-interface ChecklistDraft { id: string; itemType: string; description: string }
+interface ChecklistDraft { id: string; itemType: string; description: string; fijo?: boolean }
 const newChecklistItem = (id: string): ChecklistDraft => ({ id, itemType: 'LEGAL', description: '' });
+/**
+ * El NIT va siempre y no se quita ni se reescribe: sin NIT vigente ningún comercio se activa, y
+ * hasta el 2026-09-16 el formulario abría con una línea vacía que el ejecutivo tenía que inventar.
+ * Lo demás (poderes, matrícula, visita técnica…) se agrega debajo como requisito adicional.
+ */
+const REQUISITO_NIT: ChecklistDraft = { id: 'nit', itemType: 'LEGAL', description: 'NIT vigente del comercio', fijo: true };
+const requisitosIniciales = (): ChecklistDraft[] => [REQUISITO_NIT];
 
 interface OnboardingCaseScreenProps {
   /** Se llama tras crear el caso: la página vuelve a la cola. */
@@ -38,7 +45,7 @@ interface OnboardingCaseScreenProps {
  * se sabe un uuid, y uno mal copiado sólo produce un 500 o un caso colgado de otra cuenta.
  */
 export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {}) {
-  const [items, setItems] = useState<ChecklistDraft[]>([newChecklistItem('item-0')]);
+  const [items, setItems] = useState<ChecklistDraft[]>(requisitosIniciales);
   const accounts = useOptions(loadB2BAccounts);
   const owners = useOptions(loadInternalUsers);
   /* Tipos de requisito del backend: la lista copiada aquí no tenía COMPLIANCE. */
@@ -60,7 +67,7 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
         checklistItems: items.map(({ itemType, description }) => ({ itemType, description })),
       });
       form.reset();
-      setItems([newChecklistItem('item-0')]);
+      setItems(requisitosIniciales());
       await onDone?.();
     } catch { /* controlled */ }
   }
@@ -79,25 +86,32 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
         </Panel>
         <Panel
           title="Requisitos del expediente"
-          description="Al menos uno, verificable. Mientras quede uno pendiente, el comercio no se activa."
+          description="El NIT vigente va siempre. Agregue lo demás que haga falta cerrar (poderes, matrícula, visita técnica…). Mientras quede uno pendiente, el comercio no se activa."
           icon="fact_check"
-          action={<AtlasButton variant="secondary" icon="add" onClick={() => setItems((current) => [...current, newChecklistItem(newUuid())])}>Agregar requisito</AtlasButton>}
+          action={<AtlasButton variant="secondary" icon="add" onClick={() => setItems((current) => [...current, newChecklistItem(newUuid())])}>Agregar requisito adicional</AtlasButton>}
         >
           <div className="space-y-2">
-            {items.map((item, index) => (
+            {items.map((item, index) => item.fijo ? (
+              <div key={item.id} className="flex flex-wrap items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3" data-testid="requisito-nit">
+                <Icon name="verified" className="text-[18px] text-emerald-700" />
+                <span className="text-xs font-bold text-slate-800">{item.description}</span>
+                <span className="rounded bg-white px-2 py-0.5 text-[11px] text-slate-600">Legal · obligatorio</span>
+                <span className="text-[11px] text-slate-600">Se cierra adjuntando el documento del NIT desde la fila del caso.</span>
+              </div>
+            ) : (
               <div key={item.id} className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 grid-cols-1 md:grid-cols-[160px_minmax(0,1fr)_36px]">
                 {/* Mientras el dominio no llega, el valor de la línea se sigue ofreciendo: sin él el
                     select se vería vacío aunque el requisito ya lleve LEGAL. */}
                 <OptionSelect
                   name={`itemType-${index + 1}`}
-                  ariaLabel={`Tipo del requisito ${index + 1}`}
+                  ariaLabel={`Tipo del requisito adicional ${index}`}
                   compact
                   value={item.itemType}
                   onChange={(value) => updateItem(item.id, 'itemType', value)}
                   options={tiposDeRequisito.some((option) => option.value === item.itemType) ? tiposDeRequisito : [...tiposDeRequisito, { value: item.itemType, label: item.itemType }]}
                 />
-                <input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito ${index + 1}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} />
-                <button type="button" disabled={items.length === 1} className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50 disabled:opacity-30" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))} aria-label="Quitar requisito">
+                <input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito adicional ${index}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} />
+                <button type="button" className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))} aria-label="Quitar requisito">
                   <Icon name="delete" className="text-[18px]" />
                 </button>
               </div>
