@@ -150,7 +150,7 @@ export function MerchantPaymentProofsScreen() {
         if (cancelado) return;
         const propio = resultado.profiles?.[0];
         if (!propio) {
-          setError('Su usuario no tiene un expediente de comercio asignado.');
+          setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
           setCargando(false);
           return;
         }

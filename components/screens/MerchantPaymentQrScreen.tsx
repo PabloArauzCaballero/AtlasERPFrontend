@@ -128,7 +128,7 @@ export function MerchantPaymentQrScreen() {
         // Con varios, el aprobado primero: es el que cobra. Y se enseña cuál se eligió (ver selector).
         const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
-          setError('Su usuario no tiene un expediente de comercio asignado.');
+          setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
           setCargando(false);
           return;
         }

@@ -120,7 +120,7 @@ export function MerchantBillingScreen() {
         if (cancelado) return;
         const propios = resultado.profiles ?? [];
         if (propios.length === 0) {
-          setCarteraError('Su usuario no tiene un expediente de comercio asignado.');
+          setCarteraError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
           setCargandoCartera(false);
           return;
         }
