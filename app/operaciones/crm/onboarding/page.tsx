@@ -91,6 +91,10 @@ export default function OnboardingPage() {
   const summary = useAsyncResource(useCallback(() => b2bService.summarizeOnboardingCases(), [version]));
 
   const abierto = (row: ResourceRow) => String(row.status ?? '') !== ESTADO_FINAL;
+  const sinAccesoVigente = (row: ResourceRow) => {
+    const c = (row.credentials ?? {}) as { concedidas?: number; pendientes?: number };
+    return Number(c.concedidas ?? 0) === 0 && Number(c.pendientes ?? 0) === 0;
+  };
   const requisitos = (row: ResourceRow) => (Array.isArray(row.checklistItems) ? (row.checklistItems as ResourceRow[]) : []);
 
   return (
@@ -280,8 +284,13 @@ export default function OnboardingPage() {
               key: 'credenciales',
               label: 'Pedir credenciales',
               icon: 'person_add',
-              enabled: (row) => abierto(row) && puedePedirCredenciales,
-              /* Pide el acceso a Atlas: la identidad la concede el portal interno, no el ERP. */
+              /*
+               * Pide el acceso a Atlas: la identidad la concede el portal interno, no el ERP. Deja de
+               * ofrecerse en cuanto hay un acceso concedido o en espera: la fila decía «1 concedida» y
+               * el botón seguía ahí como si faltara pedirlo (Pablo, 2026-09-17). Un rechazo sí lo
+               * vuelve a ofrecer, porque entonces hay que pedirlo otra vez.
+               */
+              enabled: (row) => abierto(row) && puedePedirCredenciales && sinAccesoVigente(row),
               form: {
                 title: (row) => `Acceso al portal para ${String(row.tradeName ?? 'el comercio')}`,
                 description: 'Se registra a la persona en el CRM y se encola su acceso. La contraseña la genera Atlas al aprobar; el ERP nunca la ve.',
