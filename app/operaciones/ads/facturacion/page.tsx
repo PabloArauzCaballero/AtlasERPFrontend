@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { InlineActionForm } from '@/components/screens/InlineActionForm';
@@ -74,11 +74,13 @@ export default function AdsBillingPage() {
 
       {facturas.length ? (
         <>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
-            <MetricCard label="Facturas emitidas" value={facturas.length} detail="En este cierre" icon="receipt_long" />
-            <MetricCard label="Total facturado" value={formatMicrosAsBob(totalMicros)} detail="Suma del cierre" icon="payments" tone="teal" />
-            <MetricCard label="Anunciantes" value={new Set(facturas.map((item) => item.advertiserId)).size} detail="Con consumo en el rango" icon="business" tone="purple" />
-          </div>
+          <Resumen
+        datos={[
+          { label: 'Facturas emitidas', value: facturas.length },
+          { label: 'Total facturado', value: formatMicrosAsBob(totalMicros) },
+          { label: 'Anunciantes', value: new Set(facturas.map((item) => item.advertiserId)).size },
+        ]}
+      />
           <Panel title="Facturas de este cierre" description="Pulsa una para registrar su cobro. Al recargar la pantalla desaparecen: el módulo no expone un listado de facturas." icon="receipt">
             <div className="overflow-hidden rounded-md border border-slate-200">
               <div className="grid grid-cols-[2fr_2fr_1fr_1fr] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">

@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
@@ -158,12 +158,16 @@ export function AdsEmailScreen() {
                       <InlineNotice tone="info">Sin datos para ese identificador todavía.</InlineNotice>
                     ) : (
                       <>
-                        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-                          <MetricCard label="Mensajes" value={n(seguimiento.total)} detail="Encolados en este envío" icon="mail" />
-                          {Object.entries(porEstado).map(([estado, cantidad]) => (
-                            <MetricCard key={estado} label={estado.replaceAll('_', ' ')} value={cantidad} detail="Mensajes en este estado" icon="inventory" tone={estado === 'SENT' ? 'teal' : estado === 'FAILED' ? 'red' : 'amber'} />
-                          ))}
-                        </div>
+                        <Resumen
+                          datos={[
+                            { label: 'Mensajes', value: n(seguimiento.total) },
+                            ...Object.entries(porEstado).map(([estado, cantidad]) => ({
+                              label: estado.replaceAll('_', ' '),
+                              value: cantidad,
+                              alerta: estado === 'FAILED',
+                            })),
+                          ]}
+                        />
                         <div className="overflow-hidden rounded-md border border-slate-200">
                           <div className="grid grid-cols-[1.4fr_1fr_0.6fr_1fr_1.4fr] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
                             <span>Referencia</span><span>Estado</span><span className="text-right">Intentos</span><span>Enviado</span><span>Error</span>

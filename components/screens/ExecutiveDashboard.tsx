@@ -10,7 +10,7 @@ import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -60,12 +60,14 @@ export function ExecutiveDashboard() {
       <WorkspaceHeader eyebrow="Panel de control institucional" title="Resumen ejecutivo" description="Visión consolidada de la operación B2B, financiera, publicitaria y de control interno de ATLAS." actions={<><AtlasButton variant="secondary" icon="refresh" onClick={resource.reload}>Actualizar</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar</AtlasButton></>} />
       {resource.error ? <InlineNotice tone="danger" title="No fue posible cargar el tablero">{resource.error}</InlineNotice> : null}
       {data?.failures.length ? <InlineNotice tone="warning" title="Carga parcial">Sin respuesta de: {data.failures.join(', ')}. Los demás módulos permanecen visibles.</InlineNotice> : null}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Revenue Ads" value={data?.ads ? microsToBob(numeric(data.ads, 'revenueMicros')) : '—'} detail="Facturación reportada por Ads" icon="payments" />
-        <MetricCard label="Cuentas B2B" value={data?.accounts ? totalOf(data.accounts) : '—'} detail="Directorio comercial" icon="business_center" tone="teal" />
-        <MetricCard label="Campañas activas" value={data?.ads ? numeric(data.ads, 'activeCampaigns') : '—'} detail="Delivery publicitario" icon="campaign" tone="purple" />
-        <MetricCard label="Acciones auditadas" value={data?.audit ? totalOf(data.audit) : '—'} detail="Business Action Log" icon="history_edu" tone="amber" />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Revenue Ads', value: data?.ads ? microsToBob(numeric(data.ads, 'revenueMicros')) : '—' },
+          { label: 'Cuentas B2B', value: data?.accounts ? totalOf(data.accounts) : '—' },
+          { label: 'Campañas activas', value: data?.ads ? numeric(data.ads, 'activeCampaigns') : '—' },
+          { label: 'Acciones auditadas', value: data?.audit ? totalOf(data.audit) : '—' },
+        ]}
+      />
       <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.6fr)_360px]">
         <Panel title="Huella operativa" description="Volumen real disponible por módulo; no representa una serie histórica." icon="bar_chart" action={resource.status === 'loading' ? <StatusPill tone="warning">ACTUALIZANDO</StatusPill> : <StatusPill tone="success">SINCRONIZADO</StatusPill>}>
           <div className="space-y-5 py-3">{counts.map((item) => <div key={item.label}><div className="mb-2 flex items-center justify-between text-xs"><span className="font-bold text-slate-700">{item.label}</span><span className="font-mono text-slate-500">{item.value}</span></div><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full transition-all duration-500 ${item.color}`} style={{ width: `${Math.max(item.value ? 4 : 0, item.value / maxCount * 100)}%` }} /></div></div>)}</div>

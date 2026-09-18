@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
+import { TabbedPanels } from '@/components/atlas/TabbedPanels';
+import { useTabParam } from '@/hooks/useTabParam';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
@@ -15,7 +16,8 @@ import { merchantCreditService } from '@/services/merchantCreditService';
 import { portalService } from '@/services/portalService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
 
-type Vista = 'panel' | 'creditos' | 'calendario' | 'comision';
+const VISTAS = ['panel', 'creditos', 'calendario', 'comision'] as const;
+type Vista = (typeof VISTAS)[number];
 
 const fecha = (valor: string) => new Date(`${valor}T12:00:00`).toLocaleDateString('es-BO', { weekday: 'short', day: '2-digit', month: 'short' });
 
@@ -46,7 +48,7 @@ export function MerchantPortfolioScreen() {
   const [nombre, setNombre] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [vista, setVista] = useState<Vista>('panel');
+  const [vista, elegirVista] = useTabParam('panel', VISTAS);
   const [abierto, setAbierto] = useState<string | null>(null);
   const cargar = useCallback(async (partnerId: string) => {
     setCargando(true);
@@ -130,188 +132,217 @@ export function MerchantPortfolioScreen() {
                 ],
               })}
             />
-            {(['panel', 'creditos', 'calendario', 'comision'] as Vista[]).map((opcion) => (
-              <AtlasButton key={opcion} variant={vista === opcion ? 'primary' : 'secondary'} onClick={() => setVista(opcion)}>
-                {opcion === 'panel' ? 'Panel' : opcion === 'creditos' ? 'Créditos' : opcion === 'calendario' ? 'Calendario' : 'Comisión'}
-              </AtlasButton>
-            ))}
           </div>
         }
       />
 
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
 
-      <div data-tutorial-id="cartera-resumen" className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Por cobrar" value={cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0))} detail={`${resumen?.activeCredits ?? 0} créditos activos`} icon="account_balance_wallet" />
-        <MetricCard label="Vencido" value={cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0))} detail={`${resumen?.overdueInstallments ?? 0} cuotas en mora`} icon="running_with_errors" tone={Number(resumen?.overdueAmount ?? 0) > 0 ? 'amber' : 'teal'} />
-        <MetricCard label="Cobrado" value={cargando ? '…' : formatBob(Number(resumen?.collected ?? 0))} detail="Acumulado de la cartera" icon="payments" tone="teal" />
-        <MetricCard label="Comisión a Atlas" value={cargando ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0))} detail={`${resumen?.mdrRatePercent ?? '0'} % sobre lo cobrado`} icon="percent" tone="purple" />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Por cobrar', value: cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0)) },
+          { label: 'Vencido', value: cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0)), alerta: Number(resumen?.overdueAmount ?? 0) > 0 },
+          { label: 'Cobrado', value: cargando ? '…' : formatBob(Number(resumen?.collected ?? 0)) },
+          { label: `Comisión a Atlas (${resumen?.mdrRatePercent ?? '0'} %)`, value: cargando ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
+        ]}
+      />
 
-      {vista === 'panel' ? (
-        <Panel title="Los próximos cobros" description="Lo que debería entrar en los siguientes días." icon="event_upcoming">
-          {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-            : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cuotas pendientes de cobro.</p>
-            : (
-              <div className="space-y-2">
-                {proximos.slice(0, 8).map((dia) => (
-                  <div key={dia.date} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <Icon name={dia.overdue ? 'warning' : 'event'} className={dia.overdue ? 'text-[17px] text-amber-600' : 'text-[17px] text-slate-500'} />
-                      <span className="font-semibold">{fecha(dia.date)}</span>
-                      {dia.overdue ? <StatusPill tone="warning">Vencido</StatusPill> : null}
+      <TabbedPanels
+        keepMounted
+        activeId={vista}
+        onChange={(id) => elegirVista(id as Vista)}
+        tabs={[
+          {
+            id: 'panel',
+            label: 'Panel',
+            icon: 'space_dashboard',
+            content: (
+              <>
+          <Panel title="Los próximos cobros" description="Lo que debería entrar en los siguientes días." icon="event_upcoming">
+            {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
+              : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cuotas pendientes de cobro.</p>
+              : (
+                <div className="space-y-2">
+                  {proximos.slice(0, 8).map((dia) => (
+                    <div key={dia.date} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2.5 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Icon name={dia.overdue ? 'warning' : 'event'} className={dia.overdue ? 'text-[17px] text-amber-600' : 'text-[17px] text-slate-500'} />
+                        <span className="font-semibold">{fecha(dia.date)}</span>
+                        {dia.overdue ? <StatusPill tone="warning">Vencido</StatusPill> : null}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-extrabold">{formatBob(Number(dia.amount))}</p>
+                        <p className="text-[10px] text-slate-500">{dia.installments} cuota(s)</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-extrabold">{formatBob(Number(dia.amount))}</p>
-                      <p className="text-[10px] text-slate-500">{dia.installments} cuota(s)</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-        </Panel>
-      ) : null}
-
-      {vista === 'creditos' ? (
-        <Panel data-tutorial-id="cartera-creditos" title="Créditos pendientes de pago" description="Abra uno para ver su detalle cuota a cuota." icon="request_quote">
-          {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-            : (cartera?.credits ?? []).length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay créditos originados en su comercio.</p>
-            : (
-              <div className="space-y-2">
-                {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => {
-                  const abiertoAhora = abierto === credito.loanId;
-                  return (
-                    <div key={credito.loanId} className="rounded-md border border-slate-200">
-                      <button type="button" onClick={() => setAbierto(abiertoAhora ? null : credito.loanId)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left hover:bg-slate-50">
-                        <div>
-                          <p className="text-xs font-bold">{credito.loanCode}</p>
-                          <p className="mt-0.5 text-[11px] text-slate-500">{credito.installments.length} cuotas · {credito.status}</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <p className="text-[10px] uppercase tracking-wide text-slate-500">Por cobrar</p>
-                            <p className="text-sm font-extrabold">{formatBob(Number(credito.outstanding))}</p>
-                          </div>
-                          <Icon name={abiertoAhora ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-500" />
-                        </div>
-                      </button>
-                      {abiertoAhora ? (
-                        <div className="table-scroll border-t border-slate-100">
-                          <table className="w-full min-w-[560px] text-left text-xs">
-                            <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2">Cuota</th><th className="p-2">Vence</th><th className="p-2 text-right">Debe</th><th className="p-2 text-right">Pagado</th><th className="p-2 text-right">Falta</th><th className="p-2">Estado</th></tr></thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {credito.installments.map((cuota) => (
-                                <tr key={cuota.installmentId}>
-                                  <td className="p-2 font-semibold">{cuota.installmentNumber}</td>
-                                  <td className="p-2 text-slate-600">{fecha(cuota.dueDate)}</td>
-                                  <td className="p-2 text-right">{formatBob(Number(cuota.amountDue))}</td>
-                                  <td className="p-2 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
-                                  <td className="p-2 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
-                                  <td className="p-2"><StatusPill tone={cuota.overdue ? 'warning' : Number(cuota.amountOutstanding) === 0 ? 'success' : 'neutral'}>{cuota.overdue ? `Mora ${cuota.daysPastDue}d` : cuota.status}</StatusPill></td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-        </Panel>
-      ) : null}
-
-      {vista === 'calendario' ? (
-        <Panel data-tutorial-id="cartera-calendario" title="Calendario de cobros" description="Cuánto debería entrar cada día." icon="calendar_month">
-          {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-            : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cobros programados.</p>
-            : (
-              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-                {proximos.map((dia) => (
-                  <article key={dia.date} className={`rounded-md border p-3 ${dia.overdue ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200'}`}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold">{fecha(dia.date)}</p>
-                      {dia.overdue ? <StatusPill tone="warning">Vencido</StatusPill> : null}
-                    </div>
-                    <p className="mt-2 text-lg font-extrabold">{formatBob(Number(dia.amount))}</p>
-                    <p className="text-[11px] text-slate-500">{dia.installments} cuota(s)</p>
-                  </article>
-                ))}
-              </div>
-            )}
-        </Panel>
-      ) : null}
-
-      {vista === 'comision' ? (
-        <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
-          <div className="mb-4 grid gap-3 grid-cols-1 sm:grid-cols-3">
-            <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Tasa de comisión</p>
-              <p className="mt-1 text-xl font-extrabold">{resumen?.mdrRatePercent ?? '0'} %</p>
-              <p className="text-[11px] text-slate-500">Sobre cada venta financiada</p>
-            </div>
-            <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Cobrado (base)</p>
-              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.collected ?? 0))}</p>
-              <p className="text-[11px] text-slate-500">Lo que sus clientes ya pagaron</p>
-            </div>
-            <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Comisión a Atlas</p>
-              <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.commissionAccrued ?? 0))}</p>
-              <p className="text-[11px] text-slate-500">Devengada sobre lo cobrado</p>
-            </div>
-          </div>
-          {(cartera?.credits ?? []).length === 0 ? (
-            <p className="py-6 text-center text-xs text-slate-500">Todavía no hay ventas financiadas en su comercio.</p>
-          ) : (
-            <div className="table-scroll rounded-lg border border-slate-200">
-              <table className="w-full min-w-[560px] text-left text-xs">
-                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Crédito</th><th className="p-2.5 text-right">Cobrado</th><th className="p-2.5 text-right">Comisión ({resumen?.mdrRatePercent ?? '0'} %)</th><th className="p-2.5">Estado</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">
-                  {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => (
-                    <tr key={credito.loanId}>
-                      <td className="p-2.5 font-semibold text-slate-700">{credito.loanCode}</td>
-                      <td className="p-2.5 text-right text-slate-600">{formatBob(Number(credito.collected))}</td>
-                      <td className="p-2.5 text-right font-bold">{formatBob(Number(credito.commissionAccrued))}</td>
-                      <td className="p-2.5"><StatusPill tone={Number(credito.outstanding) === 0 ? 'success' : 'neutral'}>{credito.status}</StatusPill></td>
-                    </tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <InlineNotice className="mt-4" tone="info" title="Cómo se cobra">
-            La comisión se devenga a medida que sus clientes pagan: un crédito aprobado que aún no
-            cobra no genera comisión, y una venta pagada al 100 % la genera completa. La tasa se pactó
-            en su alta desde el ERP interno de Atlas.
-          </InlineNotice>
-          {facturado ? (
-            <div className="mt-4 rounded-lg border border-slate-200 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Lo que Atlas ya le facturó</p>
-              <div className="mt-2 grid gap-3 grid-cols-1 sm:grid-cols-3">
-                <div>
-                  <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
-                  <p className="text-[11px] text-slate-500">Facturado ({Number(facturado.summary?.salesCharged ?? 0)} ventas)</p>
                 </div>
-                <div>
-                  <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.settled ?? 0))}</p>
-                  <p className="text-[11px] text-slate-500">Ya pagado por usted</p>
+              )}
+          </Panel>
+              </>
+            ),
+          },
+          {
+            id: 'creditos',
+            label: 'Créditos',
+            icon: 'request_quote',
+            content: (
+              <>
+          <Panel data-tutorial-id="cartera-creditos" title="Créditos pendientes de pago" description="Abra uno para ver su detalle cuota a cuota." icon="request_quote">
+            {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
+              : (cartera?.credits ?? []).length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay créditos originados en su comercio.</p>
+              : (
+                <div className="space-y-2">
+                  {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => {
+                    const abiertoAhora = abierto === credito.loanId;
+                    return (
+                      <div key={credito.loanId} className="rounded-md border border-slate-200">
+                        <button type="button" onClick={() => setAbierto(abiertoAhora ? null : credito.loanId)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left hover:bg-slate-50">
+                          <div>
+                            <p className="text-xs font-bold">{credito.loanCode}</p>
+                            <p className="mt-0.5 text-[11px] text-slate-500">{credito.installments.length} cuotas · {credito.status}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="text-[10px] uppercase tracking-wide text-slate-500">Por cobrar</p>
+                              <p className="text-sm font-extrabold">{formatBob(Number(credito.outstanding))}</p>
+                            </div>
+                            <Icon name={abiertoAhora ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-500" />
+                          </div>
+                        </button>
+                        {abiertoAhora ? (
+                          <div className="table-scroll border-t border-slate-100">
+                            <table className="w-full min-w-[560px] text-left text-xs">
+                              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2">Cuota</th><th className="p-2">Vence</th><th className="p-2 text-right">Debe</th><th className="p-2 text-right">Pagado</th><th className="p-2 text-right">Falta</th><th className="p-2">Estado</th></tr></thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {credito.installments.map((cuota) => (
+                                  <tr key={cuota.installmentId}>
+                                    <td className="p-2 font-semibold">{cuota.installmentNumber}</td>
+                                    <td className="p-2 text-slate-600">{fecha(cuota.dueDate)}</td>
+                                    <td className="p-2 text-right">{formatBob(Number(cuota.amountDue))}</td>
+                                    <td className="p-2 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
+                                    <td className="p-2 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
+                                    <td className="p-2"><StatusPill tone={cuota.overdue ? 'warning' : Number(cuota.amountOutstanding) === 0 ? 'success' : 'neutral'}>{cuota.overdue ? `Mora ${cuota.daysPastDue}d` : cuota.status}</StatusPill></td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div>
-                  <p className="text-lg font-extrabold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
-                  <p className="text-[11px] text-slate-500">Pendiente de pago a Atlas</p>
+              )}
+          </Panel>
+              </>
+            ),
+          },
+          {
+            id: 'calendario',
+            label: 'Calendario',
+            icon: 'calendar_month',
+            content: (
+              <>
+          <Panel data-tutorial-id="cartera-calendario" title="Calendario de cobros" description="Cuánto debería entrar cada día." icon="calendar_month">
+            {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
+              : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cobros programados.</p>
+              : (
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                  {proximos.map((dia) => (
+                    <article key={dia.date} className={`rounded-md border p-3 ${dia.overdue ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200'}`}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold">{fecha(dia.date)}</p>
+                        {dia.overdue ? <StatusPill tone="warning">Vencido</StatusPill> : null}
+                      </div>
+                      <p className="mt-2 text-lg font-extrabold">{formatBob(Number(dia.amount))}</p>
+                      <p className="text-[11px] text-slate-500">{dia.installments} cuota(s)</p>
+                    </article>
+                  ))}
                 </div>
+              )}
+          </Panel>
+              </>
+            ),
+          },
+          {
+            id: 'comision',
+            label: 'Comisión',
+            icon: 'percent',
+            content: (
+              <>
+          <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
+            <div className="mb-4 grid gap-3 grid-cols-1 sm:grid-cols-3">
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Tasa de comisión</p>
+                <p className="mt-1 text-xl font-extrabold">{resumen?.mdrRatePercent ?? '0'} %</p>
+                <p className="text-[11px] text-slate-500">Sobre cada venta financiada</p>
               </div>
-              <p className="mt-2 text-[11px] leading-4 text-slate-500">
-                Devengado y facturado no son el mismo número y no tienen por qué coincidir: lo primero
-                crece con cada cobro suyo, lo segundo sólo cuando Atlas emite el cargo. La diferencia
-                es comisión ya generada que todavía no se le ha facturado.
-              </p>
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Cobrado (base)</p>
+                <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.collected ?? 0))}</p>
+                <p className="text-[11px] text-slate-500">Lo que sus clientes ya pagaron</p>
+              </div>
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Comisión a Atlas</p>
+                <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.commissionAccrued ?? 0))}</p>
+                <p className="text-[11px] text-slate-500">Devengada sobre lo cobrado</p>
+              </div>
             </div>
-          ) : null}
-        </Panel>
-      ) : null}
+            {(cartera?.credits ?? []).length === 0 ? (
+              <p className="py-6 text-center text-xs text-slate-500">Todavía no hay ventas financiadas en su comercio.</p>
+            ) : (
+              <div className="table-scroll rounded-lg border border-slate-200">
+                <table className="w-full min-w-[560px] text-left text-xs">
+                  <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Crédito</th><th className="p-2.5 text-right">Cobrado</th><th className="p-2.5 text-right">Comisión ({resumen?.mdrRatePercent ?? '0'} %)</th><th className="p-2.5">Estado</th></tr></thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => (
+                      <tr key={credito.loanId}>
+                        <td className="p-2.5 font-semibold text-slate-700">{credito.loanCode}</td>
+                        <td className="p-2.5 text-right text-slate-600">{formatBob(Number(credito.collected))}</td>
+                        <td className="p-2.5 text-right font-bold">{formatBob(Number(credito.commissionAccrued))}</td>
+                        <td className="p-2.5"><StatusPill tone={Number(credito.outstanding) === 0 ? 'success' : 'neutral'}>{credito.status}</StatusPill></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <InlineNotice className="mt-4" tone="info" title="Cómo se cobra">
+              La comisión se devenga a medida que sus clientes pagan: un crédito aprobado que aún no
+              cobra no genera comisión, y una venta pagada al 100 % la genera completa. La tasa se pactó
+              en su alta desde el ERP interno de Atlas.
+            </InlineNotice>
+            {facturado ? (
+              <div className="mt-4 rounded-lg border border-slate-200 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Lo que Atlas ya le facturó</p>
+                <div className="mt-2 grid gap-3 grid-cols-1 sm:grid-cols-3">
+                  <div>
+                    <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
+                    <p className="text-[11px] text-slate-500">Facturado ({Number(facturado.summary?.salesCharged ?? 0)} ventas)</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.settled ?? 0))}</p>
+                    <p className="text-[11px] text-slate-500">Ya pagado por usted</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-extrabold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
+                    <p className="text-[11px] text-slate-500">Pendiente de pago a Atlas</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] leading-4 text-slate-500">
+                  Devengado y facturado no son el mismo número y no tienen por qué coincidir: lo primero
+                  crece con cada cobro suyo, lo segundo sólo cuando Atlas emite el cargo. La diferencia
+                  es comisión ya generada que todavía no se le ha facturado.
+                </p>
+              </div>
+            ) : null}
+          </Panel>
+              </>
+            ),
+          },
+        ]}
+      />
 
       <InlineNotice tone="info" title="Por qué no ve nombres">
         Su cartera dice qué operación vence y cuándo, no quién la debe. El comercio decide sobre la

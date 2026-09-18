@@ -1,6 +1,6 @@
 'use client';
 
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { cn } from '@/lib/cn';
 import type { ResourceRow } from '@/services/types';
 
@@ -33,13 +33,15 @@ export function OnboardingQueueDashboard({ summary, loading, scope, onScopeChang
   const n = (key: string) => (loading ? '…' : Number(summary?.[key] ?? 0));
   return (
     <div className="space-y-4" data-tutorial-id="onboarding-tablero">
-      <div className="grid gap-3 grid-cols-2 xl:grid-cols-5">
-        <MetricCard label="Por atender" value={n('abiertos')} detail="Casos que aún no cierran" icon="pending_actions" />
-        <MetricCard label="Esperando al Motor" value={n('esperandoMotor')} detail="Verificación pedida" icon="hourglass_top" tone="purple" />
-        <MetricCard label="A revisión manual" value={n('revisionManual')} detail="Los mira una persona" icon="rule" tone="amber" />
-        <MetricCard label="Esperando credenciales" value={n('esperandoCredenciales')} detail="Pedidas al portal" icon="key" tone="teal" />
-        <MetricCard label="Listos para activar" value={n('listosParaActivar')} detail="Sin pendientes y con contrato" icon="rocket_launch" tone="navy" />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Por atender', value: n('abiertos') },
+          { label: 'Esperando al Motor', value: n('esperandoMotor') },
+          { label: 'A revisión manual', value: n('revisionManual') },
+          { label: 'Esperando credenciales', value: n('esperandoCredenciales') },
+          { label: 'Listos para activar', value: n('listosParaActivar') },
+        ]}
+      />
       <div role="radiogroup" aria-label="Qué casos mostrar" className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
         {SCOPES.map((option) => (
           <button

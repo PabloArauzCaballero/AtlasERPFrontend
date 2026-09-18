@@ -9,7 +9,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -33,8 +33,13 @@ export interface DirectoryColumn {
 interface MetricDefinition {
   label: string;
   value: (rows: ResourceRow[], total: number) => React.ReactNode;
-  detail: string;
-  icon: string;
+  /**
+   * `detail`, `icon` y `tone` se retiraron el 2026-09-18 con las tarjetas: el resumen es una tira
+   * de etiqueta y número. Se siguen aceptando —hay decenas de directorios que los declaran— pero
+   * no se pintan; declararlos en uno nuevo es trabajo que no llega a la pantalla.
+   */
+  detail?: string;
+  icon?: string;
   tone?: 'navy' | 'teal' | 'amber' | 'red' | 'purple';
 }
 
@@ -295,9 +300,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         />
       )}
 
-      <div data-tutorial-id="directory-metrics" className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        {props.metrics.slice(0, 4).map((metric) => <MetricCard key={metric.label} {...metric} value={metric.value(rows, total)} />)}
-      </div>
+      <Resumen datos={props.metrics.slice(0, 4).map((metric) => ({ label: metric.label, value: metric.value(rows, total) }))} />
 
       <Panel compact>
         <div data-tutorial-id="directory-filters" className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">

@@ -5,7 +5,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -46,12 +46,14 @@ export function AdsDashboardScreen() {
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: 'Ads' }, { label: 'Dashboard' }]} title="Gestión de campañas" description="Monitoree facturación, delivery, moderación y señales de fraude con datos reales de Ads." actions={<><span className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="calendar_today" className="text-[18px]" /><OptionSelect name="rango-tablero" ariaLabel="Rango del tablero" compact className="min-w-40" value={String(dias)} onChange={(valor) => setDias(Number(valor))} options={RANGOS.map((rango) => ({ value: String(rango.dias), label: rango.label, description: rango.description }))} /></span><AtlasButton variant="secondary" icon="refresh" onClick={reload}>Actualizar</AtlasButton></>} />
       <ScreenState error={error} onRetry={reload} status={status} />
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Revenue" value={microsToBob(numeric(data, 'revenueMicros'))} detail="Facturas emitidas y cobradas" icon="payments" />
-        <MetricCard label="Billable Spend" value={microsToBob(numeric(data, 'billableSpendMicros'))} detail="Cargos en spend ledger" icon="account_balance_wallet" tone="teal" />
-        <MetricCard label="Active Campaigns" value={numeric(data, 'activeCampaigns')} detail="Campañas en delivery" icon="campaign" tone="purple" />
-        <MetricCard label="Invalid Event Rate" value={`${(invalidRate * 100).toFixed(2)}%`} detail="Fraude o evento no facturable" icon="security" tone={invalidRate > .02 ? 'red' : 'amber'} />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Revenue', value: microsToBob(numeric(data, 'revenueMicros')) },
+          { label: 'Billable Spend', value: microsToBob(numeric(data, 'billableSpendMicros')) },
+          { label: 'Active Campaigns', value: numeric(data, 'activeCampaigns') },
+          { label: 'Invalid Event Rate', value: `${(invalidRate * 100).toFixed(2)}%`, alerta: invalidRate > .02 },
+        ]}
+      />
       <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_360px]">
         <Panel title="Salud de facturación y entrega" description="Indicadores de control operativo obtenidos de GET /admin/ads/dashboard." icon="monitoring">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-3"><Health label="Revisiones pendientes" value={numeric(data, 'pendingReviews')} icon="fact_check" tone="amber" /><Health label="Facturas vencidas" value={numeric(data, 'overdueInvoices')} icon="receipt_long" tone="red" /><Health label="Delivery válido" value={`${Math.max(0, (1 - invalidRate) * 100).toFixed(2)}%`} icon="verified" tone="teal" /></div>

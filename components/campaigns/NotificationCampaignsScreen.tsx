@@ -5,7 +5,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -109,12 +109,14 @@ export function NotificationCampaignsScreen() {
         description="Avisos a clientes de la app por bandeja, push y correo: con segmento, fecha de inicio, fin y cadencia, y con el resultado por canal."
         actions={<AtlasButton icon="add" onClick={() => setWizard('new')}>Nueva campaña</AtlasButton>}
       />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="En curso" value={counts.data ? formatCount(counts.data.running) : '—'} detail="Enviando ahora" icon="send" tone="teal" />
-        <MetricCard label="Programadas" value={counts.data ? formatCount(counts.data.scheduled) : '—'} detail="Empiezan solas a su hora" icon="event" tone="navy" />
-        <MetricCard label="Borradores" value={counts.data ? formatCount(counts.data.draft) : '—'} detail="Sin programar: no envían" icon="draft" tone="amber" />
-        <MetricCard label="Terminadas" value={counts.data ? formatCount(counts.data.completed) : '—'} detail="Llegaron a todos o vencieron" icon="task_alt" tone="purple" />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'En curso', value: counts.data ? formatCount(counts.data.running) : '—' },
+          { label: 'Programadas', value: counts.data ? formatCount(counts.data.scheduled) : '—' },
+          { label: 'Borradores', value: counts.data ? formatCount(counts.data.draft) : '—' },
+          { label: 'Terminadas', value: counts.data ? formatCount(counts.data.completed) : '—' },
+        ]}
+      />
       <InlineNotice tone="info" title="Cómo llega">
         La bandeja de la app llega a toda la audiencia; el push, sólo a quien tiene la app con avisos activados; el correo, sólo a quien tiene uno
         verificado. Las campañas comerciales descuentan a quien no aceptó recibir promociones. Los clientes bloqueados nunca reciben.

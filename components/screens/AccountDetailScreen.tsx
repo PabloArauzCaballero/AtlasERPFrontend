@@ -8,7 +8,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -55,12 +55,14 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 
       {requestedId && !resource.error ? (
         <>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Estado comercial" value={<StatusPill tone="success">{String(account.lifecycleStatus ?? 'CARGANDO')}</StatusPill>} detail="Ciclo de vida de la cuenta" icon="domain" />
-            <MetricCard label="Volumen mensual" value={formatBob(Number(account.expectedMonthlyVolume ?? 0))} detail="Proyección declarada" icon="payments" tone="teal" />
-            <MetricCard label="Nivel de riesgo" value={String(account.riskTier ?? 'SIN CLASIFICAR')} detail="Sujeto a validación" icon="shield" tone="amber" />
-            <MetricCard label="Industria" value={String(account.industry ?? '—')} detail="Segmentación comercial" icon="category" tone="purple" />
-          </div>
+          <Resumen
+        datos={[
+          { label: 'Estado comercial', value: <StatusPill tone="success">{String(account.lifecycleStatus ?? 'CARGANDO')}</StatusPill> },
+          { label: 'Volumen mensual', value: formatBob(Number(account.expectedMonthlyVolume ?? 0)) },
+          { label: 'Nivel de riesgo', value: String(account.riskTier ?? 'SIN CLASIFICAR') },
+          { label: 'Industria', value: String(account.industry ?? '—') },
+        ]}
+      />
 
           <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,.7fr)]">
             <div className="space-y-4">

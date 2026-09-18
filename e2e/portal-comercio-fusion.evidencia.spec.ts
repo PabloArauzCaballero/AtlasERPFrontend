@@ -82,6 +82,34 @@ test('Mi empresa tiene las cuatro secciones y el QR de la caja se lee en la tabl
   await page.screenshot({ path: `${EVIDENCIA}/mi-empresa-sucursales-qr.png`, fullPage: true });
 });
 
+test('sin expediente, Mi empresa sigue enseñando sus sucursales y dónde va el QR', async ({ page }) => {
+  /*
+   * La regresión del 2026-09-18, encontrada por Pablo en TEST. Mientras «Sucursales» fue una página
+   * aparte, un comercio sin expediente seguía viendo sus locales —salen del ERP, no del expediente—.
+   * Al meterla dentro de «Mi empresa» quedó colgando del expediente y la pantalla se reducía a un
+   * formulario de alta: ni sucursales, ni sitio donde subir el QR. Las cuatro pestañas se pintan
+   * siempre, y cada una dice qué le falta.
+   */
+  await page.goto('/portal-comercio/expediente');
+  for (const pestana of ['tab-estado', 'tab-ficha', 'tab-qr', 'tab-sucursales']) {
+    await expect(page.getByTestId(pestana), `falta ${pestana} sin expediente`).toBeVisible({ timeout: 30_000 });
+  }
+
+  // Estado: el alta, que es lo único que se puede hacer todavía.
+  await expect(page.getByTestId('btn-abrir-expediente')).toBeVisible();
+
+  // Sucursales: la tabla del ERP, con sus locales, y el motivo por el que aún no hay QR.
+  await page.getByTestId('tab-sucursales').click();
+  await expect(page.locator('table').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('cajas-de-b0000000-0000-4000-8000-00000000ee01')).toContainText('Estado del expediente');
+
+  // Y el QR dice dónde empieza todo, en vez de desaparecer.
+  await page.getByTestId('tab-qr').click();
+  /* El texto propio de esta pestaña: el aviso genérico lo comparte con «Ficha comercial». */
+  await expect(page.getByText(/el qr con el que te pagan cuelga de tu expediente/i)).toBeVisible();
+  await page.screenshot({ path: `${EVIDENCIA}/mi-empresa-sin-expediente.png`, fullPage: true });
+});
+
 test('la tabla de sucursales no desborda la pantalla de un teléfono', async ({ page }) => {
   /*
    * La tabla creció: ahora lleva el QR de cada caja dentro. Su ancho mínimo lo absorbe el

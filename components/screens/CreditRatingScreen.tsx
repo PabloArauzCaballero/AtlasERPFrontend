@@ -5,7 +5,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -146,12 +146,14 @@ export function CreditRatingScreen() {
         </InlineNotice>
       ) : null}
 
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Deudas calificadas" value={n(totals.receivableCount) || '—'} detail="Cuentas por cobrar con categoría vigente" icon="fact_check" />
-        <MetricCard label="Exposición" value={formatBob(n(totals.exposureAmount))} detail="Saldo abierto calificado" icon="account_balance" tone="teal" />
-        <MetricCard label="Previsión" value={formatBob(n(totals.provisionAmount))} detail="Lo que la matriz exige provisionar" icon="savings" tone="amber" />
-        <MetricCard label="Cuentas con categoría" value={`${calificadas} / ${cuentas.length}`} detail="Las demás no tienen deuda abierta" icon="domain" tone="purple" />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Deudas calificadas', value: n(totals.receivableCount) || '—' },
+          { label: 'Exposición', value: formatBob(n(totals.exposureAmount)) },
+          { label: 'Previsión', value: formatBob(n(totals.provisionAmount)) },
+          { label: 'Cuentas con categoría', value: `${calificadas} / ${cuentas.length}` },
+        ]}
+      />
 
       <Panel
         title="Cartera por categoría"

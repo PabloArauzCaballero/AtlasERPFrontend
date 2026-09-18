@@ -5,7 +5,6 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -186,12 +185,6 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
           actions={acciones}
         />
       )}
-
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-        <MetricCard label="Esperando respuesta" value={solicitudes.length} detail="Solicitudes pendientes" icon="pending_actions" />
-        <MetricCard label="Comercio" value={nombre || '—'} detail={partnerId ? `Expediente ${partnerId}` : 'Identificando…'} icon="storefront" tone="teal" />
-        <MetricCard label="Quién fija las cuotas" value="El motor" detail="Usted no puede editarlas" icon="verified" tone="purple" />
-      </div>
 
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       {aviso ? <InlineNotice tone={aviso.tono}>{aviso.texto}</InlineNotice> : null}

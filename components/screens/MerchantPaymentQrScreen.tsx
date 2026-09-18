@@ -6,7 +6,6 @@ import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -373,18 +372,6 @@ export function MerchantPaymentQrScreen({
         />
       )}
 
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-        <MetricCard
-          label="QR vigente"
-          value={cargando ? '…' : vigente ? 'Sí' : 'No'}
-          detail={vigente ? `${vigente.bankInstitutionCode ?? 'sin entidad'} · ${vigente.accountNumberMasked ?? 'sin cuenta'}` : 'Sus clientes no pueden pagarle'}
-          icon="qr_code_2"
-          tone={vigente ? 'teal' : 'purple'}
-        />
-        <MetricCard label="Comercio" value={nombre || '—'} detail={partnerId ? `Expediente ${partnerId} · ${estadoExpediente}` : 'Identificando…'} icon="storefront" />
-        <MetricCard label="Reemplazos" value={cargando ? '…' : historial.length} detail="Los anteriores quedan archivados" icon="history" tone="purple" />
-      </div>
-
       {!embedded && expedientes.length > 1 ? (
         <InlineNotice tone="info" title="Su usuario tiene varios expedientes">
           <label className="flex flex-wrap items-center gap-2 text-xs">
@@ -583,7 +570,7 @@ export function MerchantPaymentQrScreen({
       </Panel>
 
       {historial.length > 0 ? (
-        <Panel title="QR anteriores" description="Se conservan para poder reconstruir contra qué QR se cobró cada día." icon="history">
+        <Panel title={`QR anteriores (${historial.length})`} description="Se conservan para poder reconstruir contra qué QR se cobró cada día." icon="history">
           <table className="w-full text-left text-xs" data-testid="tabla-qr-historial">
             <thead className="text-[10px] uppercase tracking-wide text-slate-500">
               <tr>

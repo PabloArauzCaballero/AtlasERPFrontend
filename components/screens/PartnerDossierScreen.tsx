@@ -268,38 +268,6 @@ export function PartnerDossierScreen() {
         </div>
       ) : null}
 
-      {expedientePropio === 'buscando' && partnerId === '' ? (
-        <Panel title="Mi empresa" icon="storefront">
-          <p className="py-6 text-center text-xs text-slate-500">Comprobando si ya tienes un expediente…</p>
-        </Panel>
-      ) : null}
-
-      {expedientePropio === 'sin-expediente' ? (
-        <Panel title="Abrir expediente" icon="storefront" description="Todavía no tienes un expediente. Este es el primer paso.">
-          <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={abrirExpediente}>
-            <FormField tooltip="Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos." label="Razón social" name="legalName" required data-testid="campo-legalName" />
-            <FormField tooltip="Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa»." label="Nombre comercial" name="tradeName" />
-            <FormField tooltip="NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón." label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
-            <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente." label="Matrícula de comercio" name="commercialRegistry" />
-            <FormField tooltip="Rubro principal del negocio; agrupa la cartera y decide las reglas de comisión que le aplican."
-              kind="select"
-              label="Rubro del negocio"
-              name="businessCategory"
-              data-testid="campo-businessCategory"
-              options={[{ label: '— Seleccione —', value: '' }, ...rubros]}
-              hint="Agrupa tu cartera y las reglas de comisión. Se puede corregir después."
-            />
-            <FormField tooltip="Correo del negocio para avisos operativos y de facturación. Ej.: pagos@tienda.bo." label="Correo de contacto" name="contactEmail" type="email" required data-testid="campo-contactEmail" />
-            <FormField tooltip="Teléfono del negocio para incidencias; con código de país, sin espacios." label="Teléfono" name="contactPhone" />
-            <div className="md:col-span-2">
-              <AtlasButton type="submit" disabled={busy} data-testid="btn-abrir-expediente">
-                <Icon name="add_business" className="text-[18px]" /> Abrir expediente
-              </AtlasButton>
-            </div>
-          </form>
-        </Panel>
-      ) : null}
-
       {/*
         * Un fallo al leer el expediente se DICE. Antes no: `state` se quedaba en `null` y la
         * pantalla se pintaba vacía bajo su título, que es la peor forma de fallar —el comercio no
@@ -312,8 +280,16 @@ export function PartnerDossierScreen() {
         </InlineNotice>
       ) : null}
 
-      {state ? (
-        <TabbedPanels
+      {/*
+        * Las cuatro pestañas se pintan SIEMPRE, también sin expediente.
+        *
+        * Cuando «Sucursales» era una página aparte, un comercio sin expediente seguía viendo sus
+        * locales —salen del ERP, no del expediente— y podía abrirlo desde aquí. Al meterla dentro
+        * de esta pantalla se colgó del expediente sin querer, y un comercio sin él se quedaba con
+        * un formulario de alta y nada más: ni sus sucursales, ni sitio donde subir su QR.
+        * Cada pestaña dice lo que le falta, en vez de desaparecer.
+        */}
+      <TabbedPanels
           keepMounted
           activeId={pestana}
           onChange={elegirPestana}
@@ -322,7 +298,37 @@ export function PartnerDossierScreen() {
               id: 'estado',
               label: 'Estado del expediente',
               icon: 'fact_check',
-              content: (
+              content: !state ? (
+                expedientePropio === 'sin-expediente' ? (
+                  <Panel title="Abrir expediente" icon="storefront" description="Todavía no tienes un expediente. Este es el primer paso.">
+                <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={abrirExpediente}>
+                  <FormField tooltip="Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos." label="Razón social" name="legalName" required data-testid="campo-legalName" />
+                  <FormField tooltip="Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa»." label="Nombre comercial" name="tradeName" />
+                  <FormField tooltip="NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón." label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
+                  <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente." label="Matrícula de comercio" name="commercialRegistry" />
+                  <FormField tooltip="Rubro principal del negocio; agrupa la cartera y decide las reglas de comisión que le aplican."
+                    kind="select"
+                    label="Rubro del negocio"
+                    name="businessCategory"
+                    data-testid="campo-businessCategory"
+                    options={[{ label: '— Seleccione —', value: '' }, ...rubros]}
+                    hint="Agrupa tu cartera y las reglas de comisión. Se puede corregir después."
+                  />
+                  <FormField tooltip="Correo del negocio para avisos operativos y de facturación. Ej.: pagos@tienda.bo." label="Correo de contacto" name="contactEmail" type="email" required data-testid="campo-contactEmail" />
+                  <FormField tooltip="Teléfono del negocio para incidencias; con código de país, sin espacios." label="Teléfono" name="contactPhone" />
+                  <div className="md:col-span-2">
+                    <AtlasButton type="submit" disabled={busy} data-testid="btn-abrir-expediente">
+                      <Icon name="add_business" className="text-[18px]" /> Abrir expediente
+                    </AtlasButton>
+                  </div>
+                </form>
+              </Panel>
+                ) : (
+                  <Panel title="Mi empresa" icon="storefront">
+                    <p className="py-6 text-center text-xs text-slate-500">Comprobando si ya tienes un expediente…</p>
+                  </Panel>
+                )
+              ) : (
               <Panel
                 title={state.profile.legalName}
                 description={`NIT ${state.profile.taxId} · expediente ${state.profile.partnerId}`}
@@ -356,7 +362,13 @@ export function PartnerDossierScreen() {
               id: 'ficha',
               label: 'Ficha comercial',
               icon: 'edit_note',
-              content: (
+              content: !state ? (
+                <Panel title="Ficha comercial" icon="edit_note">
+                  <InlineNotice tone="info" title="Primero hay que abrir tu expediente">
+                    Aquí se corrigen el nombre comercial, el rubro y el teléfono de tu negocio. Ábrelo en «Estado del expediente»; es el primer paso y son siete campos.
+                  </InlineNotice>
+                </Panel>
+              ) : (
               <Panel
                 title="Ficha comercial"
                 description="Cómo se presenta tu negocio. La razón social, el NIT y la matrícula no se editan aquí: son los datos con los que Atlas verificó tu expediente."
@@ -435,7 +447,13 @@ export function PartnerDossierScreen() {
               id: 'qr',
               label: 'Mi QR de cobro',
               icon: 'qr_code_2',
-              content: (
+              content: !state ? (
+                <Panel title="Mi QR de cobro" icon="qr_code_2">
+                  <InlineNotice tone="info" title="Primero hay que abrir tu expediente">
+                    El QR con el que te pagan cuelga de tu expediente, así que no hay dónde guardarlo todavía. Ábrelo en «Estado del expediente»; es el primer paso y son siete campos.
+                  </InlineNotice>
+                </Panel>
+              ) : (
                 <MerchantPaymentQrScreen
                   embedded
                   partnerId={partnerId}
@@ -449,11 +467,14 @@ export function PartnerDossierScreen() {
               id: 'sucursales',
               label: 'Sucursales',
               icon: 'storefront',
+              /*
+               * Sin `state` también: las sucursales son del ERP y existen aunque el expediente no.
+               * Lo que faltará es el QR de sus cajas, y eso lo dice cada fila.
+               */
               content: <MerchantStructureScreen embedded partnerId={partnerId} onDone={() => void dossier.reload()} />,
             },
           ]}
         />
-      ) : null}
     </div>
   );
 }

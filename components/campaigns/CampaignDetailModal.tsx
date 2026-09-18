@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Modal } from '@/components/atlas/Modal';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
@@ -131,13 +131,15 @@ export function CampaignDetailModal({ campaignId, onClose, onChanged, onEdit }: 
         {campaign.lastError ? <InlineNotice tone="danger" title="La campaña se detuvo">{campaign.lastError}</InlineNotice> : null}
         {campaign.cancelReason ? <InlineNotice tone="warning" title="Motivo de la cancelación">{campaign.cancelReason}</InlineNotice> : null}
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <MetricCard label="Alcanzados" value={formatCount(campaign.targetedCount || campaign.audienceEstimate?.total)} detail={campaign.materializedAt ? 'Audiencia completa' : 'Audiencia estimada'} icon="groups" />
-          <MetricCard label="Entregados" value={formatCount(totals.delivered)} detail={`de ${formatCount(totals.total)} avisos`} icon="done_all" tone="teal" />
-          <MetricCard label="Leídos" value={formatCount(totals.read)} detail="Abiertos en la bandeja" icon="visibility" tone="purple" />
-          <MetricCard label="Pendientes" value={formatCount(totals.pending)} detail="Esperan su turno" icon="schedule" tone="amber" />
-          <MetricCard label="Fallidos" value={formatCount(totals.failed)} detail={totals.cancelled ? `${formatCount(totals.cancelled)} anulados` : 'Sin anulados'} icon="error" tone="red" />
-        </div>
+        <Resumen
+        datos={[
+          { label: 'Alcanzados', value: formatCount(campaign.targetedCount || campaign.audienceEstimate?.total) },
+          { label: 'Entregados', value: formatCount(totals.delivered) },
+          { label: 'Leídos', value: formatCount(totals.read) },
+          { label: 'Pendientes', value: formatCount(totals.pending) },
+          { label: 'Fallidos', value: formatCount(totals.failed) },
+        ]}
+      />
 
         {campaign.metrics?.channels.length ? (
           <div className="overflow-x-auto rounded-md border border-slate-200">

@@ -8,7 +8,7 @@ import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -112,12 +112,14 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
 
       {requestedId && !resource.error ? (
         <>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Código" value={<span className="font-mono">{partnerNo}</span>} detail="Inmutable" icon="tag" />
-            <MetricCard label="Tipo" value={String(partner.partnerType ?? '—')} detail="Naturaleza del partner" icon="handshake" tone="teal" />
-            <MetricCard label="KYB" value={<StatusPill tone={kybTone(String(partner.kybStatus))}>{String(partner.kybStatus ?? '—')}</StatusPill>} detail="Cumplimiento" icon="policy" tone="amber" />
-            <MetricCard label="Estado" value={<StatusPill tone={String(partner.status) === 'ACTIVE' ? 'success' : 'neutral'}>{String(partner.status ?? '—')}</StatusPill>} detail="Vigencia" icon="verified" tone="purple" />
-          </div>
+          <Resumen
+        datos={[
+          { label: 'Código', value: <span className="font-mono">{partnerNo}</span> },
+          { label: 'Tipo', value: String(partner.partnerType ?? '—') },
+          { label: 'KYB', value: <StatusPill tone={kybTone(String(partner.kybStatus))}>{String(partner.kybStatus ?? '—')}</StatusPill> },
+          { label: 'Estado', value: <StatusPill tone={String(partner.status) === 'ACTIVE' ? 'success' : 'neutral'}>{String(partner.status ?? '—')}</StatusPill> },
+        ]}
+      />
 
           {mutation.status === 'success' ? <InlineNotice tone="success" title="Cambios guardados">El partner se actualizó correctamente.</InlineNotice> : null}
           {mutation.error ? <InlineNotice tone="danger" title="No se pudo guardar">{mutation.error}</InlineNotice> : null}

@@ -8,7 +8,7 @@ import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -116,12 +116,14 @@ export function GlAccountDetailScreen({ initialId = '' }: { initialId?: string }
 
       {requestedId && !resource.error ? (
         <>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Número de cuenta" value={<span className="font-mono">{accountNo}</span>} detail="Inmutable" icon="tag" />
-            <MetricCard label="Clasificación" value={String(account.accountType ?? '—')} detail="Tipo contable" icon="account_tree" tone="teal" />
-            <MetricCard label="Naturaleza" value={account.normalBalance === 'D' ? 'Débito' : account.normalBalance === 'C' ? 'Crédito' : '—'} detail="Saldo normal" icon="swap_vert" tone="amber" />
-            <MetricCard label="Estado" value={<StatusPill tone={String(account.status) === 'ACTIVE' ? 'success' : 'neutral'}>{String(account.status ?? '—')}</StatusPill>} detail="Vigencia" icon="verified" tone="purple" />
-          </div>
+          <Resumen
+        datos={[
+          { label: 'Número de cuenta', value: <span className="font-mono">{accountNo}</span> },
+          { label: 'Clasificación', value: String(account.accountType ?? '—') },
+          { label: 'Naturaleza', value: account.normalBalance === 'D' ? 'Débito' : account.normalBalance === 'C' ? 'Crédito' : '—' },
+          { label: 'Estado', value: <StatusPill tone={String(account.status) === 'ACTIVE' ? 'success' : 'neutral'}>{String(account.status ?? '—')}</StatusPill> },
+        ]}
+      />
 
           {mutation.status === 'success' ? <InlineNotice tone="success" title="Cambios guardados">La cuenta se actualizó correctamente.</InlineNotice> : null}
           {mutation.error ? <InlineNotice tone="danger" title="No se pudo guardar">{mutation.error}</InlineNotice> : null}

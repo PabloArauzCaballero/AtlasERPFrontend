@@ -8,8 +8,10 @@ import { useMerchantScope } from '@/hooks/useMerchantScope';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
+import { TabbedPanels } from '@/components/atlas/TabbedPanels';
+import { useTabParam } from '@/hooks/useTabParam';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
@@ -38,6 +40,10 @@ import type { ResourceRow } from '@/services/types';
 
 /** Las tres cestas, con su color. Es la misma lectura en las cuotas y en los cargos del ERP. */
 type Estado = 'mora' | 'pendiente' | 'pagado';
+
+/** Las tres secciones de la pantalla, en el orden en que se consultan. */
+const VISTAS = ['cobros', 'cuotas', 'cargos'] as const;
+type Vista = (typeof VISTAS)[number];
 
 const ESTADOS: Record<Estado, { etiqueta: string; tone: 'danger' | 'warning' | 'success'; icono: string }> = {
   mora: { etiqueta: 'En mora', tone: 'danger', icono: 'running_with_errors' },
@@ -90,6 +96,7 @@ export function MerchantBillingScreen() {
   const [carteraError, setCarteraError] = useState<string | null>(null);
   const [cargandoCartera, setCargandoCartera] = useState(true);
   const [filtro, setFiltro] = useState<Estado | 'todas'>('todas');
+  const [vista, elegirVista] = useTabParam('cobros', VISTAS);
   /* Identificador de la factura que se está imprimiendo: es lo que pone el botón en «generando». */
   const [descargando, setDescargando] = useState<string | null>(null);
 
@@ -327,248 +334,256 @@ export function MerchantBillingScreen() {
       {carteraError ? <InlineNotice tone="danger" title="No se pudieron cargar sus cobros">{carteraError}</InlineNotice> : null}
       {billing.error ? <InlineNotice tone="danger" title="No se pudieron cargar los cargos de Atlas">{billing.error}</InlineNotice> : null}
 
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Cobrado"
-          value={cargandoCartera ? '…' : formatBob(Number(resumen?.collected ?? 0))}
-          detail={`${resumen?.paymentsCount ?? 0} pago(s) · ${resumen?.paidInstallments ?? 0} cuota(s) saldada(s)`}
-          icon="payments"
-          tone="teal"
-        />
-        <MetricCard
-          label={`Comisión a Atlas (${tasa} %)`}
-          value={cargandoCartera ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0))}
-          detail="Devengada sobre lo que ya cobró"
-          icon="percent"
-          tone="purple"
-        />
-        <MetricCard
-          label="Pendiente"
-          value={cargandoCartera ? '…' : formatBob(Number(resumen?.pendingAmount ?? 0))}
-          detail={`${resumen?.pendingInstallments ?? 0} cuota(s) por vencer`}
-          icon="schedule"
-          tone="amber"
-        />
-        <MetricCard
-          label="En mora"
-          value={cargandoCartera ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0))}
-          detail={`${resumen?.overdueInstallments ?? 0} cuota(s) vencida(s)`}
-          icon="running_with_errors"
-          tone={Number(resumen?.overdueAmount ?? 0) > 0 ? 'red' : 'teal'}
-        />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Cobrado', value: cargandoCartera ? '…' : formatBob(Number(resumen?.collected ?? 0)) },
+          { label: `Comisión a Atlas (${tasa} %)`, value: cargandoCartera ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
+          { label: 'Pendiente', value: cargandoCartera ? '…' : formatBob(Number(resumen?.pendingAmount ?? 0)) },
+          { label: 'En mora', value: cargandoCartera ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0)), alerta: Number(resumen?.overdueAmount ?? 0) > 0 },
+        ]}
+      />
 
-      <Panel
-        title="Cobros recibidos"
-        description="Cada pago de sus clientes, con la comisión que ese pago le devengó a Atlas."
-        icon="receipt"
-        action={nombreExpediente ? <StatusPill tone="neutral">{nombreExpediente}</StatusPill> : null}
-      >
-        {cargandoCartera ? (
-          <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-        ) : pagos.length === 0 && cobradoSinPago === 0 ? (
-          <p className="py-6 text-center text-xs text-slate-500">Todavía no se ha registrado ningún cobro en sus créditos.</p>
-        ) : (
-          <div className="table-scroll rounded-lg border border-slate-200">
-            <table className="w-full min-w-[820px] text-left text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
-                <tr>
-                  <th className="p-2.5">Fecha</th>
-                  <th className="p-2.5">Crédito</th>
-                  <th className="p-2.5">Cuota(s)</th>
-                  <th className="p-2.5">Medio</th>
-                  <th className="p-2.5 text-right">Importe</th>
-                  <th className="p-2.5 text-right">Comisión ({tasa} %)</th>
-                  <th className="p-2.5">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {pagos.map((pago: PagoDeCartera) => (
-                  <tr key={pago.paymentId} className={pago.reversed ? 'bg-slate-50/60 text-slate-400' : undefined}>
-                    <td className="p-2.5">{formatDate(pago.receivedAt)}</td>
-                    <td className="p-2.5 font-mono text-[11px]">{pago.loanCode}</td>
-                    <td className="p-2.5">{pago.installmentNumbers.length ? pago.installmentNumbers.join(', ') : '—'}</td>
-                    <td className="p-2.5 text-slate-500">{pago.paymentMethod}</td>
-                    <td className="p-2.5 text-right font-semibold">{formatBob(Number(pago.amount))}</td>
-                    <td className="p-2.5 text-right font-bold">{formatBob(Number(pago.commissionAccrued))}</td>
-                    <td className="p-2.5">
-                      {/* Un pago revertido NO es un cobro: se enseña, porque ocurrió, pero en gris y
-                          sin comisión. Ocultarlo dejaría un hueco inexplicable en la cuenta. */}
-                      <StatusPill tone={pago.reversed ? 'neutral' : 'success'}>{pago.reversed ? 'Revertido' : 'Pagado'}</StatusPill>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {cobradoSinPago > 0 ? (
-          <InlineNotice className="mt-3" tone="warning" title="Hay cobros sin pago registrado">
-            {formatBob(cobradoSinPago)} figuran como cobrados en las cuotas pero no tienen un pago
-            anotado detrás, así que no aparecen en esta tabla. Por eso la comisión de arriba
-            ({formatBob(Number(resumen?.commissionAccrued ?? 0))}) es mayor que la que suman estas
-            filas ({formatBob(comisionDePagos)}).
-          </InlineNotice>
-        ) : null}
-      </Panel>
-
-      <Panel
-        title="Estado de sus cuotas"
-        description="Rojo en mora, ámbar pendiente y verde pagado."
-        icon="fact_check"
-        action={
-          <div className="flex flex-wrap gap-1.5">
-            {(['todas', 'mora', 'pendiente', 'pagado'] as const).map((opcion) => (
-              <AtlasButton key={opcion} variant={filtro === opcion ? 'primary' : 'secondary'} onClick={() => setFiltro(opcion)}>
-                {opcion === 'todas' ? `Todas (${cuotas.length})` : `${ESTADOS[opcion].etiqueta} (${cuotas.filter((cuota) => cuota.estado === opcion).length})`}
-              </AtlasButton>
-            ))}
-          </div>
-        }
-      >
-        {cargandoCartera ? (
-          <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-        ) : cuotasVisibles.length === 0 ? (
-          <p className="py-6 text-center text-xs text-slate-500">
-            {cuotas.length === 0 ? 'No hay créditos originados en su comercio.' : 'Ninguna cuota en ese estado.'}
-          </p>
-        ) : (
-          <div className="table-scroll rounded-lg border border-slate-200">
-            <table className="w-full min-w-[760px] text-left text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
-                <tr>
-                  <th className="p-2.5">Crédito</th>
-                  <th className="p-2.5">Cuota</th>
-                  <th className="p-2.5">Vence</th>
-                  <th className="p-2.5 text-right">Importe</th>
-                  <th className="p-2.5 text-right">Pagado</th>
-                  <th className="p-2.5 text-right">Falta</th>
-                  <th className="p-2.5">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {cuotasVisibles.map((cuota) => (
-                  <tr key={cuota.installmentId}>
-                    <td className="p-2.5 font-mono text-[11px]">{cuota.loanCode}</td>
-                    <td className="p-2.5 font-semibold">{cuota.installmentNumber}</td>
-                    <td className="p-2.5">{formatDate(cuota.dueDate)}</td>
-                    <td className="p-2.5 text-right">{formatBob(Number(cuota.amountDue))}</td>
-                    <td className="p-2.5 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
-                    <td className="p-2.5 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
-                    <td className="p-2.5">
-                      <StatusPill tone={ESTADOS[cuota.estado].tone}>
-                        {cuota.estado === 'mora' && cuota.daysPastDue > 0 ? `En mora ${cuota.daysPastDue} d` : ESTADOS[cuota.estado].etiqueta}
-                      </StatusPill>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
-
-      {ready && !billing.error ? (
-        <>
-          <Panel
-            title="Cargos de Atlas"
-            description="Lo que Atlas le factura: la comisión de cada venta, la publicidad y su tarifa."
-            icon="account_balance_wallet"
-            action={<StatusPill tone="neutral">{`Tarifa: ${String(summary.planName ?? 'sin tarifa')}`}</StatusPill>}
-          >
-            {receivables.length ? (
-              <div className="table-scroll rounded-lg border border-slate-200">
-                <table className="w-full min-w-[720px] text-left text-xs">
-                  <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
-                    <tr>
-                      <th className="p-2.5">Concepto</th>
-                      <th className="p-2.5">Emitido</th>
-                      <th className="p-2.5">Vencimiento</th>
-                      <th className="p-2.5 text-right">Original</th>
-                      <th className="p-2.5 text-right">Saldo</th>
-                      <th className="p-2.5">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {receivables.map((receivable) => {
-                      const estado = estadoDelCargo(
-                        String(receivable.status ?? ''),
-                        Number(receivable.amountOpen ?? 0),
-                        typeof receivable.dueDate === 'string' ? receivable.dueDate : undefined,
-                      );
-                      return (
-                        <tr key={String(receivable.id)}>
-                          <td className="p-2.5">{String(receivable.sourceType ?? '—')}</td>
-                          <td className="p-2.5">{formatDate(typeof receivable.issuedAt === 'string' ? receivable.issuedAt : undefined)}</td>
-                          <td className="p-2.5">{formatDate(typeof receivable.dueDate === 'string' ? receivable.dueDate : undefined)}</td>
-                          <td className="p-2.5 text-right">{formatBob(Number(receivable.amountOriginal ?? 0))}</td>
-                          <td className="p-2.5 text-right font-semibold">{formatBob(Number(receivable.amountOpen ?? 0))}</td>
-                          <td className="p-2.5"><StatusPill tone={ESTADOS[estado].tone}>{ESTADOS[estado].etiqueta}</StatusPill></td>
+      <TabbedPanels
+        keepMounted
+        activeId={vista}
+        onChange={(id) => elegirVista(id as Vista)}
+        tabs={[
+          {
+            id: 'cobros',
+            label: 'Cobros recibidos',
+            icon: 'receipt',
+            content: (
+              <Panel
+                title="Cobros recibidos"
+                description="Cada pago de sus clientes, con la comisión que ese pago le devengó a Atlas."
+                icon="receipt"
+                action={nombreExpediente ? <StatusPill tone="neutral">{nombreExpediente}</StatusPill> : null}
+              >
+                {cargandoCartera ? (
+                  <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
+                ) : pagos.length === 0 && cobradoSinPago === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-500">Todavía no se ha registrado ningún cobro en sus créditos.</p>
+                ) : (
+                  <div className="table-scroll rounded-lg border border-slate-200">
+                    <table className="w-full min-w-[820px] text-left text-xs">
+                      <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                        <tr>
+                          <th className="p-2.5">Fecha</th>
+                          <th className="p-2.5">Crédito</th>
+                          <th className="p-2.5">Cuota(s)</th>
+                          <th className="p-2.5">Medio</th>
+                          <th className="p-2.5 text-right">Importe</th>
+                          <th className="p-2.5 text-right">Comisión ({tasa} %)</th>
+                          <th className="p-2.5">Estado</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="py-6 text-center text-xs text-slate-500">Atlas todavía no le ha emitido ningún cargo.</p>
-            )}
-          </Panel>
-
-          <Panel title="Facturas emitidas" icon="receipt_long" description={`${String(summary.invoiceCount ?? 0)} factura(s) · ${formatBob(Number(summary.invoicedTotal ?? 0))} facturado`}>
-            {invoices.length ? (
-              <div className="table-scroll rounded-lg border border-slate-200">
-                <table className="w-full min-w-[720px] text-left text-xs">
-                  <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
-                    <tr>
-                      <th className="p-2.5">Número</th>
-                      <th className="p-2.5">Fecha</th>
-                      <th className="p-2.5">Vencimiento</th>
-                      <th className="p-2.5 text-right">Total</th>
-                      <th className="p-2.5">Estado</th>
-                      <th className="p-2.5 text-right">Documento</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {invoices.map((invoice) => {
-                      /* Una factura emitida no lleva saldo abierto en su fila: mientras no diga
-                         PAID se debe entera, y por eso el saldo que se le pasa es su total. */
-                      const pagada = String(invoice.status ?? '').toUpperCase() === 'PAID';
-                      const estado = estadoDelCargo(
-                        String(invoice.status ?? ''),
-                        pagada ? 0 : Number(invoice.totalAmount ?? 0),
-                        typeof invoice.dueDate === 'string' ? invoice.dueDate : undefined,
-                      );
-                      return (
-                        <tr key={String(invoice.id)}>
-                          <td className="p-2.5 font-mono text-[11px]">{String(invoice.invoiceNumber ?? '—')}</td>
-                          <td className="p-2.5">{formatDate(typeof invoice.invoiceDate === 'string' ? invoice.invoiceDate : undefined)}</td>
-                          <td className="p-2.5">{formatDate(typeof invoice.dueDate === 'string' ? invoice.dueDate : undefined)}</td>
-                          <td className="p-2.5 text-right font-semibold">{formatBob(Number(invoice.totalAmount ?? 0))}</td>
-                          <td className="p-2.5"><StatusPill tone={ESTADOS[estado].tone}>{ESTADOS[estado].etiqueta}</StatusPill></td>
-                          <td className="p-2.5 text-right">
-                            <AtlasButton
-                              variant="secondary"
-                              icon="download"
-                              data-testid={`descargar-factura-${String(invoice.id)}`}
-                              loading={descargando === String(invoice.id)}
-                              onClick={() => void descargarFacturaEmitida(String(invoice.id))}
-                            >
-                              Descargar
-                            </AtlasButton>
-                          </td>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {pagos.map((pago: PagoDeCartera) => (
+                          <tr key={pago.paymentId} className={pago.reversed ? 'bg-slate-50/60 text-slate-400' : undefined}>
+                            <td className="p-2.5">{formatDate(pago.receivedAt)}</td>
+                            <td className="p-2.5 font-mono text-[11px]">{pago.loanCode}</td>
+                            <td className="p-2.5">{pago.installmentNumbers.length ? pago.installmentNumbers.join(', ') : '—'}</td>
+                            <td className="p-2.5 text-slate-500">{pago.paymentMethod}</td>
+                            <td className="p-2.5 text-right font-semibold">{formatBob(Number(pago.amount))}</td>
+                            <td className="p-2.5 text-right font-bold">{formatBob(Number(pago.commissionAccrued))}</td>
+                            <td className="p-2.5">
+                              {/* Un pago revertido NO es un cobro: se enseña, porque ocurrió, pero en gris y
+                                  sin comisión. Ocultarlo dejaría un hueco inexplicable en la cuenta. */}
+                              <StatusPill tone={pago.reversed ? 'neutral' : 'success'}>{pago.reversed ? 'Revertido' : 'Pagado'}</StatusPill>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {cobradoSinPago > 0 ? (
+                  <InlineNotice className="mt-3" tone="warning" title="Hay cobros sin pago registrado">
+                    {formatBob(cobradoSinPago)} figuran como cobrados en las cuotas pero no tienen un pago
+                    anotado detrás, así que no aparecen en esta tabla. Por eso la comisión de arriba
+                    ({formatBob(Number(resumen?.commissionAccrued ?? 0))}) es mayor que la que suman estas
+                    filas ({formatBob(comisionDePagos)}).
+                  </InlineNotice>
+                ) : null}
+              </Panel>
+            ),
+          },
+          {
+            id: 'cuotas',
+            label: 'Estado de sus cuotas',
+            icon: 'fact_check',
+            content: (
+              <Panel
+                title="Estado de sus cuotas"
+                description="Rojo en mora, ámbar pendiente y verde pagado."
+                icon="fact_check"
+                action={
+                  <div className="flex flex-wrap gap-1.5">
+                    {(['todas', 'mora', 'pendiente', 'pagado'] as const).map((opcion) => (
+                      <AtlasButton key={opcion} variant={filtro === opcion ? 'primary' : 'secondary'} onClick={() => setFiltro(opcion)}>
+                        {opcion === 'todas' ? `Todas (${cuotas.length})` : `${ESTADOS[opcion].etiqueta} (${cuotas.filter((cuota) => cuota.estado === opcion).length})`}
+                      </AtlasButton>
+                    ))}
+                  </div>
+                }
+              >
+                {cargandoCartera ? (
+                  <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
+                ) : cuotasVisibles.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-500">
+                    {cuotas.length === 0 ? 'No hay créditos originados en su comercio.' : 'Ninguna cuota en ese estado.'}
+                  </p>
+                ) : (
+                  <div className="table-scroll rounded-lg border border-slate-200">
+                    <table className="w-full min-w-[760px] text-left text-xs">
+                      <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                        <tr>
+                          <th className="p-2.5">Crédito</th>
+                          <th className="p-2.5">Cuota</th>
+                          <th className="p-2.5">Vence</th>
+                          <th className="p-2.5 text-right">Importe</th>
+                          <th className="p-2.5 text-right">Pagado</th>
+                          <th className="p-2.5 text-right">Falta</th>
+                          <th className="p-2.5">Estado</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="py-6 text-center text-xs text-slate-500">Este comercio aún no tiene facturas emitidas.</p>
-            )}
-          </Panel>
-        </>
-      ) : null}
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {cuotasVisibles.map((cuota) => (
+                          <tr key={cuota.installmentId}>
+                            <td className="p-2.5 font-mono text-[11px]">{cuota.loanCode}</td>
+                            <td className="p-2.5 font-semibold">{cuota.installmentNumber}</td>
+                            <td className="p-2.5">{formatDate(cuota.dueDate)}</td>
+                            <td className="p-2.5 text-right">{formatBob(Number(cuota.amountDue))}</td>
+                            <td className="p-2.5 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
+                            <td className="p-2.5 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
+                            <td className="p-2.5">
+                              <StatusPill tone={ESTADOS[cuota.estado].tone}>
+                                {cuota.estado === 'mora' && cuota.daysPastDue > 0 ? `En mora ${cuota.daysPastDue} d` : ESTADOS[cuota.estado].etiqueta}
+                              </StatusPill>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Panel>
+            ),
+          },
+          {
+            id: 'cargos',
+            label: 'Cargos de Atlas',
+            icon: 'account_balance_wallet',
+            content: (
+              <>
+
+              {ready && !billing.error ? (
+                <>
+                  <Panel
+                    title="Cargos de Atlas"
+                    description="Lo que Atlas le factura: la comisión de cada venta, la publicidad y su tarifa."
+                    icon="account_balance_wallet"
+                    action={<StatusPill tone="neutral">{`Tarifa: ${String(summary.planName ?? 'sin tarifa')}`}</StatusPill>}
+                  >
+                    {receivables.length ? (
+                      <div className="table-scroll rounded-lg border border-slate-200">
+                        <table className="w-full min-w-[720px] text-left text-xs">
+                          <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                            <tr>
+                              <th className="p-2.5">Concepto</th>
+                              <th className="p-2.5">Emitido</th>
+                              <th className="p-2.5">Vencimiento</th>
+                              <th className="p-2.5 text-right">Original</th>
+                              <th className="p-2.5 text-right">Saldo</th>
+                              <th className="p-2.5">Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {receivables.map((receivable) => {
+                              const estado = estadoDelCargo(
+                                String(receivable.status ?? ''),
+                                Number(receivable.amountOpen ?? 0),
+                                typeof receivable.dueDate === 'string' ? receivable.dueDate : undefined,
+                              );
+                              return (
+                                <tr key={String(receivable.id)}>
+                                  <td className="p-2.5">{String(receivable.sourceType ?? '—')}</td>
+                                  <td className="p-2.5">{formatDate(typeof receivable.issuedAt === 'string' ? receivable.issuedAt : undefined)}</td>
+                                  <td className="p-2.5">{formatDate(typeof receivable.dueDate === 'string' ? receivable.dueDate : undefined)}</td>
+                                  <td className="p-2.5 text-right">{formatBob(Number(receivable.amountOriginal ?? 0))}</td>
+                                  <td className="p-2.5 text-right font-semibold">{formatBob(Number(receivable.amountOpen ?? 0))}</td>
+                                  <td className="p-2.5"><StatusPill tone={ESTADOS[estado].tone}>{ESTADOS[estado].etiqueta}</StatusPill></td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="py-6 text-center text-xs text-slate-500">Atlas todavía no le ha emitido ningún cargo.</p>
+                    )}
+                  </Panel>
+
+                  <Panel title="Facturas emitidas" icon="receipt_long" description={`${String(summary.invoiceCount ?? 0)} factura(s) · ${formatBob(Number(summary.invoicedTotal ?? 0))} facturado`}>
+                    {invoices.length ? (
+                      <div className="table-scroll rounded-lg border border-slate-200">
+                        <table className="w-full min-w-[720px] text-left text-xs">
+                          <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                            <tr>
+                              <th className="p-2.5">Número</th>
+                              <th className="p-2.5">Fecha</th>
+                              <th className="p-2.5">Vencimiento</th>
+                              <th className="p-2.5 text-right">Total</th>
+                              <th className="p-2.5">Estado</th>
+                              <th className="p-2.5 text-right">Documento</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {invoices.map((invoice) => {
+                              /* Una factura emitida no lleva saldo abierto en su fila: mientras no diga
+                                 PAID se debe entera, y por eso el saldo que se le pasa es su total. */
+                              const pagada = String(invoice.status ?? '').toUpperCase() === 'PAID';
+                              const estado = estadoDelCargo(
+                                String(invoice.status ?? ''),
+                                pagada ? 0 : Number(invoice.totalAmount ?? 0),
+                                typeof invoice.dueDate === 'string' ? invoice.dueDate : undefined,
+                              );
+                              return (
+                                <tr key={String(invoice.id)}>
+                                  <td className="p-2.5 font-mono text-[11px]">{String(invoice.invoiceNumber ?? '—')}</td>
+                                  <td className="p-2.5">{formatDate(typeof invoice.invoiceDate === 'string' ? invoice.invoiceDate : undefined)}</td>
+                                  <td className="p-2.5">{formatDate(typeof invoice.dueDate === 'string' ? invoice.dueDate : undefined)}</td>
+                                  <td className="p-2.5 text-right font-semibold">{formatBob(Number(invoice.totalAmount ?? 0))}</td>
+                                  <td className="p-2.5"><StatusPill tone={ESTADOS[estado].tone}>{ESTADOS[estado].etiqueta}</StatusPill></td>
+                                  <td className="p-2.5 text-right">
+                                    <AtlasButton
+                                      variant="secondary"
+                                      icon="download"
+                                      data-testid={`descargar-factura-${String(invoice.id)}`}
+                                      loading={descargando === String(invoice.id)}
+                                      onClick={() => void descargarFacturaEmitida(String(invoice.id))}
+                                    >
+                                      Descargar
+                                    </AtlasButton>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="py-6 text-center text-xs text-slate-500">Este comercio aún no tiene facturas emitidas.</p>
+                    )}
+                  </Panel>
+                </>
+              ) : null}
+              </>
+            ),
+          },
+        ]}
+      />
+
 
       {!ready && !error ? (
         <InlineNotice tone="info" title="Elige un negocio">

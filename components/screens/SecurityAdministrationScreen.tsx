@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -92,12 +92,14 @@ export function SecurityAdministrationScreen() {
         }
       />
 
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Total Users" value={users.length || '—'} detail="internal_users (tenant actual)" icon="group" />
-        <MetricCard label="Active Users" value={activeCount || '—'} detail="Estado activo" icon="public" tone="teal" />
-        <MetricCard label="Suspended / Locked" value={suspendedCount} detail="Requieren revisión" icon="gpp_maybe" tone="amber" />
-        <MetricCard label="MFA Enabled" value={mfaCount} detail="De los usuarios listados" icon="verified_user" tone="purple" />
-      </div>
+      <Resumen
+        datos={[
+          { label: 'Total Users', value: users.length || '—' },
+          { label: 'Active Users', value: activeCount || '—' },
+          { label: 'Suspended / Locked', value: suspendedCount },
+          { label: 'MFA Enabled', value: mfaCount },
+        ]}
+      />
 
       <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_360px]">
         <Panel title="Personal de Atlas" description="Usuario, rol, estado y MFA — datos en vivo desde /internal/users." icon="manage_accounts">

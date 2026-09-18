@@ -186,7 +186,7 @@ function ResumenTarjeta({ icon, label, value, tone = 'navy' }: { icon: string; l
   );
 }
 
-/* Dos paradas del mismo tono, como en `MetricCard`: basta para que el chip tenga volumen. */
+/* Dos paradas del mismo tono: basta para que el chip tenga volumen. */
 const tonoDelChip = {
   navy: 'bg-gradient-to-br from-[#e2f1ef] to-[#cde5e2] text-[#00544d]',
   slate: 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700',

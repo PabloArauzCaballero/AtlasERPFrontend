@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { MetricCard } from '@/components/atlas/MetricCard';
+import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -59,7 +59,14 @@ export function BulkImportScreen(props: BulkImportScreenProps) {
   return (
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]} title={props.title} description={props.description} actions={<AtlasButton variant="secondary" icon="download" onClick={() => downloadCsvTemplate(props.templateName, props.headers)}>Descargar plantilla</AtlasButton>} />
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Filas cargadas" value={rows.length} detail={`Máximo permitido: ${props.maxRows}`} icon="table_rows" /><MetricCard label="Registros válidos" value={validRows.length} detail="Listos para procesamiento" icon="check_circle" tone="teal" /><MetricCard label="Con observaciones" value={invalidRows} detail="Deben corregirse antes de enviar" icon="warning" tone="amber" /><MetricCard label="Estado del batch" value={mutation.status === 'success' ? 'PROCESADO' : rows.length ? 'STAGING' : 'SIN ARCHIVO'} detail={fileName || 'Seleccione un archivo CSV'} icon="inventory" tone="purple" /></div>
+      <Resumen
+        datos={[
+          { label: 'Filas cargadas', value: rows.length },
+          { label: 'Registros válidos', value: validRows.length },
+          { label: 'Con observaciones', value: invalidRows },
+          { label: 'Estado del batch', value: mutation.status === 'success' ? 'PROCESADO' : rows.length ? 'STAGING' : 'SIN ARCHIVO' },
+        ]}
+      />
       {mutation.error ? <InlineNotice tone="danger" title="El batch fue rechazado">{mutation.error}</InlineNotice> : null}
       {mutation.status === 'success' ? <InlineNotice tone="success" title="Batch procesado">El backend recibió {validRows.length} registros bajo una única operación auditable.</InlineNotice> : null}
 
