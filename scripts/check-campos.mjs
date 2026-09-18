@@ -23,7 +23,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const RAIZ = process.cwd();
-const CARPETAS = (process.env.CAMPOS_DIRS ?? 'app,components,lib/formulariosPapel').split(',');
+const CARPETAS = (process.env.CAMPOS_DIRS ?? 'app,components').split(',');
 
 const CORRELATIVO = /placeholder[=:]\s*["'`{]*\s*["'`]?[A-Z]{2,8}-(?:[A-Z]+-)?\d{3,4}-\d{1,6}["'`]/;
 const UUID_EN_PLACEHOLDER = /placeholder[=:]\s*["'`{]*\s*["'`]?[0-9a-f]{8}-[0-9a-f]{4}-/i;

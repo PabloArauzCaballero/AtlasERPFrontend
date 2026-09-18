@@ -11,8 +11,6 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioDocumentoContable } from '@/lib/formulariosPapel/operaciones';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
 import { loadAccountingPeriods, loadBusinessPartners, loadCostCenters, loadGlAccounts, loadLedgers, loadLegalEntities , loadAccountingDocuments } from '@/services/optionLoaders';
@@ -109,7 +107,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
 
   async function postDocument() { if (!documentId) return; try { await postMutation.execute(documentId); await onDone?.(); } catch { /* controlled */ } }
 
-  const acciones = <><BotonFormularioPapel data-testid="papel-documento-contable" formulario={formularioDocumentoContable} /><AtlasButton variant="secondary" icon="close" type="reset">Cancelar</AtlasButton><AtlasButton variant="secondary" icon="rule" disabled={!balanced}>Validar cuadre</AtlasButton><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar borrador</AtlasButton></>;
+  const acciones = <><AtlasButton variant="secondary" icon="close" type="reset">Cancelar</AtlasButton><AtlasButton variant="secondary" icon="rule" disabled={!balanced}>Validar cuadre</AtlasButton><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar borrador</AtlasButton></>;
 
   return (
     <form className="space-y-5" onSubmit={createDocument}>

@@ -11,9 +11,6 @@ import { ActionFieldControl, payloadDefinitions } from './ActionFieldControl';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject } from '@/services/types';
 import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { armarFormularioPapel, codigoDeFormulario, seccionUnica } from '@/lib/formularioPapel';
-import { usePathname } from 'next/navigation';
 
 interface InlineActionFormProps {
   title: string;
@@ -36,7 +33,6 @@ interface InlineActionFormProps {
  * esa parte, para las acciones que acompañan a una tabla.
  */
 export function InlineActionForm(props: InlineActionFormProps) {
-  const pathname = usePathname();
   const { fields } = props;
   const formRef = useRef<HTMLFormElement>(null);
   const { dynamicOptions, onFieldChange } = useFieldOptions(fields);
@@ -72,15 +68,6 @@ export function InlineActionForm(props: InlineActionFormProps) {
         </div>
         {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
         <div className="flex justify-end border-t border-slate-100 pt-3">
-          <BotonFormularioPapel
-            formulario={() =>
-              armarFormularioPapel(seccionUnica(props.title, props.fields), {
-                formCode: codigoDeFormulario(pathname ?? '', props.title),
-                title: props.title,
-                ...(props.description ? { subtitle: props.description } : {}),
-              })
-            }
-          />
           <AtlasButton type="submit" icon={props.submitIcon ?? 'save'} loading={saving}>{props.submitLabel}</AtlasButton>
         </div>
       </form>

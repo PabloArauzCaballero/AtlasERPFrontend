@@ -10,8 +10,6 @@ import { LoadingSpinner } from '@/components/ui/LoadingIndicator';
 import { b2bService } from '@/services/b2bService';
 import { contentTypeDeArchivo, sha256DeArchivo, uploadWithTicket } from '@/services/filesService';
 import type { ResourceRow } from '@/services/types';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioEvidenciaRequisito } from '@/lib/formulariosPapel/operaciones';
 
 interface Requisito {
   id: string;
@@ -150,8 +148,7 @@ export function OnboardingChecklistEvidenceModal({
             <li><span className="font-bold text-slate-800">2.</span> Adjunte el archivo (PDF, JPEG o PNG hasta 15 MB)</li>
             <li><span className="font-bold text-slate-800">3.</span> Marque el requisito completado en la fila</li>
           </ol>
-          <BotonFormularioPapel data-testid="papel-evidencia" formulario={formularioEvidenciaRequisito} />
-        </div>
+                  </div>
         <FormField tooltip="Requisito del checklist de alta sobre el que se actúa."
           kind="select"
           label="Requisito"

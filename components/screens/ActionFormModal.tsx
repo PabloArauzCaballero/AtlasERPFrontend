@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { armarFormularioPapel, codigoDeFormulario, seccionUnica } from '@/lib/formularioPapel';
-import { usePathname } from 'next/navigation';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
 import { fieldSpanClasses } from '@/lib/formLayout';
@@ -53,7 +50,6 @@ export interface ActionFormModalProps {
  */
 export function ActionFormModal(props: ActionFormModalProps) {
   const { open, fields } = props;
-  const pathname = usePathname();
   // Los catálogos se piden al abrir, no al montar: si no se abre nunca, no se gasta la llamada.
   const { dynamicOptions, onFieldChange } = useFieldOptions(fields, open, props.row ?? null);
   const [saving, setSaving] = useState(false);
@@ -101,16 +97,6 @@ export function ActionFormModal(props: ActionFormModalProps) {
         {error ? <InlineNotice tone="danger" title="No se pudo guardar">{error}</InlineNotice> : null}
         <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
           {/* El mismo formulario, en blanco y en PDF, para quien lo rellena a mano y lo entrega. */}
-          <BotonFormularioPapel
-            className="mr-auto"
-            formulario={() =>
-              armarFormularioPapel(seccionUnica(props.title, fields), {
-                formCode: codigoDeFormulario(pathname ?? '', props.title),
-                title: props.title,
-                ...(props.description ? { subtitle: props.description } : {}),
-              })
-            }
-          />
           <AtlasButton variant="secondary" type="button" onClick={props.onClose}>Cancelar</AtlasButton>
           <AtlasButton type="submit" icon="save" loading={saving}>{props.submitLabel}</AtlasButton>
         </div>

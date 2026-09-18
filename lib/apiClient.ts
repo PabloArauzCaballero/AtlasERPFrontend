@@ -1,6 +1,5 @@
 import { newCorrelationId } from './correlationId';
 import { conReintentos, esRespuestaDePasarela, repeticionDe } from './reintentos';
-import { cabecerasDeTranscripcion } from './transcripcion';
 import { describirIncidencia } from './mensajesValidacion';
 
 export interface ApiRequestOptions {
@@ -257,10 +256,6 @@ function buildHeaders(options: ApiRequestOptions): Record<string, string> {
     // cruza con su catálogo: así una pantalla de este portal pasa de «existe en el código» a
     // «alguien la usó». `erp-portal` se normaliza a `ERP_PORTAL`, el código del catálogo.
     ...cabecerasDeOrigen(),
-    // Si quien usa la pantalla está pasando al sistema un papel rellenado a mano, cada escritura
-    // lleva la serie del papel: el backend la vuelca en la auditoría y el registro queda marcado
-    // como transcrito, no tecleado. Sin modo activo no se añade nada.
-    ...cabecerasDeTranscripcion(),
   };
 
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';

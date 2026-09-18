@@ -23,8 +23,6 @@ import { join, relative } from 'node:path';
 
 const RAIZ = process.cwd();
 const CARPETAS = (process.env.AYUDA_DIRS ?? 'app,components,lib').split(',');
-/** Los formularios en papel son plantillas de impresión, no campos con control. */
-const IGNORADAS = /^lib\/formulariosPapel\//;
 const EXCEPCION = /\/\/\s*sin-ayuda:/;
 const ATOMOS = /<(FormField|ChipsField|CountryCityField|AddressMapField|MultiSelectField)\b/g;
 const SELECT_PERMITIDO = /components\/atlas\/OptionSelect\.tsx$/;
@@ -100,7 +98,6 @@ for (const carpeta of CARPETAS) {
     const texto = readFileSync(archivo, 'utf8');
     const lineas = texto.split('\n');
     const rel = relative(RAIZ, archivo);
-    if (IGNORADAS.test(rel)) continue;
     const exenta = (linea) => EXCEPCION.test(lineas[linea - 1] ?? '') || EXCEPCION.test(lineas[linea - 2] ?? '');
 
     // 5. selects nativos

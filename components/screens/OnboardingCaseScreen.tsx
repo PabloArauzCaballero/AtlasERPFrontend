@@ -9,8 +9,6 @@ import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioCasoOnboarding } from '@/lib/formulariosPapel/operaciones';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
@@ -74,7 +72,7 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Onboarding', href: '/operaciones/crm/onboarding' }, { label: 'Nuevo caso' }]} title="Nuevo caso de onboarding" description="El comercio, quién responde por el alta, y los requisitos que habrá que cerrar antes de activarlo." actions={<BotonFormularioPapel data-testid="papel-caso-onboarding" formulario={formularioCasoOnboarding} />} />
+      <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Onboarding', href: '/operaciones/crm/onboarding' }, { label: 'Nuevo caso' }]} title="Nuevo caso de onboarding" description="El comercio, quién responde por el alta, y los requisitos que habrá que cerrar antes de activarlo." />
       {createMutation.error ? <InlineNotice tone="danger">{createMutation.error}</InlineNotice> : null}
 
       <form id="create-onboarding-form" onSubmit={createCase} className="space-y-4">

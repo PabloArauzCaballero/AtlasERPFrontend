@@ -94,7 +94,6 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control', items: [
       { label: 'Business Action Log', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
-      { label: 'Formularios en papel', href: '/operaciones/admin/formularios-papel', icon: 'print' },
       { label: 'Notificaciones masivas', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' },
       { label: 'Usuarios internos', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
       { label: 'Centro de comando', href: '/operaciones/admin/busqueda-global', icon: 'travel_explore' },

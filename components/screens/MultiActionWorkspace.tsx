@@ -14,9 +14,6 @@ import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import type { JsonObject, ResourceRow } from '@/services/types';
 import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
 import type { ActionField } from './StructuredActionForm';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { armarFormularioPapel, codigoDeFormulario, seccionUnica } from '@/lib/formularioPapel';
-import { usePathname } from 'next/navigation';
 
 export interface WorkspaceAction {
   id: string;
@@ -77,7 +74,6 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
   const [showResult, setShowResult] = useState(false);
   const mutationFunction = useCallback((payload: JsonObject) => action.onSubmit(payload), [action]);
   const mutation = useAtlasMutation(mutationFunction);
-  const pathname = usePathname();
   const definitions = payloadDefinitions(action.fields);
   const spanClasses = fieldSpanClasses(action.fields.map((field) => field.span), { maxColumns: 2 });
 
@@ -108,15 +104,6 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
         {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
         {showResult ? <InlineNotice tone="success">Registro creado correctamente.</InlineNotice> : null}
         <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-          <BotonFormularioPapel
-            formulario={() =>
-              armarFormularioPapel(seccionUnica(action.title, action.fields), {
-                formCode: codigoDeFormulario(pathname ?? '', action.title),
-                title: action.title,
-                ...(action.description ? { subtitle: action.description } : {}),
-              })
-            }
-          />
           <AtlasButton type="submit" icon={action.submitIcon ?? 'save'} loading={mutation.isLoading}>{action.submitLabel}</AtlasButton>
         </div>
       </form>
