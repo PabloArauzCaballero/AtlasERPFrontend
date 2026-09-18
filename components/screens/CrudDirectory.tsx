@@ -61,7 +61,11 @@ export interface CrudExtraAction {
    */
   form?: {
     title?: ((row: ResourceRow) => string) | undefined;
-    description?: string | undefined;
+    /**
+     * Función cuando el texto depende de la fila: «este comercio ya tiene 2 accesos» sólo se puede
+     * escribir mirándola, y ese dato es lo que evita pedir dos veces lo mismo.
+     */
+    description?: string | ((row: ResourceRow) => string) | undefined;
     /** Función cuando los valores por defecto salen de la propia fila (el saldo abierto, p. ej.). */
     fields: ActionField[] | ((row: ResourceRow) => ActionField[]);
     submit: (row: ResourceRow, payload: JsonObject) => Promise<unknown>;
@@ -619,7 +623,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           open
           icon={extraForm.action.icon}
           title={extraForm.action.form.title ? extraForm.action.form.title(extraForm.row) : `${extraForm.action.label}: ${labelFor(extraForm.row)}`}
-          description={extraForm.action.form.description}
+          description={typeof extraForm.action.form.description === 'function' ? extraForm.action.form.description(extraForm.row) : extraForm.action.form.description}
           fields={typeof extraForm.action.form.fields === 'function' ? extraForm.action.form.fields(extraForm.row) : extraForm.action.form.fields}
           submitLabel={extraForm.action.form.submitLabel ?? extraForm.action.label}
           onClose={() => setExtraForm(null)}

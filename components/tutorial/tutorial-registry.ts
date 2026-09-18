@@ -1,5 +1,6 @@
 import type { TutorialListing, TutorialMeta } from './tutorial-types';
 import { TUTORIALS } from './tours';
+import { PUBLICIDAD_VISIBLE } from '@/lib/modulos';
 
 /**
  * Fichas de catálogo del Centro de Tutoriales.
@@ -179,9 +180,16 @@ export function allListings(): TutorialListing[] {
   return META.map(toListing).filter((entry): entry is TutorialListing => entry !== null);
 }
 
-/** Lo que ve ESTA población: nadie recibe un recorrido que no puede abrir. */
+/**
+ * Lo que ve ESTA población: nadie recibe un recorrido que no puede abrir.
+ *
+ * Un módulo oculto (`lib/modulos.ts`) se lleva sus recorridos con él: el Centro de Tutoriales
+ * ofrecía «Campañas publicitarias» y al empezarlo llevaba a una ruta que el menú ya no enseña.
+ * Un tutorial de algo que no existe no es ayuda, es una promesa rota.
+ */
 export function listingsForAudience(audience: 'internal' | 'merchant'): TutorialListing[] {
   return allListings().filter((listing) => {
+    if (!PUBLICIDAD_VISIBLE && listing.category === 'ads') return false;
     const scope = audienceOf(listing);
     return scope === 'any' || scope === audience;
   });

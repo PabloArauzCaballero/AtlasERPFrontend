@@ -68,7 +68,11 @@ export interface RowAction {
    */
   form?: {
     title?: ((row: ResourceRow) => string) | undefined;
-    description?: string | undefined;
+    /**
+     * Función cuando el texto depende de la fila: «este comercio ya tiene 2 accesos» sólo se puede
+     * escribir mirándola, y ese dato es lo que evita pedir dos veces lo mismo.
+     */
+    description?: string | ((row: ResourceRow) => string) | undefined;
     fields: ActionField[] | ((row: ResourceRow) => ActionField[]);
     submit: (row: ResourceRow, payload: JsonObject) => Promise<unknown>;
     submitLabel?: string | undefined;
@@ -406,7 +410,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
           open
           icon={rowForm.action.form.icon ?? rowForm.action.icon ?? 'edit'}
           title={rowForm.action.form.title ? rowForm.action.form.title(rowForm.row) : rowForm.action.label}
-          description={rowForm.action.form.description}
+          description={typeof rowForm.action.form.description === 'function' ? rowForm.action.form.description(rowForm.row) : rowForm.action.form.description}
           fields={typeof rowForm.action.form.fields === 'function' ? rowForm.action.form.fields(rowForm.row) : rowForm.action.form.fields}
           submitLabel={rowForm.action.form.submitLabel ?? rowForm.action.label}
           onClose={() => setRowForm(null)}

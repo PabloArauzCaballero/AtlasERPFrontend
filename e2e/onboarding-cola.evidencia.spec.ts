@@ -87,7 +87,12 @@ test('todo se hace desde la fila: requisito, contrato, credenciales, activar', a
   await expect(fila).toBeVisible({ timeout: 120_000 });
   await expect(fila.getByTitle(/mover un requisito/i)).toBeVisible();
   await expect(fila.getByTitle(/pactar contrato/i)).toBeVisible();
-  await expect(fila.getByTitle(/pedir credenciales/i)).toBeVisible();
+  /*
+   * «Dar acceso a una persona» (antes «Pedir credenciales»). Se renombró el 2026-09-18 al dejar de
+   * retirarse cuando ya había un acceso concedido: un comercio tiene más de una persona, y el
+   * rótulo viejo sonaba a trámite único.
+   */
+  await expect(fila.getByTitle(/dar acceso a una persona/i)).toBeVisible();
   // Compuerta dura: sin APROBADO del Motor no se ofrece activar; se ofrece pedir la verificación.
   await expect(fila.getByTitle(/pedir verificación al motor/i)).toBeVisible();
   await expect(fila.getByTitle(/activar comercio/i)).toHaveCount(0);

@@ -1,3 +1,5 @@
+import { PUBLICIDAD_VISIBLE } from '@/lib/modulos';
+
 export interface NavItem {
   label: string;
   href: string;
@@ -33,23 +35,62 @@ export interface NavGroup {
  * anuncio, y «Segmentos comerciales» es población de negocio (partners y clientes solicitantes de
  * crédito). Llamando «Usuarios» y «Segmentos» a secas, las tres cosas se leían como la misma.
  */
+const ADS: NavGroup = {
+  label: 'Publicidad', icon: 'campaign', accent: 'bg-violet-500', area: 'ads', items: [
+    { label: 'Dashboard', href: '/operaciones/ads/dashboard', icon: 'monitoring' },
+    { label: 'Anunciantes', href: '/operaciones/ads/anunciantes', icon: 'business' },
+    { label: 'Campañas', href: '/operaciones/ads/campanas', icon: 'campaign' },
+    { label: 'Segmentos de audiencia', href: '/operaciones/ads/segmentos', icon: 'groups' },
+    { label: 'Moderación', href: '/operaciones/ads/moderacion', icon: 'verified' },
+    { label: 'Delivery y fraude', href: '/operaciones/ads/delivery-monitor', icon: 'radar' },
+    { label: 'Inventario y políticas', href: '/operaciones/ads/inventario', icon: 'space_dashboard' },
+    { label: 'Facturación', href: '/operaciones/ads/facturacion', icon: 'receipt_long' },
+    { label: 'Correo de campaña', href: '/operaciones/ads/correo', icon: 'forward_to_inbox' },
+    { label: 'Carga masiva', href: '/operaciones/ads/bulk-anunciantes', icon: 'upload_file' },
+  ],
+};
+
+/**
+ * El menú de la consola interna: tres grupos y diecisiete entradas a la vista.
+ *
+ * Eran cuatro grupos y treinta y seis entradas, todas al mismo nivel dentro de su grupo, y esa
+ * planitud era el problema: CRM ofrecía «Cuentas B2B» y «Tags de clasificación» con el mismo peso,
+ * aunque una se abre cada día y la otra se toca cuando alguien inventa una etiqueta nueva. Elegir
+ * entre catorce cosas iguales cuesta más que elegir entre ocho y un cajón.
+ *
+ * El criterio para bajar algo a un subgrupo es cuándo se usa, no de qué trata: lo que se hace con
+ * un comercio delante se queda arriba; lo que se configura una vez y se revisa de tarde en tarde,
+ * abajo. Contabilidad ya estaba así desde antes y es el patrón que se copia.
+ *
+ * Y una entrada se fue del todo: «Centro de comando», que `lib/viewRegistry.ts` declara como
+ * `brecha-backend` —«sin endpoint de búsqueda global federada»—. Una pantalla que el sistema aún
+ * no puede alimentar no es una opción del menú: es una puerta a un cuarto vacío. La ruta sigue
+ * respondiendo para quien la tenga guardada.
+ */
 export const NAVIGATION: NavGroup[] = [
   {
-    label: 'CRM', icon: 'business_center', accent: 'bg-teal-500', area: 'crm', items: [
+    label: 'CRM', icon: 'business_center', accent: 'bg-teal-500', area: 'crm',
+    items: [
       { label: 'Cuentas B2B', href: '/operaciones/crm/cuentas', icon: 'domain' },
       { label: 'Pipeline', href: '/operaciones/crm/oportunidades', icon: 'view_kanban' },
       { label: 'Propuestas', href: '/operaciones/crm/propuestas', icon: 'request_quote' },
       { label: 'Aprobaciones', href: '/operaciones/crm/aprobaciones', icon: 'approval' },
       { label: 'Onboarding', href: '/operaciones/crm/onboarding', icon: 'fact_check' },
-      { label: 'Facturación', href: '/operaciones/crm/facturacion', icon: 'receipt_long' },
-      { label: 'Tarifas y pricing', href: '/operaciones/crm/tarifas', icon: 'sell' },
-      { label: 'Conciliación', href: '/operaciones/crm/conciliacion-cobertura', icon: 'account_balance' },
       { label: 'Contratos', href: '/operaciones/crm/contratos', icon: 'description' },
-      { label: 'Sucursales', href: '/operaciones/crm/sucursales', icon: 'store' },
+      { label: 'Facturación', href: '/operaciones/crm/facturacion', icon: 'receipt_long' },
       { label: 'Calificación de riesgo', href: '/operaciones/crm/calificacion-riesgo', icon: 'speed' },
-      { label: 'Segmentos comerciales', href: '/operaciones/crm/segmentos', icon: 'group_work' },
-      { label: 'Tags de clasificación', href: '/operaciones/crm/tags', icon: 'sell' },
-      { label: 'Carga masiva', href: '/operaciones/crm/bulk-cuentas', icon: 'upload_file' },
+    ],
+    subGroups: [
+      {
+        label: 'Configuración comercial', icon: 'tune', items: [
+          { label: 'Tarifas y pricing', href: '/operaciones/crm/tarifas', icon: 'sell' },
+          { label: 'Conciliación', href: '/operaciones/crm/conciliacion-cobertura', icon: 'account_balance' },
+          { label: 'Sucursales', href: '/operaciones/crm/sucursales', icon: 'store' },
+          { label: 'Segmentos comerciales', href: '/operaciones/crm/segmentos', icon: 'group_work' },
+          { label: 'Tags de clasificación', href: '/operaciones/crm/tags', icon: 'label' },
+          { label: 'Carga masiva', href: '/operaciones/crm/bulk-cuentas', icon: 'upload_file' },
+        ],
+      },
     ],
   },
   {
@@ -77,28 +118,21 @@ export const NAVIGATION: NavGroup[] = [
       },
     ],
   },
+  ...(PUBLICIDAD_VISIBLE ? [ADS] : []),
   {
-    label: 'Ads', icon: 'campaign', accent: 'bg-violet-500', area: 'ads', items: [
-      { label: 'Dashboard', href: '/operaciones/ads/dashboard', icon: 'monitoring' },
-      { label: 'Anunciantes', href: '/operaciones/ads/anunciantes', icon: 'business' },
-      { label: 'Campañas', href: '/operaciones/ads/campanas', icon: 'campaign' },
-      { label: 'Segmentos de audiencia', href: '/operaciones/ads/segmentos', icon: 'groups' },
-      { label: 'Moderación', href: '/operaciones/ads/moderacion', icon: 'verified' },
-      { label: 'Delivery y fraude', href: '/operaciones/ads/delivery-monitor', icon: 'radar' },
-      { label: 'Inventario y políticas', href: '/operaciones/ads/inventario', icon: 'space_dashboard' },
-      { label: 'Facturación', href: '/operaciones/ads/facturacion', icon: 'receipt_long' },
-      { label: 'Correo de campaña', href: '/operaciones/ads/correo', icon: 'forward_to_inbox' },
-      { label: 'Carga masiva', href: '/operaciones/ads/bulk-anunciantes', icon: 'upload_file' },
-    ],
-  },
-  {
-    label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control', items: [
+    label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control',
+    items: [
       { label: 'Business Action Log', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
       { label: 'Notificaciones masivas', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' },
       { label: 'Usuarios internos', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
-      { label: 'Centro de comando', href: '/operaciones/admin/busqueda-global', icon: 'travel_explore' },
-      { label: 'Mapa del sistema', href: '/operaciones/admin/mapa-sitio', icon: 'account_tree' },
-      { label: 'Roles y permisos', href: '/operaciones/admin/roles', icon: 'admin_panel_settings' },
+    ],
+    subGroups: [
+      {
+        label: 'Sistema', icon: 'tune', items: [
+          { label: 'Roles y permisos', href: '/operaciones/admin/roles', icon: 'admin_panel_settings' },
+          { label: 'Mapa del sistema', href: '/operaciones/admin/mapa-sitio', icon: 'account_tree' },
+        ],
+      },
     ],
   },
 ];

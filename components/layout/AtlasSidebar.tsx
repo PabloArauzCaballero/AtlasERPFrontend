@@ -1,12 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
 import { CollapsibleNavGroup } from './CollapsibleNavGroup';
-import { NAVIGATION, isActivePath } from './navigation';
+import { NAVIGATION, isActivePath, type NavGroup } from './navigation';
 
 interface SidebarProps {
   /**
@@ -66,29 +67,16 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
         >
           <Icon name="school" className="text-[19px]" /> Centro de Tutoriales
         </Link>
-        {NAVIGATION.map((group) => (
-          <section className="mb-3" key={group.label}>
-            <div className="mb-1 flex items-center gap-2 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-500"><span className={`h-1.5 w-1.5 rounded-full ${group.accent}`} />{group.label}</div>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const active = isActivePath(pathname, item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onNavigate}
-                    className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors', active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]')}
-                  >
-                    <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-white/75' : 'text-slate-500')} />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-              {group.subGroups?.map((subGroup) => (
-                <CollapsibleNavGroup key={subGroup.label} label={subGroup.label} icon={subGroup.icon} items={subGroup.items} onNavigate={onNavigate} />
-              ))}
-            </div>
-          </section>
+        {NAVIGATION.map((group, indice) => (
+          <GrupoDeMenu
+            key={group.label}
+            group={group}
+            pathname={pathname}
+            /* En la portada se abre el primero: CRM es el trabajo diario y no tiene sentido llegar
+               a la consola con los tres cajones cerrados. En cualquier otra ruta manda la ruta. */
+            defaultOpen={pathname === '/operaciones' && indice === 0}
+            onNavigate={onNavigate}
+          />
         ))}
       </nav>
       {/*
@@ -115,5 +103,66 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Un grupo del menú, plegable.
+ *
+ * Los tres grupos se pintaban siempre abiertos: treinta y seis enlaces seguidos, de los que sólo
+ * los del área en la que estás sirven para algo, y con Contabilidad y Control fuera de la pantalla
+ * hasta que alguien se daba cuenta de que la barra se desplaza. Abierto queda el grupo al que
+ * pertenece la ruta actual —el único que se está usando— y los demás son una línea.
+ *
+ * `abierto` arranca del cálculo y luego lo lleva el usuario: al entrar en un área se despliega
+ * sola, pero si alguien cierra la suya para mirar otra, no se le vuelve a abrir en cada render.
+ */
+function GrupoDeMenu({ group, pathname, defaultOpen, onNavigate }: Readonly<{
+  group: NavGroup;
+  pathname: string;
+  defaultOpen: boolean;
+  onNavigate: () => void;
+}>) {
+  const rutas = [...group.items, ...(group.subGroups?.flatMap((sub) => sub.items) ?? [])];
+  const contieneActiva = rutas.some((item) => isActivePath(pathname, item.href));
+  const [abierto, setAbierto] = useState(defaultOpen || contieneActiva);
+
+  return (
+    <section className="mb-1" key={group.label}>
+      <button
+        type="button"
+        onClick={() => setAbierto((valor) => !valor)}
+        aria-expanded={abierto}
+        className={cn(
+          'mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] transition-colors',
+          contieneActiva ? 'text-[#006a61]' : 'text-slate-500 hover:bg-white hover:text-[#006a61]',
+        )}
+      >
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${group.accent}`} />
+        <span className="flex-1 truncate text-left">{group.label}</span>
+        <Icon name={abierto ? 'expand_less' : 'expand_more'} className="text-[16px] text-slate-400" />
+      </button>
+      {abierto ? (
+        <div className="space-y-0.5">
+          {group.items.map((item) => {
+            const active = isActivePath(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors', active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]')}
+              >
+                <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-white/75' : 'text-slate-500')} />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+          {group.subGroups?.map((subGroup) => (
+            <CollapsibleNavGroup key={subGroup.label} label={subGroup.label} icon={subGroup.icon} items={subGroup.items} onNavigate={onNavigate} />
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
