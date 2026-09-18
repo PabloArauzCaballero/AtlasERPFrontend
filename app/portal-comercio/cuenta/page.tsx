@@ -8,7 +8,7 @@ export default function MerchantAccountPage() {
         eyebrow="Cuenta"
         title="Mi cuenta"
         description="Seguridad de tu acceso al portal del comercio."
-        breadcrumbs={[{ label: 'Portal del comercio', href: '/portal-comercio/planes' }, { label: 'Mi cuenta' }]}
+        breadcrumbs={[{ label: 'Portal del comercio', href: '/portal-comercio/gestion-pos' }, { label: 'Mi cuenta' }]}
       />
       <PasswordChangePanel />
     </div>

@@ -51,35 +51,50 @@ test.beforeEach(async ({ page }) => {
   await page.waitForURL(/\/portal-comercio\//, { timeout: 120_000 });
 });
 
-test('el menú ya no ofrece «Registro BNPL»', async ({ page }) => {
+test('el menú del comercio son cinco entradas, y ni «Planes» ni «Campañas» están entre ellas', async ({ page }) => {
   const menu = page.getByRole('navigation').first();
   await expect(menu.getByText(/registro bnpl/i)).toHaveCount(0);
-  // Y sí ofrece lo que lo sustituye.
-  await expect(menu.getByText(/solicitudes de compra/i)).toBeVisible();
+  /*
+   * Las tres que se retiraron el 2026-09-18. Se comprueban por ausencia y no sólo contando: un
+   * menú de cinco con la entrada equivocada dentro también daría cinco.
+   */
+  await expect(menu.getByText(/planes y suscripci/i)).toHaveCount(0);
+  await expect(menu.getByText(/^campañas$/i)).toHaveCount(0);
+  await expect(menu.getByText(/formularios en papel/i)).toHaveCount(0);
+  for (const entrada of [/gestión pos/i, /mi cartera/i, /consumo y facturación/i, /mi empresa/i, /soporte y tutoriales/i]) {
+    await expect(menu.getByText(entrada)).toBeVisible();
+  }
+  await expect(menu.getByRole('link')).toHaveCount(5);
 });
 
-test('las tarifas se cobran por alcance y por clic, sin cuota ni tope de sucursales', async ({ page }) => {
-  await page.goto('/portal-comercio/planes');
-  await expect(page.getByRole('heading', { name: /tarifas de publicidad/i })).toBeVisible({ timeout: 120_000 });
-
-  // Las dos unidades de cobro, en las tres tarifas.
-  await expect(page.getByText(/por cada 1\.000 personas/i).first()).toBeVisible();
-  await expect(page.getByText(/por clic recibido/i).first()).toBeVisible();
-  expect(await page.getByText(/por cada 1\.000 personas/i).count()).toBe(3);
-
-  // Ni cuota mensual ni topes de sucursal en ninguna tarjeta.
-  await expect(page.getByText(/\/ mes/i)).toHaveCount(0);
-  await expect(page.getByText(/hasta \d+ sucursal/i)).toHaveCount(0);
-  expect(await page.getByText(/sucursales ilimitadas/i).count()).toBe(3);
-  await page.screenshot({ path: `${EVIDENCIA}/05-tarifas.png`, fullPage: true });
+test('las rutas retiradas del portal llevan a donde vive ahora su contenido', async ({ page }) => {
+  /*
+   * Las URLs viejas siguen existiendo fuera de aquí —marcadores del comercio, enlaces que soporte
+   * mandó por escrito—, así que no pueden morir en un 404.
+   */
+  const destinos: Array<[string, RegExp]> = [
+    ['/portal-comercio/solicitudes', /\/portal-comercio\/gestion-pos\?tab=solicitudes$/],
+    ['/portal-comercio/comprobantes', /\/portal-comercio\/gestion-pos\?tab=comprobantes$/],
+    ['/portal-comercio/qr-cobro', /\/portal-comercio\/expediente\?tab=qr$/],
+    ['/portal-comercio/sucursales-usuarios', /\/portal-comercio\/expediente\?tab=sucursales$/],
+    ['/portal-comercio/tutoriales', /\/portal-comercio\/soporte\?tab=tutoriales$/],
+    ['/portal-comercio/planes', /\/portal-comercio\/gestion-pos$/],
+    ['/portal-comercio/campanas', /\/portal-comercio\/gestion-pos$/],
+    ['/portal-comercio/formularios', /\/portal-comercio\/expediente$/],
+  ];
+  for (const [vieja, destino] of destinos) {
+    await page.goto(vieja);
+    await expect(page, `${vieja} no redirige`).toHaveURL(destino, { timeout: 60_000 });
+  }
 });
 
 test('las solicitudes de compra no tienen ningún campo editable', async ({ page }) => {
-  await page.goto('/portal-comercio/solicitudes');
-  await expect(page.getByRole('heading', { name: /solicitudes de compra/i })).toBeVisible({ timeout: 120_000 });
+  await page.goto('/portal-comercio/gestion-pos?tab=solicitudes');
+  await expect(page.getByRole('heading', { name: /gestión pos/i })).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole('tab', { name: /solicitudes de compra/i })).toHaveAttribute('aria-selected', 'true');
 
   // El expediente se resuelve solo: el portal sabe cuál es su comercio.
-  await expect(page.getByText(/expediente \d+/i)).toBeVisible();
+  await expect(page.getByText(/expediente \d+/i).first()).toBeVisible();
   await expect(page.getByText(/usted no puede editarlas/i)).toBeVisible();
 
   // Dentro de la cola no hay un solo control de entrada: sólo se acepta o se rechaza.
@@ -89,16 +104,10 @@ test('las solicitudes de compra no tienen ningún campo editable', async ({ page
   await page.screenshot({ path: `${EVIDENCIA}/06-solicitudes.png`, fullPage: true });
 });
 
-test('el comercio es su propio anunciante: no hay que elegirlo', async ({ page }) => {
-  await page.goto('/portal-comercio/campanas');
-  await expect(page.getByRole('heading', { name: /campa/i }).first()).toBeVisible({ timeout: 120_000 });
-  // El desplegable de anunciante desaparece cuando sólo hay uno, que es siempre para un comercio.
-  await expect(page.getByLabel(/^anunciante$/i)).toHaveCount(0);
-});
-
 test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) => {
-  await page.goto('/portal-comercio/sucursales-usuarios');
-  await expect(page.getByRole('heading', { name: /sucursales/i }).first()).toBeVisible({ timeout: 120_000 });
+  await page.goto('/portal-comercio/expediente?tab=sucursales');
+  await expect(page.getByRole('heading', { name: /mi empresa/i }).first()).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole('tab', { name: /^sucursales$/i })).toHaveAttribute('aria-selected', 'true');
 
   const tabla = page.locator('table').first();
   await expect(tabla).toBeVisible({ timeout: 30_000 });
@@ -117,11 +126,12 @@ test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) =>
 });
 
 test('los comprobantes de transferencia los verifica el comercio', async ({ page }) => {
-  await page.goto('/portal-comercio/comprobantes');
-  await expect(page.getByRole('heading', { name: /comprobantes por verificar/i })).toBeVisible({ timeout: 120_000 });
+  await page.goto('/portal-comercio/gestion-pos?tab=comprobantes');
+  await expect(page.getByRole('tab', { name: /comprobantes por verificar/i })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('heading', { name: /esperando su confirmación/i })).toBeVisible({ timeout: 120_000 });
 
   // El expediente se resuelve solo, igual que en solicitudes.
-  await expect(page.getByText(/expediente \d+/i)).toBeVisible();
+  await expect(page.getByText(/expediente \d+/i).first()).toBeVisible();
   // Y la pantalla dice de quién es la decisión y por qué.
   await expect(page.getByText(/el dinero entra en su cuenta/i)).toBeVisible();
   await expect(page.getByText(/por qué lo confirma usted/i)).toBeVisible();
@@ -142,9 +152,16 @@ test('los comprobantes de transferencia los verifica el comercio', async ({ page
   await page.screenshot({ path: `${EVIDENCIA}/04-comprobantes.png`, fullPage: true });
 });
 
-test('el menú ofrece verificar comprobantes', async ({ page }) => {
+test('verificar comprobantes se alcanza desde el menú en dos pasos', async ({ page }) => {
+  /*
+   * Ya no es una entrada del menú: es una pestaña de «Gestión POS». Lo que hay que seguir
+   * garantizando es que se llegue sin saber la URL, porque es trabajo diario del mostrador.
+   */
   const menu = page.getByRole('navigation').first();
-  await expect(menu.getByText(/comprobantes por verificar/i)).toBeVisible();
+  await menu.getByText(/gestión pos/i).click();
+  await page.getByRole('tab', { name: /comprobantes por verificar/i }).click();
+  await expect(page).toHaveURL(/tab=comprobantes/, { timeout: 60_000 });
+  await expect(page.getByRole('heading', { name: /esperando su confirmación/i })).toBeVisible({ timeout: 60_000 });
 });
 
 test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => {
@@ -199,7 +216,7 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
  * local, donde el bypass de auth convertía en ADMIN a todo el que entraba, salía siempre—.
  */
 test('ninguna pestaña del portal pregunta de qué comercio se trata', async ({ page }) => {
-  for (const ruta of ['/portal-comercio/planes', '/portal-comercio/facturacion', '/portal-comercio/campanas', '/portal-comercio/sucursales-usuarios', '/portal-comercio/expediente']) {
+  for (const ruta of ['/portal-comercio/gestion-pos', '/portal-comercio/facturacion', '/portal-comercio/expediente?tab=sucursales', '/portal-comercio/expediente?tab=qr', '/portal-comercio/expediente']) {
     await page.goto(ruta);
     await page.waitForLoadState('networkidle');
     await expect(page.getByText(/seleccione un comercio|elija un comercio/i), `selector de comercio en ${ruta}`).toHaveCount(0);
@@ -209,7 +226,7 @@ test('ninguna pestaña del portal pregunta de qué comercio se trata', async ({ 
 });
 
 test('ninguna pantalla del portal pide escribir un UUID', async ({ page }) => {
-  for (const ruta of ['/portal-comercio/solicitudes', '/portal-comercio/comprobantes', '/portal-comercio/cartera', '/portal-comercio/planes', '/portal-comercio/sucursales-usuarios', '/portal-comercio/facturacion']) {
+  for (const ruta of ['/portal-comercio/gestion-pos?tab=solicitudes', '/portal-comercio/gestion-pos?tab=comprobantes', '/portal-comercio/cartera', '/portal-comercio/expediente?tab=sucursales', '/portal-comercio/soporte', '/portal-comercio/facturacion']) {
     await page.goto(ruta);
     await page.waitForLoadState('networkidle');
     await expect(page.getByText(/\bUUID\b/i), `«UUID» visible en ${ruta}`).toHaveCount(0);

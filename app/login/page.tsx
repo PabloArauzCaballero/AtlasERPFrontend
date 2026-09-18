@@ -47,7 +47,7 @@ const AUDIENCE_COPY: Record<
     acceso: 'al portal de tu comercio',
     emailLabel: 'Correo del comercio',
     placeholder: 'usuario@micomercio.com',
-    home: '/portal-comercio/planes',
+    home: '/portal-comercio/gestion-pos',
   },
 };
 

@@ -54,7 +54,12 @@ const STATE_TONE: Record<TutorialState, string> = {
  * catálogo entero dejaría a un comercio con un avance clavado por debajo del
  * 100 % por recorridos de pantallas que su sesión ni siquiera alcanza.
  */
-export function TutorialCenter({ audience }: { audience: 'internal' | 'merchant' }) {
+/**
+ * `embedded`: dentro de una pestaña de otra pantalla, que ya puso su propia cabecera. En el portal
+ * del comercio los tutoriales viven junto a Soporte —es la misma pregunta, «no sé hacer esto»— y
+ * dos cabeceras seguidas dejarían la vista sin decir en cuál de las dos se está.
+ */
+export function TutorialCenter({ audience, embedded = false }: { audience: 'internal' | 'merchant'; embedded?: boolean }) {
   const engine = useTutorial();
   const [filters, setFilters] = useState<CenterFilters>(EMPTY_FILTERS);
 
@@ -73,13 +78,15 @@ export function TutorialCenter({ audience }: { audience: 'internal' | 'merchant'
 
   return (
     <div data-tutorial-id="tutorial-center" className="space-y-5">
-      <WorkspaceHeader
-        eyebrow="Ayuda"
-        title="Centro de Tutoriales"
-        description="Recorridos guiados sobre la aplicación real. Puedes retomar uno a medias o repetir cualquiera."
-        breadcrumbs={[{ label: 'Ayuda' }, { label: 'Tutoriales' }]}
-        hideHelp
-      />
+      {embedded ? null : (
+        <WorkspaceHeader
+          eyebrow="Ayuda"
+          title="Centro de Tutoriales"
+          description="Recorridos guiados sobre la aplicación real. Puedes retomar uno a medias o repetir cualquiera."
+          breadcrumbs={[{ label: 'Ayuda' }, { label: 'Tutoriales' }]}
+          hideHelp
+        />
+      )}
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryTile label="Tu avance" value={`${summary.percent}%`} detail={`${summary.completed} de ${summary.total} completados`} icon="school" />

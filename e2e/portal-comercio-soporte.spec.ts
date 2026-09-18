@@ -29,14 +29,20 @@ test.beforeEach(async ({ page }) => {
 
 test('el menú del comercio ofrece Soporte y la pantalla carga', async ({ page }) => {
   const menu = page.getByRole('navigation').first();
-  await expect(menu.getByText(/^soporte$/i)).toBeVisible();
+  /* Desde el 2026-09-18 la entrada cubre las dos cosas: hablar con Atlas y los tutoriales. */
+  await expect(menu.getByText(/^soporte y tutoriales$/i)).toBeVisible();
 
-  await menu.getByText(/^soporte$/i).click();
+  await menu.getByText(/^soporte y tutoriales$/i).click();
   await page.waitForURL(/\/portal-comercio\/soporte/, { timeout: 60_000 });
 
-  await expect(page.getByRole('heading', { name: /soporte/i }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: /soporte y tutoriales/i }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /hablar con soporte/i })).toBeVisible();
   await expect(page.getByText(/mis casos/i)).toBeVisible();
+
+  // Y los tutoriales están a un clic, en la pestaña de al lado.
+  await page.getByTestId('tab-tutoriales').click();
+  await expect(page).toHaveURL(/tab=tutoriales/, { timeout: 30_000 });
+  await expect(page.locator('[data-tutorial-id="tutorial-center"]')).toBeVisible();
 
   await page.screenshot({ path: 'test-results/soporte-comercio.png', fullPage: true });
 });

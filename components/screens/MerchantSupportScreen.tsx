@@ -7,9 +7,10 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { Modal } from '@/components/atlas/Modal';
+import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioSoporte } from '@/lib/formulariosPapel/portal';
+import { TutorialCenter } from '@/components/tutorial/TutorialCenter';
+import { useTabParam } from '@/hooks/useTabParam';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import {
   supportService,
@@ -40,7 +41,10 @@ function nuevoClientMessageId(): string {
   return `erp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const PESTANAS = ['soporte', 'tutoriales'] as const;
+
 export function MerchantSupportScreen() {
+  const [pestana, elegirPestana] = useTabParam('soporte', PESTANAS);
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [casos, setCasos] = useState<CasoDeSoporte[]>([]);
   const [channelId, setChannelId] = useState<string | null>(null);
@@ -296,16 +300,16 @@ export function MerchantSupportScreen() {
   return (
     <div className="space-y-6">
       <WorkspaceHeader
-        title="Soporte"
-        description="Habla con Atlas y sigue tus casos abiertos."
+        title="Soporte y tutoriales"
+        description="Habla con Atlas, sigue tus casos abiertos y repasa cómo se hace cada cosa."
         actions={
-          channelId ? (
+          /* Sólo en Soporte: abrir un caso desde la pestaña de tutoriales no querría decir nada. */
+          pestana !== 'soporte' ? null : channelId ? (
             <AtlasButton variant="secondary" onClick={() => void cerrarConversacion()} loading={cerrando}>
               Cerrar conversación
             </AtlasButton>
           ) : (
             <>
-              <BotonFormularioPapel data-testid="papel-soporte" formulario={() => formularioSoporte(aplanar(motivos))} />
               <AtlasButton variant="secondary" onClick={() => setAbriendoCaso((valor) => !valor)} disabled={!partnerId}>
                 Abrir un caso
               </AtlasButton>
@@ -317,225 +321,247 @@ export function MerchantSupportScreen() {
         }
       />
 
-      {error ? <InlineNotice tone="warning">{error}</InlineNotice> : null}
+      <TabbedPanels
+        keepMounted
+        activeId={pestana}
+        onChange={elegirPestana}
+        tabs={[
+          {
+            id: 'soporte',
+            label: 'Soporte',
+            icon: 'support_agent',
+            content: (
+              <div className="space-y-6">
+              {error ? <InlineNotice tone="warning">{error}</InlineNotice> : null}
 
-      <Modal
-        open={abriendoCaso}
-        title="Abrir un caso"
-        description="Cuéntanos qué pasa por escrito; lo seguimos desde tus casos."
-        icon="support_agent"
-        width="md"
-        onClose={() => setAbriendoCaso(false)}
-      >
-        <form
-          className="grid gap-4"
-          data-testid="formulario-abrir-caso"
-          onSubmit={(evento) => {
-            evento.preventDefault();
-            void enviarCaso();
-          }}
-        >
-          <FormField tooltip="Tema del caso; decide a qué equipo llega."
-            kind="select"
-            label="Motivo"
-            name="motivoDelCaso"
-            required
-            value={nuevoCaso.categoryCode}
-            onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, categoryCode: evento.target.value }))}
-            options={aplanar(motivos)}
-            hint={motivos.length === 0 ? 'El catálogo de motivos no cargó: vuelve a intentarlo o habla con soporte.' : undefined}
-          />
-          <FormField tooltip="Resumen del problema en una línea."
-            label="Título"
-            name="tituloDelCaso"
-            required
-            value={nuevoCaso.title}
-            onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, title: evento.target.value }))}
-            placeholder="Qué pasa, en una línea"
-          />
-          <FormField tooltip="Qué pasó, cuándo y qué esperabas; cuanto más detalle, antes se resuelve."
-            kind="textarea"
-            label="Descripción"
-            name="descripcionDelCaso"
-            required
-            value={nuevoCaso.description}
-            onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, description: evento.target.value }))}
-            placeholder="Cuándo empezó, qué esperabas y qué pasó."
-          />
-          <div className="flex justify-end gap-3">
-            <AtlasButton variant="secondary" onClick={() => setAbriendoCaso(false)} disabled={enviandoCaso}>
-              Cancelar
-            </AtlasButton>
-            <AtlasButton
-              type="submit"
-              loading={enviandoCaso}
-              disabled={!nuevoCaso.categoryCode || nuevoCaso.title.trim().length < 3 || nuevoCaso.description.trim().length < 10}
-            >
-              Enviar el caso
-            </AtlasButton>
-          </div>
-        </form>
-      </Modal>
-
-      {casoAbierto ? (
-        <Panel title={casoAbierto.title} description={`${casoAbierto.caseNumber} · ${casoAbierto.status}`}>
-          <dl className="grid gap-2 text-sm sm:grid-cols-2" data-testid="detalle-del-caso">
-            <div><dt className="text-xs text-slate-500">Tipo</dt><dd>{casoAbierto.caseType}</dd></div>
-            <div><dt className="text-xs text-slate-500">Dominio</dt><dd>{casoAbierto.domain}</dd></div>
-            <div><dt className="text-xs text-slate-500">Abierto</dt><dd>{new Date(casoAbierto.openedAt).toLocaleString('es-BO')}</dd></div>
-            <div><dt className="text-xs text-slate-500">Última actividad</dt><dd>{new Date(casoAbierto.lastActivityAt).toLocaleString('es-BO')}</dd></div>
-            <div><dt className="text-xs text-slate-500">Primera respuesta</dt><dd>{casoAbierto.firstResponseAt ? new Date(casoAbierto.firstResponseAt).toLocaleString('es-BO') : 'Todavía no'}</dd></div>
-            <div><dt className="text-xs text-slate-500">Resuelto</dt><dd>{casoAbierto.resolvedAt ? new Date(casoAbierto.resolvedAt).toLocaleString('es-BO') : 'Todavía no'}</dd></div>
-            {casoAbierto.summary ? <div className="sm:col-span-2"><dt className="text-xs text-slate-500">Resumen</dt><dd className="whitespace-pre-wrap">{casoAbierto.summary}</dd></div> : null}
-          </dl>
-          <div className="mt-4 flex justify-end">
-            <AtlasButton variant="ghost" onClick={() => setCasoAbierto(null)}>Cerrar el detalle</AtlasButton>
-          </div>
-        </Panel>
-      ) : null}
-
-      {eligiendo ? (
-        <Panel title="¿Sobre qué es?" description="Así te atiende quien más sabe del tema.">
-          {/*
-            Identificador estable para la prueba de punta a punta.
-
-            Sin él, «pulsa el primer motivo» se escribe como «pulsa el primer botón que no sea
-            Hablar con soporte», que en un portal con barra de navegación puede caer en cualquier
-            sitio. Un ancla explícita dice qué se está señalando.
-          */}
-          <ul className="divide-y divide-slate-200" data-testid="motivos-soporte">
-            {eligiendo.map((motivo) => (
-              <li key={motivo.categoryCode}>
-                <button
-                  type="button"
-                  className="w-full px-1 py-3 text-left hover:bg-slate-50"
-                  onClick={() => elegirMotivo(motivo)}
-                >
-                  <span className="block text-sm font-medium text-slate-900">{motivo.label}</span>
-                  {motivo.description ? (
-                    <span className="block text-xs text-slate-500">{motivo.description}</span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-            {/*
-              La salida sin motivo se queda, y a la vista. Esconderla convertiría el catálogo en un
-              peaje: quien no encuentra su caso en la lista se quedaría sin poder escribir, que es el
-              fallo que este paso pretende evitar.
-            */}
-            <li>
-              <button
-                type="button"
-                className="w-full px-1 py-3 text-left hover:bg-slate-50"
-                onClick={() => void abrirConversacion()}
+              <Modal
+                open={abriendoCaso}
+                title="Abrir un caso"
+                description="Cuéntanos qué pasa por escrito; lo seguimos desde tus casos."
+                icon="support_agent"
+                width="md"
+                onClose={() => setAbriendoCaso(false)}
               >
-                <span className="block text-sm font-medium text-slate-900">
-                  Ninguno de estos / prefiero contarlo
-                </span>
-                <span className="block text-xs text-slate-500">
-                  Abrimos la conversación y la clasificamos nosotros.
-                </span>
-              </button>
-            </li>
-          </ul>
-        </Panel>
-      ) : null}
-
-      {channelId ? (
-        <Panel
-          title="Conversación"
-          description={conectado ? 'En vivo' : 'Reconectando…'}
-        >
-          <div className="flex h-[420px] flex-col gap-3 overflow-y-auto rounded-lg bg-slate-50 p-4">
-            {mensajes.map((mensaje) => {
-              const mio = mensaje.senderActorType === 'PARTNER_USER';
-              const delSistema = mensaje.senderActorType === 'SYSTEM' || mensaje.visibility === 'SYSTEM';
-
-              if (delSistema) {
-                return (
-                  <div key={mensaje.messageId} className="mx-auto max-w-[80%] rounded-lg bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
-                    {mensaje.body}
+                <form
+                  className="grid gap-4"
+                  data-testid="formulario-abrir-caso"
+                  onSubmit={(evento) => {
+                    evento.preventDefault();
+                    void enviarCaso();
+                  }}
+                >
+                  <FormField tooltip="Tema del caso; decide a qué equipo llega."
+                    kind="select"
+                    label="Motivo"
+                    name="motivoDelCaso"
+                    required
+                    value={nuevoCaso.categoryCode}
+                    onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, categoryCode: evento.target.value }))}
+                    options={aplanar(motivos)}
+                    hint={motivos.length === 0 ? 'El catálogo de motivos no cargó: vuelve a intentarlo o habla con soporte.' : undefined}
+                  />
+                  <FormField tooltip="Resumen del problema en una línea."
+                    label="Título"
+                    name="tituloDelCaso"
+                    required
+                    value={nuevoCaso.title}
+                    onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, title: evento.target.value }))}
+                    placeholder="Qué pasa, en una línea"
+                  />
+                  <FormField tooltip="Qué pasó, cuándo y qué esperabas; cuanto más detalle, antes se resuelve."
+                    kind="textarea"
+                    label="Descripción"
+                    name="descripcionDelCaso"
+                    required
+                    value={nuevoCaso.description}
+                    onChange={(evento) => setNuevoCaso((previo) => ({ ...previo, description: evento.target.value }))}
+                    placeholder="Cuándo empezó, qué esperabas y qué pasó."
+                  />
+                  <div className="flex justify-end gap-3">
+                    <AtlasButton variant="secondary" onClick={() => setAbriendoCaso(false)} disabled={enviandoCaso}>
+                      Cancelar
+                    </AtlasButton>
+                    <AtlasButton
+                      type="submit"
+                      loading={enviandoCaso}
+                      disabled={!nuevoCaso.categoryCode || nuevoCaso.title.trim().length < 3 || nuevoCaso.description.trim().length < 10}
+                    >
+                      Enviar el caso
+                    </AtlasButton>
                   </div>
-                );
-              }
+                </form>
+              </Modal>
 
-              return (
-                <div key={mensaje.messageId} className={mio ? 'flex justify-end' : 'flex justify-start'}>
-                  <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ring-1 ${mio ? 'bg-emerald-50 text-slate-900 ring-emerald-200' : 'bg-white text-slate-900 ring-slate-200'}`}>
-                    <p className="whitespace-pre-wrap">{mensaje.body}</p>
-                    {mensaje.redacted ? (
-                      <p className="mt-1 text-xs text-slate-500">Ocultamos un dato sensible por seguridad.</p>
-                    ) : null}
-                    <p className="mt-1 text-right text-[11px] text-slate-500">
-                      {new Date(mensaje.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
-                      {mio ? <span className="ml-2">{fueLeido(mensaje) ? 'Leído' : 'Enviado'}</span> : null}
-                    </p>
+              {casoAbierto ? (
+                <Panel title={casoAbierto.title} description={`${casoAbierto.caseNumber} · ${casoAbierto.status}`}>
+                  <dl className="grid gap-2 text-sm sm:grid-cols-2" data-testid="detalle-del-caso">
+                    <div><dt className="text-xs text-slate-500">Tipo</dt><dd>{casoAbierto.caseType}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Dominio</dt><dd>{casoAbierto.domain}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Abierto</dt><dd>{new Date(casoAbierto.openedAt).toLocaleString('es-BO')}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Última actividad</dt><dd>{new Date(casoAbierto.lastActivityAt).toLocaleString('es-BO')}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Primera respuesta</dt><dd>{casoAbierto.firstResponseAt ? new Date(casoAbierto.firstResponseAt).toLocaleString('es-BO') : 'Todavía no'}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Resuelto</dt><dd>{casoAbierto.resolvedAt ? new Date(casoAbierto.resolvedAt).toLocaleString('es-BO') : 'Todavía no'}</dd></div>
+                    {casoAbierto.summary ? <div className="sm:col-span-2"><dt className="text-xs text-slate-500">Resumen</dt><dd className="whitespace-pre-wrap">{casoAbierto.summary}</dd></div> : null}
+                  </dl>
+                  <div className="mt-4 flex justify-end">
+                    <AtlasButton variant="ghost" onClick={() => setCasoAbierto(null)}>Cerrar el detalle</AtlasButton>
                   </div>
-                </div>
-              );
-            })}
+                </Panel>
+              ) : null}
 
-            {escribiendo ? <p className="text-xs text-slate-500">Atlas está escribiendo…</p> : null}
-            <div ref={finDelHilo} />
-          </div>
+              {eligiendo ? (
+                <Panel title="¿Sobre qué es?" description="Así te atiende quien más sabe del tema.">
+                  {/*
+                    Identificador estable para la prueba de punta a punta.
 
-          <div className="mt-4 flex items-end gap-3">
-            <div className="flex-1">
-              <FormField tooltip="Tu respuesta o aclaración para el equipo de soporte."
-                label="Tu mensaje"
-                name="mensajeDeSoporte"
-                value={texto}
-                onChange={(evento) => {
-                  setTexto(evento.target.value);
-                  if (evento.target.value.length === 1 && channelId) {
-                    void supportService.avisarEscribiendo(channelId).catch(() => undefined);
-                  }
-                }}
-                placeholder="Escribe aquí…"
-              />
-            </div>
-            <AtlasButton onClick={() => void enviar()} disabled={texto.trim().length === 0}>
-              Enviar
-            </AtlasButton>
-          </div>
-        </Panel>
-      ) : null}
+                    Sin él, «pulsa el primer motivo» se escribe como «pulsa el primer botón que no sea
+                    Hablar con soporte», que en un portal con barra de navegación puede caer en cualquier
+                    sitio. Un ancla explícita dice qué se está señalando.
+                  */}
+                  <ul className="divide-y divide-slate-200" data-testid="motivos-soporte">
+                    {eligiendo.map((motivo) => (
+                      <li key={motivo.categoryCode}>
+                        <button
+                          type="button"
+                          className="w-full px-1 py-3 text-left hover:bg-slate-50"
+                          onClick={() => elegirMotivo(motivo)}
+                        >
+                          <span className="block text-sm font-medium text-slate-900">{motivo.label}</span>
+                          {motivo.description ? (
+                            <span className="block text-xs text-slate-500">{motivo.description}</span>
+                          ) : null}
+                        </button>
+                      </li>
+                    ))}
+                    {/*
+                      La salida sin motivo se queda, y a la vista. Esconderla convertiría el catálogo en un
+                      peaje: quien no encuentra su caso en la lista se quedaría sin poder escribir, que es el
+                      fallo que este paso pretende evitar.
+                    */}
+                    <li>
+                      <button
+                        type="button"
+                        className="w-full px-1 py-3 text-left hover:bg-slate-50"
+                        onClick={() => void abrirConversacion()}
+                      >
+                        <span className="block text-sm font-medium text-slate-900">
+                          Ninguno de estos / prefiero contarlo
+                        </span>
+                        <span className="block text-xs text-slate-500">
+                          Abrimos la conversación y la clasificamos nosotros.
+                        </span>
+                      </button>
+                    </li>
+                  </ul>
+                </Panel>
+              ) : null}
 
-      <Panel title="Mis casos" description={cargando ? 'Cargando…' : `${casos.length} caso(s)`}>
-        {casos.length === 0 && !cargando ? (
-          <p className="text-sm text-slate-500">Todavía no abriste ningún caso. El botón de arriba abre una conversación.</p>
-        ) : null}
+              {channelId ? (
+                <Panel
+                  title="Conversación"
+                  description={conectado ? 'En vivo' : 'Reconectando…'}
+                >
+                  <div className="flex h-[420px] flex-col gap-3 overflow-y-auto rounded-lg bg-slate-50 p-4">
+                    {mensajes.map((mensaje) => {
+                      const mio = mensaje.senderActorType === 'PARTNER_USER';
+                      const delSistema = mensaje.senderActorType === 'SYSTEM' || mensaje.visibility === 'SYSTEM';
 
-        <ul className="divide-y divide-slate-200">
-          {casos.map((caso) => (
-            <li key={caso.caseId} className="flex items-center justify-between gap-4 py-3">
-              <div>
-                <p className="text-sm font-medium">{caso.title}</p>
-                <p className="text-xs text-slate-500">
-                  {caso.caseNumber} · abierto el {new Date(caso.openedAt).toLocaleDateString('es-BO')}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <StatusPill tone={caso.closedAt ? 'neutral' : caso.resolvedAt ? 'success' : 'info'}>{caso.status}</StatusPill>
-                <AtlasButton variant="ghost" onClick={() => void abrirDetalle(caso)}>
-                  Ver detalle
-                </AtlasButton>
-                {caso.channels?.find((canal) => !['CLOSED', 'ABANDONED'].includes(canal.status)) ? (
-                  <AtlasButton
-                    variant="ghost"
-                    onClick={() => {
-                      const vivo = caso.channels?.find((canal) => !['CLOSED', 'ABANDONED'].includes(canal.status));
-                      if (vivo) setChannelId(vivo.channelId);
-                    }}
-                  >
-                    Ver conversación
-                  </AtlasButton>
+                      if (delSistema) {
+                        return (
+                          <div key={mensaje.messageId} className="mx-auto max-w-[80%] rounded-lg bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
+                            {mensaje.body}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={mensaje.messageId} className={mio ? 'flex justify-end' : 'flex justify-start'}>
+                          <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ring-1 ${mio ? 'bg-emerald-50 text-slate-900 ring-emerald-200' : 'bg-white text-slate-900 ring-slate-200'}`}>
+                            <p className="whitespace-pre-wrap">{mensaje.body}</p>
+                            {mensaje.redacted ? (
+                              <p className="mt-1 text-xs text-slate-500">Ocultamos un dato sensible por seguridad.</p>
+                            ) : null}
+                            <p className="mt-1 text-right text-[11px] text-slate-500">
+                              {new Date(mensaje.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                              {mio ? <span className="ml-2">{fueLeido(mensaje) ? 'Leído' : 'Enviado'}</span> : null}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {escribiendo ? <p className="text-xs text-slate-500">Atlas está escribiendo…</p> : null}
+                    <div ref={finDelHilo} />
+                  </div>
+
+                  <div className="mt-4 flex items-end gap-3">
+                    <div className="flex-1">
+                      <FormField tooltip="Tu respuesta o aclaración para el equipo de soporte."
+                        label="Tu mensaje"
+                        name="mensajeDeSoporte"
+                        value={texto}
+                        onChange={(evento) => {
+                          setTexto(evento.target.value);
+                          if (evento.target.value.length === 1 && channelId) {
+                            void supportService.avisarEscribiendo(channelId).catch(() => undefined);
+                          }
+                        }}
+                        placeholder="Escribe aquí…"
+                      />
+                    </div>
+                    <AtlasButton onClick={() => void enviar()} disabled={texto.trim().length === 0}>
+                      Enviar
+                    </AtlasButton>
+                  </div>
+                </Panel>
+              ) : null}
+
+              <Panel title="Mis casos" description={cargando ? 'Cargando…' : `${casos.length} caso(s)`}>
+                {casos.length === 0 && !cargando ? (
+                  <p className="text-sm text-slate-500">Todavía no abriste ningún caso. El botón de arriba abre una conversación.</p>
                 ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Panel>
+
+                <ul className="divide-y divide-slate-200">
+                  {casos.map((caso) => (
+                    <li key={caso.caseId} className="flex items-center justify-between gap-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium">{caso.title}</p>
+                        <p className="text-xs text-slate-500">
+                          {caso.caseNumber} · abierto el {new Date(caso.openedAt).toLocaleDateString('es-BO')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <StatusPill tone={caso.closedAt ? 'neutral' : caso.resolvedAt ? 'success' : 'info'}>{caso.status}</StatusPill>
+                        <AtlasButton variant="ghost" onClick={() => void abrirDetalle(caso)}>
+                          Ver detalle
+                        </AtlasButton>
+                        {caso.channels?.find((canal) => !['CLOSED', 'ABANDONED'].includes(canal.status)) ? (
+                          <AtlasButton
+                            variant="ghost"
+                            onClick={() => {
+                              const vivo = caso.channels?.find((canal) => !['CLOSED', 'ABANDONED'].includes(canal.status));
+                              if (vivo) setChannelId(vivo.channelId);
+                            }}
+                          >
+                            Ver conversación
+                          </AtlasButton>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+</div>
+            ),
+          },
+          {
+            id: 'tutoriales',
+            label: 'Tutoriales',
+            icon: 'school',
+            content: <TutorialCenter audience="merchant" embedded />,
+          },
+        ]}
+      />
     </div>
   );
 }

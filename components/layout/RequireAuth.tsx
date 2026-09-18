@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
 
 /** Dónde vive cada población cuando su sesión no corresponde a la sección que pidió. */
-const HOME_FOR_AUDIENCE = { internal: '/operaciones', merchant: '/portal-comercio/planes' } as const;
+const HOME_FOR_AUDIENCE = { internal: '/operaciones', merchant: '/portal-comercio/gestion-pos' } as const;
 
 export type AuthAudience = keyof typeof HOME_FOR_AUDIENCE;
 

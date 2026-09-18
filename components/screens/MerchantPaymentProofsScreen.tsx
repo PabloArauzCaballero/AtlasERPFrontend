@@ -108,6 +108,18 @@ function ComprobanteImagen({ partnerId, claimId }: Readonly<{ partnerId: string;
   );
 }
 
+interface MerchantPaymentProofsScreenProps {
+  /**
+   * Dentro de una pestaña de «Gestión POS»: sin cabecera propia y con el expediente ya resuelto
+   * por la pantalla que la contiene. Suelta, la pantalla sigue sabiendo resolverlo ella misma.
+   */
+  embedded?: boolean | undefined;
+  partnerId?: string | undefined;
+  nombre?: string | undefined;
+  /** Cuántos esperan confirmación, para el contador de la pestaña. */
+  onCount?: ((total: number) => void) | undefined;
+}
+
 /**
  * Los comprobantes de transferencia que esperan la palabra del comercio.
  *
@@ -118,9 +130,11 @@ function ComprobanteImagen({ partnerId, claimId }: Readonly<{ partnerId: string;
  * Rechazar exige motivo. Quien queda sin su pago reconocido tiene derecho a saber por qué, y sin
  * motivo no hay forma de distinguir un error del cliente de uno del comercio.
  */
-export function MerchantPaymentProofsScreen() {
-  const [partnerId, setPartnerId] = useState('');
-  const [nombre, setNombre] = useState('');
+export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partnerIdProp, nombre: nombreProp, onCount }: MerchantPaymentProofsScreenProps = {}) {
+  const [partnerIdPropio, setPartnerIdPropio] = useState('');
+  const [nombrePropio, setNombrePropio] = useState('');
+  const partnerId = partnerIdProp ?? partnerIdPropio;
+  const nombre = nombreProp ?? nombrePropio;
   const [comprobantes, setComprobantes] = useState<ComprobanteDePago[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,33 +143,50 @@ export function MerchantPaymentProofsScreen() {
   const [motivo, setMotivo] = useState('');
   const [ocupado, setOcupado] = useState<string | null>(null);
 
-  const recargar = useCallback(async (id: string) => {
-    setCargando(true);
-    try {
-      const resultado = await merchantCreditService.listarComprobantes(id);
-      setComprobantes(resultado.claims ?? []);
-      setError(null);
-    } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer los comprobantes.');
-    } finally {
-      setCargando(false);
-    }
-  }, []);
+  const recargar = useCallback(
+    async (id: string) => {
+      setCargando(true);
+      try {
+        const resultado = await merchantCreditService.listarComprobantes(id);
+        const filas = resultado.claims ?? [];
+        setComprobantes(filas);
+        onCount?.(filas.length);
+        setError(null);
+      } catch (fallo) {
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible leer los comprobantes.');
+      } finally {
+        setCargando(false);
+      }
+    },
+    [onCount],
+  );
 
+  /* Ver `MerchantRequestsScreen`: embebida, el expediente lo resuelve una sola vez el padre. */
   useEffect(() => {
+    if (partnerIdProp !== undefined) {
+      if (partnerIdProp) void recargar(partnerIdProp);
+      /*
+       * Cadena vacía = quien contiene la pantalla resolvió que NO hay expediente. Sin esto la cola
+       * se quedaba en «Cargando…» para siempre, que se lee como «el sistema está pensando» cuando
+       * lo que pasa es que no hay nada que pedir. El motivo lo explica el aviso de la cabecera.
+       */
+      else setCargando(false);
+      return;
+    }
     let cancelado = false;
     merchantCreditService
       .misExpedientes()
       .then((resultado) => {
         if (cancelado) return;
-        const propio = resultado.profiles?.[0];
+        const perfiles = resultado.profiles ?? [];
+        const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
           setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
           setCargando(false);
           return;
         }
-        setPartnerId(propio.partnerId);
-        setNombre(propio.tradeName ?? propio.legalName ?? '');
+        setPartnerIdPropio(propio.partnerId);
+        setNombrePropio(propio.tradeName ?? propio.legalName ?? '');
         void recargar(propio.partnerId);
       })
       .catch((fallo: unknown) => {
@@ -164,7 +195,7 @@ export function MerchantPaymentProofsScreen() {
         setCargando(false);
       });
     return () => { cancelado = true; };
-  }, [recargar]);
+  }, [partnerIdProp, recargar]);
 
   async function decidir(comprobante: ComprobanteDePago, verificado: boolean) {
     if (!verificado && !motivo) return;
@@ -190,13 +221,7 @@ export function MerchantPaymentProofsScreen() {
     }
   }
 
-  return (
-    <div className="space-y-5">
-      <WorkspaceHeader
-        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Comprobantes' }]}
-        title="Comprobantes por verificar"
-        description="Sus clientes avisaron que transfirieron a su cuenta. Confirme lo que ya vio entrar; la cuota se da por pagada sólo entonces."
-        actions={
+  const acciones = (
           <>
             <BotonPdf
               label="Descargar PDF"
@@ -227,8 +252,18 @@ export function MerchantPaymentProofsScreen() {
             />
             <AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>Actualizar</AtlasButton>
           </>
-        }
-      />
+  );
+
+  return (
+    <div className="space-y-5">
+      {embedded ? null : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Comprobantes' }]}
+          title="Comprobantes por verificar"
+          description="Sus clientes avisaron que transfirieron a su cuenta. Confirme lo que ya vio entrar; la cuota se da por pagada sólo entonces."
+          actions={acciones}
+        />
+      )}
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard label="Por verificar" value={cargando ? '…' : comprobantes.length} detail="Esperando su confirmación" icon="receipt_long" />
@@ -244,6 +279,7 @@ export function MerchantPaymentProofsScreen() {
         title="Esperando su confirmación"
         description="Compruebe en su extracto que el dinero entró antes de confirmar."
         icon="fact_check"
+        action={embedded ? acciones : undefined}
       >
         {cargando ? (
           <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>

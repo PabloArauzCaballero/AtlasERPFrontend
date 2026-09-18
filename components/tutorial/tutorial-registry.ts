@@ -127,7 +127,7 @@ const META: readonly TutorialMeta[] = [
     id: 'portal-primeros-pasos',
     category: 'portal',
     level: 'basico',
-    route: '/portal-comercio/planes',
+    route: '/portal-comercio/gestion-pos',
     estimatedMinutes: 3,
     recommended: true,
     essential: true,

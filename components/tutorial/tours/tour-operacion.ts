@@ -233,19 +233,20 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
     steps: [
       {
         id: 'menu',
-        route: '/portal-comercio/planes',
+        route: '/portal-comercio/gestion-pos',
         target: '[data-tutorial-id="portal-nav"]',
         title: 'Éstas son tus secciones',
         content:
-          'Tu plan, tu facturación, tus campañas, tus sucursales y el registro de ventas a crédito. Nada de lo que veas aquí es de otro comercio.',
+          'Cinco: lo que pasa en tu caja, tu cartera de ventas a crédito, lo que Atlas te factura, la ficha de tu empresa y el sitio donde preguntar. Nada de lo que veas aquí es de otro comercio.',
         tip: 'En el móvil el menú se abre con el botón de las tres rayas, arriba a la izquierda.',
       },
       {
-        id: 'planes',
-        target: '[data-tutorial-id="workspace-header"]',
-        title: 'El plan se activa al elegirlo',
+        id: 'gestion-pos',
+        target: '[data-tutorial-id="solicitudes-cola"]',
+        title: 'Aquí respondes a tus clientes',
         content:
-          'No es una solicitud que alguien revisa después: al confirmar queda activo y cambia tu facturación del período. Si dependes de algo que el plan nuevo no incluye, dejarás de tenerlo.',
+          'En esta pantalla están los dos momentos de una venta a crédito: la compra que te piden escaneando el QR de tu caja, y el pago de cada cuota que después te avisan haber transferido. El número junto a cada pestaña dice cuántos esperan respuesta.',
+        tip: 'Ni el importe ni las cuotas se pueden editar: los fijó el motor de decisión al aprobar la compra.',
       },
       {
         id: 'ayuda',

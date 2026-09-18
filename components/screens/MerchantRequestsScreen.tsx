@@ -24,6 +24,18 @@ const MOTIVOS = [
   { label: 'Otro', value: 'OTRO' },
 ];
 
+interface MerchantRequestsScreenProps {
+  /**
+   * Dentro de una pestaña de «Gestión POS»: sin cabecera propia y con el expediente ya resuelto
+   * por la pantalla que la contiene. Suelta, la pantalla sigue sabiendo resolverlo ella misma.
+   */
+  embedded?: boolean | undefined;
+  partnerId?: string | undefined;
+  nombre?: string | undefined;
+  /** Cuántas esperan respuesta, para el contador de la pestaña. */
+  onCount?: ((total: number) => void) | undefined;
+}
+
 /**
  * Lo que el cliente pidió en el mostrador, esperando el sí o el no del comercio.
  *
@@ -36,9 +48,11 @@ const MOTIVOS = [
  * plazo, que el motor la aprobó—, no sobre la persona: enseñarle el expediente convertiría cada
  * compra en una consulta de historial crediticio que nadie autorizó.
  */
-export function MerchantRequestsScreen() {
-  const [partnerId, setPartnerId] = useState('');
-  const [nombre, setNombre] = useState('');
+export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdProp, nombre: nombreProp, onCount }: MerchantRequestsScreenProps = {}) {
+  const [partnerIdPropio, setPartnerIdPropio] = useState('');
+  const [nombrePropio, setNombrePropio] = useState('');
+  const partnerId = partnerIdProp ?? partnerIdPropio;
+  const nombre = nombreProp ?? nombrePropio;
   const [solicitudes, setSolicitudes] = useState<SolicitudDeCompra[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,34 +61,54 @@ export function MerchantRequestsScreen() {
   const [motivo, setMotivo] = useState('');
   const [ocupado, setOcupado] = useState<string | null>(null);
 
-  const recargar = useCallback(async (id: string) => {
-    setCargando(true);
-    try {
-      const resultado = await merchantCreditService.listar(id);
-      setSolicitudes(resultado.applications ?? []);
-      setError(null);
-    } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer las solicitudes.');
-    } finally {
-      setCargando(false);
-    }
-  }, []);
+  const recargar = useCallback(
+    async (id: string) => {
+      setCargando(true);
+      try {
+        const resultado = await merchantCreditService.listar(id);
+        const filas = resultado.applications ?? [];
+        setSolicitudes(filas);
+        onCount?.(filas.length);
+        setError(null);
+      } catch (fallo) {
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible leer las solicitudes.');
+      } finally {
+        setCargando(false);
+      }
+    },
+    [onCount],
+  );
 
-  /* Primero hay que saber cuál es mi expediente; sin él no hay nada que pedir. */
+  /*
+   * Primero hay que saber cuál es mi expediente; sin él no hay nada que pedir. Embebida, el
+   * expediente lo resolvió la pantalla que la contiene y aquí sólo se espera a que llegue: dos
+   * pestañas contiguas preguntando cada una por su cuenta podían acabar en comercios distintos.
+   */
   useEffect(() => {
+    if (partnerIdProp !== undefined) {
+      if (partnerIdProp) void recargar(partnerIdProp);
+      /*
+       * Cadena vacía = quien contiene la pantalla resolvió que NO hay expediente. Sin esto la cola
+       * se quedaba en «Cargando…» para siempre, que se lee como «el sistema está pensando» cuando
+       * lo que pasa es que no hay nada que pedir. El motivo lo explica el aviso de la cabecera.
+       */
+      else setCargando(false);
+      return;
+    }
     let cancelado = false;
     merchantCreditService
       .misExpedientes()
       .then((resultado) => {
         if (cancelado) return;
-        const propio = resultado.profiles?.[0];
+        const perfiles = resultado.profiles ?? [];
+        const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
           setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
           setCargando(false);
           return;
         }
-        setPartnerId(propio.partnerId);
-        setNombre(propio.tradeName ?? propio.legalName ?? '');
+        setPartnerIdPropio(propio.partnerId);
+        setNombrePropio(propio.tradeName ?? propio.legalName ?? '');
         void recargar(propio.partnerId);
       })
       .catch((fallo: unknown) => {
@@ -83,7 +117,7 @@ export function MerchantRequestsScreen() {
         setCargando(false);
       });
     return () => { cancelado = true; };
-  }, [recargar]);
+  }, [partnerIdProp, recargar]);
 
   async function decidir(solicitud: SolicitudDeCompra, aceptada: boolean) {
     if (!aceptada && !motivo) return;
@@ -109,13 +143,7 @@ export function MerchantRequestsScreen() {
     }
   }
 
-  return (
-    <div className="space-y-5">
-      <WorkspaceHeader
-        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Solicitudes' }]}
-        title="Solicitudes de compra"
-        description="Lo que sus clientes pidieron escaneando el QR del local. Usted acepta o rechaza; el importe y las cuotas los fijó el motor de decisión."
-        actions={
+  const acciones = (
           <>
             <BotonPdf
               label="Descargar PDF"
@@ -146,8 +174,18 @@ export function MerchantRequestsScreen() {
             />
             <AtlasButton variant="secondary" icon="refresh" disabled={!partnerId} loading={cargando} onClick={() => partnerId && void recargar(partnerId)}>Actualizar</AtlasButton>
           </>
-        }
-      />
+  );
+
+  return (
+    <div className="space-y-5">
+      {embedded ? null : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Solicitudes' }]}
+          title="Solicitudes de compra"
+          description="Lo que sus clientes pidieron escaneando el QR del local. Usted acepta o rechaza; el importe y las cuotas los fijó el motor de decisión."
+          actions={acciones}
+        />
+      )}
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard label="Esperando respuesta" value={solicitudes.length} detail="Solicitudes pendientes" icon="pending_actions" />
@@ -163,6 +201,7 @@ export function MerchantRequestsScreen() {
         title="Esperando su respuesta"
         description="Sólo puede aceptar o rechazar. No hay ningún campo que se pueda modificar."
         icon="inbox"
+        action={embedded ? acciones : undefined}
       >
         {cargando ? (
           <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>

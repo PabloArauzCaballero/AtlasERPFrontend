@@ -37,6 +37,9 @@ const PANTALLAS = [
   { ruta: '/operaciones/contabilidad/cuentas-gl', nombre: 'plan de cuentas' },
   { ruta: '/operaciones/ads/campanas', nombre: 'campañas' },
   { ruta: '/portal-comercio/cartera', nombre: 'cartera del comercio' },
+  /* La tabla de sucursales con el QR de cada caja: la que más se estrecha en un teléfono. */
+  { ruta: '/portal-comercio/expediente?tab=sucursales', nombre: 'sucursales con sus cajas' },
+  { ruta: '/portal-comercio/gestion-pos', nombre: 'gestión POS' },
 ];
 
 test.describe.configure({ mode: 'serial' });

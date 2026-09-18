@@ -64,7 +64,7 @@ test.describe('expediente del negocio', () => {
      */
     await expect(pendientes.locator('[data-requirement="branch"]')).toContainText('Sucursales');
 
-    // --- Sucursal, en «Sucursales» y en ningún otro sitio -------------------------------------
+    // --- Sucursal, en su pestaña y en ningún otro sitio ---------------------------------------
     /*
      * Un local se da de alta UNA vez. El expediente no lo vuelve a pedir: se entera solo.
      *
@@ -72,14 +72,20 @@ test.describe('expediente del negocio', () => {
      * del expediente, de donde cuelga el QR— y nada garantizaba que hablaran del mismo sitio. La
      * prueba recorre los dos caminos que quedan: la sucursal que ya existía, que se enlaza con un
      * botón, y la nueva, que se enlaza sola.
+     *
+     * Desde el 2026-09-18 «Sucursales» es una pestaña de esta misma pantalla, y se llega por su
+     * `?tab=`: es lo que el hueco del embudo enlaza.
      */
-    await page.goto('/portal-comercio/sucursales-usuarios');
+    await page.getByTestId('tab-sucursales').click();
 
     // Ni rastro del desplegable de comercios: el negocio es el que inició sesión.
-    await expect(page.getByLabel('Negocio')).toHaveCount(0);
+    await expect(page.getByLabel('Negocio', { exact: true })).toHaveCount(0);
 
     const vieja = 'b0000000-0000-4000-8000-00000000ee01';
-    await page.getByTestId(`ver-qr-${vieja}`).click();
+    /*
+     * El QR ya no está detrás de un botón: la celda de la fila se lee directamente. Lo que sigue
+     * habiendo que pulsar es «Habilitar QR», porque esta sucursal es anterior al enlace automático.
+     */
     await page.getByTestId(`habilitar-qr-${vieja}`).click();
 
     /*
@@ -96,9 +102,17 @@ test.describe('expediente del negocio', () => {
      * pertenece: la sucursal es el sitio donde estás. Si algún día volviera a existir un alta
      * suelta, este recorrido dejaría de pasar, que es lo que se quiere.
      */
+    await page.getByTestId(`btn-nueva-caja-${vieja}`).click();
     await page.getByTestId(`campo-pos-serial-${vieja}`).fill('SN-00042');
     await page.getByTestId(`btn-registrar-pos-${vieja}`).click();
-    await expect(page.getByTestId(`qr-de-${vieja}`)).toContainText('SN-00042');
+    /*
+     * El QR de la caja se ve en la TABLA, sin desplegar nada: es la corrección del 2026-09-18.
+     * Se comprueba el contenido del código y no sólo que el cuadro aparezca, porque un cuadro gris
+     * pasaría igual.
+     */
+    const celda = page.getByTestId(`cajas-de-${vieja}`);
+    await expect(celda).toContainText('SN-00042');
+    await expect(celda.getByTestId('qr-terminal').first()).toHaveAttribute('data-qr-value', 'SN-00042');
 
     // El terminal cuelga de la sucursal desde la que se dio de alta: sin esto, un cobro no se
     // puede situar en un local.
@@ -138,7 +152,7 @@ test.describe('expediente del negocio', () => {
      * forma de afirmar que las dos pantallas hablan del mismo expediente y no de dos cosas
      * parecidas.
      */
-    await page.goto('/portal-comercio/qr-cobro');
+    await page.getByTestId('tab-qr').click();
 
     await page.getByTestId('input-qr-negocio').setInputFiles({ name: 'qr.png', mimeType: 'image/png', buffer: PNG });
     await page.getByTestId('btn-subir-qr-negocio').click();
@@ -164,13 +178,12 @@ test.describe('expediente del negocio', () => {
     // --- Envío ------------------------------------------------------------------------------
     // Los dos QR dejaron de faltar, y se comprueba en el embudo del expediente: es lo que prueba
     // que subirlos en otra pantalla cuenta para el mismo trámite.
-    await page.goto('/portal-comercio/expediente');
+    await page.getByTestId('tab-estado').click();
     await expect(pendientes.locator('[data-requirement="business_qr"]')).toHaveCount(0);
     await expect(pendientes.locator('[data-requirement="bank_qr"]')).toHaveCount(0);
 
     // Queda un requisito que esta pantalla todavía no cubre —el representante legal—, así que el
     // envío sigue apagado. Se afirma en vez de disimularlo: la pantalla está diciendo la verdad.
-    await page.getByTestId('tab-estado').click();
     await expect(pendientes.locator('[data-requirement="legal_representative"]')).toBeVisible();
     await expect(page.getByTestId('btn-enviar-revision')).toBeDisabled();
     await page.screenshot({ path: `${EVIDENCIA}/05-estado-final.png`, fullPage: true });
@@ -186,15 +199,16 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('campo-contactEmail').fill('contacto@andina.test');
     await page.getByTestId('btn-abrir-expediente').click();
 
-    await page.goto('/portal-comercio/sucursales-usuarios');
+    await page.getByTestId('tab-sucursales').click();
     const sucursal = 'b0000000-0000-4000-8000-00000000ee01';
-    await page.getByTestId(`ver-qr-${sucursal}`).click();
     await page.getByTestId(`habilitar-qr-${sucursal}`).click();
 
+    await page.getByTestId(`btn-nueva-caja-${sucursal}`).click();
     await page.getByTestId(`campo-pos-serial-${sucursal}`).fill('SN-DUP');
     await page.getByTestId(`btn-registrar-pos-${sucursal}`).click();
-    await expect(page.getByTestId(`qr-de-${sucursal}`)).toContainText('SN-DUP');
+    await expect(page.getByTestId(`cajas-de-${sucursal}`)).toContainText('SN-DUP');
 
+    await page.getByTestId(`btn-nueva-caja-${sucursal}`).click();
     await page.getByTestId(`campo-pos-serial-${sucursal}`).fill('SN-DUP');
     await page.getByTestId(`btn-registrar-pos-${sucursal}`).click();
 

@@ -10,14 +10,15 @@ import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { PartnerRequirementsPanel } from './PartnerRequirementsPanel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioExpediente } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { SubmissionGaps } from '@/components/screens/PartnerDossierPanels';
 import { domainLoader } from '@/services/domains';
 import { useOptions } from '@/hooks/useOptions';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useTabParam } from '@/hooks/useTabParam';
+import { MerchantPaymentQrScreen } from './MerchantPaymentQrScreen';
+import { MerchantStructureScreen } from './MerchantStructureScreen';
 import {
   partnerOnboardingService,
   type PartnerOnboardingState,
@@ -71,7 +72,10 @@ function opcionesDeRubro(actual: string | null, rubros: Array<{ label: string; v
  * La pantalla enseña SIEMPRE lo que falta. Es la decisión de producto que la ordena: descubrir los
  * requisitos de uno en uno, a base de envíos rechazados, convierte un trámite en una pelea.
  */
+const PESTANAS = ['estado', 'ficha', 'qr', 'sucursales'] as const;
+
 export function PartnerDossierScreen() {
+  const [pestana, elegirPestana] = useTabParam('estado', PESTANAS);
   const [partnerId, setPartnerId] = useState('');
   // El rubro lo publica el backend (AtlasBackend es su dueño): la pantalla ya no lleva su propia copia.
   const rubros = useOptions(domainLoader('domain:crm.merchantCategory'));
@@ -113,7 +117,9 @@ export function PartnerDossierScreen() {
       .mine()
       .then((resultado) => {
         if (cancelado) return;
-        const propio = resultado.profiles?.[0];
+        const perfiles = resultado.profiles ?? [];
+        /* El aprobado primero: es el expediente con el que el comercio opera de verdad. */
+        const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
           setExpedientePropio('sin-expediente');
           return;
@@ -173,13 +179,13 @@ export function PartnerDossierScreen() {
 
   const state = dossier.data;
   /*
-   * Las sucursales SÓLO se leen aquí: se dan de alta, se editan y se enlazan en «Sucursales».
+   * Aquí sólo se LEEN, para el PDF: el alta, la edición y el enlace viven en la pestaña
+   * «Sucursales», que es la misma pantalla de siempre montada dentro.
    *
-   * Esta pantalla llegó a tener su propio formulario de sucursales, y con él dos altas para el
-   * mismo local: la del ERP —donde se sitúa cada venta y se asigna el personal— y la del
-   * expediente —de donde cuelgan las cajas y su QR—. Nada garantizaba que hablaran del mismo
-   * mostrador, y el comercio tenía que registrar su tienda dos veces para poder imprimir un
-   * código. Hoy el enlace lo hace «Sucursales» al crear el local, y aquí sólo se resume.
+   * Esta vista llegó a tener su propio formulario de sucursales, y con él dos altas para el mismo
+   * local: la del ERP —donde se sitúa cada venta y se asigna el personal— y la del expediente —de
+   * donde cuelgan las cajas y su QR—. Nada garantizaba que hablaran del mismo mostrador, y el
+   * comercio tenía que registrar su tienda dos veces para poder imprimir un código.
    */
   const branches = state?.branches ?? [];
 
@@ -190,7 +196,6 @@ export function PartnerDossierScreen() {
         description="Los datos de tu negocio, dónde opera, con qué cobra y el QR que escanean tus clientes."
         actions={
           <>
-          <BotonFormularioPapel data-testid="papel-expediente" formulario={formularioExpediente} />
           {state ? (
             <BotonPdf
               label="Descargar PDF"
@@ -310,6 +315,8 @@ export function PartnerDossierScreen() {
       {state ? (
         <TabbedPanels
           keepMounted
+          activeId={pestana}
+          onChange={elegirPestana}
           tabs={[
             {
               id: 'estado',
@@ -413,6 +420,36 @@ export function PartnerDossierScreen() {
                 </dl>
               </Panel>
               ),
+            },
+            {
+              /*
+               * El QR con el que le pagan y las sucursales con sus cajas vuelven a «Mi empresa».
+               *
+               * Vivían en dos entradas de menú propias desde que el backend cerraba la edición del
+               * QR al aprobar el expediente —el comercio que cobraba era el único que no podía
+               * cambiarlo—. Aquello se arregló en el backend (`PAYMENT_QR_EDITABLE_STATUSES`), así
+               * que la razón para tenerlas separadas ya no existe: las cuatro pestañas son lo
+               * mismo, la ficha del negocio, y ahora comparten UN expediente en vez de resolver
+               * cada una el suyo.
+               */
+              id: 'qr',
+              label: 'Mi QR de cobro',
+              icon: 'qr_code_2',
+              content: (
+                <MerchantPaymentQrScreen
+                  embedded
+                  partnerId={partnerId}
+                  nombre={state.profile.tradeName ?? state.profile.legalName}
+                  estadoExpediente={state.profile.onboardingStatus}
+                  onDone={() => void dossier.reload()}
+                />
+              ),
+            },
+            {
+              id: 'sucursales',
+              label: 'Sucursales',
+              icon: 'storefront',
+              content: <MerchantStructureScreen embedded partnerId={partnerId} onDone={() => void dossier.reload()} />,
             },
           ]}
         />

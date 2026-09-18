@@ -10,11 +10,16 @@ import type { ScreenGuide } from '../tutorial-types';
  * esperabas.
  */
 export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
-  '/portal-comercio/solicitudes': {
+  '/portal-comercio/gestion-pos': {
     eyebrow: 'Portal del comercio',
-    title: 'Solicitudes de compra',
-    intro: 'Lo que tus clientes pidieron escaneando el QR del local, esperando tu sí o tu no.',
+    title: 'Gestión POS',
+    intro: 'Lo que pasa en tu caja: las compras que te piden con el QR y los pagos que te avisan haber hecho.',
     sections: [
+      {
+        title: 'Son dos momentos de la misma venta',
+        body: 'En «Solicitudes de compra» el cliente te pide una compra a crédito y tú aceptas o rechazas. En «Comprobantes por verificar» ese mismo cliente, más adelante, te avisa que transfirió una cuota y tú confirmas que la viste entrar. Antes eran dos pantallas distintas y había que adivinar en cuál estaba lo que tenías delante.',
+        tip: 'El número junto a cada pestaña dice cuántos esperan: no hace falta entrar para saber si hay algo.',
+      },
       {
         title: 'Cómo llega una solicitud aquí',
         body: 'El cliente escanea el QR de tu local, pide un importe y el motor de decisión resuelve si lo aprueba y en cuántas cuotas. Sólo llegan aquí las que aprobó: las que no, ni las ves.',
@@ -24,24 +29,11 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'No hay ningún campo editable, y esa ausencia es la función de la pantalla. El importe y el calendario los fijó el motor con el historial del cliente delante; cambiarlos desde el mostrador sería rehacer esa decisión sin el dato que la sostiene.',
       },
       {
-        title: 'Rechazar exige un motivo',
-        body: 'Puedes rechazar —el cliente se arrepintió, no tienes el producto, el importe no cuadra con la venta—, pero tienes que decir cuál. Es lo que después permite distinguir un problema tuyo de un problema del cliente.',
-      },
-      {
         title: 'No ves quién es el cliente',
         body: 'A propósito. Decides sobre la operación: importe, plazo, que el motor la aprobó. Enseñarte su expediente convertiría cada compra en una consulta de historial crediticio que esa persona no autorizó.',
       },
-    ],
-    tutorialId: 'portal-solicitudes',
-  },
-
-  '/portal-comercio/comprobantes': {
-    eyebrow: 'Portal del comercio',
-    title: 'Comprobantes por verificar',
-    intro: 'Lo que tus clientes dicen haber transferido a tu cuenta, esperando que lo confirmes.',
-    sections: [
       {
-        title: 'Por qué lo confirmas tú',
+        title: 'Por qué el pago lo confirmas tú',
         body: 'El cliente transfiere al QR bancario de tu comercio, así que ese dinero entra en tu cuenta y no en la de Atlas. Nadie más puede mirar tu extracto: por eso la cuota se salda cuando tú dices que llegó.',
       },
       {
@@ -49,15 +41,15 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Es evidencia de que alguien hizo una transferencia, no de que tú la recibiste. Comprueba el importe y la referencia contra tu extracto antes de confirmar; al confirmar, la cuota queda pagada de verdad.',
       },
       {
-        title: 'Rechazar exige un motivo',
-        body: 'No aparece en tu cuenta, el importe no cuadra, el comprobante no se lee. El motivo es lo que le permite al cliente corregirlo: sin él sólo sabe que le dijiste que no.',
+        title: 'Rechazar exige un motivo, en las dos pestañas',
+        body: 'Rechazar una compra o un comprobante sin decir por qué deja al cliente sabiendo sólo que le dijiste que no. El motivo es lo que le permite corregirlo, y lo que después distingue un problema tuyo de uno suyo.',
       },
       {
         title: 'Confirmar dos veces no cobra dos veces',
-        body: 'Cada aviso lleva su propio código y ese código es lo que impide el doble cobro. Si dudas de si ya lo confirmaste, míralo: lo confirmado desaparece de esta lista.',
+        body: 'Cada aviso lleva su propio código y ese código es lo que impide el doble cobro. Si dudas de si ya lo confirmaste, míralo: lo confirmado desaparece de la lista.',
       },
     ],
-    tutorialId: 'portal-comprobantes',
+    tutorialId: 'portal-primeros-pasos',
   },
 
   '/portal-comercio/cartera': {
@@ -85,31 +77,6 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     tutorialId: 'portal-cartera',
   },
 
-  '/portal-comercio/planes': {
-    eyebrow: 'Portal del comercio',
-    title: 'Tarifas de publicidad',
-    intro: 'Lo que cuesta que la plataforma muestre tu comercio: por personas alcanzadas y por clics.',
-    sections: [
-      {
-        title: 'Pagas por entrega, no por mes',
-        body: 'No hay cuota fija. Cada tarifa dice dos cosas: cuánto cuesta llegar a mil personas y cuánto cuesta un clic. Si una campaña no se entrega, no se cobra.',
-      },
-      {
-        title: 'Las sucursales no cuentan',
-        body: 'Ningún plan limita cuántos locales tienes, y nunca los limitó de verdad. Un comercio con veinte sucursales no consume más plataforma: consume más alcance, y el alcance ya se cobra por alcance.',
-      },
-      {
-        title: 'Qué cambia entre una tarifa y otra',
-        body: 'El precio por millar y por clic, que baja con el compromiso de inversión, y las herramientas de segmentación. Nada de esto te da o te quita funciones de operación: eso lo decide tu expediente, no lo que pagas por publicidad.',
-      },
-      {
-        title: 'El presupuesto lo pones tú',
-        body: 'La tarifa es el precio unitario; el gasto lo fijas en cada campaña con su presupuesto total y diario. Lo consumido se ve en «Consumo y facturación».',
-      },
-    ],
-    tutorialId: 'portal-planes',
-  },
-
   '/portal-comercio/facturacion': {
     eyebrow: 'Portal del comercio',
     title: 'Consumo y facturación',
@@ -130,51 +97,15 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     ],
   },
 
-  '/portal-comercio/campanas': {
-    eyebrow: 'Portal del comercio',
-    title: 'Tus campañas',
-    intro: 'Enciende o pausa la publicidad de tu comercio.',
-    sections: [
-      {
-        title: 'Lo que puedes hacer aquí',
-        body: 'Activar y pausar. Crear campañas nuevas o cambiar a quién se dirigen se gestiona con tu ejecutivo comercial.',
-      },
-      {
-        title: 'Si activar no funciona, el motivo lo dice la pantalla',
-        body: 'Suelen ser dos: la creatividad todavía no está aprobada, o el presupuesto se agotó. Son problemas distintos y se resuelven distinto.',
-      },
-      {
-        title: 'Pausar no pierde nada',
-        body: 'La campaña conserva su presupuesto y su configuración. Volver a activarla la retoma donde estaba.',
-      },
-    ],
-  },
-
-  '/portal-comercio/sucursales-usuarios': {
-    eyebrow: 'Portal del comercio',
-    title: 'Sucursales y personal',
-    intro: 'Dónde opera tu comercio y quién de tu equipo puede entrar al portal.',
-    sections: [
-      {
-        title: 'Una sucursal es un local físico',
-        body: 'Lo que se registre aquí es lo que aparecerá asociado a cada venta. Si una venta sale con la sucursal equivocada, empieza por mirar esta lista.',
-      },
-      {
-        title: 'Dar acceso a alguien de tu equipo',
-        body: 'Cada persona entra con su propio correo, no compartiendo el tuyo. Así se sabe quién hizo cada operación, que es lo que te protege a ti si algo sale mal.',
-      },
-      {
-        title: 'Quitar el acceso',
-        body: 'Retirar a alguien no borra lo que hizo: su historial se conserva, simplemente deja de poder entrar.',
-      },
-    ],
-  },
-
   '/portal-comercio/expediente': {
     eyebrow: 'Portal del comercio',
     title: 'Mi empresa',
     intro: 'Los datos de tu negocio, dónde opera, con qué cobra y el QR que escanean tus clientes.',
     sections: [
+      {
+        title: 'Cuatro pestañas, una sola empresa',
+        body: '«Estado del expediente» dice qué falta para que Atlas te apruebe; «Ficha comercial» son tus datos; «Mi QR de cobro» es el código con el que te pagan las cuotas; «Sucursales» son tus locales con las cajas de cada uno. Las cuatro hablan siempre del mismo negocio: si administras varios, el que elijas arriba vale para todas.',
+      },
       {
         title: 'Se abre una vez y se completa por partes',
         body: 'No hay que terminarlo de una sentada. Se abre el expediente, y a partir de ahí se van sumando sucursales, QR y terminales cuando los tengas a mano.',
@@ -185,9 +116,13 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         tip: 'El rubro no es decorativo: agrupa tu cartera y entra en el cálculo de tu comisión.',
       },
       {
-        title: 'Abre una sucursal para ver y dar de alta sus cajas',
-        body: 'Al pulsar sobre una sucursal se despliega el código de cada una de sus cajas. Ese es el QR que hay que imprimir y dejar en el mostrador: es lo que tu cliente apunta con el teléfono para pedir su compra en cuotas. Ahí mismo das de alta una caja nueva o suspendes una que ya no debe cobrar.',
-        tip: 'La caja se registra dentro de su sucursal y no en una lista aparte: así no hay forma de darla de alta en el local equivocado.',
+        title: 'El QR de cada caja está en la tabla, sin abrir nada',
+        body: 'En «Sucursales», cada fila enseña el código de todas sus cajas. Ese es el QR que hay que imprimir y dejar en el mostrador: es lo que tu cliente apunta con el teléfono para pedir su compra en cuotas. Desde ahí mismo registras una caja nueva o suspendes una que ya no debe cobrar.',
+        tip: 'De un vistazo se ve qué local tiene caja y cuál no. Un local sin caja no puede venderte a crédito, aunque esté activo.',
+      },
+      {
+        title: 'Dos QR distintos, y conviene no confundirlos',
+        body: 'El de «Mi QR de cobro» lo pones tú: es la imagen del QR de tu banco, y es a esa cuenta a la que tu cliente transfiere las cuotas. Los de «Sucursales» los genera Atlas, uno por caja, y sirven para que el cliente pida la compra en ese mostrador. Uno cobra, el otro identifica dónde estás.',
       },
       {
         title: 'El QR lleva el código de la caja, no tu nombre',
@@ -217,6 +152,32 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     ],
   },
 
+  '/portal-comercio/soporte': {
+    eyebrow: 'Portal del comercio',
+    title: 'Soporte y tutoriales',
+    intro: 'Habla con Atlas cuando algo no sale, o repasa cómo se hace antes de intentarlo.',
+    sections: [
+      {
+        title: 'Están juntos porque son la misma pregunta',
+        body: 'Escribir a soporte y buscar un tutorial se hacen en el mismo momento: cuando no sabes cómo seguir. Tenerlos en dos sitios distintos del menú obligaba a decidir de antemano si lo tuyo era una duda o un problema, que es justo lo que todavía no sabes.',
+      },
+      {
+        title: 'Un caso deja constancia; una conversación, no siempre',
+        body: '«Abrir un caso» te da un número al que volver y que alguien tiene que resolver. «Hablar con soporte» es el chat, para lo que se arregla en dos frases. Si lo tuyo afecta a dinero —un cobro, una factura, una cuota— abre caso.',
+      },
+      {
+        title: 'El motivo decide quién te atiende',
+        body: 'Lo que eliges al abrir el caso no es una etiqueta: encamina el caso a quien sabe de ese tema. Elegir «otros» por ir rápido suele ser el camino más lento.',
+      },
+      {
+        title: 'Los tutoriales recorren la aplicación de verdad',
+        body: 'No son vídeos: te llevan por las pantallas reales, señalando dónde pulsar. Puedes dejar uno a medias y retomarlo donde lo dejaste, y repetir cualquiera las veces que quieras.',
+        tip: 'Y en cada pantalla, el botón junto al título explica esa pantalla concreta sin salir de ella.',
+      },
+    ],
+    tutorialId: 'portal-primeros-pasos',
+  },
+
   '/portal-comercio/cuenta': {
     eyebrow: 'Portal del comercio',
     title: 'Mi cuenta',
@@ -228,7 +189,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Una persona, un acceso',
-        body: 'Si alguien más de tu equipo necesita entrar, dale su propio usuario desde «Sucursales» en lugar de compartir el tuyo.',
+        body: 'Si alguien más de tu equipo necesita entrar, pide su propio usuario a tu ejecutivo de cuenta en lugar de compartir el tuyo. Así se sabe quién hizo cada operación, que es lo que te protege a ti si algo sale mal.',
       },
     ],
   },

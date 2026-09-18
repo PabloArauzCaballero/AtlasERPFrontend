@@ -72,33 +72,55 @@ test('el rubro es un catálogo y muestra el que el comercio tiene guardado', asy
   await expect(rubro).toHaveValue('EDUCACION');
 });
 
-test('Mi empresa ya no tiene una segunda lista de sucursales', async ({ page }) => {
+test('Mi empresa tiene una sola alta de sucursales, en su pestaña', async ({ page }) => {
   await page.goto('/portal-comercio/expediente');
   await expect(page.getByRole('heading', { name: /Centro de Preparacion Academica CPA/i })).toBeVisible({ timeout: 30_000 });
 
   /*
    * El expediente llegó a tener su propia alta de sucursales, y con ella dos altas para el mismo
    * mostrador: la del ERP —donde se sitúa cada venta— y la del expediente —de donde cuelga el QR—.
-   * Un local se da de alta UNA vez, en «Sucursales»; aquí ya no se pide ni se declara.
+   * Desde el 2026-09-18 la pantalla de sucursales vive DENTRO de esta, como pestaña, y sigue
+   * siendo la única: lo que no puede volver es el segundo formulario propio del expediente.
    */
-  await expect(page.getByTestId('tab-sucursales')).toHaveCount(0);
+  await expect(page.getByTestId('tab-sucursales')).toBeVisible();
   await expect(page.getByTestId('btn-registrar-sucursal')).toHaveCount(0);
-  await sinErrores(page, 'mi empresa sin pestaña de sucursales');
+  await sinErrores(page, 'mi empresa y su pestaña de sucursales');
 });
 
-test('al abrir la sucursal aparece su QR y el QR lleva el serial del terminal', async ({ page }) => {
-  await page.goto('/portal-comercio/sucursales-usuarios');
-  await expect(page.getByRole('heading', { name: /sucursales del comercio/i })).toBeVisible({ timeout: 30_000 });
+test('las cuatro pestañas de Mi empresa hablan del mismo expediente', async ({ page }) => {
+  /*
+   * La razón de juntarlas. Antes cada pantalla resolvía su propio expediente y con criterios
+   * distintos —una tomaba el aprobado, otra el primero que llegara—, así que dos vistas contiguas
+   * podían estar hablando de comercios distintos sin decirlo en ninguna parte.
+   */
+  await page.goto('/portal-comercio/expediente');
+  for (const pestana of ['tab-estado', 'tab-ficha', 'tab-qr', 'tab-sucursales']) {
+    await expect(page.getByTestId(pestana), `falta la pestaña ${pestana}`).toBeVisible({ timeout: 30_000 });
+  }
+  // Ninguna pestaña vuelve a preguntar de qué comercio se trata: lo resolvió la pantalla, una vez.
+  await page.getByTestId('tab-qr').click();
+  await expect(page.getByLabel('Expediente al que se sube el QR')).toHaveCount(0);
+  await page.getByTestId('tab-sucursales').click();
+  await expect(page.getByLabel('Negocio', { exact: true })).toHaveCount(0);
+  await sinErrores(page, 'pestañas de mi empresa');
+});
+
+test('el QR de cada caja se ve en la tabla de sucursales, sin abrir nada', async ({ page }) => {
+  /*
+   * Ésta es la corrección del 2026-09-18. El QR vivía detrás de un botón «Cajas y QR» que había
+   * que pulsar fila por fila, así que un comercio con varios locales no podía ver de un vistazo
+   * cuáles tenían caja —que es lo que decide si sus clientes pueden comprarle en ese mostrador—.
+   */
+  await page.goto('/portal-comercio/expediente?tab=sucursales');
+  await expect(page.getByRole('heading', { name: /sucursales registradas/i })).toBeVisible({ timeout: 30_000 });
 
   // El negocio es el que inició sesión: aquí no hay ningún desplegable de comercios que elegir.
-  await expect(page.getByLabel('Negocio')).toHaveCount(0);
-
-  const abrir = page.getByRole('button', { name: /cajas y qr/i }).first();
-  await expect(abrir).toBeVisible({ timeout: 30_000 });
-  await abrir.click();
+  await expect(page.getByLabel('Negocio', { exact: true })).toHaveCount(0);
+  // Y ya no hay nada que desplegar para llegar al código.
+  await expect(page.getByRole('button', { name: /cajas y qr/i })).toHaveCount(0);
 
   const qr = page.getByTestId('qr-terminal').first();
-  await expect(qr).toBeVisible({ timeout: 20_000 });
+  await expect(qr).toBeVisible({ timeout: 30_000 });
   // Lo que el componente dice llevar dentro. La comprobación de que se LEE va en la captura.
   await expect(qr).toHaveAttribute('data-qr-value', SERIAL_ESPERADO);
   await expect(page.getByText(SERIAL_ESPERADO).first()).toBeVisible();
@@ -107,4 +129,18 @@ test('al abrir la sucursal aparece su QR y el QR lleva el serial del terminal', 
   // Captura recortada al QR: es la que se pasa por el lector para probar que escanea.
   await qr.screenshot({ path: `${EVIDENCIA}/qr-sucursal-cpa.png` });
   await page.screenshot({ path: `${EVIDENCIA}/sucursales-qr.png`, fullPage: true });
+});
+
+test('el QR de cobro se sube desde su pestaña, con el expediente ya aprobado', async ({ page }) => {
+  await page.goto('/portal-comercio/expediente?tab=qr');
+  await expect(page.getByRole('heading', { name: /lo que ve su cliente/i })).toBeVisible({ timeout: 30_000 });
+  /*
+   * Con el expediente APROBADO el botón tiene que estar vivo: el comercio que de verdad cobra era
+   * exactamente el que no podía reemplazar su QR, y ése fue el fallo que separó esta pantalla del
+   * expediente en su día. Volver a meterla dentro no puede reintroducirlo.
+   */
+  await expect(page.getByTestId('btn-subir-qr-cobro')).toBeEnabled();
+  await expect(page.getByTestId('qr-cobro-bloqueo')).toHaveCount(0);
+  await sinErrores(page, 'qr de cobro');
+  await page.screenshot({ path: `${EVIDENCIA}/mi-empresa-qr-cobro.png`, fullPage: true });
 });

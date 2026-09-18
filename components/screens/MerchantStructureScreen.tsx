@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { QrCanvas } from '@/components/atlas/QrCanvas';
 import { FormField } from '@/components/atlas/FormField';
@@ -10,8 +10,6 @@ import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { Modal } from '@/components/atlas/Modal';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioSucursales } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
@@ -57,7 +55,19 @@ function codigoDeExpediente(erpBranchId: string): string {
  * donde cuelgan las cajas— sigue existiendo porque son dos bases distintas, pero ya no lo teclea
  * nadie: se declara solo al crear la sucursal, y para las que venían de antes basta un botón.
  */
-export function MerchantStructureScreen() {
+interface MerchantStructureScreenProps {
+  /**
+   * Dentro de la pestaña «Sucursales» de «Mi empresa»: sin cabecera propia y con el expediente ya
+   * resuelto por la pantalla que la contiene, que es la única forma de que las cuatro pestañas
+   * hablen del mismo comercio.
+   */
+  embedded?: boolean | undefined;
+  partnerId?: string | undefined;
+  /** Qué hacer cuando algo cambió aquí y el expediente del padre se queda viejo. */
+  onDone?: (() => void) | undefined;
+}
+
+export function MerchantStructureScreen({ embedded = false, partnerId: partnerIdProp, onDone }: MerchantStructureScreenProps = {}) {
   const scope = useMerchantScope();
   const { accountId: queryAccountId, ready } = scope;
 
@@ -77,15 +87,18 @@ export function MerchantStructureScreen() {
    * NUNCA por el nombre: dos locales pueden llamarse «Sucursal Centro», y enseñar el QR de la otra
    * tienda manda el cobro a la caja equivocada.
    */
-  const [partnerId, setPartnerId] = useState('');
+  const [partnerIdPropio, setPartnerIdPropio] = useState('');
+  const partnerId = partnerIdProp ?? partnerIdPropio;
   useEffect(() => {
+    if (partnerIdProp !== undefined) return;
     let cancelado = false;
     partnerOnboardingService
       .mine()
       .then((resultado) => {
         if (cancelado) return;
-        const propio = resultado.profiles?.[0];
-        if (propio) setPartnerId(propio.partnerId);
+        const perfiles = resultado.profiles ?? [];
+        const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
+        if (propio) setPartnerIdPropio(propio.partnerId);
       })
       .catch(() => {
         // Sin expediente no hay QR que enseñar, y se dice en la fila; no es un fallo de la pantalla.
@@ -93,7 +106,7 @@ export function MerchantStructureScreen() {
     return () => {
       cancelado = true;
     };
-  }, []);
+  }, [partnerIdProp]);
 
   const expediente = useAsyncResource<PartnerOnboardingState | null>(
     useCallback(async () => (partnerId ? partnerOnboardingService.getState(partnerId) : null), [partnerId]),
@@ -120,6 +133,7 @@ export function MerchantStructureScreen() {
       try {
         await accion();
         await recargarExpediente();
+        onDone?.();
         setFeedback({ tone: 'success', text: `${etiqueta}: listo.` });
       } catch (error) {
         setFeedback({ tone: 'danger', text: error instanceof Error ? error.message : `${etiqueta}: no se pudo completar.` });
@@ -127,7 +141,7 @@ export function MerchantStructureScreen() {
         setOcupada(null);
       }
     },
-    [recargarExpediente],
+    [onDone, recargarExpediente],
   );
 
   /**
@@ -193,7 +207,8 @@ export function MerchantStructureScreen() {
     } catch { /* shown inline */ } finally { setOcupada(null); }
   }
 
-  const [qrAbierto, setQrAbierto] = useState<string | null>(null);
+  /** La sucursal en cuyo modal se está dando de alta una caja. `null` = ninguno abierto. */
+  const [nuevaCaja, setNuevaCaja] = useState<{ erpBranchId: string; branchId: string; nombre: string } | null>(null);
   /*
    * Cuál de los locales YA declarados es esta sucursal, cuando hay alguno sin enlazar.
    *
@@ -241,15 +256,8 @@ export function MerchantStructureScreen() {
     } catch { /* shown inline */ }
   }
 
-  return (
-    <div className="space-y-5">
-      <WorkspaceHeader
-        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Sucursales' }]}
-        title="Sucursales del comercio"
-        description="Dónde opera tu negocio. De cada sucursal cuelgan sus cajas y el QR que se imprime para ese mostrador."
-        actions={
+  const acciones = (
           <>
-          <BotonFormularioPapel data-testid="papel-sucursales" formulario={() => formularioSucursales()} />
           <BotonPdf
             label="Descargar PDF"
             data-testid="pdf-sucursales"
@@ -281,8 +289,18 @@ export function MerchantStructureScreen() {
           />
           <AtlasButton icon="add_location" data-testid="btn-agregar-sucursal" disabled={!ready} onClick={() => setCreando(true)}>Agregar sucursal</AtlasButton>
           </>
-        }
-      />
+  );
+
+  return (
+    <div className="space-y-5">
+      {embedded ? null : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Sucursales' }]}
+          title="Sucursales del comercio"
+          description="Dónde opera tu negocio. De cada sucursal cuelgan sus cajas y el QR que se imprime para ese mostrador."
+          actions={acciones}
+        />
+      )}
 
       {/*
         * El negocio es el que inició sesión: aquí no se elige comercio.
@@ -375,7 +393,76 @@ export function MerchantStructureScreen() {
       ) : null}
       {statusMutation.error ? <InlineNotice tone="danger" title="No se pudo cambiar el estado">{statusMutation.error}</InlineNotice> : null}
 
-      <Panel title="Sucursales registradas" description="Abre una sucursal para ver sus cajas y el QR que se imprime en ese mostrador." icon="storefront" action={<AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>}>
+      {/*
+        * El alta de la caja, en un modal y desde la fila de SU sucursal.
+        *
+        * No pregunta a qué sucursal pertenece porque no hace falta: se abrió desde ella. Un
+        * desplegable aquí sería la forma exacta de que una caja acabe colgando del local
+        * equivocado, y con ella su QR.
+        */}
+      {nuevaCaja ? (
+        <Modal
+          open
+          title={`Registrar caja en ${nuevaCaja.nombre}`}
+          description="Cada caja tiene su propio QR: es lo que permite saber en qué mostrador se hizo cada venta."
+          icon="point_of_sale"
+          width="md"
+          onClose={() => setNuevaCaja(null)}
+        >
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const form = event.currentTarget;
+              const datos = new FormData(form);
+              const serial = String(datos.get('terminalSerial') ?? '').trim();
+              const alias = String(datos.get('terminalAlias') ?? '').trim();
+              const destino = nuevaCaja;
+              setNuevaCaja(null);
+              void enExpediente('Caja', `alta-pos-${destino.erpBranchId}`, () =>
+                partnerOnboardingService.registerPosTerminal(partnerId, destino.branchId, {
+                  terminalSerial: serial,
+                  ...(alias ? { terminalAlias: alias } : {}),
+                }),
+              );
+            }}
+          >
+            <FormField
+              tooltip="Número de serie impreso en la caja o terminal. Ej.: SN-00042."
+              label="Serial de la caja"
+              name="terminalSerial"
+              required
+              data-testid={`campo-pos-serial-${nuevaCaja.erpBranchId}`}
+            />
+            <FormField
+              tooltip="Nombre corto para reconocer la caja en la lista. Ej.: Caja 1."
+              label="Alias"
+              name="terminalAlias"
+              hint="Caja 1, Mostrador…"
+            />
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+              <AtlasButton variant="secondary" type="button" onClick={() => setNuevaCaja(null)}>Cancelar</AtlasButton>
+              <AtlasButton type="submit" icon="add" data-testid={`btn-registrar-pos-${nuevaCaja.erpBranchId}`}>
+                Registrar caja
+              </AtlasButton>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
+
+      <Panel
+        title="Sucursales registradas"
+        description="Cada fila enseña sus cajas y el QR que se imprime para ese mostrador."
+        icon="storefront"
+        action={
+          <>
+            {/* Embebida no hay cabecera propia donde ponerlas, así que las acciones de la vista
+                viajan al encabezado del panel, junto a «Actualizar». */}
+            {embedded ? acciones : null}
+            <AtlasButton variant="secondary" icon="refresh" loading={branches.status === 'loading'} disabled={!ready} onClick={branches.reload}>Actualizar</AtlasButton>
+          </>
+        }
+      >
         {branches.error ? <InlineNotice tone="danger" title="No se pudo consultar">{branches.error}</InlineNotice> : null}
         {!ready ? (
           <p className="py-6 text-center text-xs text-slate-500">
@@ -383,43 +470,47 @@ export function MerchantStructureScreen() {
           </p>
         ) : branchRows.length ? (
           <div className="table-scroll rounded-lg border border-slate-200">
-            <table className="w-full min-w-[680px] text-left text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Sucursal</th><th className="p-2.5">Ciudad</th><th className="p-2.5">Dirección</th><th className="p-2.5">BNPL</th><th className="p-2.5">Estado</th><th className="p-2.5 text-right">Acciones</th></tr></thead>
+            <table className="w-full min-w-[900px] text-left text-xs">
+              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                <tr>
+                  <th className="p-2.5">Sucursal</th>
+                  <th className="p-2.5">BNPL</th>
+                  <th className="p-2.5">Estado</th>
+                  {/*
+                    * La columna que antes era un desplegable.
+                    *
+                    * Hasta el 2026-09-18 el QR de cada caja vivía detrás de un botón «Cajas y QR»
+                    * que había que pulsar fila por fila, así que un comercio con cinco locales no
+                    * podía ver de un vistazo cuáles tenían caja y cuáles no —que es justo lo que
+                    * decide si sus clientes pueden comprarle en ese mostrador—.
+                    */}
+                  <th className="p-2.5">Cajas y QR</th>
+                  <th className="p-2.5 text-right">Acciones</th>
+                </tr>
+              </thead>
               <tbody className="divide-y divide-slate-100">
                 {branchRows.map((branch) => {
                   const id = String(branch.id);
-                  const abierto = qrAbierto === id;
                   const local = localDe(id);
                   const terminales = local ? (datosExpediente?.posTerminals ?? []).filter((pos) => pos.branchId === local.branchId) : [];
                   return (
-                  <Fragment key={id}>
-                  <tr>
-                    <td className="p-2.5 font-semibold text-slate-800">{String(branch.name ?? '—')}</td>
-                    <td className="p-2.5 text-slate-600">{String(branch.city ?? '—')}</td>
-                    <td className="p-2.5 text-slate-600">{String(branch.address ?? '—')}</td>
-                    <td className="p-2.5">{branch.canOriginateBnpl ? <StatusPill tone="success" dot={false}>Sí</StatusPill> : <StatusPill tone="neutral" dot={false}>No</StatusPill>}</td>
-                    <td className="p-2.5"><StatusPill tone={String(branch.status) === 'ACTIVE' ? 'success' : 'warning'}>{String(branch.status ?? '—')}</StatusPill></td>
-                    <td className="p-2.5">
-                      <div className="flex justify-end gap-1.5">
-                        <AtlasButton variant="secondary" icon="qr_code_2" data-testid={`ver-qr-${id}`} onClick={() => { setAdoptar(''); setQrAbierto(abierto ? null : id); }}>
-                          {abierto ? 'Ocultar cajas' : 'Cajas y QR'}
-                        </AtlasButton>
-                        <AtlasButton variant="secondary" icon="edit" onClick={() => setEditando(branch)}>Editar</AtlasButton>
-                        <AtlasButton variant={String(branch.status) === 'ACTIVE' ? 'danger' : 'success'} icon={String(branch.status) === 'ACTIVE' ? 'block' : 'check'} loading={ocupada === id} onClick={() => void cambiarEstado(branch)}>
-                          {String(branch.status) === 'ACTIVE' ? 'Dar de baja' : 'Reactivar'}
-                        </AtlasButton>
-                      </div>
-                    </td>
-                  </tr>
-                  {abierto ? (
-                    <tr>
-                      <td colSpan={6} className="bg-slate-50/70 p-3" data-testid={`qr-de-${id}`}>
-                        {expediente.status === 'loading' ? (
+                    <tr key={id} className="align-top">
+                      <td className="p-2.5">
+                        <p className="font-semibold text-slate-800">{String(branch.name ?? '—')}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {String(branch.city ?? 'Sin ciudad')}
+                          {branch.address ? ` · ${String(branch.address)}` : ''}
+                        </p>
+                      </td>
+                      <td className="p-2.5">{branch.canOriginateBnpl ? <StatusPill tone="success" dot={false}>Sí</StatusPill> : <StatusPill tone="neutral" dot={false}>No</StatusPill>}</td>
+                      <td className="p-2.5"><StatusPill tone={String(branch.status) === 'ACTIVE' ? 'success' : 'warning'}>{String(branch.status ?? '—')}</StatusPill></td>
+                      <td className="p-2.5" data-testid={`cajas-de-${id}`}>
+                        {expediente.status === 'loading' && !datosExpediente ? (
                           <p className="text-slate-600">Buscando las cajas de esta sucursal…</p>
                         ) : !partnerId ? (
                           <p className="text-slate-600">
                             Todavía no has abierto el expediente de tu empresa, y el QR cuelga de él. Ábrelo en{' '}
-                            <strong>Mi empresa</strong> y vuelve aquí.
+                            <strong>Estado del expediente</strong> y vuelve aquí.
                           </p>
                         ) : !local ? (
                           /*
@@ -427,27 +518,25 @@ export function MerchantStructureScreen() {
                            * formulario a propósito: no hay nada que preguntar —el nombre, la ciudad
                            * y la dirección ya están escritos en esta misma fila—.
                            */
-                          <div className="space-y-2">
+                          <div className="max-w-xs space-y-2">
                             <p className="text-slate-600">Esta sucursal todavía no está enlazada con tu expediente, así que no puede tener QR.</p>
                             {sinEnlazar.length ? (
-                              <div className="max-w-md">
-                                <FormField tooltip="Si este local ya lo declaraste antes, enlázalo en vez de crearlo otra vez."
-                                  kind="select"
-                                  label="¿Es uno de los locales que ya declaraste?"
-                                  name="adoptar"
-                                  value={adoptar}
-                                  onChange={(e) => setAdoptar(e.target.value)}
-                                  data-testid={`adoptar-local-${id}`}
-                                  hint="Si es el mismo mostrador, enlázalo en vez de declararlo otra vez: dos filas para un local son dos QR."
-                                  options={[
-                                    { label: '— Es un local nuevo —', value: '' },
-                                    ...sinEnlazar.map((local) => ({
-                                      label: `${local.branchCode} · ${local.name}`,
-                                      value: local.branchId,
-                                    })),
-                                  ]}
-                                />
-                              </div>
+                              <FormField tooltip="Si este local ya lo declaraste antes, enlázalo en vez de crearlo otra vez."
+                                kind="select"
+                                label="¿Es uno de los locales que ya declaraste?"
+                                name="adoptar"
+                                value={adoptar}
+                                onChange={(e) => setAdoptar(e.target.value)}
+                                data-testid={`adoptar-local-${id}`}
+                                hint="Si es el mismo mostrador, enlázalo en vez de declararlo otra vez: dos filas para un local son dos QR."
+                                options={[
+                                  { label: '— Es un local nuevo —', value: '' },
+                                  ...sinEnlazar.map((local) => ({
+                                    label: `${local.branchCode} · ${local.name}`,
+                                    value: local.branchId,
+                                  })),
+                                ]}
+                              />
                             ) : null}
                             <AtlasButton
                               icon="link"
@@ -465,19 +554,24 @@ export function MerchantStructureScreen() {
                             </AtlasButton>
                           </div>
                         ) : (
-                          <div className="space-y-3">
+                          <div className="space-y-2">
                             {terminales.length === 0 ? (
-                              <p className="text-slate-600">Esta sucursal todavía no tiene ninguna caja dada de alta, así que no hay QR que imprimir. Regístrala aquí abajo.</p>
+                              <p className="max-w-xs text-slate-600">Sin cajas dadas de alta: no hay ningún QR que imprimir para este mostrador.</p>
                             ) : (
-                              <div className="flex flex-wrap gap-4">
+                              <div className="flex flex-wrap gap-3">
                                 {terminales.map((pos) => (
-                                  <div key={pos.terminalId} className="w-44 space-y-1.5 text-center">
-                                    <QrCanvas value={pos.terminalSerial} size={176} className="mx-auto" />
-                                    <p className="font-bold text-slate-800">{pos.terminalAlias ?? pos.terminalSerial}</p>
-                                    <p className="font-mono text-[11px] text-slate-600">{pos.terminalSerial}</p>
+                                  <div key={pos.terminalId} className="w-28 space-y-1 text-center">
+                                    <QrCanvas value={pos.terminalSerial} size={96} className="mx-auto" />
+                                    <p className="truncate font-bold text-slate-800" title={pos.terminalAlias ?? pos.terminalSerial}>
+                                      {pos.terminalAlias ?? pos.terminalSerial}
+                                    </p>
+                                    {/* El serial sólo si el alias no es él mismo: repetirlo no dice nada. */}
+                                    {pos.terminalAlias ? (
+                                      <p className="truncate font-mono text-[10px] text-slate-600" title={pos.terminalSerial}>{pos.terminalSerial}</p>
+                                    ) : null}
                                     <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
                                     {pos.status !== 'active' ? (
-                                      <p className="text-[10px] text-slate-500">Mientras no esté activo, el teléfono del cliente rechaza este código.</p>
+                                      <p className="text-[10px] leading-tight text-slate-500">El teléfono del cliente rechaza este código.</p>
                                     ) : null}
                                     {/*
                                       * Suspender se hace DESDE el terminal y no desde una tabla aparte.
@@ -492,7 +586,7 @@ export function MerchantStructureScreen() {
                                       disabled={ocupada === `pos-${pos.terminalId}`}
                                       data-testid={`btn-estado-pos-${pos.terminalSerial}`}
                                       onClick={() =>
-                                        void enExpediente('Estado del terminal', `pos-${pos.terminalId}`, () =>
+                                        void enExpediente('Estado de la caja', `pos-${pos.terminalId}`, () =>
                                           partnerOnboardingService.changePosStatus(partnerId, pos.terminalId, {
                                             status: pos.status === 'active' ? 'suspended' : 'active',
                                           }),
@@ -505,50 +599,27 @@ export function MerchantStructureScreen() {
                                 ))}
                               </div>
                             )}
-
-                            {/*
-                              * El alta de la caja vive DENTRO de su sucursal, y por eso no pregunta a
-                              * cuál pertenece: la sucursal es el sitio donde estás, no un campo que
-                              * rellenar.
-                              */}
-                            <form
-                              className="grid gap-2 border-t border-slate-200 pt-3 grid-cols-1 md:grid-cols-3"
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                const form = event.currentTarget;
-                                const datos = new FormData(form);
-                                const serial = String(datos.get('terminalSerial') ?? '').trim();
-                                const alias = String(datos.get('terminalAlias') ?? '').trim();
-                                /*
-                                 * Se limpia YA, no al terminar.
-                                 *
-                                 * La recarga del expediente vuelve a montar esta fila, así que un
-                                 * `reset()` diferido puede caer sobre un formulario que ya no está
-                                 * en la página y dejar el serial anterior escrito para el siguiente.
-                                 */
-                                form.reset();
-                                void enExpediente('Terminal', `alta-pos-${id}`, () =>
-                                  partnerOnboardingService.registerPosTerminal(partnerId, local.branchId, {
-                                    terminalSerial: serial,
-                                    ...(alias ? { terminalAlias: alias } : {}),
-                                  }),
-                                );
-                              }}
+                            <AtlasButton
+                              variant="secondary"
+                              icon="add"
+                              data-testid={`btn-nueva-caja-${id}`}
+                              loading={ocupada === `alta-pos-${id}`}
+                              onClick={() => setNuevaCaja({ erpBranchId: id, branchId: local.branchId, nombre: String(branch.name ?? 'esta sucursal') })}
                             >
-                              <FormField tooltip="Número de serie impreso en la caja o terminal." label="Serial de la caja" name="terminalSerial" required data-testid={`campo-pos-serial-${id}`} />
-                              <FormField tooltip="Nombre corto para reconocer la caja. Ej.: Caja 1." label="Alias" name="terminalAlias" hint="Caja 1, Mostrador…" />
-                              <div className="flex items-end">
-                                <AtlasButton type="submit" loading={ocupada === `alta-pos-${id}`} data-testid={`btn-registrar-pos-${id}`}>
-                                  Registrar caja aquí
-                                </AtlasButton>
-                              </div>
-                            </form>
+                              Registrar caja
+                            </AtlasButton>
                           </div>
                         )}
                       </td>
+                      <td className="p-2.5">
+                        <div className="flex justify-end gap-1.5">
+                          <AtlasButton variant="secondary" icon="edit" onClick={() => setEditando(branch)}>Editar</AtlasButton>
+                          <AtlasButton variant={String(branch.status) === 'ACTIVE' ? 'danger' : 'success'} icon={String(branch.status) === 'ACTIVE' ? 'block' : 'check'} loading={ocupada === id} onClick={() => void cambiarEstado(branch)}>
+                            {String(branch.status) === 'ACTIVE' ? 'Dar de baja' : 'Reactivar'}
+                          </AtlasButton>
+                        </div>
+                      </td>
                     </tr>
-                  ) : null}
-                  </Fragment>
                   );
                 })}
               </tbody>

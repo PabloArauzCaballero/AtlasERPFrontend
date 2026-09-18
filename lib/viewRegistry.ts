@@ -23,9 +23,8 @@ export const atlasViewLinks: AtlasViewLink[] = [
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Contrato comercial', href: '/operaciones/crm/contratos', status: 'solo-accion', backend: 'POST/PATCH /b2b/contracts' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Onboarding comercio', href: '/operaciones/crm/onboarding', status: 'integrada', backend: 'GET/POST/PATCH /b2b/onboarding · PATCH /b2b/onboarding/cases/:id/activate' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Nuevo caso de onboarding', href: '/operaciones/crm/onboarding/crear', status: 'solo-accion', backend: 'POST /b2b/onboarding/cases' },
-  { area: 'Portal comercio', phase: 'Comercio', title: 'Sucursales del comercio', href: '/portal-comercio/sucursales-usuarios', status: 'solo-accion', backend: 'POST/PATCH /portal/branches | POST /partner-onboarding/:id/branches' },
-  { area: 'Portal comercio', phase: 'Comercio', title: 'Mi empresa', href: '/portal-comercio/expediente', status: 'integrada', backend: 'GET /partner-onboarding/mine | :id/status · PATCH :id/commercial-profile' },
-  { area: 'Portal comercio', phase: 'Comercio', title: 'Mi QR de cobro', href: '/portal-comercio/qr-cobro', status: 'integrada', backend: 'GET /partner-onboarding/:id/qr-codes | :id/qr-codes/:qrId/content · POST :id/qr-codes' },
+  { area: 'Portal comercio', phase: 'Comercio', title: 'Gestión POS (solicitudes de compra y comprobantes)', href: '/portal-comercio/gestion-pos', status: 'integrada', backend: 'GET /merchant-credit/:id/applications · POST :id/applications/:appId/acceptance · GET /merchant-credit/:id/payment-claims · POST :claimId/verification' },
+  { area: 'Portal comercio', phase: 'Comercio', title: 'Mi empresa (estado, ficha, QR de cobro y sucursales)', href: '/portal-comercio/expediente', status: 'integrada', backend: 'GET /partner-onboarding/mine | :id/status · PATCH :id/commercial-profile · GET/POST :id/qr-codes · POST/PATCH /portal/branches · POST :id/branches/:branchId/pos-terminals' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Facturación B2B', href: '/operaciones/crm/facturacion', status: 'solo-accion', backend: 'POST /b2b/billing/*' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Tarifas y pricing', href: '/operaciones/crm/tarifas', status: 'integrada', backend: 'GET/POST/PATCH /portal/plans · GET /portal/billing-products' },
   { area: 'Panel operaciones', phase: 'CRM B2B', title: 'Conciliación y cobertura', href: '/operaciones/crm/conciliacion-cobertura', status: 'solo-accion', backend: 'POST/PATCH /b2b/coverage | reconciliation' },
@@ -64,8 +63,6 @@ export const atlasViewLinks: AtlasViewLink[] = [
   { area: 'Panel operaciones', phase: 'Brecha documentada', title: 'Centro de comando y búsqueda global', href: '/operaciones/admin/busqueda-global', status: 'brecha-backend', backend: 'Sin endpoint de búsqueda global federada' },
   { area: 'Panel operaciones', phase: 'Usuarios', title: 'Gestión de roles y permisos', href: '/operaciones/admin/roles', status: 'integrada', backend: 'GET /internal/roles, /internal/permissions (solo lectura)' },
   { area: 'Panel operaciones', phase: 'Navegación', title: 'Mapa del sitio y navegación', href: '/operaciones/admin/mapa-sitio', status: 'integrada', backend: 'Registro local de vistas y contratos' },
-  { area: 'Panel operaciones', phase: 'Navegación', title: 'Formularios en papel (cuaderno para rellenar a mano)', href: '/operaciones/admin/formularios-papel', status: 'integrada', backend: 'POST /documents/generate (templateId blank-form)' },
-  { area: 'Portal comercio', phase: 'Comercio', title: 'Formularios en papel', href: '/portal-comercio/formularios', status: 'integrada', backend: 'POST /documents/generate (templateId blank-form) | GET /documents/forms' },
 ];
 
 /**

@@ -33,7 +33,7 @@ test('el campo explica qué poner y el select qué significa cada opción', asyn
   // Con el ratón: el ⓘ.
   await page.getByTestId('btn-abrir-expediente').click();
   await expect(page.getByTestId('expediente-pendientes')).toBeVisible();
-  await page.goto('/portal-comercio/sucursales-usuarios');
+  await page.goto('/portal-comercio/expediente?tab=sucursales');
   await page.getByTestId('btn-agregar-sucursal').click();
   const alta = page.getByRole('dialog');
   await expect(alta).toBeVisible();
@@ -57,7 +57,7 @@ test('el campo explica qué poner y el select qué significa cada opción', asyn
 
   // Un select de dominio cerrado: la descripción se ve en cada fila sin pasar el ratón.
   await page.keyboard.press('Escape');
-  await page.goto('/portal-comercio/tutoriales');
+  await page.goto('/portal-comercio/soporte?tab=tutoriales');
   await page.getByTestId('select-filtro-estado').click();
   const estados = page.getByRole('listbox');
   await expect(estados.getByRole('option', { name: /Guías empezadas y sin terminar/ })).toBeVisible();

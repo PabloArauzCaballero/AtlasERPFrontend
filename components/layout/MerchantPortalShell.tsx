@@ -6,34 +6,34 @@ import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { Icon } from '@/components/atlas/Icon';
-import { TranscripcionChapa } from '@/components/atlas/TranscripcionBar';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
 import { NavDrawer } from './NavDrawer';
 import { isActivePath } from './navigation';
 
 const links = [
-  /* Lo primero del menu: es la pantalla donde el comercio responde a sus clientes. */
-  { href: '/portal-comercio/solicitudes', label: 'Solicitudes de compra', icon: 'inbox' },
-  /* Justo debajo: son los dos momentos en que el comercio tiene que responder algo. */
-  { href: '/portal-comercio/comprobantes', label: 'Comprobantes por verificar', icon: 'receipt_long' },
-  /* El QR con el que le pagan. Antes vivia enterrado en «Mi empresa» y dejaba de funcionar en cuanto
-     el expediente se aprobaba, asi que el comercio operando era el unico que no podia subirlo. */
-  { href: '/portal-comercio/qr-cobro', label: 'Mi QR de cobro', icon: 'qr_code_2' },
+  /*
+   * Cinco entradas, y ese número es la decisión.
+   *
+   * Eran doce, y siete de ellas eran pedazos de otras tres: «Solicitudes» y «Comprobantes» son los
+   * dos momentos de la misma venta; «Mi QR de cobro» y «Sucursales» son partes de la ficha del
+   * negocio; «Centro de Tutoriales» es la misma pregunta que «Soporte» hecha antes de preguntar.
+   * Un menú de doce obliga a elegir doce veces al día dónde estará lo que uno busca.
+   */
+  /* Lo primero: es donde el comercio responde a sus clientes, y por eso es también su portada. */
+  { href: '/portal-comercio/gestion-pos', label: 'Gestión POS', icon: 'point_of_sale' },
   { href: '/portal-comercio/cartera', label: 'Mi cartera', icon: 'account_balance_wallet' },
-  { href: '/portal-comercio/planes', label: 'Planes y suscripción', icon: 'workspace_premium' },
   { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
-  { href: '/portal-comercio/campanas', label: 'Campañas', icon: 'campaign' },
-  { href: '/portal-comercio/sucursales-usuarios', label: 'Sucursales', icon: 'storefront' },
-  /* La ficha del negocio y el QR que se imprime: existia la pantalla, pero no habia como llegar. */
+  /* La ficha del negocio: su estado, sus datos, su QR de cobro y sus sucursales con sus cajas. */
   { href: '/portal-comercio/expediente', label: 'Mi empresa', icon: 'badge' },
-  { href: '/portal-comercio/formularios', label: 'Formularios en papel', icon: 'print' },
-  { href: '/portal-comercio/tutoriales', label: 'Centro de Tutoriales', icon: 'school' },
-  /* Hablar con Atlas. Va al final y no arriba a proposito: no es trabajo diario del comercio, pero
-     tiene que estar SIEMPRE a la vista — un soporte que hay que buscar termina siendo un WhatsApp
-     personal a alguien de Atlas, donde nada queda registrado ni medido. */
-  { href: '/portal-comercio/soporte', label: 'Soporte', icon: 'support_agent' },
+  /*
+   * Hablar con Atlas y aprender a usar esto. Va al final y no arriba a proposito: no es trabajo
+   * diario del comercio, pero tiene que estar SIEMPRE a la vista — un soporte que hay que buscar
+   * termina siendo un WhatsApp personal a alguien de Atlas, donde nada queda registrado ni medido.
+   */
+  { href: '/portal-comercio/soporte', label: 'Soporte y tutoriales', icon: 'support_agent' },
 ];
+
 
 function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNavigate?: () => void }) {
   return (
@@ -93,7 +93,6 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-          <TranscripcionChapa />
           <button className="hidden h-11 w-11 place-items-center rounded-full text-slate-500 hover:bg-slate-100 sm:grid" aria-label="Notificaciones"><Icon name="notifications" className="text-[19px]" /></button>
           <div className="hidden h-7 w-px bg-slate-200 sm:block" />
           {/* El nombre del comercio se retira en pantallas muy estrechas: con la

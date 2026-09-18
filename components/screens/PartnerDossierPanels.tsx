@@ -33,14 +33,15 @@ function toneForStatus(status: string): 'success' | 'warning' | 'danger' | 'neut
  * Dónde se resuelve cada requisito que NO se resuelve en esta pantalla.
  *
  * Un aviso que dice qué falta y no dice dónde darlo es medio aviso: el comercio lee «falta
- * registrar al menos una sucursal», mira el expediente y no encuentra dónde. Las sucursales se
- * dan de alta en su propia pantalla —una sola alta para el mismo local— y los QR en la suya, así
- * que el hueco enlaza allí en vez de repetir aquí el formulario.
+ * registrar al menos una sucursal», mira el expediente y no encuentra dónde. Desde el 2026-09-18
+ * el sitio donde se resuelve es OTRA PESTAÑA de esta misma pantalla, así que el enlace lleva su
+ * `?tab=`: sin él, el aviso descubierto en «Estado del expediente» dejaba al comercio en la misma
+ * pestaña en la que ya estaba.
  */
 const DONDE_SE_RESUELVE: Record<string, { href: string; label: string }> = {
-  branch: { href: '/portal-comercio/sucursales-usuarios', label: 'Sucursales' },
-  business_qr: { href: '/portal-comercio/qr-cobro', label: 'Mi QR de cobro' },
-  bank_qr: { href: '/portal-comercio/qr-cobro', label: 'Mi QR de cobro' },
+  branch: { href: '/portal-comercio/expediente?tab=sucursales', label: 'Sucursales' },
+  business_qr: { href: '/portal-comercio/expediente?tab=qr', label: 'Mi QR de cobro' },
+  bank_qr: { href: '/portal-comercio/expediente?tab=qr', label: 'Mi QR de cobro' },
 };
 
 /**

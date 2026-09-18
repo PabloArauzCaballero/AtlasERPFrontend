@@ -10,8 +10,6 @@ import { MetricCard } from '@/components/atlas/MetricCard';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { BotonFormularioPapel } from '@/components/atlas/BotonFormularioPapel';
-import { formularioQrCobro } from '@/lib/formulariosPapel/portal';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
 import { merchantCreditService } from '@/services/merchantCreditService';
@@ -47,6 +45,28 @@ const ESTADO_QR: Record<string, { tono: 'success' | 'warning' | 'danger' | 'neut
   replaced: { tono: 'neutral', texto: 'Archivado' },
 };
 
+interface MerchantPaymentQrScreenProps {
+  /**
+   * Dentro de la pestaña «Mi QR de cobro» de «Mi empresa»: sin cabecera propia y con el expediente
+   * ya resuelto por la pantalla que la contiene —incluido el selector, que pasa a ser uno solo
+   * para las cuatro pestañas en vez de uno por pantalla—.
+   */
+  embedded?: boolean | undefined;
+  partnerId?: string | undefined;
+  nombre?: string | undefined;
+  estadoExpediente?: string | undefined;
+  /**
+   * Qué hacer cuando un QR se registró y el expediente de quien contiene esta pantalla se queda
+   * viejo.
+   *
+   * Subir el QR CIERRA un requisito del alta (`business_qr`, `bank_qr`). Sin este aviso el
+   * comercio subía su código aquí y al volver a «Estado del expediente» seguía leyendo que le
+   * faltaba: la pestaña vecina conservaba el embudo de antes de la subida. Mientras fueron dos
+   * páginas distintas no se notaba —navegar volvía a pedirlo todo—, y al juntarlas dejó de serlo.
+   */
+  onDone?: (() => void) | undefined;
+}
+
 /**
  * El QR de cobro del comercio: el que ve el cliente cuando pulsa «pagar».
  *
@@ -76,10 +96,19 @@ const ESTADO_QR: Record<string, { tono: 'success' | 'warning' | 'danger' | 'neut
  * que siempre se puede reconstruir contra qué QR se cobró un día concreto. Un botón de editar
  * destruiría exactamente eso.
  */
-export function MerchantPaymentQrScreen() {
-  const [partnerId, setPartnerId] = useState('');
-  const [nombre, setNombre] = useState('');
-  const [estadoExpediente, setEstadoExpediente] = useState('');
+export function MerchantPaymentQrScreen({
+  embedded = false,
+  partnerId: partnerIdProp,
+  nombre: nombreProp,
+  estadoExpediente: estadoProp,
+  onDone,
+}: MerchantPaymentQrScreenProps = {}) {
+  const [partnerIdPropio, setPartnerIdPropio] = useState('');
+  const [nombrePropio, setNombrePropio] = useState('');
+  const [estadoPropio, setEstadoPropio] = useState('');
+  const partnerId = partnerIdProp ?? partnerIdPropio;
+  const nombre = nombreProp ?? nombrePropio;
+  const estadoExpediente = estadoProp ?? estadoPropio;
   /*
    * Un usuario puede tener MÁS de un expediente. Antes se tomaba el primero sin decirlo, y el QR
    * podía subirse al comercio equivocado sin ningún aviso. Se guardan todos y se elige explícito.
@@ -118,7 +147,21 @@ export function MerchantPaymentQrScreen() {
     }
   }, []);
 
+  /** Releer los QR y avisar a quien contiene la pantalla, cuyo expediente también quedó viejo. */
+  const recargarYAvisar = useCallback(
+    async (id: string) => {
+      await recargar(id);
+      onDone?.();
+    },
+    [onDone, recargar],
+  );
+
   useEffect(() => {
+    /* Embebida, el expediente —y con él el selector— lo resuelve «Mi empresa» para las cuatro pestañas. */
+    if (partnerIdProp !== undefined) {
+      if (partnerIdProp) void recargar(partnerIdProp);
+      return;
+    }
     let cancelado = false;
     merchantCreditService
       .misExpedientes()
@@ -133,9 +176,9 @@ export function MerchantPaymentQrScreen() {
           return;
         }
         setExpedientes(perfiles);
-        setPartnerId(propio.partnerId);
-        setNombre(propio.tradeName ?? propio.legalName ?? '');
-        setEstadoExpediente(propio.status);
+        setPartnerIdPropio(propio.partnerId);
+        setNombrePropio(propio.tradeName ?? propio.legalName ?? '');
+        setEstadoPropio(propio.status);
         void recargar(propio.partnerId);
       })
       .catch((fallo: unknown) => {
@@ -146,7 +189,7 @@ export function MerchantPaymentQrScreen() {
     return () => {
       cancelado = true;
     };
-  }, [recargar]);
+  }, [partnerIdProp, recargar]);
 
   /**
    * La subida va en dos pasos: se pide el permiso y el binario viaja DIRECTO al almacenamiento.
@@ -196,7 +239,7 @@ export function MerchantPaymentQrScreen() {
         texto: 'QR de cobro actualizado. Es el que verán sus clientes al pulsar «pagar» en la app.',
       });
       if (archivo.current) archivo.current.value = '';
-      await recargar(partnerId);
+      await recargarYAvisar(partnerId);
     } catch (fallo) {
       setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR.' });
     } finally {
@@ -238,7 +281,7 @@ export function MerchantPaymentQrScreen() {
       });
       setAviso({ tono: 'success', texto: 'QR del negocio actualizado.' });
       if (archivoNegocio.current) archivoNegocio.current.value = '';
-      await recargar(partnerId);
+      await recargarYAvisar(partnerId);
     } catch (fallo) {
       setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR del negocio.' });
     } finally {
@@ -265,22 +308,15 @@ export function MerchantPaymentQrScreen() {
   function elegirExpediente(id: string) {
     const elegido = expedientes.find((perfil) => perfil.partnerId === id);
     if (!elegido) return;
-    setPartnerId(elegido.partnerId);
-    setNombre(elegido.tradeName ?? elegido.legalName ?? '');
-    setEstadoExpediente(elegido.status);
+    setPartnerIdPropio(elegido.partnerId);
+    setNombrePropio(elegido.tradeName ?? elegido.legalName ?? '');
+    setEstadoPropio(elegido.status);
     setCodigos([]);
     void recargar(elegido.partnerId);
   }
 
-  return (
-    <div className="space-y-5">
-      <WorkspaceHeader
-        breadcrumbs={[{ label: 'Portal comercio' }, { label: 'QR de cobro' }]}
-        title="Mi QR de cobro"
-        description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Atlas."
-        actions={
+  const acciones = (
           <>
-            <BotonFormularioPapel data-testid="papel-qr" formulario={() => formularioQrCobro(nombre || undefined)} />
             <BotonPdf
               label="Descargar PDF"
               data-testid="pdf-qr"
@@ -324,8 +360,18 @@ export function MerchantPaymentQrScreen() {
               Actualizar
             </AtlasButton>
           </>
-        }
-      />
+  );
+
+  return (
+    <div className="space-y-5">
+      {embedded ? null : (
+        <WorkspaceHeader
+          breadcrumbs={[{ label: 'Portal comercio' }, { label: 'QR de cobro' }]}
+          title="Mi QR de cobro"
+          description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Atlas."
+          actions={acciones}
+        />
+      )}
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard
@@ -339,7 +385,7 @@ export function MerchantPaymentQrScreen() {
         <MetricCard label="Reemplazos" value={cargando ? '…' : historial.length} detail="Los anteriores quedan archivados" icon="history" tone="purple" />
       </div>
 
-      {expedientes.length > 1 ? (
+      {!embedded && expedientes.length > 1 ? (
         <InlineNotice tone="info" title="Su usuario tiene varios expedientes">
           <label className="flex flex-wrap items-center gap-2 text-xs">
             <span>El QR se sube al expediente elegido:</span>
@@ -391,6 +437,7 @@ export function MerchantPaymentQrScreen() {
           title="Lo que ve su cliente"
           description="Esta es la imagen exacta que aparece en la app cuando su cliente pulsa «pagar»."
           icon="smartphone"
+          action={embedded ? acciones : undefined}
         >
           {cargando ? (
             <p className="py-10 text-center text-xs text-slate-500">Cargando…</p>
