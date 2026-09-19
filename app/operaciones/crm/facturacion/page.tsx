@@ -100,7 +100,7 @@ export default function B2BBillingPage() {
                   submit: emitir,
                   fields: [
                     { name: 'accountId', label: 'Cuenta B2B', tooltip: 'Cuenta B2B del comercio sobre la que se trabaja.', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
-                    { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadB2BContracts()) },
+                    { name: 'contractId', label: 'Contrato', tooltip: 'Contrato del comercio del que nace lo facturado; vacío si la factura no cuelga de ninguno.', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadB2BContracts()) },
                     { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
                     { name: 'dueDate', label: 'Fecha vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
                     { name: 'receivableIdsCsv', label: 'Cuenta por cobrar a facturar', tooltip: 'Cuenta por cobrar que se incluye en la factura.', type: 'select', required: true, span: 2, valueKind: 'stringList', optionsLoader: loadReceivables },

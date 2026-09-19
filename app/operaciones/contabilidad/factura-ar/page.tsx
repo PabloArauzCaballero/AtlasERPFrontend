@@ -44,7 +44,7 @@ export default function ArInvoicePage() {
     description: 'Lo que genera derecho de cobro sobre un contrato: comisión, suscripción, implantación o soporte. Después se factura desde «Emitir factura».',
     submitLabel: 'Registrar evento',
     fields: [
-      { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadContracts },
+      { name: 'contractId', label: 'Contrato', tooltip: 'Contrato del que nace el derecho de cobro; es el que decide qué se puede facturar.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadContracts },
       { name: 'eventType', label: 'Tipo', tooltip: 'Qué ocurrió (uso, suscripción, penalidad…); decide cómo se factura.', required: true, optionsSource: 'domain:accounting.billingEventType' as const },
       { name: 'eventTime', label: 'Cuándo ocurrió', tooltip: 'Fecha y hora del hecho facturable, no la de su registro.', type: 'datetime' as const, required: true },
       { name: 'baseAmount', label: 'Importe base', tooltip: 'Importe unitario antes de impuestos.', type: 'number' as const, required: true },
@@ -96,7 +96,7 @@ export default function ArInvoicePage() {
         fields: [
           { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select', required: true, optionsLoader: loadLegalEntities },
           { name: 'customerBpId', label: 'Cliente (Business Partner)', tooltip: 'Cliente al que se factura.', type: 'select', required: true, optionsLoader: loadBusinessPartners },
-          { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
+          { name: 'contractId', label: 'Contrato', tooltip: 'Contrato del que nace lo facturado; vacío si la factura no cuelga de ninguno.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
           { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
           { name: 'dueDate', label: 'Fecha vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
           { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, optionsSource: 'catalog:currency' },
