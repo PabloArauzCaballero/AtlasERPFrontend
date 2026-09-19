@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { Icon } from './Icon';
 
@@ -17,10 +17,15 @@ interface TabbedPanelsProps {
   tabs: TabDefinition[];
   initialId?: string | undefined;
   /**
-   * Mantiene montadas las pestañas inactivas y sólo las oculta con CSS.
+   * Mantiene montadas las pestañas YA VISITADAS y sólo las oculta con CSS.
    *
    * Necesario cuando dentro hay formularios: desmontar la pestaña borra lo que el usuario llevaba
    * escrito, y volver a ella deja los campos en blanco sin explicar por qué.
+   *
+   * Lo que no hace es montarlas todas de entrada. Montaba las tres del pipeline a la vez, así que
+   * abrir el embudo pedía al servidor las oportunidades Y las propuestas aunque nadie mirara la
+   * segunda, y dejaba en el DOM dos tablas con los mismos `data-testid` —la oculta incluida—, que es
+   * lo que hace fallar a un selector por «hay más de un elemento». Se monta al entrar y se queda.
    */
   keepMounted?: boolean | undefined;
   className?: string | undefined;
@@ -42,6 +47,14 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
   const currentId = activeId ?? internalId;
   const select = (id: string) => { if (onChange) onChange(id); else setInternalId(id); };
   const active = tabs.find((tab) => tab.id === currentId) ?? tabs[0];
+
+  /*
+   * Las pestañas por las que ya se pasó. Se apunta durante el pintado —y no en un efecto— para que
+   * el panel exista en el MISMO pintado en el que se selecciona: con un efecto habría un fotograma
+   * sin contenido. Anotar en un conjunto es idempotente, así que repetir el pintado no cambia nada.
+   */
+  const visitados = useRef<Set<string>>(new Set());
+  if (active?.id) visitados.current.add(active.id);
 
   if (!tabs.length) return null;
   /*
@@ -80,7 +93,9 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
       </div>
 
       {keepMounted
-        ? tabs.map((tab) => <div key={tab.id} role="tabpanel" hidden={tab.id !== active?.id} className={tab.id === active?.id ? '' : 'hidden'}>{tab.content}</div>)
+        ? tabs
+            .filter((tab) => visitados.current.has(tab.id))
+            .map((tab) => <div key={tab.id} role="tabpanel" hidden={tab.id !== active?.id} className={tab.id === active?.id ? '' : 'hidden'}>{tab.content}</div>)
         : <div role="tabpanel">{active?.content}</div>}
     </div>
   );

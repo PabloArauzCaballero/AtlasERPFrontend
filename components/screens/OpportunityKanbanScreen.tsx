@@ -81,12 +81,14 @@ export function OpportunityKanbanScreen({ embedded = false, version = 0 }: Oppor
   return (
     <div className="space-y-5">
       {embedded ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        /* Mismo corte que el rótulo de `CrudDirectory` embebido: las pestañas del pipeline comparten
+           barra de sección y bajarían a dos columnas en anchos distintos si cada una eligiera el suyo. */
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-slate-900">Tablero del embudo</h2>
-            <p className="mt-0.5 text-xs text-slate-500">Cambie la etapa de cada oportunidad desde su tarjeta.</p>
+            <p className="mt-0.5 max-w-2xl text-xs text-slate-500">Cambie la etapa de cada oportunidad desde su tarjeta.</p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2 xl:shrink-0 xl:justify-end">
             <AtlasButton variant="secondary" icon="refresh" loading={resource.status === 'loading'} onClick={resource.reload}>Actualizar</AtlasButton>
           </div>
         </div>

@@ -473,12 +473,23 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   return (
     <div className="space-y-5">
       {props.embedded ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        /*
+         * El rotulo de la seccion y su barra de acciones no comparten linea hasta que caben de
+         * verdad.
+         *
+         * Antes cambiaban a dos columnas en `sm` (640 px) con `shrink-0` en los botones: a partir de
+         * ahi el texto era el unico que podia encoger, asi que la descripcion se partia en tres o
+         * cuatro lineas y los botones —cinco, uno de ellos «Nueva oportunidad»— quedaban pegados
+         * encima, como si invadieran el titulo. El corte va ahora en `xl` (el mismo que usa
+         * `WorkspaceHeader`) y la descripcion lleva tope de ancho en esa fila, de modo que por
+         * debajo la barra baja a su propia linea en vez de exprimir el texto.
+         */
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-slate-900">{props.title}</h2>
-            <p className="mt-0.5 text-xs text-slate-500">{props.description}</p>
+            <p className="mt-0.5 max-w-2xl text-xs text-slate-500">{props.description}</p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">{toolbar}</div>
+          <div className="flex flex-wrap items-center gap-2 xl:shrink-0 xl:justify-end">{toolbar}</div>
         </div>
       ) : (
         <WorkspaceHeader
