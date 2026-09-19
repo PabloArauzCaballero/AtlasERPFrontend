@@ -158,6 +158,15 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
           signedAt: null,
           status: 'DRAFT',
         },
+        {
+          id: 'c1000000-0000-4000-8000-000000000002',
+          contractNumber: 'CTR-0002',
+          startDate: '2026-08-01',
+          billingCycle: 'MONTHLY',
+          settlementPolicy: 'PER_CONTRACT',
+          signedAt: '2026-08-15T10:00:00.000Z',
+          status: 'ACTIVE',
+        },
       ]),
     }),
   );
@@ -176,6 +185,16 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
   await expect(dialogo.getByLabel(/aprobador/i)).toBeVisible();
   await expect(dialogo.getByLabel(/^contrato$/i), 'vuelve a pedir el contrato').toHaveCount(0);
   await page.screenshot({ path: `${EVIDENCIA}/contrato-firmar-en-la-fila.png`, fullPage: true });
+  await dialogo.getByRole('button', { name: /cancelar/i }).click();
+
+  /*
+   * Y un contrato YA FIRMADO no vuelve a ofrecer la firma: sería una acción muerta —el backend la
+   * rechaza— sobre la fila que precisamente ya está en vigor. La comisión sí se sigue pudiendo
+   * tocar, porque una tarifa se ajusta con el contrato vivo.
+   */
+  const firmada = page.locator('[data-tutorial-id="crud-tabla"] tbody tr').nth(1);
+  await expect(firmada.getByTestId('accion-firmar-c1000000-0000-4000-8000-000000000002')).toHaveCount(0);
+  await expect(firmada.getByTestId('accion-comision-c1000000-0000-4000-8000-000000000002')).toBeVisible();
 });
 
 test('el término contractual cuelga de su contrato, no de un desplegable', async ({ page }) => {
