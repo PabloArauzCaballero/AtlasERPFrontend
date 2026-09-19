@@ -185,6 +185,14 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
   await expect(dialogo.getByLabel(/aprobador/i)).toBeVisible();
   await expect(dialogo.getByLabel(/^contrato$/i), 'vuelve a pedir el contrato').toHaveCount(0);
   await page.screenshot({ path: `${EVIDENCIA}/contrato-firmar-en-la-fila.png`, fullPage: true });
+  /*
+   * Y cuando el select obligatorio se queda SIN opciones —aquí, el catálogo de aprobadores no
+   * responde—, el formulario lo dice. Sin ese aviso se pulsa «Firmar y activar» y no pasa
+   * absolutamente nada: el dato viaja en un input `sr-only` que conserva su `required`, así que el
+   * navegador bloquea el envío y trata de enseñar su globo sobre un elemento invisible. Ni
+   * petición, ni mensaje, ni error en consola. Reproducido el 2026-09-18.
+   */
+  await expect(dialogo.getByTestId('select-approvedByUserId-sin-opciones')).toBeVisible();
   await dialogo.getByRole('button', { name: /cancelar/i }).click();
 
   /*

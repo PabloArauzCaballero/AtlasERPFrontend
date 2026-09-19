@@ -246,6 +246,22 @@ export function OptionSelect(props: OptionSelectProps) {
         </span>
         <Icon name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-[18px] text-slate-500" />
       </button>
+      {/*
+        * Sin opciones y obligatorio: se DICE, porque si no el formulario se vuelve mudo.
+        *
+        * El valor viaja en un input `sr-only` que conserva su `required`, así que el navegador
+        * bloquea el envío y trata de enseñar su globo de validación sobre un elemento invisible: se
+        * pulsa «Guardar» y no pasa absolutamente nada —ni petición, ni mensaje, ni error en la
+        * consola—. Medido el 2026-09-18 en «Firmar y activar» con el catálogo de aprobadores caído.
+        *
+        * Quitarle el `required` sería peor: mandaría al servidor un alta sin un dato obligatorio. Lo
+        * que faltaba era decir por qué no se puede continuar, y decirlo ANTES de pulsar.
+        */}
+      {isEmpty && props.required ? (
+        <span className="mt-1 block text-[11px] font-semibold text-amber-700" data-testid={`select-${props.name}-sin-opciones`}>
+          No hay nada que elegir todavía, y este dato es obligatorio: hasta que exista al menos una opción, este formulario no se puede enviar.
+        </span>
+      ) : null}
       {selected?.description && !props.compact ? (
         <span className="mt-1 block text-[11px] text-slate-500" data-testid={`select-${props.name}-descripcion`}>
           {selected.description}
