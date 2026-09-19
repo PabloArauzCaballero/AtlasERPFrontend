@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
+import { FieldLabel } from '@/components/atlas/FieldLabel';
+import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -19,6 +21,9 @@ import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject, PaginatedResult, ResourceRow } from '@/services/types';
+
+/** Qué hace la caja de búsqueda; el ⓘ lo pinta `FieldLabel` como en cualquier otro campo. */
+const TOOLTIP_BUSQUEDA = 'Escribe cualquier parte de un dato y la tabla se queda sólo con las filas que lo contienen.';
 
 export interface CrudColumn {
   key: string;
@@ -243,6 +248,18 @@ export function CrudDirectory(props: CrudDirectoryProps) {
 
   const filters = useMemo(() => props.filters ?? [], [props.filters]);
 
+  /*
+   * La búsqueda es un campo como los demás, no un `<input>` suelto.
+   *
+   * Lo era hasta el 2026-09-19, y por serlo se rompía de dos formas a la vez: su fila de etiqueta
+   * medía 16 px en vez de los 24 px de `FieldLabel` —que lleva el ⓘ—, así que con `items-end` el
+   * texto «Buscar» quedaba 4 px por debajo del de «Tipo»; y al no pasar por `FormField` se libraba
+   * del guardián `check-ayuda.mjs`, así que era el ÚNICO campo del ERP sin ayuda. No usa
+   * `FormField` porque necesita la lupa dentro del control, pero sí sus piezas.
+   */
+  const busquedaId = useId();
+  const ayudaBusqueda = useFieldHelp(TOOLTIP_BUSQUEDA);
+
   /** Opciones de un filtro select sin lista fija: los valores que existen de verdad en los datos. */
   const derivedOptions = useMemo(() => {
     const map: Record<string, Array<{ label: string; value: string }>> = {};
@@ -461,20 +478,47 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar el listado">{resource.error}</InlineNotice> : null}
 
       <Panel compact data-tutorial-id="crud-filtros">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-bold text-slate-700">Buscar</span>
+        {/*
+          * La fila DOBLA, y la búsqueda tiene un suelo.
+          *
+          * Antes era `lg:flex-row` sin `flex-wrap` y la búsqueda era el único hijo con `flex-1`
+          * —es decir, base 0—: cuando los filtros y «Limpiar» no cabían, flexbox descuenta el
+          * faltante en proporción a la base, así que TODO el déficit caía sobre la búsqueda y se
+          * quedaba en 0 px mientras los filtros conservaban sus 192. Medido el 2026-09-19 con la
+          * hoja del propio ERP: con 3 filtros la caja valía 0 px a 1024 y 105 px a 1152; con 4
+          * (Business partners) valía 0 px hasta 1152 y 29 px a 1280. Y como la etiqueta no se
+          * recorta, «Buscar» se desbordaba encima de «Tipo»: eso es el pisotón de la captura.
+          *
+          * El suelo va en `min-width` y NO en `basis`: `flex-1` ya fija `flex-basis: 0%` y en el
+          * orden de utilidades de Tailwind gana a `lg:basis-*` (probado: seguía colapsando a 8 px).
+          * `lg:min-w-64` tampoco existe en Tailwind 3 —sólo `min-w-0|full|min|max|fit`—, así que
+          * es un valor arbitrario a propósito. Con esto la búsqueda nunca baja de 288 px y lo que
+          * cede es la fila, que pasa a dos o tres líneas.
+          */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+          <div className="block min-w-0 flex-1 lg:min-w-[16rem]">
+            <FieldLabel
+              htmlFor={busquedaId}
+              label="Buscar"
+              tooltip={TOOLTIP_BUSQUEDA}
+              describedById={ayudaBusqueda.describedById}
+              controlFocused={ayudaBusqueda.focused}
+            />
             <div className="relative">
               <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400" />
               <input
+                id={busquedaId}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={props.searchPlaceholder ?? 'Buscar en todas las columnas…'}
                 data-testid="crud-buscar"
+                aria-describedby={ayudaBusqueda.describedById}
+                onFocus={ayudaBusqueda.onFocus}
+                onBlur={ayudaBusqueda.onBlur}
                 className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20"
               />
             </div>
-          </label>
+          </div>
 
           {filters.map((filter) => (
             filter.kind === 'text' ? (
@@ -483,7 +527,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                 label={filter.label}
                 tooltip={filter.tooltip ?? `Escribe parte del valor de «${filter.label}» para quedarte sólo con esas filas.`}
                 name={`filtro-${filter.key}`}
-                className="w-full lg:w-48"
+                className="w-full lg:w-48 lg:shrink-0"
                 value={filterValues[filter.key] ?? ''}
                 placeholder={filter.placeholder ?? ''}
                 onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))}
@@ -496,7 +540,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                 label={filter.label}
                 tooltip={filter.tooltip ?? `Muestra sólo las filas con ese valor de «${filter.label}»; «Todos» quita el filtro.`}
                 name={`filtro-${filter.key}`}
-                className="w-full lg:w-48"
+                className="w-full lg:w-48 lg:shrink-0"
                 value={filterValues[filter.key] ?? ''}
                 onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))}
                 options={[{ label: 'Todos', value: '' }, ...(filter.options ?? derivedOptions[filter.key] ?? [])]}
@@ -504,7 +548,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
             )
           ))}
 
-          <AtlasButton variant="secondary" icon="filter_alt_off" disabled={!filtersActive} onClick={() => { setSearch(''); setFilterValues({}); }}>Limpiar</AtlasButton>
+          <AtlasButton className="shrink-0" variant="secondary" icon="filter_alt_off" disabled={!filtersActive} onClick={() => { setSearch(''); setFilterValues({}); }}>Limpiar</AtlasButton>
         </div>
         <p className="mt-2 text-[11px] text-slate-500">
           {loading && !rows.length ? 'Cargando…' : filtersActive

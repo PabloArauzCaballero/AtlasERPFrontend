@@ -110,3 +110,68 @@ test('el menú principal sigue siendo alcanzable al estrechar', async ({ page },
     `A ${ancho}px no hay ni navegación visible ni un control que la abra: la pantalla no tiene salida.`,
   ).toBe(true);
 });
+
+/*
+ * Los directorios más densos, en los anchos donde la barra de filtros se quedaba sin búsqueda.
+ *
+ * Esta prueba NO va por proyecto: fija el ancho ella misma. El desbordamiento del documento —lo
+ * único que miraban las de arriba— no veía nada, porque aquí no desborda NADIE: la búsqueda tiene
+ * `flex-1` (base 0), así que absorbía sola todo el faltante de la fila y se quedaba en 0 px
+ * mientras los filtros conservaban sus 192, y el `overflow-hidden` del `Panel` se tragaba el resto.
+ * Por eso se mide el ANCHO DEL CONTROL y no el del documento.
+ *
+ * Y se mide contra 160 px, no contra 0: `toBeVisible()` —lo único que había, en `operaciones-real`
+ * sobre una pantalla de 2 filtros a 1280— da verde con una caja de 29 px en la que no se puede
+ * teclear nada. Un control que existe no es un control que sirve.
+ *
+ * Los anchos son los que fallaban de verdad: 1024 es el primero con barra lateral fija (`lg:pl-64`,
+ * que deja la fila en ventana − 328 px) y 1280 es el portátil de la oficina. 768 no aplica: ahí la
+ * fila es `flex-col` y cada campo ocupa el ancho entero.
+ */
+const DIRECTORIOS_DENSOS = [
+  { ruta: '/operaciones/contabilidad/business-partners', nombre: 'business partners', filtros: 4 },
+  { ruta: '/operaciones/contabilidad/contratos', nombre: 'contratos contables', filtros: 3 },
+  { ruta: '/operaciones/contabilidad/cuentas-gl', nombre: 'plan de cuentas', filtros: 3 },
+  { ruta: '/operaciones/contabilidad/grupos-cuenta', nombre: 'grupos de cuenta', filtros: 3 },
+];
+
+const ANCHO_MINIMO_BUSQUEDA = 160;
+
+for (const ancho of [1024, 1280]) {
+  for (const pantalla of DIRECTORIOS_DENSOS) {
+    test(`${pantalla.nombre}: a ${ancho}px la búsqueda sigue siendo usable`, async ({ page }) => {
+      await page.setViewportSize({ width: ancho, height: 900 });
+      await page.goto(pantalla.ruta);
+      await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 120_000 });
+
+      const busqueda = page.getByTestId('crud-buscar');
+      await expect(busqueda).toBeVisible();
+      const caja = await busqueda.boundingBox();
+
+      expect(
+        caja?.width ?? 0,
+        `Con ${pantalla.filtros} filtros a ${ancho}px la caja de búsqueda mide ${Math.round(caja?.width ?? 0)}px. ` +
+          'La fila de filtros no dobla o la búsqueda no tiene suelo: revisa `lg:flex-wrap` y `lg:min-w-[16rem]` en CrudDirectory.',
+      ).toBeGreaterThanOrEqual(ANCHO_MINIMO_BUSQUEDA);
+
+      /*
+       * Y que ninguna etiqueta pise a la siguiente. Es el síntoma que se ve en la captura, y se
+       * mide donde ocurre: dos rectángulos de la misma fila que se solapan en horizontal.
+       */
+      const solapes = await page.evaluate(() => {
+        const fila = document.querySelector('[data-tutorial-id="crud-filtros"] > div > div');
+        if (!fila) return ['no se encontró la fila de filtros'];
+        const hijos = [...fila.children].map((hijo) => hijo.getBoundingClientRect());
+        const malos: string[] = [];
+        for (let i = 0; i < hijos.length - 1; i += 1) {
+          const a = hijos[i]!;
+          const b = hijos[i + 1]!;
+          const mismaLinea = Math.abs(a.top - b.top) < 4;
+          if (mismaLinea && a.right > b.left + 1) malos.push(`${Math.round(a.right - b.left)}px entre el campo ${i + 1} y el ${i + 2}`);
+        }
+        return malos;
+      });
+      expect(solapes, `Campos superpuestos en la barra de filtros: ${solapes.join('; ')}`).toEqual([]);
+    });
+  }
+}

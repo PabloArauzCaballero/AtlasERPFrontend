@@ -31,9 +31,19 @@ export function FieldLabel(props: FieldLabelProps) {
     </>
   );
   const labelText = typeof props.label === 'string' ? props.label : 'este campo';
+  /*
+   * `min-w-0` + `break-words`: una etiqueta que no cabe dobla, no se desborda.
+   *
+   * Sin esto el texto se sale de la caja del campo y aterriza ENCIMA de la etiqueta del campo de
+   * al lado, que es como se veía la barra de filtros del directorio el 2026-09-19 («Buscar»
+   * pisando a «Tipo»): dos etiquetas ilegibles y ninguna pista de a qué control pertenece cada
+   * una. Dobla en vez de recortar a propósito: en el móvil los campos son estrechos y una
+   * etiqueta como «Clientes solicitantes de crédito» tiene que caber entera, no con puntos
+   * suspensivos.
+   */
   return (
-    <div className={`mb-1.5 flex items-center text-xs font-bold text-slate-700 ${props.className ?? ''}`}>
-      {props.htmlFor ? <label htmlFor={props.htmlFor}>{text}</label> : <span>{text}</span>}
+    <div className={`mb-1.5 flex min-w-0 items-center text-xs font-bold text-slate-700 ${props.className ?? ''}`}>
+      {props.htmlFor ? <label className="min-w-0 break-words" htmlFor={props.htmlFor}>{text}</label> : <span className="min-w-0 break-words">{text}</span>}
       {props.tooltip && props.describedById ? (
         <FieldTooltip text={props.tooltip} label={labelText} describedById={props.describedById} forceOpen={props.controlFocused} />
       ) : null}
