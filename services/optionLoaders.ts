@@ -139,13 +139,6 @@ export const loadPendingApprovals = async (): Promise<Option[]> =>
     label: `${s(row.approvalType)} — ${s(row.reason).slice(0, 60) || 'sin motivo'}`,
   }));
 
-/** Contratos vivos, por numero y comercio. */
-export const loadContracts2 = async (): Promise<Option[]> =>
-  (await b2bService.listContracts()).map((row) => ({
-    value: s(row.id),
-    label: `${s(row.contractNumber)} — ${s(row.tradeName) || s(row.accountId)} (${s(row.status)})`,
-  }));
-
 /** Oportunidades del pipeline, por nombre y etapa. */
 export const loadOpportunities = async (): Promise<Option[]> =>
   (await b2bService.listOpportunities()).map((row) => ({

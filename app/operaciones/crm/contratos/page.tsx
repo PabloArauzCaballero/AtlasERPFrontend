@@ -97,6 +97,8 @@ export default function CommercialContractsPage() {
            * se abre en un diálogo con el contrato ya fijado.
            */
           silent: true,
+          /* Sin versión vigente no hay dónde colgar la comisión: la acción no se ofrece. */
+          enabled: (row) => Boolean(row.currentVersionId),
           run: async (row) => setComisionDe(row),
         },
       ]}
@@ -110,7 +112,11 @@ export default function CommercialContractsPage() {
           width="lg"
           onClose={() => setComisionDe(null)}
         >
-          <MdrRulesPanel embedded contractVersionId={String(comisionDe.id ?? '')} />
+          {/* La VERSIÓN del contrato, no el contrato: es de la versión de la que cuelga la regla. */}
+          <MdrRulesPanel
+            contractVersionId={String(comisionDe.currentVersionId ?? '')}
+            accountId={String(comisionDe.accountId ?? '')}
+          />
         </Modal>
       ) : null}
     </CrudDirectory>

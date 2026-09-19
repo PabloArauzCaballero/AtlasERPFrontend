@@ -152,6 +152,9 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
         {
           id: 'c1000000-0000-4000-8000-000000000001',
           contractNumber: 'CTR-0001',
+          /* La VERSIÓN del contrato: es de ella de la que cuelga la comisión, no del contrato. */
+          currentVersionId: 'v1000000-0000-4000-8000-000000000001',
+          accountId: 'a1000000-0000-4000-8000-000000000001',
           startDate: '2026-09-01',
           billingCycle: 'MONTHLY',
           settlementPolicy: 'PER_CONTRACT',
@@ -161,10 +164,24 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
         {
           id: 'c1000000-0000-4000-8000-000000000002',
           contractNumber: 'CTR-0002',
+          currentVersionId: 'v1000000-0000-4000-8000-000000000002',
+          accountId: 'a1000000-0000-4000-8000-000000000002',
           startDate: '2026-08-01',
           billingCycle: 'MONTHLY',
           settlementPolicy: 'PER_CONTRACT',
           signedAt: '2026-08-15T10:00:00.000Z',
+          status: 'ACTIVE',
+        },
+        {
+          id: 'c1000000-0000-4000-8000-000000000003',
+          contractNumber: 'CTR-0003',
+          /* Anterior al versionado: existe el contrato y no existe ninguna versión suya. */
+          currentVersionId: null,
+          accountId: 'a1000000-0000-4000-8000-000000000003',
+          startDate: '2026-07-01',
+          billingCycle: 'MONTHLY',
+          settlementPolicy: 'PER_CONTRACT',
+          signedAt: '2026-07-15T10:00:00.000Z',
           status: 'ACTIVE',
         },
       ]),
@@ -203,6 +220,13 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
   const firmada = page.locator('[data-tutorial-id="crud-tabla"] tbody tr').nth(1);
   await expect(firmada.getByTestId('accion-firmar-c1000000-0000-4000-8000-000000000002')).toHaveCount(0);
   await expect(firmada.getByTestId('accion-comision-c1000000-0000-4000-8000-000000000002')).toBeVisible();
+
+  /*
+   * Y al revés: un contrato SIN versión vigente tampoco ofrece la comisión. La regla cuelga de la
+   * versión, así que sin ella la acción sólo sabría abrir un formulario que responde 404.
+   */
+  const sinVersion = page.locator('[data-tutorial-id="crud-tabla"] tbody tr').nth(2);
+  await expect(sinVersion.getByTestId('accion-comision-c1000000-0000-4000-8000-000000000003')).toHaveCount(0);
 });
 
 test('el término contractual cuelga de su contrato, no de un desplegable', async ({ page }) => {
