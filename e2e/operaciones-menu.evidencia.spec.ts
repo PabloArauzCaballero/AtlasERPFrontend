@@ -121,6 +121,22 @@ test('ningún botón promete algo que no hace', async ({ page }) => {
   await expect(page.getByRole('button', { name: /cerrar sesión/i })).toBeVisible();
 });
 
+test('la consola no se sale de la pantalla de un teléfono', async ({ page }) => {
+  /*
+   * La rejilla de tarjetas se sustituyó por una tira (`Resumen`), que es `flex-wrap` en vez de
+   * `grid` con puntos de corte. Conviene comprobarlo donde antes había cuatro tarjetas: a 320 px
+   * la tira tiene que doblar, no empujar la página.
+   */
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/operaciones');
+  await expect(page.getByRole('heading', { name: /resumen ejecutivo/i })).toBeVisible({ timeout: 30_000 });
+  // La tipografía ANTES de medir: hasta que carga, cada icono se pinta como su palabra entera.
+  await page.evaluate(() => document.fonts.ready.then(() => true));
+  const desborde = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(desborde, 'la consola se desplaza en horizontal a 320 px').toBeLessThanOrEqual(1);
+  await page.screenshot({ path: `${EVIDENCIA}/consola-320.png`, fullPage: true });
+});
+
 test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) => {
   await page.goto('/operaciones');
   const lateral = page.getByRole('navigation').first();
