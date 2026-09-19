@@ -9,6 +9,7 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
+import { Modal } from '@/components/atlas/Modal';
 import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -58,6 +59,15 @@ export interface RowAction {
   onClick?: (row: ResourceRow) => void | Promise<void>;
   icon?: string;
   tone?: 'default' | 'danger';
+  /**
+   * Se queda en la fila. Las demás caen en «Más acciones», que las lista con su nombre.
+   *
+   * Aquí cada acción se pinta con su etiqueta, así que el problema no es adivinar iconos sino el
+   * ANCHO: cinco acciones con texto hacen una columna que empuja la tabla a desplazarse en
+   * horizontal, y entonces las acciones quedan fuera de la pantalla precisamente en la fila que
+   * se quiere operar. Tres es lo que cabe.
+   */
+  primary?: boolean;
   /** Si se define, pide confirmación en un modal antes de ejecutar `onClick`. */
   confirm?: { title: string; message: string; confirmLabel?: string; tone?: 'danger' | 'primary'; successMessage?: string };
   /**
@@ -138,6 +148,18 @@ function renderCell(row: ResourceRow, column: DirectoryColumn) {
   if (column.kind === 'pii') return maskPii(raw, column.key);
   if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join(', ') : '—';
   return <span className={column.kind === 'mono' ? 'font-mono text-[11px]' : ''}>{String(raw ?? '—')}</span>;
+}
+
+/** Lo que se queda en la fila: las marcadas, o las tres primeras si nadie marcó nada. */
+function enCarril(acciones: RowAction[]): RowAction[] {
+  const marcadas = acciones.filter((accion) => accion.primary);
+  return (marcadas.length ? marcadas : acciones).slice(0, 3);
+}
+
+/** Lo que va al cajón, con su nombre. */
+function enCajon(acciones: RowAction[]): RowAction[] {
+  const carril = new Set(enCarril(acciones).map((accion) => accion.key));
+  return acciones.filter((accion) => !carril.has(accion.key));
 }
 
 export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
@@ -259,6 +281,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
   const [busy, setBusy] = useState(false);
   const [creating, setCreating] = useState(false);
   const [rowForm, setRowForm] = useState<{ action: RowAction; row: ResourceRow } | null>(null);
+  /** La fila cuyo cajón de acciones está abierto, con lo que le toca enseñar. */
+  const [masAcciones, setMasAcciones] = useState<{ row: ResourceRow; actions: RowAction[] } | null>(null);
 
   const runAction = useCallback(async (action: RowAction, row: ResourceRow) => {
     try {
@@ -357,18 +381,35 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                       <td className="px-3 py-3 text-right">
                         {actions.length ? (
                           <div className="flex items-center justify-end gap-1">
-                            {actions.map((action) => {
+                            {enCarril(actions).map((action) => {
                               const toneClass = action.tone === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-primary hover:bg-primary-wash';
                               const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold ${toneClass}`;
                               return action.href
                                 ? <Link key={action.key} className={className} href={action.href}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
                                 : <button key={action.key} type="button" className={className} onClick={() => { if (action.form) setRowForm({ action, row }); else if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
                             })}
+                            {enCajon(actions).length ? (
+                              <button
+                                type="button"
+                                title="Más acciones"
+                                aria-label="Más acciones"
+                                data-testid={`mas-acciones-${rowKey}`}
+                                onClick={() => setMasAcciones({ row, actions: enCajon(actions) })}
+                                className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100"
+                              >
+                                <Icon name="more_horiz" className="text-[18px]" />
+                              </button>
+                            ) : null}
                           </div>
                         ) : href ? (
                           <Link className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold text-primary hover:bg-primary-wash" href={href}>Ver <Icon name="chevron_right" className="text-[16px]" /></Link>
                         ) : (
-                          <button className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100" aria-label="Más acciones"><Icon name="more_horiz" className="text-[18px]" /></button>
+                          /*
+                           * Antes había aquí un botón «Más acciones» SIN `onClick`: se pintaba en
+                           * toda fila sin acciones ni detalle, invitaba a pulsarlo y no hacía nada.
+                           * Una fila sin nada que hacer no necesita un botón que lo finja.
+                           */
+                          <span className="text-xs text-slate-400">—</span>
                         )}
                       </td>
                     </tr>
@@ -436,6 +477,47 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
           onConfirm={async () => { setBusy(true); await runAction(pending.action, pending.row); setBusy(false); setPending(null); }}
         />
       ) : null}
+      {/* El cajón: lo que no cabe en la fila, con su nombre. Va en modal y no en una capa dentro
+          de la celda porque la tabla vive en `.table-scroll` y la recortaría. */}
+      {masAcciones ? (
+        <Modal
+          open
+          title="Más acciones"
+          icon="more_horiz"
+          width="md"
+          onClose={() => setMasAcciones(null)}
+        >
+          <div className="space-y-1.5">
+            {masAcciones.actions.map((action) => {
+              const fila = masAcciones.row;
+              const clase = `flex w-full items-center gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold transition hover:border-slate-300 hover:bg-slate-50 ${action.tone === 'danger' ? 'text-red-600' : 'text-slate-700'}`;
+              return action.href ? (
+                <Link key={action.key} href={action.href} className={clase} onClick={() => setMasAcciones(null)}>
+                  {action.icon ? <Icon name={action.icon} className="text-[18px] text-slate-500" /> : null}
+                  {action.label}
+                </Link>
+              ) : (
+                <button
+                  key={action.key}
+                  type="button"
+                  className={clase}
+                  onClick={() => {
+                    /* Cerrar antes de abrir lo que venga: dos diálogos apilados atrapan el foco. */
+                    setMasAcciones(null);
+                    if (action.form) setRowForm({ action, row: fila });
+                    else if (action.confirm) setPending({ action, row: fila });
+                    else void runAction(action, fila);
+                  }}
+                >
+                  {action.icon ? <Icon name={action.icon} className="text-[18px] text-slate-500" /> : null}
+                  {action.label}
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
+      ) : null}
+
     </div>
   );
 }

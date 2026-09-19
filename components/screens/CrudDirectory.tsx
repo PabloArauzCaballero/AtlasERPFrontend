@@ -13,6 +13,7 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { downloadCsv } from '@/lib/csv';
 import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
+import { Modal } from '@/components/atlas/Modal';
 import { ActionFormModal } from './ActionFormModal';
 import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
@@ -74,6 +75,18 @@ export interface CrudExtraAction {
   confirm?: { title: string; message: string; confirmLabel?: string | undefined } | undefined;
   /** Oculta la acción en las filas donde no aplica. */
   enabled?: ((row: ResourceRow) => boolean) | undefined;
+  /**
+   * Se queda en la fila, con su icono. Las demás caen en «Más acciones».
+   *
+   * Sin esto, cada acción aplicable pintaba un icono suelto en el carril derecho: Onboarding
+   * llegaba a SIETE cuadraditos sin una palabra, uno al lado de otro, y saber cuál activaba el
+   * comercio y cuál pedía la verificación al Motor exigía apuntar con el ratón a cada uno. El
+   * carril no da para más de tres; lo que no cabe se lee mejor con su nombre en una lista.
+   *
+   * Sin ninguna marcada, se quedan en la fila las tres primeras: un valor por defecto razonable
+   * para las pantallas que sólo tienen dos o tres y nunca pensaron en esto.
+   */
+  primary?: boolean | undefined;
 }
 
 /** Acción de la barra superior que no cuelga de ninguna fila (un proceso del período, por ejemplo). */
@@ -180,6 +193,31 @@ function renderCell(row: ResourceRow, column: CrudColumn) {
  * pregunta que se hace uno al entrar— tocaba bajar. Aquí la tabla es la pantalla: el alta es un
  * botón, y modificar o eliminar son el lápiz y la papelera de la fila que se está mirando.
  */
+/** Las acciones que aplican a esta fila, en el orden en que se declararon. */
+function aplicables(acciones: CrudExtraAction[], row: ResourceRow): CrudExtraAction[] {
+  return acciones.filter((accion) => (accion.enabled ? accion.enabled(row) : true));
+}
+
+/**
+ * Lo que se queda en el carril de la fila: como mucho TRES.
+ *
+ * Tres es lo que cabe junto al lápiz y la papelera sin que la columna empuje a la tabla a
+ * desplazarse, y es también donde un icono sin texto deja de ser reconocible: con siete, elegir
+ * exige apuntar a cada uno y leer su globo.
+ */
+function enCarril(acciones: CrudExtraAction[], row: ResourceRow): CrudExtraAction[] {
+  const vivas = aplicables(acciones, row);
+  const marcadas = vivas.filter((accion) => accion.primary);
+  return (marcadas.length ? marcadas : vivas).slice(0, 3);
+}
+
+/** Lo que va al cajón «Más acciones», con su nombre escrito. */
+function enCajon(acciones: CrudExtraAction[], row: ResourceRow): CrudExtraAction[] {
+  const vivas = aplicables(acciones, row);
+  const carril = new Set(enCarril(acciones, row).map((accion) => accion.key));
+  return vivas.filter((accion) => !carril.has(accion.key));
+}
+
 export function CrudDirectory(props: CrudDirectoryProps) {
   const { load } = props;
   const loader = useCallback(() => load(), [load]);
@@ -360,6 +398,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
     }
   }
 
+  /** La fila cuyo cajón de acciones está abierto. */
+  const [masAcciones, setMasAcciones] = useState<ResourceRow | null>(null);
+
   async function launchExtra(action: CrudExtraAction, row: ResourceRow) {
     if (action.form) { setActionError(''); setExtraForm({ action, row }); return; }
     if (!action.run) return;
@@ -496,7 +537,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                     {hasRowActions ? (
                       <td className="px-3 py-2 text-right">
                         <div className="flex justify-end gap-1">
-                          {(props.extraActions ?? []).filter((action) => (action.enabled ? action.enabled(row) : true)).map((action) => {
+                          {enCarril(props.extraActions ?? [], row).map((action) => {
                             const clase = 'grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900';
                             return action.href ? (
                               <Link key={action.key} href={action.href(row)} title={action.label} aria-label={`${action.label}: ${labelFor(row)}`} data-testid={`accion-${action.key}-${id}`} className={clase}>
@@ -516,6 +557,18 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                               </button>
                             );
                           })}
+                          {enCajon(props.extraActions ?? [], row).length ? (
+                            <button
+                              type="button"
+                              title="Más acciones"
+                              aria-label={`Más acciones: ${labelFor(row)}`}
+                              data-testid={`mas-acciones-${id}`}
+                              onClick={() => setMasAcciones(row)}
+                              className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                            >
+                              <Icon name="more_horiz" className="text-[17px]" />
+                            </button>
+                          ) : null}
                           {props.edit && (props.edit.enabled ? props.edit.enabled(row) : true) ? (
                             <button
                               type="button"
@@ -654,6 +707,54 @@ export function CrudDirectory(props: CrudDirectoryProps) {
             await resource.reload();
           }}
         />
+      ) : null}
+
+      {/*
+        * El cajón de acciones: lo que no cabe en el carril, con su NOMBRE.
+        *
+        * Va en un modal y no en un desplegable anclado a la celda porque la tabla vive dentro de
+        * `.table-scroll` (`overflow-x: auto`): cualquier capa posicionada dentro de la fila queda
+        * recortada por ese contenedor en cuanto se sale de su ancho, que es justo lo que pasa en
+        * la última columna. Un clic más, pero se lee, no se recorta y funciona en el teléfono.
+        */}
+      {masAcciones ? (
+        <Modal
+          open
+          title="Más acciones"
+          description={labelFor(masAcciones)}
+          icon="more_horiz"
+          width="md"
+          onClose={() => setMasAcciones(null)}
+        >
+          <div className="space-y-1.5">
+            {enCajon(props.extraActions ?? [], masAcciones).map((accion) => {
+              const fila = masAcciones;
+              const clase = 'flex w-full items-center gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50';
+              return accion.href ? (
+                <Link key={accion.key} href={accion.href(fila)} data-testid={`accion-${accion.key}-${String(fila[idKey] ?? '')}`} className={clase} onClick={() => setMasAcciones(null)}>
+                  <Icon name={accion.icon} className="text-[18px] text-slate-500" />
+                  {accion.label}
+                </Link>
+              ) : (
+                <button
+                  key={accion.key}
+                  type="button"
+                  data-testid={`accion-${accion.key}-${String(fila[idKey] ?? '')}`}
+                  className={clase}
+                  onClick={() => {
+                    /* Primero se cierra: el cajón y el formulario que abre la acción no pueden
+                       convivir, y dejarlos apilados atrapa el foco entre los dos. */
+                    setMasAcciones(null);
+                    void launchExtra(accion, fila);
+                  }}
+                >
+                  <Icon name={accion.icon} className="text-[18px] text-slate-500" />
+                  {accion.label}
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
       ) : null}
 
       <ConfirmDialog

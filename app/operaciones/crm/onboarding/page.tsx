@@ -139,6 +139,16 @@ export default function OnboardingPage() {
               key: 'requisito',
               label: 'Mover un requisito',
               icon: 'task_alt',
+              /*
+               * Las TRES que se quedan en la fila; el resto vive en «Más acciones», con su nombre.
+               *
+               * El criterio es cuántas veces se pulsa y qué pasa si no la encuentras: mover un
+               * requisito se hace muchas veces por caso, dar acceso es lo que desbloquea al
+               * comercio y activar es el final del trámite. Pedir la verificación al Motor, pactar
+               * contrato o comisión se hacen UNA vez y se leen mejor con su nombre escrito que como
+               * un cuadradito más en un carril de siete.
+               */
+              primary: true,
               enabled: abierto,
               form: {
                 title: (row) => `Requisitos de ${String(row.tradeName ?? 'este comercio')}`,
@@ -280,6 +290,7 @@ export default function OnboardingPage() {
               key: 'credenciales',
               label: 'Dar acceso a una persona',
               icon: 'person_add',
+              primary: true,
               /*
                * Pide el acceso a Atlas: la identidad la concede el portal interno, no el ERP.
                *
@@ -343,6 +354,7 @@ export default function OnboardingPage() {
               label: 'Activar comercio',
               icon: 'rocket_launch',
               tone: 'success',
+              primary: true,
               /* La compuerta dura la aplica el backend; aquí sólo no se ofrece lo que va a rechazar. */
               enabled: (row) => abierto(row) && String(row.decisionOutcome ?? '') === 'APROBADO',
               run: async (row) => {

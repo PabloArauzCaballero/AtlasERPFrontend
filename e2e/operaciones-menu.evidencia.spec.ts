@@ -19,7 +19,19 @@ async function sesionInterna(page: Page) {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        user: { id: '1', email: 'operaciones@atlas.test', fullName: 'Operaciones Atlas', roleCode: 'ADMIN', status: 'ACTIVE' },
+        /*
+         * `permissions` NO es opcional: `hasPermission` hace `user.permissions.includes(...)` y sin
+         * el array la consola entera revienta con «client-side exception». Un doble que devuelve
+         * menos de lo que el contrato promete no prueba la pantalla, la rompe.
+         */
+        user: {
+          id: '1',
+          email: 'operaciones@atlas.test',
+          fullName: 'Operaciones Atlas',
+          roleCode: 'SUPER_ADMIN',
+          status: 'ACTIVE',
+          permissions: ['merchant.users.request', 'partner.kyb.request'],
+        },
       }),
     }),
   );
@@ -38,6 +50,58 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeEach(async ({ page }) => {
   await sesionInterna(page);
+});
+
+test('la fila no amontona iconos: tres acciones y el resto con su nombre', async ({ page }) => {
+  /*
+   * Onboarding declara DOCE acciones de fila y en un caso abierto se activan siete a la vez. Se
+   * pintaban como siete cuadraditos sin una palabra en el carril derecho, y distinguir «activar el
+   * comercio» de «pedir la verificación al Motor» exigía apuntar a cada uno y leer su globo.
+   */
+  await page.route('**/api/v1/b2b/onboarding/cases**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [
+          {
+            id: 'f5a362cd-bd0f-4496-b47b-665509907ac2',
+            accountId: 'c7adc617-416c-4076-ad95-dd04e58d446c',
+            tradeName: 'Comercio de prueba',
+            /* Un caso ABIERTO y ya aprobado por el Motor: el estado con más acciones a la vez. */
+            status: 'IN_PROGRESS',
+            pendingItems: 2,
+            decisionOutcome: 'APROBADO',
+            credentials: { concedidas: 1, pendientes: 0 },
+            checklistItems: [],
+            startedAt: '2026-09-16T18:19:01.000Z',
+          },
+        ],
+        total: 1,
+      }),
+    }),
+  );
+  await page.goto('/operaciones/crm/onboarding');
+  const fila = page.locator('[data-tutorial-id="crud-tabla"] tbody tr').first();
+  await expect(fila).toBeVisible({ timeout: 30_000 });
+
+  // En el carril, las TRES marcadas y el cajón: cuatro botones, no siete.
+  const caso = 'f5a362cd-bd0f-4496-b47b-665509907ac2';
+  for (const clave of ['requisito', 'credenciales', 'activar']) {
+    await expect(fila.getByTestId(`accion-${clave}-${caso}`), `falta ${clave} en el carril`).toBeVisible();
+  }
+  await expect(fila.getByTestId(`accion-contrato-${caso}`), 'contrato debería estar en el cajón').toHaveCount(0);
+  expect(await fila.locator('td:last-child button, td:last-child a').count(), 'demasiados botones en el carril').toBeLessThanOrEqual(4);
+
+  /*
+   * Y el cajón las enseña CON SU NOMBRE. «Pactar contrato» y «Pedir verificación al Motor» se hacen
+   * UNA vez por caso: no merecen sitio en el carril, pero tienen que encontrarse sin adivinar iconos.
+   */
+  await fila.getByTestId(`mas-acciones-${caso}`).click();
+  const cajon = page.getByRole('dialog');
+  await expect(cajon.getByText(/pactar contrato/i)).toBeVisible();
+  await expect(cajon.getByText(/pedir verificación al motor/i)).toBeVisible();
+  await page.screenshot({ path: `${EVIDENCIA}/fila-mas-acciones.png`, fullPage: true });
 });
 
 test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) => {
