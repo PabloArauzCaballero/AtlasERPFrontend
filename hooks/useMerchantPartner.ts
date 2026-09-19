@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { merchantCreditService } from '@/services/merchantCreditService';
+import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
 export interface ExpedienteDelComercio {
   partnerId: string;
@@ -52,9 +53,7 @@ export function useMerchantPartner(): MerchantPartner {
         const perfiles = resultado.profiles ?? [];
         const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
-          setError(
-            'Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.',
-          );
+          setError(SIN_EXPEDIENTE);
           setCargando(false);
           return;
         }

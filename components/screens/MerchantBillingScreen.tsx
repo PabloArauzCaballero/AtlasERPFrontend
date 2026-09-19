@@ -21,6 +21,7 @@ import { formatBob, formatDate } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { Cartera, ExpedientePropio, PagoDeCartera } from '@/services/merchantCreditService';
 import type { ResourceRow } from '@/services/types';
+import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
 /*
  * Consumo y facturación del comercio.
@@ -127,7 +128,7 @@ export function MerchantBillingScreen() {
         if (cancelado) return;
         const propios = resultado.profiles ?? [];
         if (propios.length === 0) {
-          setCarteraError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
+          setCarteraError(SIN_EXPEDIENTE);
           setCargandoCartera(false);
           return;
         }

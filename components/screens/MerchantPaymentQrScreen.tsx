@@ -17,6 +17,7 @@ import { AVISO_SIN_QR, imagenTieneQr } from '@/lib/qrImagen';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
 import { withEmpty } from '@/services/optionLoaders';
+import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
 /**
  * Los estados del expediente en los que AtlasBackend admite subir o cambiar el QR
@@ -170,7 +171,7 @@ export function MerchantPaymentQrScreen({
         // Con varios, el aprobado primero: es el que cobra. Y se enseña cuál se eligió (ver selector).
         const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
-          setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
+          setError(SIN_EXPEDIENTE);
           setCargando(false);
           return;
         }

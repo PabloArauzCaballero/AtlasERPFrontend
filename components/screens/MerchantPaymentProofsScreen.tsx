@@ -13,6 +13,7 @@ import { tablaPdf } from '@/lib/pdf';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import type { ComprobanteDePago } from '@/services/merchantCreditService';
+import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
 const MOTIVOS = [
   { label: '— Elija el motivo —', value: '' },
@@ -180,7 +181,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
         const perfiles = resultado.profiles ?? [];
         const propio = perfiles.find((perfil) => perfil.status === 'approved') ?? perfiles[0];
         if (!propio) {
-          setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.');
+          setError(SIN_EXPEDIENTE);
           setCargando(false);
           return;
         }

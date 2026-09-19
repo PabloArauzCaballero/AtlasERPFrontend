@@ -15,6 +15,7 @@ import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import { portalService } from '@/services/portalService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
+import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
 const VISTAS = ['panel', 'creditos', 'calendario', 'comision'] as const;
 type Vista = (typeof VISTAS)[number];
@@ -71,7 +72,7 @@ export function MerchantPortfolioScreen() {
       .then((resultado) => {
         if (cancelado) return;
         const propio = resultado.profiles?.[0];
-        if (!propio) { setError('Su comercio todavía no tiene expediente en Atlas: el ejecutivo de cuenta debe enviarlo a verificación desde el caso de alta. Hasta entonces esta pantalla no puede operar.'); setCargando(false); return; }
+        if (!propio) { setError(SIN_EXPEDIENTE); setCargando(false); return; }
         setNombre(propio.tradeName ?? propio.legalName ?? '');
         void cargar(propio.partnerId);
       })

@@ -55,6 +55,17 @@ test('Gestión POS abre la pestaña que dice la URL', async ({ page }) => {
   // Y cambiar de pestaña lo escribe en la URL: es lo que permite enlazar a una de las dos.
   await page.getByRole('tab', { name: /solicitudes de compra/i }).click();
   await expect(page).toHaveURL(/tab=solicitudes/);
+
+  /*
+   * Sin expediente, el aviso dice QUÉ HACER y quién lo hace. Decía «el ejecutivo de cuenta debe
+   * enviarlo a verificación desde el caso de alta», y eso dejó de ser cierto en cuanto «Mi empresa»
+   * pinta su alta aunque no haya expediente: mandaba a esperar a otra persona por un trámite de un
+   * minuto que el propio comercio puede hacer.
+   */
+  const aviso = page.getByText(/todavía no tiene expediente/i).first();
+  await expect(aviso).toBeVisible();
+  await expect(aviso).toContainText(/mi empresa/i);
+  await expect(page.getByText(/ejecutivo de cuenta/i)).toHaveCount(0);
   await page.screenshot({ path: `${EVIDENCIA}/gestion-pos.png`, fullPage: true });
 });
 
