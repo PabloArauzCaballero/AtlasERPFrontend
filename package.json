@@ -11,6 +11,7 @@
     "lint": "node scripts/check-pestanas-accion.mjs && node scripts/check-campos.mjs && node scripts/check-ayuda.mjs && eslint . --max-warnings=0",
     "check": "npm run type-check && npm run lint && npm run build",
     "test:e2e": "playwright test",
+    "test:e2e:ci": "PW_SOLO_SIMULADO=1 playwright test --project=chromium",
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {

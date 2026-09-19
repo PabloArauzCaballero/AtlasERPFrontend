@@ -9,6 +9,12 @@
 # actualizó —que es el fallo más común en este repositorio— y que `tsc --noEmit` sí deja pasar
 # cuando el path se resuelve por alias.
 #
+# Desde el 2026-09-19 SÍ se corren las baterías de navegador que no necesitan stack (`e2e`, abajo).
+# Hasta entonces no se corría ninguna, y eso costó caro: la pantalla de comisión del contrato
+# llevaba desde siempre mandando el uuid del CONTRATO donde el backend espera el de su VERSIÓN, y
+# los tres gates de aquí pasaban en verde porque los dos son `string`. Un gate que sólo mira tipos
+# y sintaxis no puede ver un comportamiento equivocado.
+#
 # PENDIENTE (ATL-009): este repositorio no tiene runner de pruebas unitarias. Cuando se instale
 # Vitest + Testing Library, su paso va aquí, antes del build.
 name: CI
@@ -46,6 +52,69 @@ jobs:
 
       - name: Build
         run: yarn build
+
+  # Las baterías de navegador que corren con el backend SIMULADO (`e2e/support`).
+  #
+  # Qué entra y qué no lo decide `PW_SOLO_SIMULADO=1` en playwright.config.ts, con una lista de
+  # EXCLUSIÓN: las que necesitan dos backends y una sesión se nombran allí, y todo lo demás entra
+  # solo. Con una lista de inclusión, la prueba que alguien escriba mañana se quedaría fuera sin
+  # que nadie lo note, que es justo el agujero que este trabajo cierra.
+  #
+  # Corre contra `next start`, no contra `next dev`: es el mismo artefacto que se despliega, y
+  # evita que una prueba pase por una recompilación al vuelo que en producción no existe.
+  e2e:
+    name: Navegador (backend simulado)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Instalar dependencias
+        run: yarn install --frozen-lockfile
+
+      # Sólo Chromium: es el único navegador que usan estas baterías. WebKit lo pide
+      # `layout-responsive`, que necesita sesión y no corre aquí.
+      - name: Instalar Chromium de Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: yarn build
+
+      - name: Levantar el servidor y esperar a que responda
+        run: |
+          # `nohup` + log propio: si el servidor no arranca, el motivo tiene que poder leerse. Sin
+          # el log, un fallo de arranque llega como «todas las pruebas rojas» y se diagnostica mal.
+          nohup yarn start > servidor.log 2>&1 &
+          # Espera real, no un `sleep` fijo: un sleep corto falla el día que el runner va lento y
+          # uno largo regala minutos en cada corrida. Con curl, sin dependencias nuevas.
+          for i in $(seq 1 120); do
+            if curl -sf -o /dev/null http://localhost:3010/login; then
+              echo "servidor listo tras ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "el servidor no respondio en 120s; su salida:"; cat servidor.log; exit 1
+
+      - name: Pruebas de navegador
+        run: yarn test:e2e:ci
+
+      # Las capturas y trazas de una corrida roja: sin ellas, un fallo que no se reproduce en
+      # local no se puede diagnosticar y la batería acaba ignorándose.
+      - name: Guardar evidencia del fallo
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-fallos
+          path: |
+            test-results/
+            docs/visual-evidence/
+            servidor.log
+          retention-days: 7
 
   # Escaneo de secretos del árbol (auditoría a producción, 2026-09-13). Este repositorio es
   # PÚBLICO: lo que entra en un commit queda indexado aunque se borre después. Corre antes de

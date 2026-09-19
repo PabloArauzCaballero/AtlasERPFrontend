@@ -14,7 +14,15 @@ import { expect, test } from '@playwright/test';
 const EVIDENCIA = 'docs/visual-evidence/portal-comercio';
 
 /* CPA es el comercio con red comercial completa: sucursal, terminal activo y expediente aprobado. */
-const COMERCIO = { email: 'cpacentropreparacionacademica@gmail.com', password: '72107014Casa_' };
+/*
+ * Las credenciales NO viven aqui: repositorio PUBLICO, y lo commiteado queda en el historial
+ * aunque se borre. Variables propias porque esta bateria necesita EL comercio con red completa
+ * (sucursal, terminal activo y expediente aprobado), no uno cualquiera. Sin ellas se salta.
+ */
+const COMERCIO = {
+  email: process.env.PW_MERCHANT_CPA_EMAIL ?? '',
+  password: process.env.PW_MERCHANT_CPA_PASSWORD ?? '',
+};
 const SERIAL_ESPERADO = 'CPA-CENTRO-01';
 
 test.describe.configure({ mode: 'serial' });
@@ -32,6 +40,7 @@ async function sinErrores(page: import('@playwright/test').Page, donde: string) 
 }
 
 test.beforeEach(async ({ page }) => {
+  test.skip(!COMERCIO.email || !COMERCIO.password, 'Sin PW_MERCHANT_CPA_EMAIL/PW_MERCHANT_CPA_PASSWORD.');
   await page.goto('/login');
   await page.getByRole('tab', { name: /comercio afiliado/i }).click();
   await page.locator('input[name="email"]').fill(COMERCIO.email);

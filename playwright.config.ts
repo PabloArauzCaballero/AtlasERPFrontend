@@ -12,6 +12,32 @@ import { defineConfig, devices } from '@playwright/test';
  * `PW_BASE_URL` apunta a otro origen cuando ya hay un servidor levantado, que es lo normal en esta
  * máquina: arrancar otro con el mismo `.next` deja al que corría con módulos que ya no existen.
  */
+/**
+ * Las que NECESITAN el stack completo (dos backends, Postgres, Redis, MinIO y una sesión real).
+ *
+ * Es una lista de EXCLUSIÓN a propósito, no una de inclusión: con una lista de inclusión, la
+ * prueba que alguien escriba mañana se quedaría fuera del CI sin que nadie lo note —que es
+ * exactamente el fallo que este cambio viene a cerrar—. Así, lo nuevo entra solo, y lo que
+ * dependa del stack hay que declararlo aquí y justificarlo.
+ */
+const NECESITAN_STACK = [
+  /mi-empresa-real\.spec\.ts$/,
+  /operaciones-real\.spec\.ts$/,
+  /portal-comercio-real\.spec\.ts$/,
+  /portal-comercio-soporte\.spec\.ts$/,
+  /onboarding-cola\.evidencia\.spec\.ts$/,
+  /layout-responsive\.spec\.ts$/,
+];
+
+/*
+ * `PW_SOLO_SIMULADO=1` deja SOLO lo que corre con el backend simulado: es el modo del CI.
+ *
+ * No se resuelve con `test.skip`, aunque varias de esas baterías ya lo hagan por su cuenta: una
+ * corrida en la que la mitad sale «saltada» es un informe amarillo permanente, y un informe que
+ * siempre está amarillo enseña a no mirarlo. Aquí no se ejecutan y el verde significa algo.
+ */
+const SOLO_SIMULADO = process.env.PW_SOLO_SIMULADO === '1';
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -47,7 +73,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testIgnore: /layout-responsive\.spec\.ts$/,
+      testIgnore: SOLO_SIMULADO ? NECESITAN_STACK : /layout-responsive\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
     },
     {

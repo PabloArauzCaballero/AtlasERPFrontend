@@ -17,7 +17,15 @@ import { expect, test } from '@playwright/test';
  */
 const EVIDENCIA = 'docs/visual-evidence/portal-comercio';
 
-const COMERCIO = { email: 'pabliarca@gmail.com', password: '72107014Casa_' };
+/*
+ * Las credenciales NO viven aqui. Este repositorio es PUBLICO y una contrasena commiteada se queda
+ * en el historial para siempre aunque se borre despues: hay que rotarla, no solo quitarla. Sin las
+ * variables la prueba se SALTA, que es honesto — no pasa en verde sin haber probado nada.
+ */
+const COMERCIO = {
+  email: process.env.PW_MERCHANT_EMAIL ?? '',
+  password: process.env.PW_MERCHANT_PASSWORD ?? '',
+};
 
 test.describe.configure({ mode: 'serial' });
 
@@ -42,6 +50,7 @@ async function sinErrores(page: import('@playwright/test').Page, donde: string) 
 }
 
 test.beforeEach(async ({ page }) => {
+  test.skip(!COMERCIO.email || !COMERCIO.password, 'Sin PW_MERCHANT_EMAIL/PW_MERCHANT_PASSWORD.');
   await page.goto('/login');
   // La pestaña del comercio: su canal es distinto del interno a propósito.
   await page.getByRole('tab', { name: /comercio afiliado/i }).click();

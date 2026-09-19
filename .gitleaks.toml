@@ -23,3 +23,27 @@ paths = [
   '''\.env\.example$''',
   '''(^|/)graphify-out/''',
 ]
+
+# Contraseñas y correos de cuentas REALES escritos a mano en el código (2026-09-19).
+#
+# Por qué hace falta una regla propia: las reglas por defecto reconocen tokens de proveedores por
+# su forma (prefijos, longitudes, entropía). Una contraseña humana no tiene ninguna de esas señas,
+# así que `password: '...'` en un `.spec.ts` pasaba limpio. Y pasó: dos baterías del portal
+# llevaban el correo y la contraseña de comercios reales commiteados en un repositorio PÚBLICO,
+# mientras una tercera —`portal-comercio-soporte`— ya las leía de variables de entorno con un
+# comentario explicando justo este riesgo. La convención existía; el gate no la sostenía.
+#
+# Lo que se exige: las credenciales se leen de `process.env`. Un valor de ejemplo se marca en su
+# línea con `gitleaks:allow`, como el resto de este archivo.
+[[rules]]
+id = "atlas-credencial-en-codigo"
+description = "Contraseña escrita a mano en el código (usa process.env)"
+regex = '''(?i)\b(password|passwd|contrasena|contraseña|secret)\s*[:=]\s*['"][^'"\s$][^'"]{5,}['"]'''
+path = '''\.(ts|tsx|js|jsx|mjs|cjs|json|ya?ml)$'''
+[rules.allowlist]
+description = "Referencias a variables, no valores"
+regexes = [
+  '''process\.env\.''',
+  '''\$\{''',
+  '''<[^>]+>''',
+]
