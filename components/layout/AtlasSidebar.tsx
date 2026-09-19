@@ -96,11 +96,19 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
        * `RequireAuth` —con su auditoría—, no volver a poner el enlace: sin eso,
        * es una promesa que el enrutador ya se niega a cumplir.
        */}
+      {/*
+        * Al lado vivía un botón «Ayuda» que no hacía nada: ni abría la ayuda, ni llevaba al Centro
+        * de Tutoriales que ya está arriba del menú. Quitado, queda sólo salir, y con su nombre: un
+        * icono solitario en una esquina es la clase de control que se pulsa sin querer.
+        */}
       <div className="border-t border-slate-200/80 p-3">
-        <div className="flex gap-2">
-          <button className="flex min-h-11 flex-1 items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-white"><Icon name="help" className="text-[18px]" />Ayuda</button>
-          <button onClick={handleLogout} className="grid h-11 w-11 place-items-center rounded-md text-red-600 hover:bg-red-50" aria-label="Cerrar sesión"><Icon name="logout" className="text-[18px]" /></button>
-        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+        >
+          <Icon name="logout" className="text-[18px]" /> Cerrar sesión
+        </button>
       </div>
     </div>
   );

@@ -104,6 +104,23 @@ test('la fila no amontona iconos: tres acciones y el resto con su nombre', async
   await page.screenshot({ path: `${EVIDENCIA}/fila-mas-acciones.png`, fullPage: true });
 });
 
+test('ningún botón promete algo que no hace', async ({ page }) => {
+  /*
+   * Había controles con aspecto de botón y sin nada detrás: «Exportar» en el resumen ejecutivo,
+   * «Ayuda» en el pie del menú (que ni abría la ayuda ni llevaba al Centro de Tutoriales, que está
+   * arriba), y en las tablas un «Más acciones» que se pintaba en toda fila sin acciones. Pulsar y
+   * que no pase nada enseña a desconfiar de la pantalla entera, no sólo de ese botón.
+   */
+  await page.goto('/operaciones');
+  await expect(page.getByRole('heading', { name: /resumen ejecutivo/i })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('button', { name: /^exportar$/i })).toHaveCount(0);
+
+  const lateral = page.getByRole('navigation').first();
+  await expect(lateral.getByRole('button', { name: /^ayuda$/i })).toHaveCount(0);
+  // Salir sí está, y con su nombre: un icono solitario en una esquina se pulsa sin querer.
+  await expect(page.getByRole('button', { name: /cerrar sesión/i })).toBeVisible();
+});
+
 test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) => {
   await page.goto('/operaciones');
   const lateral = page.getByRole('navigation').first();

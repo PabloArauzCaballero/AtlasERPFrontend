@@ -40,7 +40,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
         breadcrumbs={[{ label: 'CRM', href: '/operaciones/crm/cuentas' }, { label: name }]}
         title={name}
         description="Vista 360° de identidad comercial, contactos, volumen esperado, riesgo y actividad institucional."
-        actions={<><AtlasButton variant="secondary" icon="file_download">Exportar dossier</AtlasButton><Link href={`/operaciones/crm/cuentas/calificar?accountId=${requestedId}`}><AtlasButton icon="verified">Calificar cuenta</AtlasButton></Link></>}
+        actions={<><Link href={`/operaciones/crm/cuentas/calificar?accountId=${requestedId}`}><AtlasButton icon="verified">Calificar cuenta</AtlasButton></Link></>}
       />
 
       <Panel compact>

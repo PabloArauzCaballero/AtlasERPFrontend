@@ -93,7 +93,6 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-          <button className="hidden h-11 w-11 place-items-center rounded-full text-slate-500 hover:bg-slate-100 sm:grid" aria-label="Notificaciones"><Icon name="notifications" className="text-[19px]" /></button>
           <div className="hidden h-7 w-px bg-slate-200 sm:block" />
           {/* El nombre del comercio se retira en pantallas muy estrechas: con la
               barra a 320 px empujaba los botones fuera del borde derecho. La

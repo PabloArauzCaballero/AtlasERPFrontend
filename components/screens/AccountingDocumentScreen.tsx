@@ -107,7 +107,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
 
   async function postDocument() { if (!documentId) return; try { await postMutation.execute(documentId); await onDone?.(); } catch { /* controlled */ } }
 
-  const acciones = <><AtlasButton variant="secondary" icon="close" type="reset">Cancelar</AtlasButton><AtlasButton variant="secondary" icon="rule" disabled={!balanced}>Validar cuadre</AtlasButton><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar borrador</AtlasButton></>;
+  const acciones = <><AtlasButton variant="secondary" icon="close" type="reset">Cancelar</AtlasButton><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar borrador</AtlasButton></>;
 
   return (
     <form className="space-y-5" onSubmit={createDocument}>

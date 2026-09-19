@@ -64,7 +64,7 @@ export function ExecutiveDashboard() {
 
   return (
     <div className="space-y-5">
-      <WorkspaceHeader eyebrow="Panel de control institucional" title="Resumen ejecutivo" description="Visión consolidada de la operación B2B, financiera y de control interno de ATLAS." actions={<><AtlasButton variant="secondary" icon="refresh" onClick={resource.reload}>Actualizar</AtlasButton><AtlasButton variant="secondary" icon="download">Exportar</AtlasButton></>} />
+      <WorkspaceHeader eyebrow="Panel de control institucional" title="Resumen ejecutivo" description="Visión consolidada de la operación B2B, financiera y de control interno de ATLAS." actions={<><AtlasButton variant="secondary" icon="refresh" onClick={resource.reload}>Actualizar</AtlasButton></>} />
       {resource.error ? <InlineNotice tone="danger" title="No fue posible cargar el tablero">{resource.error}</InlineNotice> : null}
       {data?.failures.length ? <InlineNotice tone="warning" title="Carga parcial">Sin respuesta de: {data.failures.join(', ')}. Los demás módulos permanecen visibles.</InlineNotice> : null}
       <Resumen
