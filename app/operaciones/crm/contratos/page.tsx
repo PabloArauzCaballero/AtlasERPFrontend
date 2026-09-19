@@ -1,27 +1,17 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { Modal } from '@/components/atlas/Modal';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
-import { InlineActionForm } from '@/components/screens/InlineActionForm';
 import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
 import { b2bService } from '@/services/b2bService';
-import { loadContracts2, loadInternalUsers, loadProposals } from '@/services/optionLoaders';
-import type { JsonObject } from '@/services/types';
+import { loadInternalUsers, loadProposals } from '@/services/optionLoaders';
+import type { JsonObject, ResourceRow } from '@/services/types';
 
 export default function CommercialContractsPage() {
-  const [recargar, setRecargar] = useState(0);
-
-  const load = useCallback(
-    () => b2bService.listContracts(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [recargar],
-  );
-
-  async function firmar(payload: JsonObject) {
-    const contractId = String(payload.contractId ?? '');
-    const { contractId: _contractId, ...body } = payload;
-    return b2bService.signAndActivateContract(contractId, body);
-  }
+  const load = useCallback(() => b2bService.listContracts(), []);
+  /** El contrato cuya comisión se está administrando. `null` cierra el diálogo. */
+  const [comisionDe, setComisionDe] = useState<ResourceRow | null>(null);
 
   return (
     <CrudDirectory
@@ -66,27 +56,63 @@ export default function CommercialContractsPage() {
         ],
         submit: (payload: JsonObject) => b2bService.createContractFromProposal(payload),
       }}
+      /*
+       * Las dos operaciones del contrato viven en SU FILA.
+       *
+       * Vivían debajo de la tabla, cada una en su formulario, y el primer campo de ambas era un
+       * desplegable que pedía otra vez el contrato: el usuario elegía la fila con los ojos y luego
+       * tenía que volver a elegirla con el ratón, con el riesgo de firmar o tarifar el contrato
+       * equivocado. Sin contratos todavía, además, los dos desplegables sólo sabían decir «— No hay
+       * datos registrados —» y los formularios quedaban ahí, pidiendo datos para nada.
+       */
+      extraActions={[
+        {
+          key: 'firmar',
+          label: 'Firmar y activar',
+          icon: 'draw',
+          primary: true,
+          /* Firmar es lo que pone en vigor lo pactado: se ofrece mientras no haya firma. */
+          enabled: (row) => !row.signedAt,
+          form: {
+            title: (row) => `Firmar ${String(row.contractNumber ?? 'el contrato')}`,
+            description: 'Confirmación institucional del contrato: quién lo aprueba y cuándo se firmó. Desde la firma corre la vigencia.',
+            fields: [
+              { name: 'approvedByUserId', label: 'Aprobador', tooltip: 'Usuario interno que aprobó el contrato.', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
+              /* Selector de fecha y hora: el control entrega la hora local y se envía como ISO, en
+                 vez de pedir que se teclee un ISO con su zona horaria. */
+              { name: 'signedAt', label: 'Fecha y hora de firma', tooltip: 'Fecha y hora de la firma; desde ahí corre la vigencia.', type: 'datetime', optional: true, span: 2 },
+            ],
+            submit: (row, payload: JsonObject) => b2bService.signAndActivateContract(String(row.id ?? ''), payload),
+            submitLabel: 'Firmar y activar',
+          },
+        },
+        {
+          key: 'comision',
+          label: 'Comisión por venta (MDR)',
+          icon: 'percent',
+          primary: true,
+          /*
+           * `silent` porque no ejecuta nada: abre el panel de reglas de ESE contrato. No cabe en un
+           * formulario declarativo —lista las reglas vigentes, añade y activa o desactiva—, así que
+           * se abre en un diálogo con el contrato ya fijado.
+           */
+          silent: true,
+          run: async (row) => setComisionDe(row),
+        },
+      ]}
     >
-      <InlineActionForm
-        title="Firma y activación"
-        description="Confirmación institucional del contrato: quién lo aprueba y cuándo se firmó."
-        icon="draw"
-        submitLabel="Firmar y activar"
-        submitIcon="verified"
-        successMessage="El contrato quedó firmado y activo."
-        onDone={() => setRecargar((value) => value + 1)}
-        onSubmit={firmar}
-        fields={[
-          { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select', required: true, span: 2, optionsLoader: loadContracts2 },
-          { name: 'approvedByUserId', label: 'Aprobador', tooltip: 'Usuario interno que aprobó el contrato.', type: 'select', required: true, span: 2, optionsLoader: loadInternalUsers },
-          /* Selector de fecha y hora: el control entrega la hora local y se envía como ISO, en vez de
-             pedir que se teclee un ISO con su zona horaria. */
-          { name: 'signedAt', label: 'Fecha y hora de firma', tooltip: 'Fecha y hora de la firma; desde ahí corre la vigencia.', type: 'datetime', optional: true, span: 2 },
-        ]}
-      />
-      {/* La comisión cuelga de la versión del contrato: se administra junto al contrato, no en el
-          onboarding, donde obligaba a elegir el contrato otra vez en un desplegable. */}
-      <MdrRulesPanel />
+      {comisionDe ? (
+        <Modal
+          open
+          title={`Comisión por venta · ${String(comisionDe.contractNumber ?? 'contrato')}`}
+          description="Lo que Atlas cobra al comercio por cada venta de este contrato. Gana la regla más específica."
+          icon="percent"
+          width="lg"
+          onClose={() => setComisionDe(null)}
+        >
+          <MdrRulesPanel embedded contractVersionId={String(comisionDe.id ?? '')} />
+        </Modal>
+      ) : null}
     </CrudDirectory>
   );
 }

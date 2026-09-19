@@ -28,12 +28,27 @@ const CUALQUIERA = { label: '— Cualquiera —', value: '' };
  * combinan libremente y **gana la más específica**, que es como las elige el motor al llegar la
  * venta: por eso se listan en ese mismo orden y no por fecha.
  */
-export function MdrRulesPanel() {
+interface MdrRulesPanelProps {
+  /**
+   * El contrato sobre el que se trabaja, cuando lo fija quien abre el panel.
+   *
+   * Con esto el selector desaparece: el panel vivía suelto bajo la tabla de contratos y su primer
+   * campo era «Versión contractual», un desplegable que pedía OTRA VEZ la fila que el usuario
+   * acababa de elegir —y que, sin contratos aún, sólo sabía decir «— No hay contratos —»—. Es la
+   * misma incoherencia que el ERP ya corrigió en otras seis pantallas: se opera sobre la fila.
+   */
+  contractVersionId?: string | undefined;
+  /** Dentro de un diálogo que ya puso su título: sin la cabecera del panel. */
+  embedded?: boolean | undefined;
+}
+
+export function MdrRulesPanel({ contractVersionId: fijado, embedded = false }: MdrRulesPanelProps = {}) {
   const contratos = useOptions(loadContracts2);
   // Rubro y banda de riesgo salen del backend: la regla de comisión se cruza con lo que él guarda.
   const categoriaOptions = useOptions(domainLoader('domain:crm.merchantCategory'));
   const riesgoOptions = useOptions(domainLoader('domain:crm.riskTier'));
-  const [contractVersionId, setContractVersionId] = useState('');
+  const [elegido, setElegido] = useState('');
+  const contractVersionId = fijado ?? elegido;
   const [reglas, setReglas] = useState<ResourceRow[]>([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,21 +101,18 @@ export function MdrRulesPanel() {
   }
 
   return (
-    <Panel
-      data-tutorial-id="mdr-reglas"
-      title="Comisión por venta (MDR)"
-      description="Lo que Atlas cobra al comercio por cada venta. Se acuerda en el alta, antes de que opere."
-      icon="percent"
-    >
-      <FormField tooltip="Versión del contrato de la que cuelga la regla de comisión."
-        kind="select"
-        label="Versión contractual"
-        name="contractVersionId"
-        value={contractVersionId}
-        onChange={(evento) => setContractVersionId(evento.target.value)}
-        options={[{ label: contratos.length ? '— Elija el contrato —' : '— No hay contratos —', value: '' }, ...contratos]}
-        hint="La comisión cuelga de la versión del contrato: cambiarla es una versión nueva, no una edición."
-      />
+    <Contenedor embedded={embedded}>
+      {fijado ? null : (
+        <FormField tooltip="Versión del contrato de la que cuelga la regla de comisión."
+          kind="select"
+          label="Versión contractual"
+          name="contractVersionId"
+          value={contractVersionId}
+          onChange={(evento) => setElegido(evento.target.value)}
+          options={[{ label: contratos.length ? '— Elija el contrato —' : '— No hay contratos —', value: '' }, ...contratos]}
+          hint="La comisión cuelga de la versión del contrato: cambiarla es una versión nueva, no una edición."
+        />
+      )}
 
       {error ? <InlineNotice className="mt-3" tone="danger">{error}</InlineNotice> : null}
 
@@ -150,6 +162,21 @@ export function MdrRulesPanel() {
           </InlineNotice>
         </>
       ) : null}
+    </Contenedor>
+  );
+}
+
+/** Con cabecera cuando vive solo; sin ella cuando lo enmarca un diálogo que ya la puso. */
+function Contenedor({ embedded, children }: Readonly<{ embedded: boolean; children: React.ReactNode }>) {
+  if (embedded) return <div data-tutorial-id="mdr-reglas">{children}</div>;
+  return (
+    <Panel
+      data-tutorial-id="mdr-reglas"
+      title="Comisión por venta (MDR)"
+      description="Lo que Atlas cobra al comercio por cada venta. Se acuerda en el alta, antes de que opere."
+      icon="percent"
+    >
+      {children}
     </Panel>
   );
 }

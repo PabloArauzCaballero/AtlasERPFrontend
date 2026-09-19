@@ -1,13 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
-import { InlineActionForm } from '@/components/screens/InlineActionForm';
 import { accountingService } from '@/services/accountingService';
 import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
-import { loadBusinessPartners, loadContracts, loadLegalEntities } from '@/services/optionLoaders';
+import { loadBusinessPartners, loadLegalEntities } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 const headerFields: ActionField[] = [
@@ -22,7 +21,6 @@ const headerFields: ActionField[] = [
 ];
 
 export default function AccountingContractsPage() {
-  const [recargar, setRecargar] = useState(0);
   const tiposContrato = useOptions(domainLoader('domain:accounting.contractType'));
   const estadosContrato = useOptions(domainLoader('domain:accounting.contractStatus'));
 
@@ -42,9 +40,8 @@ export default function AccountingContractsPage() {
       ...row,
       counterpartyName: nameById.get(String(row.counterpartyBpId ?? '')) ?? String(row.counterpartyBpId ?? '—'),
     }));
-    // `recargar` fuerza una recarga cuando se agrega un término desde el panel de abajo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recargar]);
+    /* Ya no hay que forzar recargas: `CrudDirectory` relee la tabla al terminar una acción de fila. */
+  }, []);
 
   return (
     <CrudDirectory
@@ -91,23 +88,39 @@ export default function AccountingContractsPage() {
         submit: (id) => accountingService.deleteContract(id),
         warning: 'Se pierden también sus términos contractuales. Si el contrato ya facturó, márcalo como TERMINATED en vez de borrarlo.',
       }}
-    >
-      <InlineActionForm
-        title="Agregar término contractual"
-        description="Término estructurado con vigencia propia, colgado de un contrato ya registrado."
-        icon="data_object"
-        submitLabel="Agregar término"
-        successMessage="El término quedó asociado al contrato."
-        onDone={() => setRecargar((value) => value + 1)}
-        onSubmit={(payload) => accountingService.createContractTerm({ ...payload, termValueJson: { value: payload.termValue }, termValue: undefined })}
-        fields={[
-          { name: 'contractId', label: 'Contrato', tooltip: 'Contrato al que se añade el término.', type: 'select', required: true, span: 2, optionsLoader: loadContracts },
-          { name: 'termCode', label: 'Código del término', tooltip: 'Código del término contractual. Ej.: PLAZO_PAGO.', required: true },
-          { name: 'termValue', label: 'Valor contractual', tooltip: 'Valor pactado para el término. Ej.: 30 días.', required: true },
-          { name: 'effectiveFrom', label: 'Vigente desde', tooltip: 'Desde cuándo vale; antes de esta fecha el rol no aplica.', type: 'date', required: true },
-          { name: 'effectiveTo', label: 'Vigente hasta', tooltip: 'Hasta cuándo vale; vacío = sin fecha de fin.', type: 'date', optional: true },
-        ]}
-      />
-    </CrudDirectory>
+      /*
+       * El término se añade DESDE la fila de su contrato.
+       *
+       * Estaba en un formulario bajo la tabla cuyo primer campo era un desplegable «Contrato»: el
+       * usuario ya tenía la fila delante y tenía que volver a elegirla, con el riesgo de colgarle
+       * el plazo de pago al contrato de otro socio. Y sin contratos aún, el desplegable sólo sabía
+       * decir que no había datos, con el formulario entero pidiendo lo demás para nada.
+       */
+      extraActions={[
+        {
+          key: 'termino',
+          label: 'Agregar término contractual',
+          icon: 'data_object',
+          form: {
+            title: (row) => `Término de ${String(row.contractNo ?? 'el contrato')}`,
+            description: 'Término estructurado con vigencia propia, colgado de este contrato.',
+            fields: [
+              { name: 'termCode', label: 'Código del término', tooltip: 'Código del término contractual. Ej.: PLAZO_PAGO.', required: true },
+              { name: 'termValue', label: 'Valor contractual', tooltip: 'Valor pactado para el término. Ej.: 30 días.', required: true },
+              { name: 'effectiveFrom', label: 'Vigente desde', tooltip: 'Desde cuándo vale; antes de esta fecha el rol no aplica.', type: 'date', required: true },
+              { name: 'effectiveTo', label: 'Vigente hasta', tooltip: 'Hasta cuándo vale; vacío = sin fecha de fin.', type: 'date', optional: true },
+            ],
+            submit: (row, payload) =>
+              accountingService.createContractTerm({
+                ...payload,
+                contractId: String(row.id ?? ''),
+                termValueJson: { value: payload.termValue },
+                termValue: undefined,
+              }),
+            submitLabel: 'Agregar término',
+          },
+        },
+      ]}
+    />
   );
 }

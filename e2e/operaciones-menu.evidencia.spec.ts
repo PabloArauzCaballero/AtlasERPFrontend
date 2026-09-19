@@ -137,6 +137,47 @@ test('la consola no se sale de la pantalla de un teléfono', async ({ page }) =>
   await page.screenshot({ path: `${EVIDENCIA}/consola-320.png`, fullPage: true });
 });
 
+test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo', async ({ page }) => {
+  /*
+   * Las dos operaciones del contrato vivían en formularios BAJO la tabla, y el primer campo de
+   * ambas era un desplegable que pedía otra vez el contrato: se elegía la fila con los ojos y luego
+   * había que volver a elegirla con el ratón, con el riesgo de firmar el contrato equivocado. Sin
+   * contratos todavía sólo sabían decir «— No hay datos registrados —» y pedían lo demás para nada.
+   */
+  await page.route('**/api/v1/b2b/contracts**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 'c1000000-0000-4000-8000-000000000001',
+          contractNumber: 'CTR-0001',
+          startDate: '2026-09-01',
+          billingCycle: 'MONTHLY',
+          settlementPolicy: 'PER_CONTRACT',
+          signedAt: null,
+          status: 'DRAFT',
+        },
+      ]),
+    }),
+  );
+  await page.goto('/operaciones/crm/contratos');
+  const fila = page.locator('[data-tutorial-id="crud-tabla"] tbody tr').first();
+  await expect(fila).toBeVisible({ timeout: 30_000 });
+
+  // Ya no hay formularios sueltos bajo la tabla pidiendo el contrato.
+  await expect(page.getByLabel(/^contrato$/i)).toHaveCount(0);
+  await expect(page.getByText(/versión contractual/i)).toHaveCount(0);
+
+  // Firmar abre el diálogo del contrato de ESA fila, y sólo pide lo que falta.
+  await fila.getByTestId('accion-firmar-c1000000-0000-4000-8000-000000000001').click();
+  const dialogo = page.getByRole('dialog');
+  await expect(dialogo.getByText(/CTR-0001/)).toBeVisible();
+  await expect(dialogo.getByLabel(/aprobador/i)).toBeVisible();
+  await expect(dialogo.getByLabel(/^contrato$/i), 'vuelve a pedir el contrato').toHaveCount(0);
+  await page.screenshot({ path: `${EVIDENCIA}/contrato-firmar-en-la-fila.png`, fullPage: true });
+});
+
 test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) => {
   await page.goto('/operaciones');
   const lateral = page.getByRole('navigation').first();
