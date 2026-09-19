@@ -178,6 +178,38 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
   await page.screenshot({ path: `${EVIDENCIA}/contrato-firmar-en-la-fila.png`, fullPage: true });
 });
 
+test('el término contractual cuelga de su contrato, no de un desplegable', async ({ page }) => {
+  /* Mismo patrón en Contabilidad: «Agregar término contractual» pedía el contrato otra vez. */
+  await page.route('**/api/v1/accounting/contracts**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [
+          {
+            id: 'a1000000-0000-4000-8000-000000000001',
+            contractNo: 'CTA-0001',
+            contractType: 'SERVICE',
+            startDate: '2026-09-01',
+            status: 'ACTIVE',
+            counterpartyBpId: 'b1000000-0000-4000-8000-000000000001',
+          },
+        ],
+        total: 1,
+      }),
+    }),
+  );
+  await page.goto('/operaciones/contabilidad/contratos');
+  const fila = page.locator('[data-tutorial-id="crud-tabla"] tbody tr').first();
+  await expect(fila).toBeVisible({ timeout: 30_000 });
+
+  await fila.getByTestId('accion-termino-a1000000-0000-4000-8000-000000000001').click();
+  const dialogo = page.getByRole('dialog');
+  await expect(dialogo.getByText(/CTA-0001/)).toBeVisible();
+  await expect(dialogo.getByLabel(/código del término/i)).toBeVisible();
+  await expect(dialogo.getByLabel(/^contrato$/i), 'vuelve a pedir el contrato').toHaveCount(0);
+});
+
 test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) => {
   await page.goto('/operaciones');
   const lateral = page.getByRole('navigation').first();
