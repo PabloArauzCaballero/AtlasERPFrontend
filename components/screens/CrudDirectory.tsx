@@ -148,7 +148,10 @@ interface CrudDirectoryProps {
   } | undefined;
   extraActions?: CrudExtraAction[] | undefined;
   toolbarActions?: CrudToolbarAction[] | undefined;
-  /** Aviso fijo bajo la cabecera: sirve para explicar qué NO permite el backend todavía. */
+  /**
+   * Qué conviene saber de esta pantalla. `info` NO se pinta: vive tras el icono ⓘ de la barra.
+   * `warning` sí ocupa sitio, porque señala algo que hay que resolver, no algo que leer.
+   */
   notice?: { tone: 'info' | 'warning'; title: string; body: string } | undefined;
   pageSize?: number | undefined;
   /**
@@ -245,6 +248,8 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const [toolbarForm, setToolbarForm] = useState<CrudToolbarAction | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState('');
+  /* La explicación de la pantalla, abierta desde el icono ⓘ: no ocupa sitio fijo. */
+  const [explicacionAbierta, setExplicacionAbierta] = useState(false);
 
   const filters = useMemo(() => props.filters ?? [], [props.filters]);
 
@@ -438,6 +443,17 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const create = props.create;
   const toolbar = (
     <>
+      {props.notice && props.notice.tone === 'info' ? (
+        <AtlasButton
+          variant="secondary"
+          icon="info"
+          className="w-9 px-0"
+          data-testid="crud-explicacion"
+          aria-label={props.notice.title}
+          title={props.notice.title}
+          onClick={() => setExplicacionAbierta(true)}
+        />
+      ) : null}
       <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="crud-pdf" loading={generandoPdf} disabled={!filteredRows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
       <AtlasButton variant="secondary" icon="download" disabled={!filteredRows.length} onClick={exportCsv}>CSV</AtlasButton>
       <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
@@ -473,7 +489,22 @@ export function CrudDirectory(props: CrudDirectoryProps) {
         />
       )}
 
-      {props.notice ? <InlineNotice tone={props.notice.tone} title={props.notice.title}>{props.notice.body}</InlineNotice> : null}
+      {/*
+        * Sólo el aviso que señala un PROBLEMA ocupa sitio en la pantalla.
+        *
+        * La explicación de la vista se leía una vez y estorbaba siempre, en las veinte pantallas que
+        * la pasan; además la cabecera ya trae «¿Qué es esto?». Ahora vive tras el icono ⓘ de la
+        * barra, como el contexto de las propuestas. Un `warning` sí se queda: no es información de
+        * consulta, es algo que hay que resolver.
+        */}
+      {props.notice && props.notice.tone !== 'info' ? (
+        <InlineNotice tone={props.notice.tone} title={props.notice.title}>{props.notice.body}</InlineNotice>
+      ) : null}
+      {props.notice && props.notice.tone === 'info' ? (
+        <Modal open={explicacionAbierta} title={props.notice.title} icon="info" width="md" onClose={() => setExplicacionAbierta(false)}>
+          <p className="text-sm leading-relaxed text-slate-600">{props.notice.body}</p>
+        </Modal>
+      ) : null}
       {actionError ? <InlineNotice tone="danger" title="No se pudo completar la operación">{actionError}</InlineNotice> : null}
       {resource.error && !rows.length ? <InlineNotice tone="danger" title="No se pudo cargar el listado">{resource.error}</InlineNotice> : null}
 

@@ -376,7 +376,7 @@ export default function OnboardingPage() {
               'Es el expediente de por qué se habilitó un comercio. Al activarlo deja de ser trabajo pendiente y pasa a «Activados»; mientras tanto, todo lo que se hace sobre él se hace desde su fila.' +
               (puedePedirVerificacion && puedePedirCredenciales
                 ? ''
-                : ` Tu sesión de Atlas no lleva ${[!puedePedirVerificacion ? `«${PERMISO_PEDIR_VERIFICACION}» (pedir la verificación al Motor)` : '', !puedePedirCredenciales ? `«${PERMISO_PEDIR_CREDENCIALES}» (dar acceso a una persona)` : ''].filter(Boolean).join(' ni ')}: esas acciones no se ofrecen. Las llevan OPERATIONS_MANAGER y SUPER_ADMIN.`),
+                : ` Tu cuenta no tiene permiso para ${[!puedePedirVerificacion ? 'pedir la verificación al Motor' : '', !puedePedirCredenciales ? 'dar acceso a una persona del comercio' : ''].filter(Boolean).join(' ni para ')}, así que esas acciones no se ofrecen en la fila. Las hacen el responsable de operaciones y el administrador.`),
           }}
         />
       </div>
