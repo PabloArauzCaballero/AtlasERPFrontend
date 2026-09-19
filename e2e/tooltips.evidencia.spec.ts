@@ -10,7 +10,16 @@ import { installPartnerDossierBackend, seedMerchantSession } from './support/par
  * accesible del campo no cambió, la burbuja cierra con Escape y el select propio lleva el valor
  * al formulario.
  */
-const EVIDENCIA = process.env.EVIDENCIA_DIR ?? 'docs/visual-evidence/tooltips';
+/*
+ * Por defecto, a `test-results/` —que está en `.gitignore`— y no a `docs/visual-evidence/tooltips`.
+ *
+ * Aquella carpeta NO está versionada, así que cada corrida la creaba de cero y dejaba el árbol
+ * COMPARTIDO con un directorio sin seguir; varias sesiones trabajan sobre el mismo checkout y eso
+ * aparece en el `git status` de todas, invitando a commitearlo sin querer. La evidencia que sí se
+ * guarda se pide explícitamente con `EVIDENCIA_DIR=…`, que es como se ha venido usando
+ * (`_evidencia-tooltips-erp-2026-09-15/`).
+ */
+const EVIDENCIA = process.env.EVIDENCIA_DIR ?? 'test-results/tooltips';
 
 test('el campo explica qué poner y el select qué significa cada opción', async ({ page }) => {
   await installPartnerDossierBackend(page);
