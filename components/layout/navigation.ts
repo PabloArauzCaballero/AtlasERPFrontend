@@ -61,6 +61,9 @@ const ADS: NavGroup = {
  * un comercio delante se queda arriba; lo que se configura una vez y se revisa de tarde en tarde,
  * abajo. Contabilidad ya estaba así desde antes y es el patrón que se copia.
  *
+ * «Propuestas» va la ÚLTIMA de CRM, y va donde va por decisión de producto: no se sube junto al
+ * pipeline ni se vuelve a meter dentro de él como pestaña.
+ *
  * Y una entrada se fue del todo: «Centro de comando», que `lib/viewRegistry.ts` declara como
  * `brecha-backend` —«sin endpoint de búsqueda global federada»—. Una pantalla que el sistema aún
  * no puede alimentar no es una opción del menú: es una puerta a un cuarto vacío. La ruta sigue
@@ -72,11 +75,11 @@ export const NAVIGATION: NavGroup[] = [
     items: [
       { label: 'Cuentas B2B', href: '/operaciones/crm/cuentas', icon: 'domain' },
       { label: 'Pipeline', href: '/operaciones/crm/oportunidades', icon: 'view_kanban' },
-      { label: 'Propuestas', href: '/operaciones/crm/propuestas', icon: 'request_quote' },
       { label: 'Onboarding', href: '/operaciones/crm/onboarding', icon: 'fact_check' },
       { label: 'Contratos', href: '/operaciones/crm/contratos', icon: 'description' },
       { label: 'Facturación', href: '/operaciones/crm/facturacion', icon: 'receipt_long' },
       { label: 'Calificación de riesgo', href: '/operaciones/crm/calificacion-riesgo', icon: 'speed' },
+      { label: 'Propuestas', href: '/operaciones/crm/propuestas', icon: 'request_quote' },
     ],
     subGroups: [
       {

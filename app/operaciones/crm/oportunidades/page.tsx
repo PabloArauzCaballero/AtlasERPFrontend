@@ -1,10 +1,10 @@
 import { CrmPipelineScreen } from '@/components/screens/CrmPipelineScreen';
 
 /**
- * El embudo comercial: oportunidades, tablero y propuestas en la misma barra de pestañas.
+ * El embudo comercial: oportunidades, su tablero y las excepciones que hay que autorizar.
  *
- * La pantalla vive en un componente porque `/operaciones/crm/propuestas` pinta exactamente la
- * misma, abriendo por su pestaña.
+ * La pantalla vive en un componente porque `/operaciones/crm/aprobaciones` pinta exactamente la
+ * misma, abriendo por su pestaña. Las propuestas NO están aquí: son pantalla propia.
  */
 export default function OpportunitiesPage() {
   return <CrmPipelineScreen />;

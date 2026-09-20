@@ -291,9 +291,18 @@ test('el menú se agrupa: lo diario arriba, lo que se configura una vez en su ca
   }
 
   // Lo que se hace con un comercio delante, a la vista.
-  for (const diario of [/cuentas b2b/i, /onboarding/i, /propuestas/i, /aprobaciones/i]) {
+  for (const diario of [/cuentas b2b/i, /pipeline/i, /onboarding/i, /propuestas/i]) {
     await expect(lateral.getByText(diario).first()).toBeVisible();
   }
+
+  /*
+   * «Propuestas» cierra el grupo CRM: pantalla propia y la ÚLTIMA entrada, detrás de «Calificación
+   * de riesgo». No es una pestaña del pipeline, y por eso «Aprobaciones» —que sí lo es— no figura
+   * en el menú.
+   */
+  const crm = lateral.locator('section').filter({ has: page.getByRole('button', { name: /^CRM$/ }) }).first();
+  await expect(crm.locator('a[href^="/operaciones/crm/"]:visible').last()).toHaveText(/propuestas/i);
+  await expect(lateral.getByText(/aprobaciones/i)).toHaveCount(0);
 
   // Lo que se configura una vez baja a un cajón dentro de su grupo.
   await expect(lateral.getByText(/configuración comercial/i)).toBeVisible();
