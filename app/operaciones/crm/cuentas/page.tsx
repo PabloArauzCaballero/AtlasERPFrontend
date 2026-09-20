@@ -22,7 +22,7 @@ export default function B2BAccountsPage() {
         { key: 'category', label: 'Categoría', kind: 'text', placeholder: 'Filtrar categoría' },
         { key: 'businessLine', label: 'Rubro', kind: 'text', placeholder: 'Filtrar rubro' },
         { key: 'tag', label: 'Tag', kind: 'text', placeholder: 'Filtrar tag' },
-        { key: 'includeArchived', label: 'Archivadas', kind: 'select', options: [{ label: 'Ver archivadas', value: 'true' }] },
+        { key: 'includeArchived', label: 'Archivadas', kind: 'select', allLabel: 'Sin archivadas', options: [{ label: 'Con archivadas', value: 'true' }] },
       ]}
       columns={[
         { key: 'tradeName', label: 'Cuenta comercial' },

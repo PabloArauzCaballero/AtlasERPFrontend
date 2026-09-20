@@ -50,6 +50,14 @@ export interface DirectoryFilter {
   kind?: 'select' | 'text';
   placeholder?: string;
   options?: Array<{ label: string; value: string }>;
+  /**
+   * Qué dice la opción de «sin filtrar» cuando «Todo: <etiqueta>» no se lee bien.
+   *
+   * La plantilla genérica sirve para un criterio con valores («Todo: Categoría»), pero no para uno
+   * que es un sí/no: el filtro de archivadas anunciaba «Todos: Archivadas» —que suena a que las está
+   * mostrando— justo cuando las está ocultando.
+   */
+  allLabel?: string;
 }
 
 export interface RowAction {
@@ -338,7 +346,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
               <input data-tutorial-id="directory-search" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
             </label>
             {effectiveFilters.map((filter) => (
-              filter.kind === 'text' ? <input key={filter.key} aria-label={filter.label} placeholder={filter.placeholder ?? filter.label} className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))} /> : <OptionSelect key={filter.key} name={`filtro-${filter.key}`} ariaLabel={filter.label} compact className="min-w-44" value={filterValues[filter.key] ?? ''} onChange={(value) => setFilterValues((current) => ({ ...current, [filter.key]: value }))} options={[{ value: '', label: `Todos: ${filter.label}`, description: 'Sin filtrar por este criterio.' }, ...(filter.options ?? [])]} />
+              filter.kind === 'text' ? <input key={filter.key} aria-label={filter.label} placeholder={filter.placeholder ?? filter.label} className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))} /> : <OptionSelect key={filter.key} name={`filtro-${filter.key}`} ariaLabel={filter.label} compact className="min-w-44" value={filterValues[filter.key] ?? ''} onChange={(value) => setFilterValues((current) => ({ ...current, [filter.key]: value }))} options={[{ value: '', label: filter.allLabel ?? `Todo: ${filter.label}`, description: 'Sin filtrar por este criterio.' }, ...(filter.options ?? [])]} />
             ))}
           </div>
           <div className="flex shrink-0 items-center gap-2">
