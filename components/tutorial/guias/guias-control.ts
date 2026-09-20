@@ -33,8 +33,8 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
 
   '/operaciones/auditoria/business-actions': {
     eyebrow: 'Control',
-    title: 'Business Action Log',
-    intro: 'El registro de quién hizo qué, cuándo y sobre qué registro.',
+    title: 'Registro de actividad',
+    intro: 'Quién hizo qué, cuándo y sobre qué.',
     sections: [
       {
         title: 'Es la memoria del sistema',
@@ -110,9 +110,9 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
   },
 
   '/operaciones/admin/busqueda-global': {
-    eyebrow: 'Control',
-    title: 'Centro de comando',
-    intro: 'Buscador de pantallas, módulos y operaciones del ERP.',
+    eyebrow: 'Buscador',
+    title: 'Buscar una pantalla',
+    intro: 'Escribe el nombre de la pantalla que buscas y te lleva a ella.',
     sections: [
       {
         title: 'Busca PANTALLAS, no datos',
@@ -125,26 +125,6 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
       {
         title: 'Se abre desde la barra superior',
         body: 'El buscador de arriba lleva aquí. En móvil está tras la lupa.',
-      },
-    ],
-  },
-
-  '/operaciones/admin/mapa-sitio': {
-    eyebrow: 'Control',
-    title: 'Mapa del sistema',
-    intro: 'El inventario de todas las pantallas del ERP y de qué puede hacer cada una.',
-    sections: [
-      {
-        title: 'Qué significa cada estado',
-        body: '«Completa» muestra lo guardado y deja trabajar con ello; «Sólo registrar» crea o cambia registros pero aún no lista los que ya existen; «En construcción» es una pantalla a la que todavía le falta la parte del sistema que la alimenta.',
-      },
-      {
-        title: 'Para qué sirve en el día a día',
-        body: 'Es la respuesta honesta a «¿esto ya funciona?». Antes de reportar algo como roto, mira si está declarado como brecha.',
-      },
-      {
-        title: 'Se mantiene en el propio código',
-        body: 'La lista vive junto a las rutas, así que no puede quedarse desfasada sin que se note al añadir una pantalla.',
       },
     ],
   },

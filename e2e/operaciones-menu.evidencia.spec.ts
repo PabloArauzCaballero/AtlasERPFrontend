@@ -319,10 +319,18 @@ test('el menú se agrupa: lo diario arriba, lo que se configura una vez en su ca
   await expect(lateral.getByText(/configuración maestra/i)).toBeVisible();
 
   /*
-   * «Centro de comando» se fue del todo: `lib/viewRegistry.ts` lo declara `brecha-backend` —el
-   * sistema aún no tiene la búsqueda federada que lo alimenta—, y una puerta a un cuarto vacío no
-   * es una opción del menú.
+   * Y el menú no habla del andamiaje del propio ERP. «Centro de comando» (una búsqueda federada que
+   * el sistema todavía no alimenta) y «Mapa del sistema» (el inventario de pantallas con su estado
+   * de obra, «En construcción» incluido) no son trabajo de nadie que entre aquí a facturar. Con el
+   * mapa se fue el cajón «Sistema», que quedaba con una sola entrada.
    */
+  await lateral.getByRole('button', { name: /^control$/i }).click();
   await expect(lateral.getByText(/centro de comando/i)).toHaveCount(0);
+  await expect(lateral.getByText(/mapa del sistema/i)).toHaveCount(0);
+  await expect(lateral.getByText(/^sistema$/i)).toHaveCount(0);
+  await expect(lateral.getByText(/business action log/i)).toHaveCount(0);
+  // Lo que queda en Control se lee sin saber cómo está hecho por dentro.
+  await expect(lateral.getByText(/registro de actividad/i)).toBeVisible();
+  await expect(lateral.getByText(/roles y permisos/i)).toBeVisible();
   await page.screenshot({ path: `${EVIDENCIA}/consola-menu-agrupado.png`, fullPage: true });
 });

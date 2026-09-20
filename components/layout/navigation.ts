@@ -64,10 +64,20 @@ const ADS: NavGroup = {
  * «Propuestas» va la ÚLTIMA de CRM, y va donde va por decisión de producto: no se sube junto al
  * pipeline ni se vuelve a meter dentro de él como pestaña.
  *
- * Y una entrada se fue del todo: «Centro de comando», que `lib/viewRegistry.ts` declara como
- * `brecha-backend` —«sin endpoint de búsqueda global federada»—. Una pantalla que el sistema aún
- * no puede alimentar no es una opción del menú: es una puerta a un cuarto vacío. La ruta sigue
- * respondiendo para quien la tenga guardada.
+ * Y dos entradas se fueron del todo, porque el menú de quien lleva la operación no es el sitio
+ * donde el equipo que construye el ERP mira su propio andamiaje:
+ *
+ * - «Centro de comando», que `lib/viewRegistry.ts` declara `brecha-backend` —«sin endpoint de
+ *   búsqueda global federada»—. Una pantalla que el sistema aún no puede alimentar no es una opción
+ *   del menú: es una puerta a un cuarto vacío. La ruta sigue respondiendo para quien la tenga
+ *   guardada, y es a donde lleva el buscador de la barra superior.
+ * - «Mapa del sistema», que listaba las pantallas del ERP con una etiqueta de cuánto funcionaba
+ *   cada una («En construcción» incluida). Eso es estado de la obra, no trabajo de nadie: a quien
+ *   factura no le sirve, y de paso anunciaba en el menú lo que falta por terminar.
+ *
+ * Con «Mapa del sistema» se fue también el cajón «Sistema», que quedaba con una sola entrada:
+ * «Roles y permisos» sube al grupo, que es donde se busca. Y «Business Action Log» pasa a llamarse
+ * «Registro de actividad»: lo que hay dentro son las acciones que hizo la gente, no un «log».
  */
 export const NAVIGATION: NavGroup[] = [
   {
@@ -121,17 +131,10 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control',
     items: [
-      { label: 'Business Action Log', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
+      { label: 'Registro de actividad', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
       { label: 'Notificaciones masivas', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' },
       { label: 'Usuarios internos', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
-    ],
-    subGroups: [
-      {
-        label: 'Sistema', icon: 'tune', items: [
-          { label: 'Roles y permisos', href: '/operaciones/admin/roles', icon: 'admin_panel_settings' },
-          { label: 'Mapa del sistema', href: '/operaciones/admin/mapa-sitio', icon: 'account_tree' },
-        ],
-      },
+      { label: 'Roles y permisos', href: '/operaciones/admin/roles', icon: 'admin_panel_settings' },
     ],
   },
 ];

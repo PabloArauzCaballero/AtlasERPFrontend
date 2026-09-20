@@ -103,7 +103,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
                 </div>
               </Panel>
               <Panel title="Historial de acciones" icon="history_edu">
-                <div className="space-y-4 text-xs"><Timeline label="Consulta de expediente" detail="La información visible es la que hay registrada ahora mismo." /><Timeline label="Trazabilidad protegida" detail="Las mutaciones generan Business Action Logs." /><Timeline label="PII enmascarada" detail="NIT, teléfono y correo se presentan parcialmente." /></div>
+                <div className="space-y-4 text-xs"><Timeline label="Consulta de expediente" detail="La información visible es la que hay registrada ahora mismo." /><Timeline label="Trazabilidad protegida" detail="Cada cambio queda anotado en el registro de actividad." /><Timeline label="PII enmascarada" detail="NIT, teléfono y correo se presentan parcialmente." /></div>
               </Panel>
             </aside>
           </div>
