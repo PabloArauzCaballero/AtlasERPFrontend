@@ -78,6 +78,27 @@ export const authService = {
       skipAuthRetry: true,
     });
   },
+  /**
+   * «Olvidé mi contraseña» del comercio, en dos pasos y sin sesión. Distinto de
+   * `requestPasswordChange`, que exige estar dentro y saber la contraseña actual.
+   *
+   * La respuesta es la misma exista o no la cuenta: la pantalla NO puede decir «ese correo no está
+   * registrado» sin convertirse en un comprobador de qué correos son de un comercio afiliado.
+   */
+  requestMerchantPasswordReset(body: { email: string }) {
+    return apiRequest<{ requested: boolean }>('auth/merchant/password-reset/request', {
+      method: 'POST',
+      body,
+      skipAuthRetry: true,
+    });
+  },
+  confirmMerchantPasswordReset(body: { email: string; code: string; newPassword: string }) {
+    return apiRequest<{ passwordChanged: boolean }>('auth/merchant/password-reset/confirm', {
+      method: 'POST',
+      body,
+      skipAuthRetry: true,
+    });
+  },
   listPermissions() {
     return apiRequest<{ items: InternalPermissionListItem[] }>('auth/permissions');
   },
