@@ -19,6 +19,10 @@ export const CUENTA_INGRESO = '33333333-3333-4333-8333-333333333333';
 export const FACTURA_ABIERTA = '44444444-4444-4444-8444-444444444444';
 export const FACTURA_PAGADA = '44444444-4444-4444-8444-555555555555';
 export const FACTURA_DE_OTRO = '44444444-4444-4444-8444-666666666666';
+export const CONTRATO = '66666666-6666-4666-8666-666666666666';
+export const EJERCICIO = '77777777-7777-4777-8777-777777777777';
+export const PERIODO_ABIERTO = '88888888-8888-4888-8888-888888888881';
+export const PERIODO_CERRADO = '88888888-8888-4888-8888-888888888882';
 
 interface Fallo {
   status: number;
@@ -80,6 +84,29 @@ const FACTURAS = [
   },
 ];
 
+const PERIODOS = [
+  {
+    id: PERIODO_ABIERTO,
+    fiscalYearId: EJERCICIO,
+    periodNo: 9,
+    startDate: '2026-09-01',
+    endDate: '2026-09-30',
+    isOpen: true,
+    closeStatus: 'OPEN',
+    closedAt: null,
+  },
+  {
+    id: PERIODO_CERRADO,
+    fiscalYearId: EJERCICIO,
+    periodNo: 8,
+    startDate: '2026-08-01',
+    endDate: '2026-08-31',
+    isOpen: false,
+    closeStatus: 'CLOSED',
+    closedAt: '2026-09-02T12:00:00.000Z',
+  },
+];
+
 /** Deja el portal con una sesión de personal interno y todo el módulo contable simulado. */
 export async function instalarContabilidad(page: Page): Promise<ContabilidadDoble> {
   const doble: ContabilidadDoble = {
@@ -135,6 +162,10 @@ export async function instalarContabilidad(page: Page): Promise<ContabilidadDobl
     if (ruta.endsWith('/financial-structure/gl-accounts')) {
       return lista(route, [{ id: CUENTA_INGRESO, accountNo: '4110', name: 'Ingresos por servicios' }]);
     }
+    if (ruta.endsWith('/financial-structure/periods')) return ok(route, PERIODOS);
+    if (ruta.endsWith('/financial-structure/fiscal-years')) {
+      return ok(route, [{ id: EJERCICIO, legalEntityId: EMPRESA, yearLabel: '2026', status: 'OPEN' }]);
+    }
     if (ruta.endsWith('/financial-structure/bank-accounts')) {
       return ok(route, [{ id: '55555555-5555-4555-8555-555555555555', accountName: 'BNB Cuenta corriente', currencyCode: 'BOB' }]);
     }
@@ -145,7 +176,18 @@ export async function instalarContabilidad(page: Page): Promise<ContabilidadDobl
       ]);
     }
     if (ruta.endsWith('/accounting/contracts')) {
-      return lista(route, [{ id: '66666666-6666-4666-8666-666666666666', contractNo: 'CTA-000001', contractType: 'SERVICE' }]);
+      return lista(route, [
+        {
+          id: CONTRATO,
+          contractNo: 'CTA-000001',
+          contractType: 'SERVICE',
+          counterpartyBpId: CLIENTE,
+          startDate: '2026-01-01',
+          endDate: null,
+          currencyCode: 'BOB',
+          status: 'ACTIVE',
+        },
+      ]);
     }
     if (ruta.endsWith('/billing/ar-invoices')) return lista(route, FACTURAS);
     if (ruta.endsWith('/accounting/receipts')) return lista(route, []);

@@ -2,8 +2,11 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { stubCatalogDomains } from './support/catalog-domains';
 import {
   CLIENTE,
+  CONTRATO,
   EMPRESA,
   FACTURA_ABIERTA,
+  PERIODO_ABIERTO,
+  PERIODO_CERRADO,
   instalarContabilidad,
   type ContabilidadDoble,
 } from './support/contabilidad-backend';
@@ -241,4 +244,129 @@ test('caso error: un rechazo del backend se lee en la pantalla del recibo', asyn
   await page.getByTestId('recibo-contabilizar').click();
 
   await expect(page.getByText(/excede el saldo abierto de la factura/i)).toBeVisible();
+});
+
+// ------------------------------------------------------ cierre de períodos
+
+test('caso válido: cerrar un período se hace desde su fila y la empresa la pone el sistema', async ({ page }) => {
+  await page.goto('/operaciones/contabilidad/cierres');
+  const abierto = page.getByTestId(`fila-${PERIODO_ABIERTO}`);
+  await expect(abierto).toBeVisible({ timeout: 30_000 });
+
+  /*
+   * La entidad legal NO se pregunta: sale del ejercicio fiscal del período. Se pedía en un
+   * desplegable, y elegir la que no era devolvía un 409 sin explicar por qué.
+   */
+  await abierto.getByTestId(`accion-cerrar-${PERIODO_ABIERTO}`).click();
+  const dialogo = page.getByRole('dialog');
+  await expect(dialogo).toContainText('Cerrar el período');
+  await expect(dialogo.getByLabel('Entidad legal')).toHaveCount(0);
+  /* El select trae su valor del catálogo y llega después del primer pintado: sin esperarlo, el
+     `required` del navegador bloquea el envío y no sale ninguna petición. */
+  await expect(dialogo.getByLabel('Qué se cierra')).toContainText(/mensual/i);
+  await dialogo.getByRole('button', { name: 'Cerrar período' }).click();
+  await expect(dialogo).toBeHidden();
+
+  const cuerpo = ultimoEnvio('/accounting/closings/periods/close');
+  expect(cuerpo).toEqual({ legalEntityId: EMPRESA, periodId: PERIODO_ABIERTO, closeType: 'MONTHLY' });
+});
+
+test('caso límite: cada fila ofrece SÓLO la operación que su estado admite', async ({ page }) => {
+  await page.goto('/operaciones/contabilidad/cierres');
+  const abierto = page.getByTestId(`fila-${PERIODO_ABIERTO}`);
+  await expect(abierto).toBeVisible({ timeout: 30_000 });
+  const cerrado = page.getByTestId(`fila-${PERIODO_CERRADO}`);
+
+  await expect(abierto.getByTestId(`accion-cerrar-${PERIODO_ABIERTO}`)).toBeVisible();
+  await expect(abierto.getByTestId(`accion-reabrir-${PERIODO_ABIERTO}`)).toHaveCount(0);
+  await expect(cerrado.getByTestId(`accion-reabrir-${PERIODO_CERRADO}`)).toBeVisible();
+  await expect(cerrado.getByTestId(`accion-cerrar-${PERIODO_CERRADO}`)).toHaveCount(0);
+  /* Y no hay papelera: cerrar no es borrar. */
+  await expect(cerrado.getByTestId(`eliminar-${PERIODO_CERRADO}`)).toHaveCount(0);
+});
+
+test('caso error: si el backend rechaza la reapertura, el motivo se lee en el formulario', async ({ page }) => {
+  doble.fallarCon('/accounting/closings/periods/reopen', {
+    status: 409,
+    code: 'PERIOD_REOPEN_NOT_ALLOWED',
+    message: 'El período tuvo un cierre duro: sólo se reabre con autorización del área contable.',
+  });
+
+  await page.goto('/operaciones/contabilidad/cierres');
+  const cerrado = page.getByTestId(`fila-${PERIODO_CERRADO}`);
+  await expect(cerrado).toBeVisible({ timeout: 30_000 });
+  await cerrado.getByTestId(`accion-reabrir-${PERIODO_CERRADO}`).click();
+
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Motivo documentado').fill('Hay que corregir el asiento DOC-2026-000123.');
+  await dialogo.getByRole('button', { name: 'Reabrir período' }).click();
+
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo).toContainText(/cierre duro/i);
+});
+
+// ----------------------------------------------------------------- contratos
+
+test('caso válido: la condición se pacta desde la fila del contrato, que ya no se vuelve a elegir', async ({ page }) => {
+  await page.goto('/operaciones/contabilidad/contratos');
+  const fila = page.getByTestId(`fila-${CONTRATO}`);
+  await expect(fila).toBeVisible({ timeout: 30_000 });
+  /* La contraparte se cruza con el maestro: una columna de 36 caracteres no dice de quién es. */
+  await expect(fila).toContainText('Comercial Andina');
+
+  await fila.getByTestId(`accion-termino-${CONTRATO}`).click();
+  const dialogo = page.getByRole('dialog');
+  await expect(dialogo).toContainText('CTA-000001');
+  await expect(dialogo.getByLabel('Contrato')).toHaveCount(0);
+
+  await dialogo.getByLabel('Qué se pactó').fill('PLAZO_PAGO');
+  await dialogo.getByLabel('Valor pactado').fill('30 días');
+  await dialogo.getByLabel('Rige desde').fill('2026-10-01');
+  await dialogo.getByRole('button', { name: 'Agregar condición' }).click();
+  await expect(dialogo).toBeHidden();
+
+  const cuerpo = ultimoEnvio('/accounting/contracts/terms');
+  expect(cuerpo.contractId).toBe(CONTRATO);
+  expect(cuerpo.termCode).toBe('PLAZO_PAGO');
+  expect(cuerpo.termValueJson).toEqual({ value: '30 días' });
+});
+
+test('caso límite: sin fecha de fin, la condición viaja SIN fecha de fin (no con una vacía)', async ({ page }) => {
+  await page.goto('/operaciones/contabilidad/contratos');
+  const fila = page.getByTestId(`fila-${CONTRATO}`);
+  await expect(fila).toBeVisible({ timeout: 30_000 });
+  await fila.getByTestId(`accion-termino-${CONTRATO}`).click();
+
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Qué se pactó').fill('COMISION');
+  await dialogo.getByLabel('Valor pactado').fill('2,5 %');
+  await dialogo.getByLabel('Rige desde').fill('2026-10-01');
+  /* «Rige hasta» se deja vacío: significa «sigue vigente», no «vence hoy». */
+  await dialogo.getByRole('button', { name: 'Agregar condición' }).click();
+  await expect(dialogo).toBeHidden();
+
+  const cuerpo = ultimoEnvio('/accounting/contracts/terms');
+  expect(cuerpo.effectiveTo ?? null).toBeNull();
+});
+
+test('caso error: un rechazo al pactar la condición se lee en el formulario', async ({ page }) => {
+  doble.fallarCon('/accounting/contracts/terms', {
+    status: 409,
+    code: 'CONTRACT_TERM_OVERLAP',
+    message: 'Ya hay una condición PLAZO_PAGO vigente en esas fechas para este contrato.',
+  });
+
+  await page.goto('/operaciones/contabilidad/contratos');
+  const fila = page.getByTestId(`fila-${CONTRATO}`);
+  await expect(fila).toBeVisible({ timeout: 30_000 });
+  await fila.getByTestId(`accion-termino-${CONTRATO}`).click();
+
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Qué se pactó').fill('PLAZO_PAGO');
+  await dialogo.getByLabel('Valor pactado').fill('45 días');
+  await dialogo.getByLabel('Rige desde').fill('2026-10-01');
+  await dialogo.getByRole('button', { name: 'Agregar condición' }).click();
+
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo).toContainText(/ya hay una condición plazo_pago vigente/i);
 });
