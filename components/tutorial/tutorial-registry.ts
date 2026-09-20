@@ -98,7 +98,7 @@ const META: readonly TutorialMeta[] = [
     id: 'carga-masiva',
     category: 'contabilidad',
     level: 'intermedio',
-    route: '/operaciones/crm/bulk-cuentas',
+    route: '/operaciones/contabilidad/business-partners',
     estimatedMinutes: 4,
     prerequisites: ['usar-listados'],
   },

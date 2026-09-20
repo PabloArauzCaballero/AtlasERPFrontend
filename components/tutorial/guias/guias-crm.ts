@@ -106,27 +106,6 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
     ],
   },
 
-  '/operaciones/crm/bulk-cuentas': {
-    eyebrow: 'CRM B2B',
-    title: 'Carga masiva de cuentas',
-    intro: 'Registra muchas empresas de una vez desde una plantilla, con revisión previa.',
-    sections: [
-      {
-        title: 'Nada se envía hasta que lo confirmas',
-        body: 'El archivo se lee en tu navegador y se muestra una vista previa fila por fila. Ese paso existe para que veas los errores ANTES de que toquen la base, no después.',
-      },
-      {
-        title: 'Las filas en rojo no se corrigen aquí',
-        body: 'Se corrigen en el archivo y se vuelve a cargar. Es más rápido y deja el archivo bueno, que es lo que querrás la próxima vez.',
-      },
-      {
-        title: 'Es una operación transaccional',
-        body: 'El lote entra entero o no entra. No te quedas con la mitad de las cuentas creadas y la otra mitad perdida.',
-      },
-    ],
-    tutorialId: 'carga-masiva',
-  },
-
   '/operaciones/crm/oportunidades': {
     eyebrow: 'CRM B2B',
     title: 'Pipeline comercial',

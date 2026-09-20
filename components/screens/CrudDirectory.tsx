@@ -17,6 +17,7 @@ import { downloadCsv } from '@/lib/csv';
 import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { Modal } from '@/components/atlas/Modal';
 import { ActionFormModal } from './ActionFormModal';
+import { ExcelImportModal } from './ExcelImportModal';
 import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { ActionField } from './StructuredActionForm';
@@ -250,6 +251,8 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const [actionError, setActionError] = useState('');
   /* La explicación de la pantalla, abierta desde el icono ⓘ: no ocupa sitio fijo. */
   const [explicacionAbierta, setExplicacionAbierta] = useState(false);
+  /* El importador de Excel: mismos campos y mismo envío que el alta, fila por fila. */
+  const [importando, setImportando] = useState(false);
 
   const filters = useMemo(() => props.filters ?? [], [props.filters]);
 
@@ -457,6 +460,19 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="crud-pdf" loading={generandoPdf} disabled={!filteredRows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
       <AtlasButton variant="secondary" icon="download" disabled={!filteredRows.length} onClick={exportCsv}>CSV</AtlasButton>
       <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
+      {/*
+        * Importar está donde está el registro, no en una pantalla aparte.
+        *
+        * Había TRES «Carga masiva» sueltas en el menú —cuentas, anunciantes, documentos—, cada una
+        * con su plantilla escrita a mano; los demás tipos de registro no se podían cargar de
+        * ninguna manera. Aquí aparece en todo directorio que sepa dar de alta en un modal, y la
+        * plantilla sale de los campos de ese alta. Con `create.href` no se pinta: esas altas viven
+        * en su propia página con líneas dinámicas (una propuesta, un documento contable), y una
+        * fila de Excel no puede describirlas.
+        */}
+      {create?.fields?.length && create.submit ? (
+        <AtlasButton variant="secondary" icon="upload_file" data-testid="crud-importar" data-tutorial-id="crud-importar" onClick={() => setImportando(true)}>Importar</AtlasButton>
+      ) : null}
       {(props.toolbarActions ?? []).map((action) => (
         <AtlasButton key={action.key} variant="secondary" icon={action.icon} data-testid={`crud-accion-${action.key}`} onClick={() => { setActionError(''); setToolbarForm(action); }}>{action.label}</AtlasButton>
       ))}
@@ -733,6 +749,17 @@ export function CrudDirectory(props: CrudDirectoryProps) {
             toast.success('Registro creado', 'El nuevo registro ya aparece en la tabla.');
             await resource.reload();
           }}
+        />
+      ) : null}
+
+      {create?.fields?.length && create.submit ? (
+        <ExcelImportModal
+          open={importando}
+          entidad={props.title.toLowerCase()}
+          fields={create.fields}
+          submit={create.submit}
+          onClose={() => setImportando(false)}
+          onImported={() => { void resource.reload(); }}
         />
       ) : null}
 

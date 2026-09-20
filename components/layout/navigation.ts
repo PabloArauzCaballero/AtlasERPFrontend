@@ -46,7 +46,6 @@ const ADS: NavGroup = {
     { label: 'Inventario y políticas', href: '/operaciones/ads/inventario', icon: 'space_dashboard' },
     { label: 'Facturación', href: '/operaciones/ads/facturacion', icon: 'receipt_long' },
     { label: 'Correo de campaña', href: '/operaciones/ads/correo', icon: 'forward_to_inbox' },
-    { label: 'Carga masiva', href: '/operaciones/ads/bulk-anunciantes', icon: 'upload_file' },
   ],
 };
 
@@ -74,7 +73,6 @@ export const NAVIGATION: NavGroup[] = [
       { label: 'Cuentas B2B', href: '/operaciones/crm/cuentas', icon: 'domain' },
       { label: 'Pipeline', href: '/operaciones/crm/oportunidades', icon: 'view_kanban' },
       { label: 'Propuestas', href: '/operaciones/crm/propuestas', icon: 'request_quote' },
-      { label: 'Aprobaciones', href: '/operaciones/crm/aprobaciones', icon: 'approval' },
       { label: 'Onboarding', href: '/operaciones/crm/onboarding', icon: 'fact_check' },
       { label: 'Contratos', href: '/operaciones/crm/contratos', icon: 'description' },
       { label: 'Facturación', href: '/operaciones/crm/facturacion', icon: 'receipt_long' },
@@ -83,12 +81,10 @@ export const NAVIGATION: NavGroup[] = [
     subGroups: [
       {
         label: 'Configuración comercial', icon: 'tune', items: [
-          { label: 'Tarifas y pricing', href: '/operaciones/crm/tarifas', icon: 'sell' },
           { label: 'Conciliación', href: '/operaciones/crm/conciliacion-cobertura', icon: 'account_balance' },
           { label: 'Sucursales', href: '/operaciones/crm/sucursales', icon: 'store' },
           { label: 'Segmentos comerciales', href: '/operaciones/crm/segmentos', icon: 'group_work' },
           { label: 'Tags de clasificación', href: '/operaciones/crm/tags', icon: 'label' },
-          { label: 'Carga masiva', href: '/operaciones/crm/bulk-cuentas', icon: 'upload_file' },
         ],
       },
     ],

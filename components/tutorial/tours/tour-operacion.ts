@@ -91,39 +91,38 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
   {
     id: 'carga-masiva',
     title: 'Cargar muchos registros de una vez',
-    intro: 'El patrón de importación que comparten cuentas, anunciantes y documentos.',
-    version: 1,
+    intro: 'Importar ya no es una pantalla aparte: vive en el listado de cada tipo de registro.',
+    version: 2,
     steps: [
       {
+        id: 'donde-esta',
+        route: '/operaciones/contabilidad/business-partners',
+        target: '[data-tutorial-id="crud-importar"]',
+        title: 'Se importa desde el listado del propio registro',
+        content:
+          'Había tres pantallas de «carga masiva» para tres tipos concretos y el resto no se podía cargar de ninguna forma. Ahora el botón está en todo listado que sepa dar de alta, y carga ese tipo de registro.',
+      },
+      {
         id: 'plantilla',
-        route: '/operaciones/crm/bulk-cuentas',
-        target: '[data-tutorial-id="workspace-header"]',
+        target: '[data-tutorial-id="crud-importar"]',
         title: 'Siempre se empieza por la plantilla',
         content:
-          'Descarga el archivo de ejemplo y rellénalo. Las columnas tienen que ser exactamente las suyas: es lo que permite validar antes de enviar.',
+          'La plantilla se genera con los campos del alta de ESTA pantalla, así que nunca se queda desfasada. Descárgala, rellénala en Excel y súbela: acepta .xlsx y .csv.',
       },
       {
         id: 'vista-previa',
-        target: '[data-tutorial-id="bulk-preview"]',
-        title: 'Nada se envía hasta que lo confirmas',
+        target: '[data-tutorial-id="crud-importar"]',
+        title: 'Nada se crea hasta que lo confirmas',
         content:
-          'El archivo se lee en tu navegador y se muestra fila por fila con sus errores. Ese paso existe para que los veas ANTES de que toquen la base.',
+          'El archivo se lee en tu navegador y se muestra fila por fila con lo que le falta a cada una. Ese paso existe para que veas los errores ANTES de que toquen la base.',
         optional: true,
       },
       {
-        id: 'corregir',
-        target: '[data-tutorial-id="bulk-preview"]',
-        title: 'Las filas en rojo se corrigen en el archivo',
+        id: 'fila-a-fila',
+        target: '[data-tutorial-id="crud-tabla"]',
+        title: 'Cada fila entra por el camino del alta normal',
         content:
-          'No se editan aquí. Arreglar el origen y volver a cargarlo es más rápido, y te deja el archivo bueno para la próxima vez.',
-        optional: true,
-      },
-      {
-        id: 'transaccional',
-        target: '[data-tutorial-id="workspace-header"]',
-        title: 'El lote entra entero o no entra',
-        content:
-          'Es una operación transaccional: no existe el estado intermedio en el que la mitad de los registros se crearon y la otra mitad se perdió.',
+          'No es un lote: es un alta por fila, con las mismas validaciones y la misma auditoría. Por eso, si una fila se rechaza, sabes cuál y por qué, y las demás sí entran.',
       },
     ],
   },

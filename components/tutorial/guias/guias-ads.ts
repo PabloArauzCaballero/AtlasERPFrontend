@@ -72,27 +72,6 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
     ],
   },
 
-  '/operaciones/ads/bulk-anunciantes': {
-    eyebrow: 'Publicidad',
-    title: 'Carga masiva de anunciantes',
-    intro: 'Importa anunciantes desde una plantilla con control de duplicados y validación previa.',
-    sections: [
-      {
-        title: 'El duplicado se detecta por país y NIT',
-        body: 'Las filas que ya existen se marcan antes de enviar nada. Es la razón principal para usar esta pantalla en lugar de crear uno a uno.',
-      },
-      {
-        title: 'Los límites de crédito van en micros',
-        body: 'Igual que en el alta individual. Una columna con el importe «normal» produce anunciantes con un millonésimo del crédito previsto.',
-      },
-      {
-        title: 'Revisa la vista previa',
-        body: 'Se valida en tu navegador, fila por fila, antes de tocar la base. Corrige en el archivo y recarga.',
-      },
-    ],
-    tutorialId: 'carga-masiva',
-  },
-
   '/operaciones/ads/campanas': {
     eyebrow: 'Publicidad',
     title: 'Campañas',

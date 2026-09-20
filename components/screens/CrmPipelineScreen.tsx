@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { ApprovalsDirectory } from '@/components/screens/ApprovalsDirectory';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { OpportunityKanbanScreen } from '@/components/screens/OpportunityKanbanScreen';
 import { ProposalsDirectory } from '@/components/screens/ProposalsDirectory';
@@ -11,7 +12,7 @@ import { loadB2BAccounts, loadInternalUsers } from '@/services/optionLoaders';
 
 interface CrmPipelineScreenProps {
   /** Pestaña con la que abre la pantalla; la decide la ruta por la que se entró. */
-  initialTab?: 'listado' | 'tablero' | 'propuestas' | undefined;
+  initialTab?: 'listado' | 'tablero' | 'propuestas' | 'aprobaciones' | undefined;
 }
 
 /**
@@ -39,7 +40,7 @@ export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenP
       <WorkspaceHeader
         breadcrumbs={[{ label: 'CRM' }, { label: 'Pipeline comercial' }]}
         title="Pipeline comercial"
-        description="El embudo de punta a punta: qué se está negociando y por cuánto, en qué etapa va cada trato y qué propuestas han salido de él."
+        description="El embudo de punta a punta: qué se está negociando y por cuánto, en qué etapa va cada trato, qué propuestas han salido de él y qué excepciones hay que autorizar."
       />
       <TabbedPanels
         keepMounted
@@ -111,6 +112,18 @@ export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenP
             label: 'Propuestas',
             icon: 'request_quote',
             content: <ProposalsDirectory embedded />,
+          },
+          /*
+           * Aprobaciones va la ÚLTIMA, y es una decisión de orden, no de sitio: las pestañas
+           * siguen el recorrido del trato —se registra la oportunidad, se mueve por el tablero, se
+           * emite la propuesta y, sólo si pide una excepción, alguien la autoriza—. Ponerla antes
+           * sugeriría que hay algo que aprobar en cada trato, y la mayoría no pasa por aquí.
+           */
+          {
+            id: 'aprobaciones',
+            label: 'Aprobaciones',
+            icon: 'approval',
+            content: <ApprovalsDirectory embedded />,
           },
         ]}
       />

@@ -265,27 +265,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
     tutorialId: 'contabilidad-documento',
   },
 
-  '/operaciones/contabilidad/bulk-documentos': {
-    eyebrow: 'Contabilidad',
-    title: 'Carga masiva de documentos',
-    intro: 'Sube hasta 50 asientos de dos líneas en un solo lote transaccional.',
-    sections: [
-      {
-        title: 'Dos líneas, ya cuadradas',
-        body: 'El formato admite el caso simple: una cuenta al debe y otra al haber por el mismo importe. Los asientos complejos se registran uno a uno.',
-      },
-      {
-        title: 'Vista previa antes de enviar',
-        body: 'Se valida fila por fila en tu navegador. Corrige en el archivo y vuelve a cargarlo: es más rápido que enviar y descubrirlo después.',
-      },
-      {
-        title: 'Todo o nada',
-        body: 'El lote entra completo o no entra. No hay estado intermedio con la mitad de los asientos publicados.',
-      },
-    ],
-    tutorialId: 'carga-masiva',
-  },
-
   '/operaciones/contabilidad/factura-ar': {
     eyebrow: 'Contabilidad',
     title: 'Factura por cobrar (AR)',
