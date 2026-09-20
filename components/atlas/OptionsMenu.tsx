@@ -17,7 +17,7 @@ export interface MenuOption {
 
 interface Props {
   open: boolean;
-  title?: string | undefined;
+  /** De qué pantalla son estas opciones; va bajo el título del cajón. */
   description?: string | undefined;
   options: MenuOption[];
   onClose: () => void;
@@ -34,10 +34,10 @@ interface Props {
  * horizontal (`overflow-x: auto`): cualquier capa posicionada dentro queda recortada en cuanto no
  * cabe, que es justo lo que pasa en pantallas estrechas.
  */
-export function OptionsMenu({ open, title, description, options, onClose }: Props) {
+export function OptionsMenu({ open, description, options, onClose }: Props) {
   if (!open) return null;
   return (
-    <Modal open title={title ?? 'Más opciones'} description={description} icon="more_horiz" width="md" onClose={onClose}>
+    <Modal open title="Más opciones" description={description} icon="more_horiz" width="md" onClose={onClose}>
       <div className="space-y-1.5">
         {options.map((option) => (
           <button
