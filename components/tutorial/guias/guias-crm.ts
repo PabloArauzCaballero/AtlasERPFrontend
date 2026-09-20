@@ -109,7 +109,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/crm/oportunidades': {
     eyebrow: 'CRM B2B',
     title: 'Pipeline comercial',
-    intro: 'El embudo entero: qué negociaciones hay abiertas, en qué etapa va cada una y qué propuestas han salido de ellas.',
+    intro: 'El embudo entero: qué negociaciones hay abiertas, en qué etapa va cada una y qué excepciones esperan una decisión.',
     sections: [
       {
         title: 'Una oportunidad es un trato, no una empresa',
@@ -124,8 +124,8 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Una propuesta se emite contra una oportunidad, y un contrato contra una propuesta aceptada. Dejar el tablero desactualizado bloquea el paso siguiente.',
       },
       {
-        title: 'Las propuestas están en la tercera pestaña',
-        body: 'Son el paso siguiente del mismo trato, así que se consultan aquí sin salir del embudo: qué se le ofreció a cada comercio, por cuánto y en qué punto del ciclo está.',
+        title: 'Las propuestas viven en su propia pantalla',
+        body: 'Lo que se le ofreció a cada comercio se consulta en «Propuestas», la última entrada del menú de CRM. Aquí se negocia la oportunidad; allí se arma y se sigue la oferta que sale de ella.',
       },
     ],
     tutorialId: 'crm-pipeline',

@@ -74,10 +74,8 @@ test('las propuestas se leen, se filtran y se pueden corregir desde la propia fi
   await expect(page.getByTestId('crud-buscar')).toBeVisible();
   await expect(page.getByTestId('crud-crear')).toBeVisible();
 
-  // La cartera es una pestaña del pipeline: se llega por su ruta y abre con «Propuestas» delante.
-  await expect(page.getByTestId('tab-propuestas')).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByTestId('tab-listado')).toBeVisible();
-  await expect(page.getByTestId('tab-tablero')).toBeVisible();
+  // La cartera es pantalla propia, no una pestaña del pipeline: aquí no hay barra de pestañas.
+  await expect(page.getByRole('tab')).toHaveCount(0);
   // «Nueva propuesta» sigue siendo un botón de la barra, no una pestaña: abre el constructor.
   await page.getByTestId('crud-crear').click();
   await expect(page).toHaveURL(/\/operaciones\/crm\/propuestas\/crear$/);

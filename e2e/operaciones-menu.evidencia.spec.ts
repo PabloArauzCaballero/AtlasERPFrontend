@@ -282,27 +282,27 @@ test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) =
 });
 
 /*
- * El orden de las pestañas del pipeline, afirmado aquí para que no vuelva a bailar.
+ * Dónde vive cada cosa, afirmado para que no vuelva a bailar.
  *
- * Siguen el recorrido del trato: se registra la oportunidad, se mueve por el tablero, se emite la
- * PROPUESTA contra ella y, sólo si pide una excepción de MDR, alguien la APRUEBA. Por eso
- * Propuestas va dentro —es el paso siguiente del mismo trato— y Aprobaciones cierra la barra: la
- * mayoría de los tratos no pasa por ahí. Se cambió el 2026-09-19 y Pablo lo devolvió a este orden.
+ * «Propuestas» es una pantalla del MENÚ IZQUIERDO y nada más: no es una pestaña del pipeline. El
+ * pipeline lleva tres —Oportunidades, Tablero y, la última, Aprobaciones—, que sí se quedan dentro
+ * porque una excepción de MDR sólo se decide mirando el trato que la pidió. Se movió dos veces el
+ * 2026-09-19 y Pablo lo dejó así el 2026-09-20.
  */
-test('el pipeline lleva las propuestas dentro y las aprobaciones al final', async ({ page }) => {
+test('propuestas vive en el menú izquierdo, no en el pipeline', async ({ page }) => {
   await page.goto('/operaciones/crm/oportunidades');
   const pestanas = page.getByRole('tab');
-  await expect(pestanas).toHaveCount(4);
+  await expect(pestanas).toHaveCount(3);
   await expect(pestanas.nth(0)).toHaveText(/oportunidades/i);
   await expect(pestanas.nth(1)).toHaveText(/tablero/i);
-  await expect(pestanas.nth(2)).toHaveText(/propuestas/i);
-  await expect(pestanas.nth(3)).toHaveText(/aprobaciones/i);
+  await expect(pestanas.nth(2)).toHaveText(/aprobaciones/i);
+  await expect(page.getByRole('tab', { name: /propuestas/i })).toHaveCount(0);
 
-  // Y cada ruta abre por su pestaña, que es lo que hace que el menú siga llevando a donde decía.
-  await page.goto('/operaciones/crm/propuestas');
-  await expect(page.getByTestId('tab-propuestas')).toHaveAttribute('aria-selected', 'true');
-  await page.goto('/operaciones/crm/aprobaciones');
-  await expect(page.getByTestId('tab-aprobaciones')).toHaveAttribute('aria-selected', 'true');
+  // Y su entrada del menú abre su pantalla, que no tiene pestaña ninguna.
+  await page.getByRole('navigation').first().getByRole('link', { name: /propuestas/i }).first().click();
+  await expect(page).toHaveURL(/\/operaciones\/crm\/propuestas$/);
+  await expect(page.getByRole('heading', { name: /propuestas comerciales/i })).toBeVisible();
+  await expect(page.getByRole('tab')).toHaveCount(0);
 });
 
 test('el menú se agrupa: lo diario arriba, lo que se configura una vez en su cajón', async ({ page }) => {
@@ -316,15 +316,17 @@ test('el menú se agrupa: lo diario arriba, lo que se configura una vez en su ca
   }
 
   // Lo que se hace con un comercio delante, a la vista.
-  for (const diario of [/cuentas b2b/i, /pipeline/i, /propuestas/i, /onboarding/i]) {
+  for (const diario of [/cuentas b2b/i, /pipeline/i, /onboarding/i, /propuestas/i]) {
     await expect(lateral.getByText(diario).first()).toBeVisible();
   }
 
   /*
-   * «Aprobaciones» NO es una entrada del menú: es la última pestaña del pipeline, detrás de
-   * Propuestas, porque una excepción de MDR se pide desde una propuesta y sólo se entiende mirando
-   * el trato que la pidió. Su ruta se conserva y abre esa pestaña.
+   * «Propuestas» cierra el grupo CRM: pantalla propia y la ÚLTIMA entrada, detrás de «Calificación
+   * de riesgo». No es una pestaña del pipeline, y por eso «Aprobaciones» —que sí lo es— no figura
+   * en el menú.
    */
+  const crm = lateral.locator('section').filter({ has: page.getByRole('button', { name: /^CRM$/ }) }).first();
+  await expect(crm.locator('a[href^="/operaciones/crm/"]:visible').last()).toHaveText(/propuestas/i);
   await expect(lateral.getByText(/aprobaciones/i)).toHaveCount(0);
 
   // Lo que se configura una vez baja a un cajón dentro de su grupo.
