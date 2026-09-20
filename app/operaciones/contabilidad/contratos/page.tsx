@@ -13,8 +13,8 @@ const headerFields: ActionField[] = [
   // El número lo asigna el backend (CTA-…): pedirlo obligaba a adivinar el siguiente de la serie.
   { name: 'contractNo', label: 'Número de contrato', tooltip: 'Número del contrato tal como figura en el documento firmado.', assignedByBackend: true },
   { name: 'contractType', label: 'Tipo', tooltip: 'Naturaleza del contrato (servicio, licencia, arrendamiento…); decide términos y cuentas.', required: true, optionsSource: 'domain:accounting.contractType' },
-  { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadLegalEntities },
-  { name: 'counterpartyBpId', label: 'Contraparte (Business Partner)', tooltip: 'Socio con el que se firma el contrato.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadBusinessPartners },
+  { name: 'legalEntityId', label: 'Empresa que firma', tooltip: 'Empresa del grupo que firma el contrato; de ella salen el libro contable, la moneda y la numeración.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadLegalEntities },
+  { name: 'counterpartyBpId', label: 'Con quién se firma', tooltip: 'La otra parte del contrato: el cliente, el proveedor o el comercio con el que se pacta.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadBusinessPartners },
   { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date' as const, required: true },
   { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date' as const, optional: true },
   { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, span: 2 as const, optionsSource: 'catalog:currency' },
@@ -74,7 +74,7 @@ export default function AccountingContractsPage() {
         submit: (payload: JsonObject) => accountingService.createContract(payload),
       }}
       edit={{
-        description: 'La contraparte y la entidad legal no se cambian: eso movería el contrato de libro.',
+        description: 'Con quién se firma y qué empresa firma no se cambian: eso movería el contrato de libro contable.',
         fields: [
           { name: 'contractNo', label: 'Número de contrato', tooltip: 'Número del contrato tal como figura en el documento firmado.', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
           { name: 'contractType', label: 'Tipo', tooltip: 'Naturaleza del contrato (servicio, licencia, arrendamiento…); decide términos y cuentas.', required: true, optionsSource: 'domain:accounting.contractType' },
@@ -99,16 +99,16 @@ export default function AccountingContractsPage() {
       extraActions={[
         {
           key: 'termino',
-          label: 'Agregar término contractual',
+          label: 'Agregar condición',
           icon: 'data_object',
           form: {
-            title: (row) => `Término de ${String(row.contractNo ?? 'el contrato')}`,
-            description: 'Término estructurado con vigencia propia, colgado de este contrato.',
+            title: (row) => `Condición de ${String(row.contractNo ?? 'el contrato')}`,
+            description: 'Lo que se pactó y desde cuándo rige: el plazo de pago, la comisión, el tope mensual. Cada condición tiene su propia vigencia, así que una renegociación se añade sin borrar la anterior.',
             fields: [
-              { name: 'termCode', label: 'Código del término', tooltip: 'Código del término contractual. Ej.: PLAZO_PAGO.', required: true },
-              { name: 'termValue', label: 'Valor contractual', tooltip: 'Valor pactado para el término. Ej.: 30 días.', required: true },
-              { name: 'effectiveFrom', label: 'Vigente desde', tooltip: 'Desde cuándo vale; antes de esta fecha el rol no aplica.', type: 'date', required: true },
-              { name: 'effectiveTo', label: 'Vigente hasta', tooltip: 'Hasta cuándo vale; vacío = sin fecha de fin.', type: 'date', optional: true },
+              { name: 'termCode', label: 'Qué se pactó', tooltip: 'Nombre corto de lo pactado, en mayúsculas y sin espacios. Ej.: PLAZO_PAGO, COMISION, TOPE_MENSUAL.', required: true, placeholder: 'PLAZO_PAGO' },
+              { name: 'termValue', label: 'Valor pactado', tooltip: 'Lo que se acordó para esa condición, tal como se lee en el contrato. Ej.: 30 días.', required: true, placeholder: '30 días' },
+              { name: 'effectiveFrom', label: 'Rige desde', tooltip: 'Desde cuándo se aplica lo pactado; antes de esa fecha vale la condición anterior.', type: 'date', required: true },
+              { name: 'effectiveTo', label: 'Rige hasta', tooltip: 'Hasta cuándo se aplica; vacío significa que sigue vigente sin fecha de fin.', type: 'date', optional: true },
             ],
             submit: (row, payload) =>
               accountingService.createContractTerm({
@@ -117,7 +117,7 @@ export default function AccountingContractsPage() {
                 termValueJson: { value: payload.termValue },
                 termValue: undefined,
               }),
-            submitLabel: 'Agregar término',
+            submitLabel: 'Agregar condición',
           },
         },
       ]}

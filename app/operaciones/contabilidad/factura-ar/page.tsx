@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
 import { descargarFactura, facturaAr } from '@/lib/facturaPdf';
-import { loadAccountingPeriods, loadBillingEvents, loadBusinessPartners, loadContracts, loadGlAccounts, loadLedgers, loadLegalEntities, loadTaxCodes, withEmpty } from '@/services/optionLoaders';
+import { loadBillingEvents, loadBusinessPartners, loadContracts, loadGlAccounts, loadLegalEntities, withEmpty } from '@/services/optionLoaders';
 import type { ResourceRow } from '@/services/types';
 
 /**
@@ -81,41 +81,44 @@ export default function ArInvoicePage() {
       filters={[{ key: 'status', label: 'Estado' }, { key: 'currencyCode', label: 'Moneda' }]}
       notice={{
         tone: 'info',
-        title: 'El número de factura lo asigna el sistema',
-        body: 'La serie es correlativa por entidad legal y año (FAC-AR-AAAA-NNNNNN). No se teclea al emitir ni se modifica después: renumerar una factura emitida deja un hueco en la serie donde estaba y un duplicado donde va.',
+        title: 'El número y las cuentas los pone el sistema',
+        body: 'La serie es correlativa por empresa y año (FAC-AR-AAAA-NNNNNN): no se teclea al emitir ni se cambia después, porque renumerar una factura emitida deja un hueco donde estaba y un duplicado donde va. Tampoco se piden la cuenta por cobrar del cliente, el período, el libro ni la cuenta del impuesto: salen de la ficha del cliente, de la fecha de la factura y de la empresa.',
       }}
       create={{
         label: 'Emitir factura',
         title: 'Emitir factura por cobrar (AR)',
-        description: 'Genera la factura y su asiento contable (cliente, ingresos e impuestos). Los datos SIAT deben venir del proceso fiscal autorizado.',
+        description: 'Genera la factura y su asiento contable. La cuenta por cobrar del cliente, el período, el libro y la cuenta del impuesto los pone el sistema: salen de la ficha del cliente, de la fecha y de la empresa.',
         submit: async (payload) => {
           const resultado = await accountingService.createArInvoice(payload);
           setVersion((value) => value + 1);
           return resultado;
         },
         fields: [
-          { name: 'legalEntityId', label: 'Entidad legal', tooltip: 'Empresa del grupo que emite o recibe el documento; decide libro, moneda y numeración.', type: 'select', required: true, optionsLoader: loadLegalEntities },
-          { name: 'customerBpId', label: 'Cliente (Business Partner)', tooltip: 'Cliente al que se factura.', type: 'select', required: true, optionsLoader: loadBusinessPartners },
+          { name: 'legalEntityId', label: 'Empresa que factura', tooltip: 'Empresa del grupo que emite la factura; de ella salen la numeración, el libro contable y el período.', type: 'select', required: true, optionsLoader: loadLegalEntities },
+          { name: 'customerBpId', label: 'Cliente', tooltip: 'A quién se le factura. De su ficha sale la cuenta por cobrar donde queda el saldo.', type: 'select', required: true, optionsLoader: loadBusinessPartners },
           { name: 'contractId', label: 'Contrato', tooltip: 'Contrato del que nace lo facturado; vacío si la factura no cuelga de ninguno.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadContracts()) },
-          { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
+          { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión; de ella salen los plazos y el período contable en el que entra.', type: 'date', required: true },
           { name: 'dueDate', label: 'Fecha vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
           { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, optionsSource: 'catalog:currency' },
           { name: 'description', label: 'Descripción', tooltip: 'Concepto que se imprime en la factura. Ej.: Servicio de cobranza septiembre.', required: true, span: 2 },
           { name: 'netAmount', label: 'Importe neto', tooltip: 'Importe de la factura antes de sumar impuestos.', type: 'number', valueKind: 'number', required: true },
-          { name: 'taxAmount', label: 'Impuesto', tooltip: 'Importe de impuestos que se suma al neto.', type: 'number', valueKind: 'number', defaultValue: 0 },
-          { name: 'arAccountId', label: 'Cuenta por cobrar (AR)', tooltip: 'Cuenta de cuentas por cobrar donde queda el saldo pendiente.', type: 'select', required: true, optionsLoader: loadGlAccounts },
-          { name: 'revenueAccountId', label: 'Cuenta de ingreso', tooltip: 'Cuenta de ingreso a la que se abona la venta.', type: 'select', required: true, optionsLoader: loadGlAccounts },
-          { name: 'taxLiabilityAccountId', label: 'Cuenta de impuesto', tooltip: 'Cuenta de pasivo donde se registra el impuesto por pagar.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadGlAccounts()) },
-          { name: 'taxCodeId', label: 'Código tributario', tooltip: 'Código tributario que calcula el impuesto; decide tasa y tratamiento.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadTaxCodes()) },
-          { name: 'billingEventId', label: 'Evento de facturación', tooltip: 'Evento de facturación que origina la factura.', type: 'select', optional: true, optionsLoader: async () => withEmpty(await loadBillingEvents()) },
-          { name: 'accountingPeriodId', label: 'Período contable', tooltip: 'Período contable abierto en el que se registra; uno cerrado rechaza el asiento.', type: 'select', required: true, optionsLoader: loadAccountingPeriods },
-          { name: 'ledgerId', label: 'Ledger', tooltip: 'Libro contable en el que se registra; el predeterminado suele ser el correcto.', type: 'select', required: true, optionsLoader: loadLedgers },
+          { name: 'taxAmount', label: 'Impuesto', tooltip: 'Importe de impuestos que se suma al neto; deja 0 si la factura no lleva.', type: 'number', valueKind: 'number', defaultValue: 0 },
+          { name: 'revenueAccountId', label: 'Cuenta de ingreso', tooltip: 'A qué cuenta de ingreso se abona la venta; es la única decisión contable que no se puede deducir.', type: 'select', required: true, span: 2, optionsLoader: loadGlAccounts },
+          { name: 'billingEventId', label: 'Evento de facturación', tooltip: 'Evento facturable que origina la factura, si viene de uno; evita cobrar dos veces lo mismo.', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadBillingEvents()) },
           /*
-           * CUF, CUFD, hash del XML, representación gráfica y estado SIAT ya no se piden: los devuelve
-           * el SIAT al autorizar la factura, y quien factura no los tiene. El backend deja el estado en
-           * PENDING cuando no llega. La contingencia sí la sabe quien emite, y se queda.
+           * Fuera del alta desde el 2026-09-19: cuenta por cobrar, cuenta de impuesto, código
+           * tributario, período contable y libro.
+           *
+           * Ninguno de los cinco es una decisión de quien factura y los cinco están en la base: la
+           * cuenta del cliente en su ficha, el período en la fecha, el libro en la empresa y la
+           * cuenta del impuesto en el propio código tributario. Con dieciocho campos y siete
+           * desplegables de identificadores, emitir una factura era un trámite de experto; y
+           * elegir el período equivocado producía un asiento que cuadra y miente. El backend los
+           * deduce (`AccountingDefaultsService`) y sigue aceptándolos si una integración los manda.
+           *
+           * CUF, CUFD, hash del XML, representación gráfica, estado SIAT y contingencia tampoco se
+           * piden: los devuelve el SIAT al autorizar, y quien factura no los tiene.
            */
-          { name: 'electronicTaxDocument.contingencyFlag', label: 'Contingencia', tooltip: 'Marca la factura emitida fuera de línea (contingencia) para regularizarla después.', type: 'select', valueKind: 'boolean', defaultValue: 'false', options: [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }] },
         ],
       }}
       extraActions={[{ key: 'descargar', label: 'Descargar factura', icon: 'download', run: descargar }]}

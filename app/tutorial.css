@@ -315,6 +315,42 @@
   color: #92400e !important;
 }
 
+/*
+ * El aviso propio de la pantalla, dentro del mismo panel de ayuda.
+ *
+ * Antes tenía botón aparte en la barra (un icono ⓘ junto a «¿Qué es esto?»): dos controles para
+ * la misma pregunta. Aquí encabeza las secciones porque suele ser la advertencia que explica por
+ * qué la pantalla no hace lo que uno esperaba (por qué no hay papelera, quién asigna el número).
+ */
+.guide-note {
+  display: flex;
+  gap: 0.55rem;
+  margin: 0.85rem 0 0;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #cfe3e0;
+  background: #f1f8f7;
+  color: #0f172a;
+}
+
+.guide-note b {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.guide-note p {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.guide-note .material-symbols-rounded,
+.guide-note .material-symbols-outlined {
+  color: #006a61;
+}
+
 .guide-foot {
   display: flex;
   justify-content: flex-end;

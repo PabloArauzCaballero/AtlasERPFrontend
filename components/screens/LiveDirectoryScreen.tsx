@@ -7,6 +7,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import type { PageQuery, PaginatedResult, ResourceRow } from '@/services/types';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
+import { OptionsMenu, type MenuOption } from '@/components/atlas/OptionsMenu';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
@@ -291,6 +292,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
   const [rowForm, setRowForm] = useState<{ action: RowAction; row: ResourceRow } | null>(null);
   /** La fila cuyo cajón de acciones está abierto, con lo que le toca enseñar. */
   const [masAcciones, setMasAcciones] = useState<{ row: ResourceRow; actions: RowAction[] } | null>(null);
+  /* El cajón de opciones de la cabecera: exportar. */
+  const [opcionesAbiertas, setOpcionesAbiertas] = useState(false);
 
   const runAction = useCallback(async (action: RowAction, row: ResourceRow) => {
     try {
@@ -309,10 +312,36 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
       ? <Link href={props.createHref} data-tutorial-id="directory-create"><AtlasButton icon="add">{props.createLabel ?? 'Crear registro'}</AtlasButton></Link>
       : null;
 
+  /*
+   * Exportar va detrás de «Más», como en `CrudDirectory`.
+   *
+   * Dos botones de descarga por delante del que da de alta, en todas las pantallas, para algo que
+   * se hace de vez en cuando. Aquí caben con su nombre entero y una línea de qué hacen.
+   */
+  const opcionesMenu: MenuOption[] = [
+    {
+      key: 'pdf',
+      testId: 'directorio-pdf',
+      label: 'Descargar PDF',
+      icon: 'picture_as_pdf',
+      detail: 'Imprime las filas que estás viendo, con los filtros puestos.',
+      disabled: !rows.length,
+      onSelect: () => void exportarPdf(),
+    },
+    {
+      key: 'csv',
+      testId: 'directorio-csv',
+      label: 'Descargar CSV',
+      icon: 'download',
+      detail: 'Las mismas filas y columnas de la tabla, para abrirlas en una hoja de cálculo.',
+      disabled: !rows.length,
+      onSelect: exportCsv,
+    },
+  ];
+
   const barraAcciones = (
     <>
-      <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="directorio-pdf" loading={generandoPdf} disabled={!rows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
-      <AtlasButton variant="secondary" icon="download" disabled={!rows.length} onClick={exportCsv}>CSV</AtlasButton>
+      <AtlasButton variant="secondary" icon="more_horiz" data-testid="directorio-mas" loading={generandoPdf} onClick={() => setOpcionesAbiertas(true)}>Más</AtlasButton>
       {crear}
     </>
   );
@@ -370,6 +399,13 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <ScreenState status={resource.status} error={resource.error} onRetry={resource.reload} hasData={false} />
       ) : null}
       {errorPdf ? <InlineNotice tone="danger" title="No se pudo generar el PDF">{errorPdf}</InlineNotice> : null}
+
+      <OptionsMenu
+        open={opcionesAbiertas}
+        description={props.title}
+        options={opcionesMenu}
+        onClose={() => setOpcionesAbiertas(false)}
+      />
 
       <section data-tutorial-id="resource-table" className="relative overflow-hidden rounded-lg border border-slate-200 bg-white">
         {loading && !rows.length ? <TableSkeleton columns={props.columns.length + 1} /> : (

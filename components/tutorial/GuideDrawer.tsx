@@ -3,13 +3,15 @@
 import { useEffect, useRef } from 'react';
 import { Icon } from '@/components/atlas/Icon';
 import { TutorialPortal } from './TutorialPortal';
-import type { ScreenGuide } from './tutorial-types';
+import type { ScreenGuide, ScreenGuideNote } from './tutorial-types';
 
 interface Props {
   guide: ScreenGuide;
   onClose: () => void;
   /** Lanza el recorrido interactivo de la pantalla, si lo tiene. */
   onStartTour?: (() => void) | undefined;
+  /** Aviso propio de esta pantalla, encabezando las secciones de la guía. */
+  note?: ScreenGuideNote | undefined;
 }
 
 /**
@@ -23,7 +25,7 @@ interface Props {
  * devuelve el foco a donde estaba —el botón de la cabecera—, porque un panel que
  * te deja el teclado perdido detrás es peor que no abrirlo.
  */
-export function GuideDrawer({ guide, onClose, onStartTour }: Props) {
+export function GuideDrawer({ guide, onClose, onStartTour, note }: Props) {
   const panel = useRef<HTMLElement>(null);
   const opener = useRef<Element | null>(null);
 
@@ -77,6 +79,16 @@ export function GuideDrawer({ guide, onClose, onStartTour }: Props) {
               </span>
               <Icon name="chevron_right" className="ml-auto text-[18px]" />
             </button>
+          ) : null}
+
+          {note ? (
+            <div className="guide-note" data-testid="guide-note">
+              <Icon name="info" className="text-[17px]" />
+              <div className="min-w-0">
+                <b>{note.title}</b>
+                <p>{note.body}</p>
+              </div>
+            </div>
           ) : null}
 
           <ol className="guide-sections">

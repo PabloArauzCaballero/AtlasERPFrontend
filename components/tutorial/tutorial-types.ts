@@ -140,3 +140,15 @@ export interface ScreenGuide {
   /** Recorrido interactivo asociado, si lo hay. */
   tutorialId?: string;
 }
+
+/**
+ * Lo que una pantalla concreta añade a su guía en tiempo de ejecución.
+ *
+ * Es el aviso que antes tenía botón propio (un icono ⓘ en la barra, junto a «¿Qué es esto?»).
+ * Vive en el mismo panel porque responde la misma pregunta; tenerlo aparte obligaba a abrir dos
+ * cosas para enterarse de una.
+ */
+export interface ScreenGuideNote {
+  title: string;
+  body: string;
+}

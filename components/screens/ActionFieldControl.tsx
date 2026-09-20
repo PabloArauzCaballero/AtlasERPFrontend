@@ -225,6 +225,7 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
       required={required}
       softRequired={props.softRequired}
       type={controlType(field)}
+      {...decimalesPermitidos(field)}
       defaultValue={defaultValue}
       placeholder={field.placeholder}
       hint={field.hint}
@@ -232,4 +233,20 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
       className={className}
     />
   );
+}
+
+/**
+ * Un campo numérico acepta CÉNTIMOS.
+ *
+ * Sin `step`, el navegador aplica `step="1"` y rechaza cualquier decimal: el formulario
+ * sencillamente no se envía y el único aviso es un globo del navegador. Medido el 2026-09-19
+ * emitiendo una factura de 0,01: el botón respondía y no pasaba nada. Afectaba a TODO campo
+ * `type: 'number'` declarado en un formulario del ERP —importes de factura, impuestos, montos de
+ * recibo, tarifas, comisiones—, es decir, a casi todo lo que es dinero.
+ *
+ * `any` y no `0.01` porque por aquí pasan también cantidades y porcentajes con más decimales; el
+ * número de decimales que admite cada importe lo valida el backend, que es quien lo sabe.
+ */
+function decimalesPermitidos(field: ActionField): { step?: string; inputMode?: 'decimal' } {
+  return field.type === 'number' ? { step: 'any', inputMode: 'decimal' } : {};
 }

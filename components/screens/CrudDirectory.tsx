@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { FieldLabel } from '@/components/atlas/FieldLabel';
-import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -16,15 +15,13 @@ import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { downloadCsv } from '@/lib/csv';
 import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { Modal } from '@/components/atlas/Modal';
+import { OptionsMenu, type MenuOption } from '@/components/atlas/OptionsMenu';
 import { ActionFormModal } from './ActionFormModal';
 import { ExcelImportModal } from './ExcelImportModal';
 import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject, PaginatedResult, ResourceRow } from '@/services/types';
-
-/** Qué hace la caja de búsqueda; el ⓘ lo pinta `FieldLabel` como en cualquier otro campo. */
-const TOOLTIP_BUSQUEDA = 'Escribe cualquier parte de un dato y la tabla se queda sólo con las filas que lo contienen.';
 
 export interface CrudColumn {
   key: string;
@@ -38,8 +35,6 @@ export interface CrudFilter {
   label: string;
   /** `select` sin `options` deriva la lista de los propios datos cargados. */
   kind?: 'select' | 'text' | undefined;
-  /** Qué filtra y por qué; si falta, se genera a partir de la etiqueta. */
-  tooltip?: string | undefined;
   options?: Array<{ label: string; value: string }> | undefined;
   placeholder?: string | undefined;
 }
@@ -249,24 +244,30 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const [toolbarForm, setToolbarForm] = useState<CrudToolbarAction | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState('');
-  /* La explicación de la pantalla, abierta desde el icono ⓘ: no ocupa sitio fijo. */
+  /*
+   * La explicación de la pantalla. En una vista con cabecera vive en el panel de «¿Qué es esto?»
+   * (se pasa como `helpNote`); embebida —una tabla por pestaña, sin cabecera propia— se abre
+   * desde el cajón «Más», que es el único control que le queda.
+   */
   const [explicacionAbierta, setExplicacionAbierta] = useState(false);
+  /* El cajón de opciones de la cabecera: exportar, importar, refrescar. */
+  const [opcionesAbiertas, setOpcionesAbiertas] = useState(false);
   /* El importador de Excel: mismos campos y mismo envío que el alta, fila por fila. */
   const [importando, setImportando] = useState(false);
 
   const filters = useMemo(() => props.filters ?? [], [props.filters]);
 
   /*
-   * La búsqueda es un campo como los demás, no un `<input>` suelto.
+   * La búsqueda comparte la fila de etiqueta de los demás campos (`FieldLabel`), que es lo que la
+   * deja alineada con «Tipo» y «Estado»; no usa `FormField` porque necesita la lupa dentro del
+   * control.
    *
-   * Lo era hasta el 2026-09-19, y por serlo se rompía de dos formas a la vez: su fila de etiqueta
-   * medía 16 px en vez de los 24 px de `FieldLabel` —que lleva el ⓘ—, así que con `items-end` el
-   * texto «Buscar» quedaba 4 px por debajo del de «Tipo»; y al no pasar por `FormField` se libraba
-   * del guardián `check-ayuda.mjs`, así que era el ÚNICO campo del ERP sin ayuda. No usa
-   * `FormField` porque necesita la lupa dentro del control, pero sí sus piezas.
+   * Sin ⓘ, y los filtros tampoco: su ayuda decía «Muestra sólo las filas con ese valor de
+   * "Estado"», que es la etiqueta otra vez. Tres iconos de ayuda en una fila de filtros, más el
+   * de la cabecera, más «Recorrido»: la pantalla parecía pedir que la estudiaras antes de usarla.
+   * El ⓘ se queda donde hay algo que NO es evidente: los campos de un alta contable.
    */
   const busquedaId = useId();
-  const ayudaBusqueda = useFieldHelp(TOOLTIP_BUSQUEDA);
 
   /** Opciones de un filtro select sin lista fija: los valores que existen de verdad en los datos. */
   const derivedOptions = useMemo(() => {
@@ -444,44 +445,96 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const hasRowActions = Boolean(props.edit || props.remove || props.extraActions?.length);
 
   const create = props.create;
+
+  /*
+   * Un solo botón para lo que no es la acción principal.
+   *
+   * La barra llegó a tener SIETE controles antes del que hace algo: «¿Qué es esto?», «Recorrido»,
+   * un icono ⓘ con el aviso de la pantalla, PDF, CSV, «Actualizar», «Importar» y, sólo entonces,
+   * «Crear documento». Exportar, importar y refrescar no son lo que uno viene a hacer a un
+   * listado: son salidas ocasionales. Van detrás de «Más», con su nombre escrito y una línea que
+   * dice qué hacen —que es más de lo que decía «CSV» suelto—.
+   *
+   * Es el mismo cajón que usan las acciones de fila: un modal, no un desplegable anclado, porque
+   * la cabecera vive en una barra que se desplaza en horizontal y una capa posicionada dentro
+   * queda recortada en cuanto no cabe.
+   */
+  const opcionesMenu: MenuOption[] = [
+    ...(props.embedded && props.notice && props.notice.tone === 'info'
+      ? [{
+          key: 'explicacion',
+          testId: 'crud-explicacion',
+          label: '¿Qué es esta sección?',
+          icon: 'help',
+          detail: props.notice.title,
+          onSelect: () => setExplicacionAbierta(true),
+        }]
+      : []),
+    ...(props.toolbarActions ?? []).map((action) => ({
+      key: `accion-${action.key}`,
+      testId: `crud-accion-${action.key}`,
+      label: action.label,
+      icon: action.icon,
+      detail: action.description ?? '',
+      onSelect: () => { setActionError(''); setToolbarForm(action); },
+    })),
+    ...(create?.fields?.length && create.submit
+      ? [{
+          key: 'importar',
+          testId: 'crud-importar',
+          tutorialId: 'crud-importar',
+          label: 'Importar desde Excel',
+          icon: 'upload_file',
+          detail: 'Descarga la plantilla con los campos de esta pantalla, rellénala y súbela; nada se crea hasta que lo confirmas.',
+          onSelect: () => setImportando(true),
+        }]
+      : []),
+    {
+      key: 'pdf',
+      testId: 'crud-pdf',
+      label: 'Descargar PDF',
+      icon: 'picture_as_pdf',
+      detail: 'Imprime lo que estás viendo, con los filtros puestos y diciendo que lo están.',
+      disabled: !filteredRows.length,
+      onSelect: () => void exportarPdf(),
+    },
+    {
+      key: 'csv',
+      testId: 'crud-csv',
+      label: 'Descargar CSV',
+      icon: 'download',
+      detail: 'Las mismas filas y columnas de la tabla, para abrirlas en una hoja de cálculo.',
+      disabled: !filteredRows.length,
+      onSelect: exportCsv,
+    },
+    {
+      key: 'actualizar',
+      testId: 'crud-actualizar',
+      label: 'Actualizar',
+      icon: 'refresh',
+      detail: 'Vuelve a leer el listado del servidor. Tras cada operación se actualiza solo.',
+      onSelect: () => { void resource.reload(); },
+    },
+  ];
+
   const toolbar = (
     <>
-      {props.notice && props.notice.tone === 'info' ? (
-        <AtlasButton
-          variant="secondary"
-          icon="info"
-          className="w-9 px-0"
-          data-testid="crud-explicacion"
-          aria-label={props.notice.title}
-          title={props.notice.title}
-          onClick={() => setExplicacionAbierta(true)}
-        />
-      ) : null}
-      <AtlasButton variant="secondary" icon="picture_as_pdf" data-testid="crud-pdf" loading={generandoPdf} disabled={!filteredRows.length} onClick={() => void exportarPdf()}>PDF</AtlasButton>
-      <AtlasButton variant="secondary" icon="download" disabled={!filteredRows.length} onClick={exportCsv}>CSV</AtlasButton>
-      <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
-      {/*
-        * Importar está donde está el registro, no en una pantalla aparte.
-        *
-        * Había TRES «Carga masiva» sueltas en el menú —cuentas, anunciantes, documentos—, cada una
-        * con su plantilla escrita a mano; los demás tipos de registro no se podían cargar de
-        * ninguna manera. Aquí aparece en todo directorio que sepa dar de alta en un modal, y la
-        * plantilla sale de los campos de ese alta. Con `create.href` no se pinta: esas altas viven
-        * en su propia página con líneas dinámicas (una propuesta, un documento contable), y una
-        * fila de Excel no puede describirlas.
-        */}
-      {create?.fields?.length && create.submit ? (
-        <AtlasButton variant="secondary" icon="upload_file" data-testid="crud-importar" data-tutorial-id="crud-importar" onClick={() => setImportando(true)}>Importar</AtlasButton>
-      ) : null}
-      {(props.toolbarActions ?? []).map((action) => (
-        <AtlasButton key={action.key} variant="secondary" icon={action.icon} data-testid={`crud-accion-${action.key}`} onClick={() => { setActionError(''); setToolbarForm(action); }}>{action.label}</AtlasButton>
-      ))}
+      <AtlasButton
+        variant="secondary"
+        icon="more_horiz"
+        data-testid="crud-mas"
+        data-tutorial-id="crud-mas"
+        loading={generandoPdf}
+        onClick={() => setOpcionesAbiertas(true)}
+      >
+        Más
+      </AtlasButton>
       {create?.href ? (
         <Link href={create.href} data-testid="crud-crear" data-tutorial-id="directory-create" className="inline-flex">
           <AtlasButton icon="add" tabIndex={-1}>{create.label ?? 'Crear'}</AtlasButton>
         </Link>
       ) : create ? (
-        <AtlasButton icon="add" data-testid="crud-crear" onClick={() => setCreating(true)}>{create.label ?? 'Crear'}</AtlasButton>
+        <AtlasButton icon="add" data-testid="crud-crear" data-tutorial-id="directory-create" onClick={() => setCreating(true)}>{create.label ?? 'Crear'}</AtlasButton>
       ) : null}
     </>
   );
@@ -513,6 +566,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           title={props.title}
           description={props.description}
           actions={toolbar}
+          {...(props.notice && props.notice.tone === 'info'
+            ? { helpNote: { title: props.notice.title, body: props.notice.body } }
+            : {})}
         />
       )}
 
@@ -555,13 +611,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           */}
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
           <div className="block min-w-0 flex-1 lg:min-w-[16rem]">
-            <FieldLabel
-              htmlFor={busquedaId}
-              label="Buscar"
-              tooltip={TOOLTIP_BUSQUEDA}
-              describedById={ayudaBusqueda.describedById}
-              controlFocused={ayudaBusqueda.focused}
-            />
+            <FieldLabel htmlFor={busquedaId} label="Buscar" />
             <div className="relative">
               <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400" />
               <input
@@ -570,9 +620,6 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={props.searchPlaceholder ?? 'Buscar en todas las columnas…'}
                 data-testid="crud-buscar"
-                aria-describedby={ayudaBusqueda.describedById}
-                onFocus={ayudaBusqueda.onFocus}
-                onBlur={ayudaBusqueda.onBlur}
                 className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20"
               />
             </div>
@@ -580,10 +627,10 @@ export function CrudDirectory(props: CrudDirectoryProps) {
 
           {filters.map((filter) => (
             filter.kind === 'text' ? (
+              // sin-ayuda: un filtro no pide un dato, recorta la tabla que se está mirando; su ayuda repetía la etiqueta.
               <FormField
                 key={filter.key}
                 label={filter.label}
-                tooltip={filter.tooltip ?? `Escribe parte del valor de «${filter.label}» para quedarte sólo con esas filas.`}
                 name={`filtro-${filter.key}`}
                 className="w-full lg:w-48 lg:shrink-0"
                 value={filterValues[filter.key] ?? ''}
@@ -591,12 +638,12 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                 onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))}
               />
             ) : (
+              // sin-ayuda: un filtro no pide un dato, recorta la tabla que se está mirando; su ayuda repetía la etiqueta.
               <FormField
                 key={filter.key}
                 kind="select"
                 compact
                 label={filter.label}
-                tooltip={filter.tooltip ?? `Muestra sólo las filas con ese valor de «${filter.label}»; «Todos» quita el filtro.`}
                 name={`filtro-${filter.key}`}
                 className="w-full lg:w-48 lg:shrink-0"
                 value={filterValues[filter.key] ?? ''}
@@ -733,6 +780,13 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       </Panel>
 
       {props.children}
+
+      <OptionsMenu
+        open={opcionesAbiertas}
+        description={props.title}
+        options={opcionesMenu}
+        onClose={() => setOpcionesAbiertas(false)}
+      />
 
       {create?.fields && create.submit ? (
         <ActionFormModal

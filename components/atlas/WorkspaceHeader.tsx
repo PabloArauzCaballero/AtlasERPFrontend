@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ScreenGuideButton } from '@/components/tutorial/ScreenGuideButton';
+import type { ScreenGuideNote } from '@/components/tutorial/tutorial-types';
 import { Icon } from './Icon';
 
 interface WorkspaceHeaderProps {
@@ -14,9 +15,16 @@ interface WorkspaceHeaderProps {
    * qué se refiere la explicación.
    */
   hideHelp?: boolean;
+  /**
+   * Aviso propio de la pantalla. NO pinta un botón nuevo: entra en el panel de «¿Qué es esto?».
+   *
+   * Cada listado traía el suyo tras un icono ⓘ en la barra, al lado del botón de ayuda. Dos
+   * controles, la misma pregunta y dos paneles que había que abrir por separado.
+   */
+  helpNote?: ScreenGuideNote | undefined;
 }
 
-export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [], actions, hideHelp = false }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [], actions, hideHelp = false, helpNote }: WorkspaceHeaderProps) {
   return (
     <div data-tutorial-id="workspace-header" className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
       <div className="min-w-0">
@@ -46,7 +54,7 @@ export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [],
        * las que se añadan después— sin tocar ni una pantalla.
        */}
       <div className="atlas-rail -mx-3 flex shrink-0 items-center gap-2 overflow-x-auto px-3 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-        {hideHelp ? null : <ScreenGuideButton />}
+        {hideHelp ? null : <ScreenGuideButton note={helpNote} />}
         {actions}
       </div>
     </div>

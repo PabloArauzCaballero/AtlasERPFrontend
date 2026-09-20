@@ -229,8 +229,9 @@ test('firmar y tarifar un contrato se hace desde su fila, sin volver a elegirlo'
   await expect(sinVersion.getByTestId('accion-comision-c1000000-0000-4000-8000-000000000003')).toHaveCount(0);
 });
 
-test('el término contractual cuelga de su contrato, no de un desplegable', async ({ page }) => {
-  /* Mismo patrón en Contabilidad: «Agregar término contractual» pedía el contrato otra vez. */
+test('la condición pactada cuelga de su contrato, no de un desplegable', async ({ page }) => {
+  /* Mismo patrón en Contabilidad: «Agregar condición» —«término contractual» hasta el 2026-09-19,
+     que no lo dice nadie fuera de un manual— pedía el contrato otra vez. */
   await page.route('**/api/v1/accounting/contracts**', (route) =>
     route.fulfill({
       status: 200,
@@ -257,7 +258,7 @@ test('el término contractual cuelga de su contrato, no de un desplegable', asyn
   await fila.getByTestId('accion-termino-a1000000-0000-4000-8000-000000000001').click();
   const dialogo = page.getByRole('dialog');
   await expect(dialogo.getByText(/CTA-0001/)).toBeVisible();
-  await expect(dialogo.getByLabel(/código del término/i)).toBeVisible();
+  await expect(dialogo.getByLabel(/qué se pactó/i)).toBeVisible();
   await expect(dialogo.getByLabel(/^contrato$/i), 'vuelve a pedir el contrato').toHaveCount(0);
 });
 

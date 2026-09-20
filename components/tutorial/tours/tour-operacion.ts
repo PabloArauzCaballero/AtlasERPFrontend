@@ -91,27 +91,27 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
   {
     id: 'carga-masiva',
     title: 'Cargar muchos registros de una vez',
-    intro: 'Importar ya no es una pantalla aparte: vive en el listado de cada tipo de registro.',
-    version: 2,
+    intro: 'Importar ya no es una pantalla aparte: vive en el botón «Más» del listado de cada tipo de registro.',
+    version: 3,
     steps: [
       {
         id: 'donde-esta',
         route: '/operaciones/contabilidad/business-partners',
-        target: '[data-tutorial-id="crud-importar"]',
+        target: '[data-tutorial-id="crud-mas"]',
         title: 'Se importa desde el listado del propio registro',
         content:
-          'Había tres pantallas de «carga masiva» para tres tipos concretos y el resto no se podía cargar de ninguna forma. Ahora el botón está en todo listado que sepa dar de alta, y carga ese tipo de registro.',
+          'Había tres pantallas de «carga masiva» para tres tipos concretos y el resto no se podía cargar de ninguna forma. Ahora vive en el botón «Más» de todo listado que sepa dar de alta, y carga ese tipo de registro.',
       },
       {
         id: 'plantilla',
-        target: '[data-tutorial-id="crud-importar"]',
+        target: '[data-tutorial-id="crud-mas"]',
         title: 'Siempre se empieza por la plantilla',
         content:
           'La plantilla se genera con los campos del alta de ESTA pantalla, así que nunca se queda desfasada. Descárgala, rellénala en Excel y súbela: acepta .xlsx y .csv.',
       },
       {
         id: 'vista-previa',
-        target: '[data-tutorial-id="crud-importar"]',
+        target: '[data-tutorial-id="crud-mas"]',
         title: 'Nada se crea hasta que lo confirmas',
         content:
           'El archivo se lee en tu navegador y se muestra fila por fila con lo que le falta a cada una. Ese paso existe para que veas los errores ANTES de que toquen la base.',

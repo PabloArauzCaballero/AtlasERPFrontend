@@ -64,7 +64,7 @@ export default function PeriodClosingPage() {
             title: (row) => `Cerrar el período ${String(row.periodNo ?? '')}`,
             description: 'Bloquea nuevas contabilizaciones en el período. Antes de cerrarlo se comprueban los controles de cierre.',
             fields: [
-              { name: 'closeType', label: 'Tipo de cierre', tooltip: 'Cierre blando (se puede reabrir) o duro (definitivo, para auditoría).', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
+              { name: 'closeType', label: 'Qué se cierra', tooltip: 'El mes, o el ejercicio entero. Cerrar el año es lo que se hace una vez, al terminar el ejercicio.', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
             ],
             submit: async (row, payload) =>
               accountingService.closePeriod({ legalEntityId: await entidadLegalDe(row), periodId: String(row.id ?? ''), closeType: String(payload.closeType ?? 'MONTHLY') }),
@@ -73,7 +73,7 @@ export default function PeriodClosingPage() {
         },
         {
           key: 'reabrir',
-          label: 'Reapertura controlada',
+          label: 'Reabrir período',
           icon: 'lock_open',
           tone: 'danger',
           enabled: (row) => !abierto(row),

@@ -7,6 +7,7 @@ import { GuideDrawer } from './GuideDrawer';
 import { resolveGuide } from './guias';
 import { tutorialById } from './tours';
 import { useTutorial } from './TutorialContext';
+import type { ScreenGuideNote } from './tutorial-types';
 
 const SEEN_KEY = 'atlas.erp.guide.seen';
 
@@ -21,18 +22,32 @@ function readSeen(): string[] {
   }
 }
 
+interface Props {
+  /**
+   * Lo que esta pantalla concreta quiere contar además de su guía (el aviso que antes vivía tras
+   * un icono ⓘ propio en la barra). Entra en el MISMO panel: una pantalla no puede tener dos
+   * botones que expliquen lo mismo.
+   */
+  note?: ScreenGuideNote | undefined;
+}
+
 /**
- * Los dos botones de ayuda de la cabecera de cada pantalla.
+ * El ÚNICO botón de ayuda de la cabecera de cada pantalla.
  *
- * «¿Qué es esto?» abre la explicación de la vista; «Recorrido» lanza el tutorial
- * interactivo cuando esa pantalla tiene uno. Resuelven su contenido por la RUTA,
- * así que ninguna pantalla tiene que declararlos: aparecen solos en las 50 vistas
- * y no hay forma de olvidarse de uno al añadir la 51.
+ * «¿Qué es esto?» abre la explicación de la vista. Resuelve su contenido por la RUTA, así que
+ * ninguna pantalla tiene que declararlo: aparece solo en las 50 vistas y no hay forma de
+ * olvidarse de uno al añadir la 51.
  *
- * Hasta que alguien lo abre por primera vez en esa ruta, el botón lleva un punto:
- * la ayuda que nadie ve es la misma ayuda que no existe.
+ * Eran TRES controles hasta el 2026-09-19: este, «Recorrido» y un icono ⓘ que abría el aviso de
+ * la pantalla. Los tres respondían la misma pregunta —«¿qué estoy viendo?»— y ocupaban media
+ * barra antes de llegar al botón que hace algo. Ahora el recorrido se lanza DESDE el panel (ahí
+ * ya estaba su llamada, «Hacer el recorrido guiado») y el aviso de la pantalla es una sección
+ * más del mismo panel.
+ *
+ * Hasta que alguien lo abre por primera vez en esa ruta, el botón lleva un punto: la ayuda que
+ * nadie ve es la misma ayuda que no existe.
  */
-export function ScreenGuideButton() {
+export function ScreenGuideButton({ note }: Props = {}) {
   const pathname = usePathname();
   const engine = useTutorial();
   const guide = resolveGuide(pathname);
@@ -73,6 +88,7 @@ export function ScreenGuideButton() {
       <button
         type="button"
         data-tutorial-id="screen-guide-button"
+        data-testid="screen-guide-button"
         onClick={openGuide}
         className="relative inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:px-3"
         aria-label={`Qué es esta pantalla: ${guide.title}`}
@@ -81,21 +97,10 @@ export function ScreenGuideButton() {
         <span className="hidden sm:inline">¿Qué es esto?</span>
         {unseen ? <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" /> : null}
       </button>
-      {hasTour ? (
-        <button
-          type="button"
-          data-tutorial-id="screen-tour-button"
-          onClick={() => engine?.start(tourId!)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:px-3"
-          aria-label={`Iniciar el recorrido guiado de ${guide.title}`}
-        >
-          <Icon name="explore" className="text-[17px] text-[#006a61]" />
-          <span className="hidden md:inline">Recorrido</span>
-        </button>
-      ) : null}
       {open ? (
         <GuideDrawer
           guide={guide}
+          note={note}
           onClose={() => setOpen(false)}
           onStartTour={
             hasTour

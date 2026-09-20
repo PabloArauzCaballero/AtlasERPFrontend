@@ -3,7 +3,6 @@
 import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
-import { loadAccountingPeriods } from '@/services/optionLoaders';
 
 /**
  * Documentos contables: el listado es la pantalla.
@@ -53,12 +52,17 @@ export default function AccountingDocumentsPage() {
           enabled: (row) => String(row.status ?? '').toUpperCase() === 'POSTED',
           form: {
             title: (row) => `Reversar ${String(row.documentNo ?? '')}`,
-            description: 'Se crea un asiento CONTRARIO; el original no se toca. El período de la reversión puede ser distinto al del asiento: si aquél ya está cerrado, la reversión va al abierto.',
+            description: 'Se crea un asiento CONTRARIO; el original no se toca. El número de la reversión y el período salen del sistema: el período es el que esté abierto para la fecha que pongas.',
             fields: [
-              // El número de la reversión lo asigna el backend (DOC-…), como el de cualquier documento.
-              { name: 'reversalDocumentNo', label: 'Número del asiento de reversión', tooltip: 'Número del asiento que anula al original; lo asigna el sistema.', assignedByBackend: true, span: 2 },
-              { name: 'reversalDate', label: 'Fecha de reversión', tooltip: 'Fecha con la que se contabiliza la reversión; debe caer en un período abierto.', type: 'date', required: true },
-              { name: 'accountingPeriodId', label: 'Período contable', tooltip: 'Período contable abierto en el que se registra; uno cerrado rechaza el asiento.', type: 'select', required: true, span: 2, optionsLoader: loadAccountingPeriods },
+              /*
+               * Dos campos, no cuatro.
+               *
+               * El número lo asigna el backend (serie DOC-…) y el período lo dice la fecha de
+               * reversión: pedirlo en un desplegable con TODOS los períodos dejaba reversar en
+               * septiembre contra el período de julio, y era el usuario quien tenía que saber
+               * cuál estaba abierto.
+               */
+              { name: 'reversalDate', label: 'Fecha de reversión', tooltip: 'Fecha con la que se contabiliza la reversión; tiene que caer en un período abierto.', type: 'date', required: true, span: 3 },
               { name: 'reason', label: 'Motivo', tooltip: 'Motivo breve del cambio; queda en la bitácora para que otro entienda por qué se hizo.', required: true, span: 3, placeholder: 'Documento cargado con la cuenta equivocada' },
             ],
             submit: (row, payload) => accountingService.reverseDocument(String(row.id ?? ''), payload),
