@@ -1,6 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { stubCatalogDomains } from './support/catalog-domains';
 import {
+  CLIENTE,
+  EMPRESA,
   FACTURA_ABIERTA,
   instalarContabilidad,
   type ContabilidadDoble,
@@ -98,6 +100,8 @@ test('caso válido: emitir una factura ya no pide período, libro ni cuentas del
 
   await expect(alta).toBeHidden();
   const cuerpo = ultimoEnvio('/accounting/billing/ar-invoices');
+  expect(cuerpo.legalEntityId).toBe(EMPRESA);
+  expect(cuerpo.customerBpId).toBe(CLIENTE);
   expect(cuerpo.netAmount).toBe(1000);
   expect(cuerpo.taxAmount).toBe(130);
   expect(cuerpo.description).toBe('Servicio de cobranza septiembre');
@@ -180,6 +184,10 @@ test('caso válido: el recibo se aplica a la factura del pagador y no pide cuent
   await contabilizar.click();
 
   const cuerpo = ultimoEnvio('/accounting/receipts');
+  /* Los selects controlados viajan por su input oculto: si eso se rompe, el recibo va sin dueño. */
+  expect(cuerpo.legalEntityId).toBe(EMPRESA);
+  expect(cuerpo.payerBpId).toBe(CLIENTE);
+  expect(cuerpo.receiptDate).toBe('2026-09-19');
   expect(cuerpo.amount).toBe(1130);
   expect(cuerpo.allocations).toEqual([{ arInvoiceId: FACTURA_ABIERTA, allocatedAmount: 1130 }]);
   for (const deducido of ['bankGlAccountId', 'arControlGlAccountId', 'accountingPeriodId', 'ledgerId']) {
