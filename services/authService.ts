@@ -99,6 +99,25 @@ export const authService = {
       skipAuthRetry: true,
     });
   },
+  /**
+   * Lo mismo para el PERSONAL INTERNO. Rutas distintas de las del comercio a propósito: a quién se
+   * le cambia la contraseña lo decide la ruta, no un campo del cuerpo, así que desde una pantalla
+   * no se puede sondear qué correos son de la otra población.
+   */
+  requestPasswordReset(body: { email: string }) {
+    return apiRequest<{ requested: boolean }>('auth/password-reset/request', {
+      method: 'POST',
+      body,
+      skipAuthRetry: true,
+    });
+  },
+  confirmPasswordReset(body: { email: string; code: string; newPassword: string }) {
+    return apiRequest<{ passwordChanged: boolean }>('auth/password-reset/confirm', {
+      method: 'POST',
+      body,
+      skipAuthRetry: true,
+    });
+  },
   listPermissions() {
     return apiRequest<{ items: InternalPermissionListItem[] }>('auth/permissions');
   },

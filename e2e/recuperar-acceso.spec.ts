@@ -1,11 +1,13 @@
 /**
- * Recuperar el acceso del comercio, con el backend SIMULADO.
+ * Recuperar el acceso, con el backend SIMULADO. Dos poblaciones: comercio y personal interno.
  *
  * Es una pantalla pública: no hace falta sesión ni el stack completo, así que esta batería corre
  * también en el CI. Lo que fija:
  *
- *   - el enlace «¿Olvidaste tu contraseña?» aparece SÓLO en la pestaña del comercio (el personal
- *     interno recupera su acceso por Sistemas y allí no hay a dónde mandarlo),
+ *   - el enlace «¿Olvidaste tu contraseña?» sale en las dos pestañas y lleva el CANAL en la
+ *     dirección, que es lo que decide a qué ruta del backend se llama,
+ *   - cada canal llama a SU ruta y nunca a la de la otra población: si se cruzaran, una pantalla
+ *     serviría para sondear qué correos pertenecen a la otra,
  *   - se lleva el correo ya escrito, para no teclearlo dos veces,
  *   - el recorrido completo son dos pasos: pedir el código y canjearlo por la contraseña nueva,
  *   - un correo que NO existe avanza igual al paso 2. Es lo importante de todo el archivo: la
@@ -14,8 +16,18 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
-const PEDIR = '**/api/v1/auth/merchant/password-reset/request';
-const CONFIRMAR = '**/api/v1/auth/merchant/password-reset/confirm';
+const RUTAS = {
+  comercio: {
+    pedir: '**/api/v1/auth/merchant/password-reset/request',
+    confirmar: '**/api/v1/auth/merchant/password-reset/confirm',
+  },
+  interno: {
+    pedir: '**/api/v1/auth/password-reset/request',
+    confirmar: '**/api/v1/auth/password-reset/confirm',
+  },
+} as const;
+const PEDIR = RUTAS.comercio.pedir;
+const CONFIRMAR = RUTAS.comercio.confirmar;
 
 /**
  * El doble del backend: responde lo mismo exista o no la cuenta, igual que AtlasBackend.
@@ -51,20 +63,55 @@ async function simularBackend(page: Page, confirmacion: { ok: boolean } = { ok: 
 }
 
 test.describe('Recuperar el acceso del comercio', () => {
-  test('el enlace es sólo del comercio y se lleva el correo escrito', async ({ page }) => {
+  test('el enlace lleva el canal de cada pestaña y el correo escrito', async ({ page }) => {
     await page.goto('/login');
     const enlace = page.getByRole('link', { name: '¿Olvidaste tu contraseña?' });
 
-    // Pestaña interna: no existe.
-    await expect(enlace).toBeHidden();
+    // Pestaña interna (la que abre por defecto).
+    await expect(enlace).toBeVisible();
+    await page.getByLabel(/Correo corporativo/i).fill('persona@atlas.internal');
+    await expect(enlace).toHaveAttribute(
+      'href',
+      '/recuperar-acceso?canal=interno&correo=persona%40atlas.internal',
+    );
 
     await page.getByRole('tab', { name: 'Comercio afiliado' }).click();
     await page.getByLabel(/Correo del comercio/i).fill('comercio@alfa.test');
-    await expect(enlace).toBeVisible();
+    await expect(enlace).toHaveAttribute(
+      'href',
+      '/recuperar-acceso?canal=comercio&correo=comercio%40alfa.test',
+    );
 
     await enlace.click();
-    await expect(page).toHaveURL(/\/recuperar-acceso\?correo=comercio%40alfa\.test/);
+    await expect(page).toHaveURL(/\/recuperar-acceso\?canal=comercio&correo=comercio%40alfa\.test/);
     await expect(page.getByLabel(/Correo del comercio/i)).toHaveValue('comercio@alfa.test');
+  });
+
+  /**
+   * Lo que de verdad importa de separar los canales: desde la pantalla del personal interno NO se
+   * puede tocar la ruta del comercio, ni al revés. Si se cruzaran, cualquiera podría averiguar
+   * desde el portal público qué correos son de personal de Atlas.
+   */
+  test('el canal interno llama a su ruta y nunca a la del comercio', async ({ page }) => {
+    const llamadas: string[] = [];
+    await page.route('**/api/v1/auth/**', (route) => {
+      llamadas.push(new URL(route.request().url()).pathname);
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { requested: true } }),
+      });
+    });
+
+    await page.goto('/recuperar-acceso?canal=interno&correo=persona%40atlas.internal');
+    await expect(page.getByText('Panel administrativo interno')).toBeVisible();
+    await expect(page.getByLabel(/Correo corporativo/i)).toHaveValue('persona@atlas.internal');
+
+    await page.getByRole('button', { name: 'Enviarme el código' }).click();
+    await expect(page.getByRole('heading', { name: 'Escribe el código' })).toBeVisible();
+
+    expect(llamadas).toEqual(['/api/v1/auth/password-reset/request']);
+    expect(llamadas.some((r) => r.includes('merchant'))).toBe(false);
   });
 
   test('pedir el código y canjearlo deja la contraseña cambiada', async ({ page }) => {

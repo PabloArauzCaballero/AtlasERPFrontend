@@ -208,20 +208,21 @@ function LoginForm() {
                   Iniciar sesión
                 </AtlasButton>
                 {/*
-                  * Sólo en el canal del comercio: el personal interno recupera su acceso por
-                  * Sistemas, y ofrecerle aquí un camino que su población no tiene sería mandarlo
-                  * a una pantalla que le dirá que no pasa nada y no le enviará nada.
+                  * El enlace lleva el CANAL en la dirección, no la pestaña elegida en un estado:
+                  * cada población tiene su propia ruta en el backend y la pantalla de recuperación
+                  * necesita saber a cuál llamar. Así el enlace también sirve pegado en un correo
+                  * de soporte, que es como se usa la mitad de las veces.
                   */}
-                {audience === 'merchant' ? (
-                  <p className="text-center text-xs text-slate-500">
-                    <Link
-                      href={`/recuperar-acceso${email.trim() ? `?correo=${encodeURIComponent(email.trim())}` : ''}`}
-                      className="font-semibold text-primary transition hover:underline"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </Link>
-                  </p>
-                ) : null}
+                <p className="text-center text-xs text-slate-500">
+                  <Link
+                    href={`/recuperar-acceso?canal=${audience === 'merchant' ? 'comercio' : 'interno'}${
+                      email.trim() ? `&correo=${encodeURIComponent(email.trim())}` : ''
+                    }`}
+                    className="font-semibold text-primary transition hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </p>
               </form>
 
               <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">

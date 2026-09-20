@@ -11,26 +11,65 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { authService } from '@/services/authService';
 
 /**
- * Recuperar el acceso del comercio afiliado.
+ * Recuperar el acceso, para las dos poblaciones que entran por esta aplicación: el comercio
+ * afiliado y el personal interno.
  *
- * Hasta ahora, un comercio que perdía su contraseña no tenía ninguna salida por su cuenta: lo
- * único que existía era el cambio de contraseña DESDE DENTRO, que pide la contraseña actual. Quien
- * la había olvidado —justo el caso— quedaba fuera y dependía de que alguien se la volviera a
- * fabricar a mano.
+ * Hasta ahora nadie tenía salida por su cuenta: lo único que existía era el cambio de contraseña
+ * DESDE DENTRO, que pide la contraseña actual. Quien la había olvidado —justo el caso— quedaba
+ * fuera y dependía de que alguien se la volviera a fabricar a mano.
  *
- * Dos pasos, como el acceso en dos factores que ya usa el personal interno: se pide un código al
- * correo del comercio y ese código, junto con la contraseña nueva, completa el cambio.
+ * Dos pasos: se pide un código al correo de la cuenta y ese código, junto con la contraseña nueva,
+ * completa el cambio.
+ *
+ * **El canal viaja en la dirección (`?canal=`), no en el cuerpo de la petición.** Cada canal llama
+ * a su propia ruta del backend; si el tipo de población fuese un campo que el navegador elige, esta
+ * pantalla serviría para sondear qué correos son de personal de Atlas y cuáles de un comercio.
  *
  * Pantalla aparte y no un modo más dentro del login, por dos razones: tiene dirección propia
  * (soporte puede enviarla tal cual) y el login ya alterna entre formulario y segundo factor; un
  * tercer estado allí dentro haría ilegible cuál de los tres se está mirando.
  */
 type Paso = 'pedir' | 'confirmar' | 'listo';
+type Canal = 'comercio' | 'interno';
+
+const CANAL_COPY: Record<
+  Canal,
+  {
+    antetitulo: string;
+    etiquetaCorreo: string;
+    tooltipCorreo: string;
+    marcador: string;
+    entradilla: string;
+    pedir: (email: string) => Promise<unknown>;
+    confirmar: (body: { email: string; code: string; newPassword: string }) => Promise<unknown>;
+  }
+> = {
+  comercio: {
+    antetitulo: 'Portal del comercio',
+    etiquetaCorreo: 'Correo del comercio',
+    tooltipCorreo: 'El correo con el que entras al portal de tu comercio. Ej.: usuario@micomercio.com.',
+    marcador: 'usuario@micomercio.com',
+    entradilla: 'Escribe el correo de tu comercio y te enviamos un código para poner una contraseña nueva.',
+    pedir: (email) => authService.requestMerchantPasswordReset({ email }),
+    confirmar: (body) => authService.confirmMerchantPasswordReset(body),
+  },
+  interno: {
+    antetitulo: 'Panel administrativo interno',
+    etiquetaCorreo: 'Correo corporativo',
+    tooltipCorreo: 'El correo con el que entras al panel interno. Ej.: usuario@atlas.internal.',
+    marcador: 'usuario@atlas.internal',
+    entradilla: 'Escribe tu correo corporativo y te enviamos un código para poner una contraseña nueva.',
+    pedir: (email) => authService.requestPasswordReset({ email }),
+    confirmar: (body) => authService.confirmPasswordReset(body),
+  },
+};
 
 function RecuperarAcceso() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paso, setPaso] = useState<Paso>('pedir');
+  const canal: Canal = searchParams.get('canal') === 'interno' ? 'interno' : 'comercio';
+  const copy = CANAL_COPY[canal];
   // El correo llega prellenado desde el login para no teclearlo dos veces, pero sigue siendo
   // editable: quien se equivocó de cuenta al entrar se equivocaría igual aquí.
   const [email, setEmail] = useState(searchParams.get('correo') ?? '');
@@ -44,7 +83,7 @@ function RecuperarAcceso() {
     setError(null);
     setSubmitting(true);
     try {
-      await authService.requestMerchantPasswordReset({ email: email.trim() });
+      await copy.pedir(email.trim());
       // Se avanza SIEMPRE, exista o no la cuenta: la respuesta es idéntica en los dos casos a
       // propósito, y quedarse aquí con un «ese correo no existe» convertiría esta pantalla en un
       // comprobador de qué correos pertenecen a un comercio afiliado.
@@ -65,11 +104,7 @@ function RecuperarAcceso() {
     setError(null);
     setSubmitting(true);
     try {
-      await authService.confirmMerchantPasswordReset({
-        email: email.trim(),
-        code: code.trim(),
-        newPassword,
-      });
+      await copy.confirmar({ email: email.trim(), code: code.trim(), newPassword });
       setPaso('listo');
     } catch (submitError) {
       setError(
@@ -99,6 +134,9 @@ function RecuperarAcceso() {
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
                   Tu contraseña quedó cambiada. Por seguridad se cerraron las sesiones que tenías
                   abiertas en otros dispositivos.
+                  {canal === 'interno'
+                    ? ' Al entrar te pediremos, como siempre, el código de verificación del correo.'
+                    : ''}
                 </p>
               </header>
               <AtlasButton className="w-full" onClick={() => router.replace('/login')}>
@@ -111,28 +149,25 @@ function RecuperarAcceso() {
             <>
               <header className="mb-6">
                 <p className="text-xs font-bold tracking-[0.02em] text-primary">
-                  Portal del comercio
+                  {copy.antetitulo}
                 </p>
                 <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
                   Recuperar el acceso
                 </h1>
-                <p className="mt-1.5 text-sm leading-6 text-slate-600">
-                  Escribe el correo de tu comercio y te enviamos un código para poner una
-                  contraseña nueva.
-                </p>
+                <p className="mt-1.5 text-sm leading-6 text-slate-600">{copy.entradilla}</p>
               </header>
 
               <form onSubmit={pedirCodigo} className="space-y-5">
                 <FormField
-                  tooltip="El correo con el que entras al portal de tu comercio. Ej.: usuario@micomercio.com."
-                  label="Correo del comercio"
+                  tooltip={copy.tooltipCorreo}
+                  label={copy.etiquetaCorreo}
                   name="email"
                   type="email"
                   autoComplete="username"
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="usuario@micomercio.com"
+                  placeholder={copy.marcador}
                 />
                 {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
                 <AtlasButton type="submit" className="w-full" loading={submitting}>
@@ -150,7 +185,7 @@ function RecuperarAcceso() {
                   Escribe el código
                 </h1>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
-                  Si <strong>{email.trim()}</strong> corresponde a un comercio registrado, ahí llegó
+                  Si <strong>{email.trim()}</strong> corresponde a una cuenta registrada, ahí llegó
                   un código de 6 dígitos. Sólo sirve una vez y caduca en pocos minutos.
                 </p>
               </header>
