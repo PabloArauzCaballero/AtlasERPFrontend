@@ -284,24 +284,29 @@ test('Publicidad no aparece por ninguna parte de la consola', async ({ page }) =
 /*
  * Dónde vive cada cosa, afirmado para que no vuelva a bailar.
  *
- * «Propuestas» es una pantalla del MENÚ IZQUIERDO y nada más: no es una pestaña del pipeline. El
- * pipeline lleva tres —Oportunidades, Tablero y, la última, Aprobaciones—, que sí se quedan dentro
- * porque una excepción de MDR sólo se decide mirando el trato que la pidió. Se movió dos veces el
- * 2026-09-19 y Pablo lo dejó así el 2026-09-20.
+ * «Propuestas» es la ÚLTIMA pestaña del pipeline —se emite contra la oportunidad que está justo al
+ * lado— y no tiene entrada en el menú. «Aprobaciones» es lo contrario: pantalla propia y entrada
+ * del menú, porque quien autoriza una excepción de MDR no es quien negocia y no tiene por qué
+ * entrar al embudo. Se movió tres veces el 2026-09-19 y Pablo lo dejó así el 2026-09-20.
  */
-test('propuestas vive en el menú izquierdo, no en el pipeline', async ({ page }) => {
+test('propuestas es pestaña del pipeline y aprobaciones vive en el menú izquierdo', async ({ page }) => {
   await page.goto('/operaciones/crm/oportunidades');
   const pestanas = page.getByRole('tab');
   await expect(pestanas).toHaveCount(3);
   await expect(pestanas.nth(0)).toHaveText(/oportunidades/i);
   await expect(pestanas.nth(1)).toHaveText(/tablero/i);
-  await expect(pestanas.nth(2)).toHaveText(/aprobaciones/i);
-  await expect(page.getByRole('tab', { name: /propuestas/i })).toHaveCount(0);
+  await expect(pestanas.nth(2)).toHaveText(/propuestas/i);
+  await expect(page.getByRole('tab', { name: /aprobaciones/i })).toHaveCount(0);
 
-  // Y su entrada del menú abre su pantalla, que no tiene pestaña ninguna.
-  await page.getByRole('navigation').first().getByRole('link', { name: /propuestas/i }).first().click();
-  await expect(page).toHaveURL(/\/operaciones\/crm\/propuestas$/);
-  await expect(page.getByRole('heading', { name: /propuestas comerciales/i })).toBeVisible();
+  // Su ruta abre esa misma pestaña, para que los enlaces guardados sigan llevando a donde decían.
+  await page.goto('/operaciones/crm/propuestas');
+  await expect(page.getByTestId('tab-propuestas')).toHaveAttribute('aria-selected', 'true');
+
+  // Y las aprobaciones son una pantalla suelta a la que se llega por el menú, sin pestaña ninguna.
+  await page.goto('/operaciones');
+  await page.getByRole('navigation').first().getByRole('link', { name: /aprobaciones/i }).first().click();
+  await expect(page).toHaveURL(/\/operaciones\/crm\/aprobaciones$/);
+  await expect(page.getByRole('heading', { name: /excepciones comerciales/i })).toBeVisible();
   await expect(page.getByRole('tab')).toHaveCount(0);
 });
 
@@ -316,18 +321,17 @@ test('el menú se agrupa: lo diario arriba, lo que se configura una vez en su ca
   }
 
   // Lo que se hace con un comercio delante, a la vista.
-  for (const diario of [/cuentas b2b/i, /pipeline/i, /onboarding/i, /propuestas/i]) {
+  for (const diario of [/cuentas b2b/i, /pipeline/i, /onboarding/i, /aprobaciones/i]) {
     await expect(lateral.getByText(diario).first()).toBeVisible();
   }
 
   /*
-   * «Propuestas» cierra el grupo CRM: pantalla propia y la ÚLTIMA entrada, detrás de «Calificación
-   * de riesgo». No es una pestaña del pipeline, y por eso «Aprobaciones» —que sí lo es— no figura
-   * en el menú.
+   * «Aprobaciones» cierra el grupo CRM, detrás de «Calificación de riesgo», y «Propuestas» no
+   * figura en el menú: es la última pestaña del pipeline.
    */
   const crm = lateral.locator('section').filter({ has: page.getByRole('button', { name: /^CRM$/ }) }).first();
-  await expect(crm.locator('a[href^="/operaciones/crm/"]:visible').last()).toHaveText(/propuestas/i);
-  await expect(lateral.getByText(/aprobaciones/i)).toHaveCount(0);
+  await expect(crm.locator('a[href^="/operaciones/crm/"]:visible').last()).toHaveText(/aprobaciones/i);
+  await expect(lateral.getByText(/propuestas/i)).toHaveCount(0);
 
   // Lo que se configura una vez baja a un cajón dentro de su grupo.
   await expect(lateral.getByText(/configuración comercial/i)).toBeVisible();

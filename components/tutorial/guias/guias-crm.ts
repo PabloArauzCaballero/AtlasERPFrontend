@@ -124,8 +124,8 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Una propuesta se emite contra una oportunidad, y un contrato contra una propuesta aceptada. Dejar el tablero desactualizado bloquea el paso siguiente.',
       },
       {
-        title: 'Las propuestas viven en su propia pantalla',
-        body: 'Lo que se le ofreció a cada comercio se consulta en «Propuestas», la última entrada del menú de CRM. Aquí se negocia la oportunidad; allí se arma y se sigue la oferta que sale de ella.',
+        title: 'Las propuestas están en la última pestaña',
+        body: 'Lo que se le ofreció a cada comercio se consulta aquí mismo, sin salir del embudo: por cuánto, hasta cuándo y en qué punto del ciclo está. Las excepciones de MDR, en cambio, tienen su propia entrada en el menú: «Aprobaciones».',
       },
     ],
     tutorialId: 'crm-pipeline',

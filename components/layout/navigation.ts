@@ -61,8 +61,10 @@ const ADS: NavGroup = {
  * un comercio delante se queda arriba; lo que se configura una vez y se revisa de tarde en tarde,
  * abajo. Contabilidad ya estaba así desde antes y es el patrón que se copia.
  *
- * «Propuestas» va la ÚLTIMA de CRM, y va donde va por decisión de producto: no se sube junto al
- * pipeline ni se vuelve a meter dentro de él como pestaña.
+ * «Aprobaciones» va la ÚLTIMA de CRM y es pantalla propia: las excepciones de MDR las resuelve
+ * quien autoriza, que no es quien negocia, y no tiene por qué entrar al embudo para eso. Las
+ * «Propuestas» NO tienen entrada: son la última pestaña del pipeline, que es donde se consultan
+ * junto al trato del que salen. Así lo quiere Pablo; ninguna de las dos se mueve sin que lo pida.
  *
  * Y dos entradas se fueron del todo, porque el menú de quien lleva la operación no es el sitio
  * donde el equipo que construye el ERP mira su propio andamiaje:
@@ -89,7 +91,7 @@ export const NAVIGATION: NavGroup[] = [
       { label: 'Contratos', href: '/operaciones/crm/contratos', icon: 'description' },
       { label: 'Facturación', href: '/operaciones/crm/facturacion', icon: 'receipt_long' },
       { label: 'Calificación de riesgo', href: '/operaciones/crm/calificacion-riesgo', icon: 'speed' },
-      { label: 'Propuestas', href: '/operaciones/crm/propuestas', icon: 'request_quote' },
+      { label: 'Aprobaciones', href: '/operaciones/crm/aprobaciones', icon: 'approval' },
     ],
     subGroups: [
       {

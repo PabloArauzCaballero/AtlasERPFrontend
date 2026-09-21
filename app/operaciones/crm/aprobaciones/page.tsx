@@ -1,11 +1,13 @@
-import { CrmPipelineScreen } from '@/components/screens/CrmPipelineScreen';
+import { ApprovalsDirectory } from '@/components/screens/ApprovalsDirectory';
 
 /**
- * Las excepciones comerciales ya no son una pantalla: son la última pestaña del pipeline.
+ * Las excepciones comerciales son pantalla propia, con su entrada en el menú de CRM.
  *
- * La ruta se conserva y abre esa pestaña, igual que hace `/propuestas`: los enlaces guardados, el
- * recorrido guiado y las guías por ruta siguen llevando a donde decían.
+ * Estuvieron un rato como última pestaña del pipeline, con el argumento de que una excepción de
+ * MDR se pide desde una propuesta y bloquea su cierre. No se quedan ahí por decisión de producto:
+ * quien autoriza no es quien negocia —entra a resolver su cola y se va—, y para eso no tiene por
+ * qué pasar por el embudo. El pipeline conserva Oportunidades, Tablero y Propuestas.
  */
 export default function ApprovalsPage() {
-  return <CrmPipelineScreen initialTab="aprobaciones" />;
+  return <ApprovalsDirectory />;
 }

@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { ApprovalsDirectory } from '@/components/screens/ApprovalsDirectory';
+import { ProposalsDirectory } from '@/components/screens/ProposalsDirectory';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { OpportunityKanbanScreen } from '@/components/screens/OpportunityKanbanScreen';
 import { b2bService } from '@/services/b2bService';
@@ -11,7 +11,7 @@ import { loadB2BAccounts, loadInternalUsers } from '@/services/optionLoaders';
 
 interface CrmPipelineScreenProps {
   /** Pestaña con la que abre la pantalla; la decide la ruta por la que se entró. */
-  initialTab?: 'listado' | 'tablero' | 'aprobaciones' | undefined;
+  initialTab?: 'listado' | 'tablero' | 'propuestas' | undefined;
 }
 
 /**
@@ -22,11 +22,14 @@ interface CrmPipelineScreenProps {
  * filtra, no ordena, no pagina y reparte los registros en siete columnas que hay que recorrer a
  * mano. El alta, además, no estaba en ninguna pantalla: una oportunidad solo nacía por API.
  *
- * Aquí NO hay pestaña de propuestas. La cartera de propuestas es pantalla propia
- * (`/operaciones/crm/propuestas`), la última entrada del grupo CRM: se metió un rato como pestaña y
- * se sacó por decisión de producto, así que quien la busque no la encuentra dentro del embudo.
- * `/operaciones/crm/aprobaciones` sí pinta esta pantalla, abriendo por su pestaña, porque una
- * excepción de MDR solo se entiende mirando el trato que la pidió.
+ * Las PROPUESTAS son la última pestaña: una propuesta se emite contra una oportunidad y de la
+ * aceptada cuelga el contrato, así que comprobar «qué le ofrecimos a este comercio» se hace sin
+ * salir del embudo. La ruta `/operaciones/crm/propuestas` pinta esta misma pantalla abriendo por
+ * esa pestaña, para que los enlaces guardados y las guías por ruta sigan llevando a donde decían.
+ *
+ * Las APROBACIONES no están aquí: las excepciones de MDR son pantalla propia
+ * (`/operaciones/crm/aprobaciones`) y tienen su entrada en el menú de CRM. Así lo quiere Pablo, y
+ * es su decisión: no se vuelven a meter como pestaña.
  */
 export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenProps = {}) {
   const [version, setVersion] = useState(0);
@@ -38,7 +41,7 @@ export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenP
       <WorkspaceHeader
         breadcrumbs={[{ label: 'CRM' }, { label: 'Pipeline comercial' }]}
         title="Pipeline comercial"
-        description="El embudo de punta a punta: qué se está negociando y por cuánto, en qué etapa va cada trato y qué excepciones hay que autorizar."
+        description="El embudo de punta a punta: qué se está negociando y por cuánto, en qué etapa va cada trato y qué propuestas han salido de él."
       />
       <TabbedPanels
         keepMounted
@@ -106,16 +109,15 @@ export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenP
             content: <OpportunityKanbanScreen embedded version={version} />,
           },
           /*
-           * Aprobaciones va la ÚLTIMA, y es una decisión de orden, no de sitio: las pestañas
-           * siguen el recorrido del trato —se registra la oportunidad, se mueve por el tablero y,
-           * sólo si la propuesta que sale de él pide una excepción, alguien la autoriza—. Ponerla
-           * antes sugeriría que hay algo que aprobar en cada trato, y la mayoría no pasa por aquí.
+           * Propuestas va la ÚLTIMA, y es una decisión de orden, no de sitio: las pestañas siguen
+           * el recorrido del trato —se registra la oportunidad, se mueve por el tablero y, cuando
+           * hay algo que ofrecer, sale la propuesta—.
            */
           {
-            id: 'aprobaciones',
-            label: 'Aprobaciones',
-            icon: 'approval',
-            content: <ApprovalsDirectory embedded />,
+            id: 'propuestas',
+            label: 'Propuestas',
+            icon: 'request_quote',
+            content: <ProposalsDirectory embedded />,
           },
         ]}
       />
