@@ -370,3 +370,70 @@ test('caso error: un rechazo al pactar la condición se lee en el formulario', a
   await expect(dialogo).toBeVisible();
   await expect(dialogo).toContainText(/ya hay una condición plazo_pago vigente/i);
 });
+
+// ------------------------------------------- la configuración maestra, junta
+
+test('la configuración maestra baja de ocho entradas a cinco, sin perder nada', async ({ page }) => {
+  await page.goto('/operaciones');
+  const lateral = page.getByRole('navigation').first();
+  await expect(lateral).toBeVisible({ timeout: 30_000 });
+  await lateral.getByRole('button', { name: /contabilidad/i }).click();
+  await expect(lateral.getByText(/configuración maestra/i)).toBeVisible();
+
+  await lateral.getByText(/configuración maestra/i).click();
+
+  /* Las cinco que quedan, con su nombre. */
+  for (const queda of [/estructura/i, /cuentas gl/i, /grupos de cuenta/i, /impuestos y coa/i, /vínculos multientidad/i]) {
+    await expect(lateral.getByText(queda).first(), `falta en el menú: ${String(queda)}`).toBeVisible();
+  }
+
+  /* Las tres que se fueron: dos absorbidas por Estructura y una retirada por no servir a nadie. */
+  for (const fuera of [/periodos y ledgers/i, /sucursales y fiscales/i, /condiciones de pago/i]) {
+    await expect(lateral.getByText(fuera), `sigue en el menú: ${String(fuera)}`).toHaveCount(0);
+  }
+});
+
+test('Estructura financiera reúne el esqueleto contable entero', async ({ page }) => {
+  await page.goto('/operaciones/contabilidad/estructura');
+  await expect(page.getByRole('heading', { name: 'Estructura financiera' })).toBeVisible({ timeout: 30_000 });
+
+  /*
+   * Ocho pestañas en el orden en que se recorre al montar una empresa: quién es, dónde opera, cómo
+   * se imputa, por dónde entra el dinero y, al final, el calendario contable sin el que no se puede
+   * registrar nada.
+   */
+  /*
+   * Se comprueba por `data-testid`, no por el texto: el rótulo de una pestaña lleva pegada la
+   * ligadura del icono («corporate_fareEmpresas»), así que una expresión anclada al texto no
+   * casa nunca y una sin anclar pasaría aunque el orden bailara.
+   */
+  const pestanas = page.getByRole('tab');
+  await expect(pestanas).toHaveCount(8);
+  const orden = ['entidades', 'sucursales', 'centros-costo', 'centros-beneficio', 'bancos', 'ejercicios', 'periodos', 'libros'];
+  for (const [indice, id] of orden.entries()) {
+    await expect(pestanas.nth(indice), `la pestaña ${indice} no es «${id}»`).toHaveAttribute('data-testid', `tab-${id}`);
+  }
+
+  /* Y el año fiscal se da de alta AQUÍ: es el único sitio, y sin él no hay dónde colgar los meses. */
+  await pestanas.nth(5).click();
+  await expect(page.getByRole('button', { name: /crear año fiscal/i })).toBeVisible();
+
+  /* Los períodos siguen dando de alta, que es lo que evita que el 1 de octubre se pare todo. */
+  await pestanas.nth(6).click();
+  await expect(page.getByRole('button', { name: /crear período/i })).toBeVisible();
+});
+
+test('las rutas retiradas ya no existen: no quedan a medio camino', async ({ page }) => {
+  /*
+   * Una pantalla que sale del menú pero sigue respondiendo en su URL es peor que dejarla: nadie la
+   * mantiene y alguien con el enlace guardado sigue usándola sin saber que ya no cuenta.
+   */
+  for (const ruta of [
+    '/operaciones/contabilidad/periodos-ledgers',
+    '/operaciones/contabilidad/sucursales-fiscales',
+    '/operaciones/contabilidad/condiciones-pago',
+  ]) {
+    const respuesta = await page.request.get(ruta);
+    expect(respuesta.status(), `${ruta} sigue respondiendo`).toBe(404);
+  }
+});

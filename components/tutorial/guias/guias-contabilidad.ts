@@ -17,20 +17,29 @@ import type { ScreenGuide } from '../tutorial-types';
 export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/contabilidad/estructura': {
     eyebrow: 'Contabilidad',
-    title: 'Entidad legal',
-    intro: 'Crea la empresa jurídica que encabeza libros, períodos, impuestos y documentos.',
+    title: 'Estructura financiera',
+    intro: 'Todo lo que se configura una vez y sin lo cual no se puede contabilizar: las empresas, sus sucursales y dimensiones, y el calendario contable.',
     sections: [
       {
         title: 'Es el cimiento de todo el módulo',
-        body: 'Ninguna cuenta, período, factura ni asiento existe sin colgar de una entidad legal. Si estás empezando de cero, esta es la primera pantalla.',
+        body: 'Ninguna cuenta, período, factura ni asiento existe sin colgar de una empresa. Si estás empezando de cero, ésta es la primera pantalla, y se recorre de izquierda a derecha.',
       },
       {
-        title: 'Entidad legal no es sucursal',
-        body: 'La entidad es la persona jurídica que declara impuestos; las sucursales son sus ubicaciones y se crean después, en «Sucursales y años fiscales».',
+        title: 'Empresa no es sucursal',
+        body: 'La empresa es la persona jurídica que declara impuestos; las sucursales contables son sus ubicaciones. Y ninguna de las dos es la sucursal de un comercio afiliado, que vive en su portal.',
       },
       {
-        title: 'Cambiarla luego es caro',
-        body: 'Los datos fiscales se propagan a documentos ya emitidos. Verifícalos contra el papel antes de guardar.',
+        title: 'Ejercicio → períodos → libros',
+        body: 'El ejercicio es el año contable; los períodos son sus meses, y son la ventana en la que se puede fechar un documento; el libro es dónde se anota. Los tres estaban repartidos en dos pantallas más del menú y ahora son las tres últimas pestañas de ésta.',
+        tip: 'Crea los doce períodos del año de una vez. El día que la fecha de una factura no caiga en ninguno abierto, deja de poder emitirse.',
+      },
+      {
+        title: 'Cerrar un período no se hace aquí',
+        body: 'Aquí se definen; abrir y cerrar es una operación aparte, en «Cierres», con sus propios controles.',
+      },
+      {
+        title: 'Cambiar esto luego es caro',
+        body: 'Los datos fiscales se propagan a documentos ya emitidos, y estos maestros se dan de alta pero no se editan. Verifícalos contra el papel antes de guardar.',
       },
     ],
   },
@@ -124,46 +133,6 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
       {
         title: 'Es independiente de la jerarquía de cuentas',
         body: 'El código de la cuenta ya tiene su propio orden. Este árbol es otra vista, pensada para quien lee estados financieros, no para quien registra.',
-      },
-    ],
-  },
-
-  '/operaciones/contabilidad/periodos-ledgers': {
-    eyebrow: 'Contabilidad',
-    title: 'Períodos y libros',
-    intro: 'Configura los meses contables y los libros paralelos (local, gerencial, IFRS).',
-    sections: [
-      {
-        title: 'Un asiento necesita un período abierto',
-        body: 'Si al registrar un documento el sistema dice que no hay período, es esta pantalla la que falta. Los períodos se crean por adelantado, no cuando hacen falta.',
-      },
-      {
-        title: 'Libros paralelos: los mismos hechos, tres lecturas',
-        body: 'El mismo movimiento puede valorarse distinto según norma local, criterio gerencial o IFRS. Por eso son libros separados y no columnas del mismo.',
-      },
-      {
-        title: 'Cerrar un período no se hace aquí',
-        body: 'Aquí se definen; el cierre es una operación aparte, en «Cierre de períodos», con sus propios controles.',
-      },
-    ],
-  },
-
-  '/operaciones/contabilidad/sucursales-fiscales': {
-    eyebrow: 'Contabilidad',
-    title: 'Sucursales y años fiscales',
-    intro: 'Define las sucursales contables y los ejercicios de una entidad legal ya registrada.',
-    sections: [
-      {
-        title: 'Cuelgan de una entidad legal',
-        body: 'Si el desplegable de entidades está vacío, primero hay que crear la entidad en «Entidad legal». No es un fallo de esta pantalla.',
-      },
-      {
-        title: 'El año fiscal acota los períodos',
-        body: 'Los meses contables se crean dentro de un ejercicio. Sin ejercicio no hay períodos, y sin períodos no hay asientos.',
-      },
-      {
-        title: 'La sucursal contable no es la sucursal del comercio',
-        body: 'Ésta es una unidad de los libros de Atlas. Las sucursales de un comercio afiliado se gestionan en su onboarding y en su portal.',
       },
     ],
   },

@@ -10,7 +10,18 @@ import { loadBankAccounts, loadBusinessPartners, loadLegalEntities } from '@/ser
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 /**
- * Condiciones de pago a proveedor.
+ * Condiciones de pago a proveedor. FUERA DE LA APLICACIÓN A PROPÓSITO.
+ *
+ * Estuvo en el menú hasta el 2026-09-20. No la borró un descuido: NADIE lee lo que escribe. Se
+ * comprobó ruta por ruta —no hay factura de proveedor, ni orden de pago, ni cierre que consulte
+ * `supplier_payment_terms`—, así que era una pantalla que guardaba un dato y lo dejaba ahí. Pablo
+ * pidió dejarla inaccesible sin perderla, «por si algún día se la quiere usar».
+ *
+ * Vive en `components/` y no en `app/`, así que NO tiene ruta: no se llega escribiendo la URL y no
+ * entra en el paquete que descarga el navegador. Sigue compilando y pasando el lint, que es lo que
+ * evita que se pudra en silencio. Para revivirla: crear `app/operaciones/contabilidad/
+ * condiciones-pago/page.tsx` que exporte por defecto este componente y devolver su entrada a
+ * `components/layout/navigation.ts` y a `lib/viewRegistry.ts`. El backend nunca se tocó.
  *
  * La tabla, el modelo, el catálogo de vocabulario y el cálculo del vencimiento estaban escritos y
  * probados desde el principio, y no había ni un endpoint ni una pantalla: «cómo se le paga a este
@@ -31,7 +42,7 @@ function opciones(lista: OpcionCatalogo[] | undefined) {
   return (lista ?? []).map((item) => ({ label: item.label, value: item.code }));
 }
 
-export default function SupplierPaymentTermsPage() {
+export function SupplierPaymentTermsScreen() {
   const [catalogo, setCatalogo] = useState<Record<string, OpcionCatalogo[]>>({});
   const [version, setVersion] = useState(0);
 
