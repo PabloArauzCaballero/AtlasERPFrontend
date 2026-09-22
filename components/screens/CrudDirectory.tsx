@@ -17,7 +17,7 @@ import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { Modal } from '@/components/atlas/Modal';
 import { OptionsMenu, type MenuOption } from '@/components/atlas/OptionsMenu';
 import { ActionFormModal } from './ActionFormModal';
-import { ExcelImportModal } from './ExcelImportModal';
+import { useExcelImport, type ExcelImportSpec } from './useExcelImport';
 import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { ActionField } from './StructuredActionForm';
@@ -128,6 +128,12 @@ interface CrudDirectoryProps {
      */
     href?: string | undefined;
   } | undefined;
+  /**
+   * Carga masiva cuando el alta NO vive en un modal de este listado (`create.href`): los campos y
+   * el envío del formulario de alta, para que la plantilla salga de la misma definición y no de
+   * una lista copiada. Si el alta es un modal, esto no hace falta: se deriva de `create`.
+   */
+  importar?: ExcelImportSpec | undefined;
   edit?: {
     title?: string | undefined;
     description?: string | undefined;
@@ -253,7 +259,6 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   /* El cajón de opciones de la cabecera: exportar, importar, refrescar. */
   const [opcionesAbiertas, setOpcionesAbiertas] = useState(false);
   /* El importador de Excel: mismos campos y mismo envío que el alta, fila por fila. */
-  const [importando, setImportando] = useState(false);
 
   const filters = useMemo(() => props.filters ?? [], [props.filters]);
 
@@ -447,6 +452,16 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   const create = props.create;
 
   /*
+   * De dónde sale la carga masiva: del alta en modal de este listado, o —si el alta vive en su
+   * propia página— de lo que la pantalla haya declarado en `importar`.
+   */
+  const importacion = useExcelImport(
+    props.importar ?? (create?.fields?.length && create.submit ? { fields: create.fields, submit: create.submit } : null),
+    props.title,
+    () => { void resource.reload(); },
+  );
+
+  /*
    * Un solo botón para lo que no es la acción principal.
    *
    * La barra llegó a tener SIETE controles antes del que hace algo: «¿Qué es esto?», «Recorrido»,
@@ -478,17 +493,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       detail: action.description ?? '',
       onSelect: () => { setActionError(''); setToolbarForm(action); },
     })),
-    ...(create?.fields?.length && create.submit
-      ? [{
-          key: 'importar',
-          testId: 'crud-importar',
-          tutorialId: 'crud-importar',
-          label: 'Importar desde Excel',
-          icon: 'upload_file',
-          detail: 'Descarga la plantilla con los campos de esta pantalla, rellénala y súbela; nada se crea hasta que lo confirmas.',
-          onSelect: () => setImportando(true),
-        }]
-      : []),
+    ...(importacion.opcion ? [importacion.opcion] : []),
     {
       key: 'pdf',
       testId: 'crud-pdf',
@@ -806,16 +811,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
         />
       ) : null}
 
-      {create?.fields?.length && create.submit ? (
-        <ExcelImportModal
-          open={importando}
-          entidad={props.title.toLowerCase()}
-          fields={create.fields}
-          submit={create.submit}
-          onClose={() => setImportando(false)}
-          onImported={() => { void resource.reload(); }}
-        />
-      ) : null}
+      {importacion.modal}
 
       {props.edit ? (
         <ActionFormModal

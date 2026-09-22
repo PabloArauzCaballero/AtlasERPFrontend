@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { camposLineaPropuesta, camposPropuesta, propuestaDesdeExcel } from '@/components/screens/altas/propuesta';
 import { b2bService } from '@/services/b2bService';
 import type { ResourceRow } from '@/services/types';
 
@@ -61,6 +62,23 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
         { key: 'tradeName', label: 'Comercio', kind: 'text', placeholder: 'Filtrar comercio' },
       ]}
       create={{ label: 'Nueva propuesta', href: '/operaciones/crm/propuestas/crear' }}
+      /*
+       * Carga masiva de propuestas: una fila por condición, agrupadas por la referencia de la
+       * propuesta. Una propuesta con MDR más cuota fija son dos filas con la misma referencia.
+       */
+      importar={{
+        entidad: 'propuestas',
+        fields: camposPropuesta,
+        submit: (payload) => b2bService.createProposal(propuestaDesdeExcel(payload) as typeof payload),
+        lineas: {
+          name: 'lines',
+          clave: 'propuesta',
+          claveLabel: 'Referencia de la propuesta',
+          nombreLinea: 'condición',
+          ejemploClave: 'PROPUESTA-1',
+          fields: camposLineaPropuesta,
+        },
+      }}
       extraActions={[
         {
           key: 'enviar',

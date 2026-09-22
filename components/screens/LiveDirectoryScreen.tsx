@@ -21,6 +21,7 @@ import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { toast } from '@/lib/toast';
 import { ActionFormModal } from './ActionFormModal';
+import { useExcelImport, type ExcelImportSpec } from './useExcelImport';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject } from '@/services/types';
 import { ScreenState } from '@/components/ui/ScreenState';
@@ -116,6 +117,12 @@ interface LiveDirectoryScreenProps {
     submit: (payload: JsonObject) => Promise<unknown>;
     icon?: string | undefined;
   } | undefined;
+  /**
+   * Carga masiva desde una hoja de cálculo. Si el alta es el modal de `create`, no hace falta
+   * declararla: sale de ahí. Se declara cuando el alta vive en su propia página (`createHref`),
+   * pasándole los MISMOS campos y el MISMO envío de ese formulario.
+   */
+  importar?: ExcelImportSpec | undefined;
   /**
    * Sin cabecera de pantalla: para cuando este directorio es una pestaña dentro de una vista que
    * ya pone su propio `WorkspaceHeader`, y repetir el título y las migas de pan sobraría.
@@ -306,6 +313,19 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
     }
   }, [resource]);
 
+  /*
+   * Este armazón no sabía importar nada: «Importar desde Excel» sólo existía en `CrudDirectory`,
+   * así que los listados que se construyen aquí —Cuentas B2B, Anunciantes, Campañas, Segmentos de
+   * audiencia, Inventario— no tenían ninguna forma de cargar registros que no fuese uno a uno.
+   */
+  const importacion = useExcelImport(
+    props.importar ?? (props.create?.fields?.length && props.create.submit
+      ? { fields: props.create.fields, submit: props.create.submit }
+      : null),
+    props.title,
+    () => { void resource.reload(); },
+  );
+
   const crear = props.create
     ? <AtlasButton icon="add" data-tutorial-id="directory-create" data-testid="directorio-crear" onClick={() => setCreating(true)}>{props.createLabel ?? 'Crear registro'}</AtlasButton>
     : props.createHref
@@ -319,6 +339,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
    * se hace de vez en cuando. Aquí caben con su nombre entero y una línea de qué hacen.
    */
   const opcionesMenu: MenuOption[] = [
+    ...(importacion.opcion ? [importacion.opcion] : []),
     {
       key: 'pdf',
       testId: 'directorio-pdf',
@@ -471,6 +492,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <span>Página <b>{page}</b> · {rows.length} visibles · <b>{total}</b> registros</span>
         <div className="flex gap-2"><AtlasButton variant="secondary" disabled={page <= 1 || loading} onClick={() => setQuery((current) => ({ ...current, page: page - 1 }))}>Anterior</AtlasButton><AtlasButton variant="secondary" disabled={page * pageSize >= total || loading} onClick={() => setQuery((current) => ({ ...current, page: page + 1 }))}>Siguiente</AtlasButton></div>
       </div>
+
+      {importacion.modal}
 
       {props.create ? (
         <ActionFormModal

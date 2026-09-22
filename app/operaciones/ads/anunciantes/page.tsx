@@ -1,6 +1,8 @@
 'use client';
 
 import { LiveDirectoryScreen } from '@/components/screens/LiveDirectoryScreen';
+import { camposDeSecciones } from '@/components/screens/useExcelImport';
+import { seccionesAltaAnunciante } from '@/components/screens/altas/anunciante';
 import { useOptions } from '@/hooks/useOptions';
 import { adsService } from '@/services/adsService';
 import { domainLoader } from '@/services/domains';
@@ -20,6 +22,13 @@ export default function AdvertisersPage() {
       load={adsService.listAdvertisers}
       createHref="/operaciones/ads/anunciantes/crear"
       createLabel="Nuevo anunciante"
+      /*
+       * Carga masiva: los MISMOS campos y el MISMO endpoint del alta de la página de al lado. Los
+       * anunciantes tenían su propia pantalla de «Carga masiva» con una plantilla escrita a mano y
+       * la perdieron sin sustituto; aquí la plantilla se genera del formulario, así que no puede
+       * quedarse atrás.
+       */
+      importar={{ entidad: 'anunciantes', fields: camposDeSecciones(seccionesAltaAnunciante), submit: adsService.createAdvertiser }}
       searchPlaceholder="Buscar anunciante, marca o NIT..."
       statusOptions={estados}
       columns={[

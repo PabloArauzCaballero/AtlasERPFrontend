@@ -1,14 +1,21 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
 import { StatusPill } from '@/components/atlas/StatusPill';
-import { descargarPlantillaExcel, fechaDeSerieExcel, leerTabla } from '@/lib/excel';
-import { formDataToPayload } from '@/lib/formPayload';
-import { payloadDefinitions } from './ActionFieldControl';
+import { descargarPlantillaExcel, leerTabla } from '@/lib/excel';
+import {
+  agrupar,
+  camposImportables,
+  ejemploDe,
+  prepararPlana,
+  type LineasSpec,
+  type RegistroPreparado,
+} from '@/lib/importacionExcel';
+import { useFieldOptions } from '@/hooks/useFieldOptions';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject } from '@/services/types';
 
@@ -20,37 +27,14 @@ interface ExcelImportModalProps {
   fields: ActionField[];
   /** El MISMO envío del alta: una fila importada recorre el camino de un alta hecha a mano. */
   submit: (payload: JsonObject) => Promise<unknown>;
+  /** Si el registro lleva líneas, cómo se agrupan las filas de la hoja. */
+  lineas?: LineasSpec | undefined;
   onClose: () => void;
   /** Se llama al cerrar si se creó al menos un registro, para recargar la tabla. */
   onImported: () => void;
 }
 
-interface FilaPreparada {
-  numero: number;
-  crudo: Record<string, string>;
-  payload: JsonObject;
-  errores: string[];
-  estado: 'pendiente' | 'creada' | 'fallida';
-  detalle?: string | undefined;
-}
-
 const TOPE_FILAS = 500;
-
-/** Los campos que se piden en la plantilla: lo que el sistema asigna solo no se importa. */
-function camposImportables(fields: ActionField[]): ActionField[] {
-  return fields.filter((field) => !field.assignedByBackend && field.type !== 'address');
-}
-
-/** Un ejemplo por columna, para que la plantilla enseñe el formato en vez de describirlo. */
-function ejemploDe(field: ActionField): string {
-  if (field.defaultValue !== undefined && field.defaultValue !== '') return String(field.defaultValue);
-  if (field.options?.length) return field.options[0]?.value ?? '';
-  if (field.type === 'date') return '2026-01-31';
-  if (field.type === 'datetime') return '2026-01-31T14:30';
-  if (field.type === 'number') return '0';
-  if (field.type === 'multiselect' || field.type === 'chips') return 'VALOR1, VALOR2';
-  return field.placeholder ?? '';
-}
 
 /**
  * Importar registros desde un Excel, en la pantalla del propio registro.
@@ -70,14 +54,45 @@ function ejemploDe(field: ActionField): string {
 export function ExcelImportModal(props: ExcelImportModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [nombreArchivo, setNombreArchivo] = useState('');
-  const [filas, setFilas] = useState<FilaPreparada[]>([]);
+  const [filas, setFilas] = useState<RegistroPreparado[]>([]);
   const [errorArchivo, setErrorArchivo] = useState('');
   const [importando, setImportando] = useState(false);
   const [progreso, setProgreso] = useState(0);
   const [terminado, setTerminado] = useState(false);
 
-  const campos = useMemo(() => camposImportables(props.fields), [props.fields]);
+  const lineas = props.lineas;
+  const declarados = useMemo(() => camposImportables(props.fields), [props.fields]);
+  const declaradosLinea = useMemo(() => (lineas ? camposImportables(lineas.fields) : []), [lineas]);
+
+  /*
+   * Los valores que admite cada select, traídos del backend igual que los trae el formulario.
+   *
+   * Sin esto, un campo cuyas opciones vienen del catálogo —el ejecutivo responsable de una cuenta,
+   * la cuenta contable de una línea— exigía escribir el UUID en la celda: nadie lo sabe, no hay
+   * dónde mirarlo, y la fila se rechazaba con un mensaje del backend que no decía qué poner. Con
+   * las opciones cargadas, la plantilla puede traer un ejemplo válido y la celda acepta también
+   * el NOMBRE de la opción, que es lo que una persona tiene delante.
+   */
+  const { dynamicOptions } = useFieldOptions([...declarados, ...declaradosLinea], props.open);
+  const conOpciones = useCallback(
+    (lista: ActionField[]) => lista.map((campo) => {
+      const opciones = campo.options ?? dynamicOptions[campo.name];
+      return opciones?.length ? { ...campo, options: opciones } : campo;
+    }),
+    [dynamicOptions],
+  );
+  const campos = useMemo(() => conOpciones(declarados), [conOpciones, declarados]);
+  const camposLinea = useMemo(() => conOpciones(declaradosLinea), [conOpciones, declaradosLinea]);
   const obligatorios = useMemo(() => campos.filter((campo) => campo.required && !campo.optional), [campos]);
+  const obligatoriosLinea = useMemo(
+    () => camposLinea.filter((campo) => campo.required && !campo.optional),
+    [camposLinea],
+  );
+  /** Las columnas de la plantilla, en orden: la clave del registro, su cabecera y sus líneas. */
+  const columnas = useMemo(
+    () => (lineas ? [lineas.clave, ...campos.map((c) => c.name), ...camposLinea.map((c) => c.name)] : campos.map((c) => c.name)),
+    [lineas, campos, camposLinea],
+  );
   const validas = filas.filter((fila) => fila.errores.length === 0);
   const creadas = filas.filter((fila) => fila.estado === 'creada').length;
   const fallidas = filas.filter((fila) => fila.estado === 'fallida');
@@ -93,6 +108,26 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     props.onClose();
   }
 
+  function descargarPlantilla() {
+    const nombre = `plantilla-${props.entidad.replace(/\s+/g, '-').toLowerCase()}.xlsx`;
+    if (!lineas) {
+      descargarPlantillaExcel(nombre, columnas, [campos.map(ejemploDe)]);
+      return;
+    }
+    /*
+     * Dos filas de ejemplo con la MISMA clave: es la única forma de enseñar, sin un párrafo de
+     * instrucciones, que un asiento de dos líneas se escribe en dos filas y que la cabecera sólo
+     * cuenta en la primera.
+     */
+    const clave = lineas.ejemploClave ?? 'DOC-001';
+    const cabecera = campos.map(ejemploDe);
+    const vacia = campos.map(() => '');
+    descargarPlantillaExcel(nombre, columnas, [
+      [clave, ...cabecera, ...camposLinea.map(ejemploDe)],
+      [clave, ...vacia, ...camposLinea.map(ejemploDe)],
+    ]);
+  }
+
   async function cargar(file?: File) {
     if (!file) return;
     setErrorArchivo('');
@@ -105,15 +140,17 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
         setErrorArchivo('El archivo no trae ninguna fila con datos debajo de las cabeceras.');
         return;
       }
-      const faltantes = obligatorios
-        .filter((campo) => !tabla.cabeceras.includes(campo.name))
-        .map((campo) => campo.name);
+      const exigidas = [...(lineas ? [lineas.clave] : []), ...obligatorios.map((campo) => campo.name), ...obligatoriosLinea.map((campo) => campo.name)];
+      const faltantes = exigidas.filter((nombre) => !tabla.cabeceras.includes(nombre));
       if (faltantes.length) {
         setFilas([]);
         setErrorArchivo(`Al archivo le faltan columnas obligatorias: ${faltantes.join(', ')}. Descarga la plantilla y vuelve a intentarlo.`);
         return;
       }
-      setFilas(tabla.filas.slice(0, TOPE_FILAS).map((crudo, indice) => preparar(crudo, indice + 2, campos, obligatorios)));
+      const recortadas = tabla.filas.slice(0, TOPE_FILAS);
+      setFilas(lineas
+        ? agrupar(recortadas, lineas, campos, obligatorios, camposLinea, obligatoriosLinea)
+        : recortadas.map((crudo, indice) => prepararPlana(crudo, indice + 2, campos, obligatorios)));
     } catch (error) {
       setFilas([]);
       setErrorArchivo(error instanceof Error ? error.message : 'No se pudo leer el archivo.');
@@ -138,7 +175,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
   }
 
   const total = validas.length;
-  const plantilla = `plantilla-${props.entidad.replace(/\s+/g, '-').toLowerCase()}.xlsx`;
+  const columnasPreview = campos.slice(0, lineas ? 3 : 4);
 
   return (
     <Modal
@@ -149,21 +186,17 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     >
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
-          Se crean los mismos registros que con el formulario de alta, uno por fila. Descarga la plantilla,
-          rellénala en Excel y súbela: antes de crear nada verás qué filas están completas y cuáles no.
+          {lineas
+            ? `Se crean los mismos registros que con el formulario de alta. Va una fila por ${lineas.nombreLinea}: las filas que repiten «${lineas.claveLabel}» son el mismo registro, y la cabecera se lee de la primera de ellas.`
+            : 'Se crean los mismos registros que con el formulario de alta, uno por fila. Descarga la plantilla, rellénala en Excel y súbela: antes de crear nada verás qué filas están completas y cuáles no.'}
         </p>
 
         <div className="flex flex-wrap items-center gap-2">
-          <AtlasButton
-            variant="secondary"
-            icon="download"
-            data-testid="importar-plantilla"
-            onClick={() => descargarPlantillaExcel(plantilla, campos.map((campo) => campo.name), campos.map(ejemploDe))}
-          >
+          <AtlasButton variant="secondary" icon="download" data-testid="importar-plantilla" onClick={descargarPlantilla}>
             Descargar plantilla
           </AtlasButton>
           <span className="text-xs text-slate-500">
-            {campos.length} columnas · {obligatorios.length} obligatorias · hasta {TOPE_FILAS} filas por archivo
+            {columnas.length} columnas · {obligatorios.length + obligatoriosLinea.length + (lineas ? 1 : 0)} obligatorias · hasta {TOPE_FILAS} filas por archivo
           </span>
         </div>
 
@@ -208,7 +241,9 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
                 <thead className="sticky top-0 bg-slate-50 text-[10px] uppercase text-slate-500">
                   <tr>
                     <th className="px-2 py-2">Fila</th>
-                    {campos.slice(0, 4).map((campo) => <th className="px-2 py-2" key={campo.name}>{campo.label}</th>)}
+                    {lineas ? <th className="px-2 py-2">{lineas.claveLabel}</th> : null}
+                    {columnasPreview.map((campo) => <th className="px-2 py-2" key={campo.name}>{campo.label}</th>)}
+                    {lineas ? <th className="px-2 py-2">Líneas</th> : null}
                     <th className="px-2 py-2">Estado</th>
                   </tr>
                 </thead>
@@ -216,9 +251,11 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
                   {filas.map((fila) => (
                     <tr key={fila.numero} className={fila.errores.length || fila.estado === 'fallida' ? 'bg-red-50/50' : undefined}>
                       <td className="px-2 py-1.5 font-mono text-[10px] text-slate-500">{fila.numero}</td>
-                      {campos.slice(0, 4).map((campo) => (
+                      {lineas ? <td className="max-w-32 truncate px-2 py-1.5 font-mono text-[10px]">{fila.etiqueta}</td> : null}
+                      {columnasPreview.map((campo) => (
                         <td className="max-w-40 truncate px-2 py-1.5" key={campo.name}>{fila.crudo[campo.name] || '—'}</td>
                       ))}
+                      {lineas ? <td className="px-2 py-1.5 text-slate-500">{fila.filasHoja.length}</td> : null}
                       <td className="px-2 py-1.5">
                         {fila.errores.length ? <span className="font-semibold text-red-700">{fila.errores.join(', ')}</span>
                           : fila.estado === 'creada' ? <span className="font-semibold text-emerald-700">Creada</span>
@@ -260,69 +297,11 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
 }
 
 function marcar(
-  set: React.Dispatch<React.SetStateAction<FilaPreparada[]>>,
+  set: React.Dispatch<React.SetStateAction<RegistroPreparado[]>>,
   numero: number,
-  cambio: Partial<FilaPreparada>,
+  cambio: Partial<RegistroPreparado>,
 ): void {
   set((actuales) => actuales.map((fila) => (fila.numero === numero ? { ...fila, ...cambio } : fila)));
 }
 
-/**
- * Una fila del Excel convertida al mismo payload que produce el formulario.
- *
- * Reutiliza `formDataToPayload` con las definiciones del alta en vez de construir el objeto a
- * mano: así los números llegan como números, las listas separadas por coma como arrays, los
- * nombres con punto (`primaryContact.email`) como objetos anidados, y nada de eso se puede
- * desincronizar con lo que hace el formulario, porque es la misma función.
- */
-function preparar(
-  crudo: Record<string, string>,
-  numero: number,
-  campos: ActionField[],
-  obligatorios: ActionField[],
-): FilaPreparada {
-  const errores = obligatorios
-    .filter((campo) => !(crudo[campo.name] ?? '').trim())
-    .map((campo) => `Falta «${campo.label}»`);
-
-  const datos = new FormData();
-  for (const campo of campos) {
-    const valor = (crudo[campo.name] ?? '').trim();
-    if (valor === '') continue;
-    datos.set(campo.name, normalizar(valor, campo));
-  }
-
-  /*
-   * Un valor fuera del dominio se caza aquí y no en el backend: el error «status must be one of…»
-   * llega sin número de fila, y con cien filas eso no dice cuál corregir. Sólo se comprueban los
-   * campos con lista fija en el código; los que la piden al catálogo se validan en el servidor.
-   */
-  for (const campo of campos) {
-    const valor = (crudo[campo.name] ?? '').trim();
-    if (!valor || !campo.options?.length) continue;
-    if (!campo.options.some((opcion) => opcion.value === valor)) {
-      errores.push(`«${campo.label}» no admite «${valor}»`);
-    }
-  }
-
-  return {
-    numero,
-    crudo,
-    payload: formDataToPayload(datos, payloadDefinitions(campos)) as JsonObject,
-    errores,
-    estado: 'pendiente',
-  };
-}
-
-/** Lo que Excel entrega distinto de lo que el formulario entregaría. */
-function normalizar(valor: string, campo: ActionField): string {
-  // Una celda con formato de fecha llega como número de serie («46020»), no como texto.
-  if ((campo.type === 'date' || campo.type === 'datetime') && /^\d{5}(\.\d+)?$/.test(valor)) {
-    return fechaDeSerieExcel(Number(valor));
-  }
-  // Excel escribe los decimales con coma en configuración regional española; el backend pide punto.
-  if ((campo.type === 'number' || campo.valueKind === 'number') && /^-?\d+,\d+$/.test(valor)) {
-    return valor.replace(',', '.');
-  }
-  return valor;
-}
+export type { LineasSpec };

@@ -1,6 +1,8 @@
 'use client';
 
 import { LiveDirectoryScreen } from '@/components/screens/LiveDirectoryScreen';
+import { camposDeSecciones } from '@/components/screens/useExcelImport';
+import { seccionesAltaCuentaB2b } from '@/components/screens/altas/cuentaB2b';
 import { b2bService } from '@/services/b2bService';
 
 export default function B2BAccountsPage() {
@@ -12,6 +14,13 @@ export default function B2BAccountsPage() {
       load={b2bService.listAccounts}
       createHref="/operaciones/crm/cuentas/crear"
       createLabel="Crear cuenta"
+      /*
+       * Carga masiva: los MISMOS campos y el MISMO endpoint del alta. Es el listado más usado del
+       * ERP y era el que menos forma tenía de cargar nada: su «Carga masiva» se retiró con las
+       * otras dos y nadie la sustituyó aquí, porque el alta vive en su propia página y el listado
+       * no tenía de dónde sacar la plantilla. Ahora sale del mismo módulo que el formulario.
+       */
+      importar={{ entidad: 'empresas', fields: camposDeSecciones(seccionesAltaCuentaB2b), submit: b2bService.createAccount }}
       searchPlaceholder="Buscar por nombre comercial, razón social o NIT..."
       statusOptions={[
         { label: 'Lead', value: 'LEAD' }, { label: 'Calificada', value: 'QUALIFIED' },

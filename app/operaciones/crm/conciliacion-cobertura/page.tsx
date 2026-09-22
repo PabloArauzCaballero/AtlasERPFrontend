@@ -197,6 +197,14 @@ export default function CoverageReconciliationPage() {
                 description="El calendario del que salen las moras: es lo que decide si hay que cubrir."
                 load={cargarCuotas}
                 toolbarActions={[registrarCompra]}
+                /*
+                 * El alta de este listado no es un botón «Crear»: es la acción «Registrar compra a
+                 * plazos» del cajón, y por eso se quedaba sin importar. Se declara con los MISMOS
+                 * campos y el MISMO envío de esa acción —incluida la aritmética de la entrada y las
+                 * cuotas—, así que una compra importada nace idéntica a una registrada a mano. Es
+                 * lo que hace falta para cargar la jornada de un comercio de una vez.
+                 */
+                importar={{ entidad: 'compras a plazos', fields: registrarCompra.fields, submit: registrarCompra.submit }}
                 labelKey="installmentNumber"
                 searchPlaceholder="Buscar por estado…"
                 emptyHint="Las cuotas nacen al registrar una compra a plazo."

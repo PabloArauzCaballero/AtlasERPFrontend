@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { asientoDesdeExcel, camposAsiento, camposLineaAsiento } from '@/components/screens/altas/asientoContable';
 import { accountingService } from '@/services/accountingService';
 
 /**
@@ -38,6 +39,26 @@ export default function AccountingDocumentsPage() {
         body: 'Un asiento contabilizado es inmutable: corregirlo o borrarlo rompería el cuadre del período y la trazabilidad. Lo que corresponde es contabilizar el borrador o reversarlo con un asiento contrario.',
       }}
       create={{ label: 'Crear documento', href: '/operaciones/contabilidad/documentos/crear' }}
+      /*
+       * Carga masiva de asientos: UNA FILA POR LÍNEA, agrupadas por la referencia del documento.
+       * Un asiento no cabe en una fila —tiene dos líneas como mínimo—, y por eso este listado se
+       * quedó sin importar cuando la pantalla de «Carga masiva» se retiró. Es además el formato en
+       * el que cualquier contabilidad exporta su libro diario, así que la hoja de origen casi
+       * siempre ya viene así.
+       */
+      importar={{
+        entidad: 'asientos',
+        fields: camposAsiento,
+        submit: (payload) => accountingService.createDocument(asientoDesdeExcel(payload) as typeof payload),
+        lineas: {
+          name: 'lines',
+          clave: 'asiento',
+          claveLabel: 'Referencia del asiento',
+          nombreLinea: 'línea',
+          ejemploClave: 'ASIENTO-1',
+          fields: camposLineaAsiento,
+        },
+      }}
       extraActions={[
         {
           /*

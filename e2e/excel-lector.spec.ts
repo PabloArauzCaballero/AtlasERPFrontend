@@ -140,7 +140,10 @@ test.describe('el lector de Excel de los listados', () => {
       URL.createObjectURL = (objeto: Blob | MediaSource) => { blob = objeto as Blob; return 'blob:x'; };
       HTMLAnchorElement.prototype.click = function () {};
       try {
-        globalThis.excel.descargarPlantillaExcel('p.xlsx', ['legalName', 'tradeName', 'monto'], ['Comercial Uno SRL', 'Uno', '1500']);
+        globalThis.excel.descargarPlantillaExcel('p.xlsx', ['asiento', 'legalName', 'monto'], [
+          ['ASIENTO-1', 'Comercial Uno SRL', '1500'],
+          ['ASIENTO-1', '', '1500'],
+        ]);
       } finally {
         URL.createObjectURL = original;
         HTMLAnchorElement.prototype.click = click;
@@ -148,8 +151,16 @@ test.describe('el lector de Excel de los listados', () => {
       return globalThis.excel.leerTabla(new File([blob as unknown as Blob], 'p.xlsx'));
     });
 
-    expect(leido.cabeceras).toEqual(['legalName', 'tradeName', 'monto']);
-    expect(leido.filas).toEqual([{ legalName: 'Comercial Uno SRL', tradeName: 'Uno', monto: '1500' }]);
+    /*
+     * Dos filas de ejemplo y no una: la plantilla de un registro con líneas —un asiento, un
+     * recibo— enseña la clave repetida y la cabecera sólo en la primera fila, que es justo lo que
+     * no se entiende leyendo una sola.
+     */
+    expect(leido.cabeceras).toEqual(['asiento', 'legalName', 'monto']);
+    expect(leido.filas).toEqual([
+      { asiento: 'ASIENTO-1', legalName: 'Comercial Uno SRL', monto: '1500' },
+      { asiento: 'ASIENTO-1', legalName: '', monto: '1500' },
+    ]);
   });
 
   test('lee un .xlsx guardado por Excel: comprimido, con tabla de cadenas y filas vacías', async ({ page }) => {
@@ -206,7 +217,7 @@ test.describe('el lector de Excel de los listados', () => {
 declare global {
   var excel: {
     leerTabla: (file: File) => Promise<{ cabeceras: string[]; filas: Record<string, string>[] }>;
-    descargarPlantillaExcel: (nombre: string, cabeceras: string[], ejemplo?: string[]) => void;
+    descargarPlantillaExcel: (nombre: string, cabeceras: string[], ejemplos?: string[][]) => void;
     fechaDeSerieExcel: (serie: number) => string;
   };
 }

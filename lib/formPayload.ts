@@ -1,3 +1,5 @@
+import type { ActionField } from '@/components/screens/StructuredActionForm';
+
 export type FieldValueKind = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'stringList' | 'codeList';
 
 export interface PayloadFieldDefinition {
@@ -51,4 +53,24 @@ export function formDataToPayload(formData: FormData, definitions: PayloadFieldD
     setNestedValue(payload, definition.name, convertValue(raw, definition));
   });
   return payload;
+}
+
+/**
+ * Definiciones para `formDataToPayload` deducidas de los campos declarados.
+ *
+ * El tipo del control ya dice cómo hay que convertir el valor: un `datetime-local` entrega un texto
+ * sin zona horaria que hay que pasar a ISO. Deducirlo aquí evita tener que repetir
+ * `valueKind: 'datetime'` en cada pantalla y olvidarlo en una.
+ */
+export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinition[] {
+  return fields
+    // Lo que asigna el backend no viaja: el control se pinta sólo para enseñarlo.
+    .filter((field) => !field.assignedByBackend)
+    .map((field) => ({
+      name: field.name,
+      valueKind:
+        field.valueKind ??
+        (field.type === 'datetime' ? 'datetime' : field.type === 'multiselect' ? 'codeList' : undefined),
+      optional: field.optional,
+    }));
 }

@@ -201,8 +201,12 @@ function filaXml(valores: string[], numero: number): string {
  * compresor, el navegador no tiene API de deflate síncrona y Excel abre igual el archivo. Una
  * plantilla de dos filas no gana nada comprimiéndose.
  */
-export function descargarPlantillaExcel(nombreArchivo: string, cabeceras: string[], ejemplo?: string[]): void {
-  const filas = [filaXml(cabeceras, 1), ...(ejemplo ? [filaXml(ejemplo, 2)] : [])].join('');
+export function descargarPlantillaExcel(nombreArchivo: string, cabeceras: string[], ejemplos: string[][] = []): void {
+  /*
+   * Varias filas de ejemplo y no una: un registro con líneas (un asiento, un recibo) se escribe
+   * con UNA FILA POR LÍNEA repitiendo la clave, y eso no se entiende leyendo una sola fila.
+   */
+  const filas = [filaXml(cabeceras, 1), ...ejemplos.map((fila, indice) => filaXml(fila, indice + 2))].join('');
   const hoja =
     '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +

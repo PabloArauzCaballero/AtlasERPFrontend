@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { useOptions } from '@/hooks/useOptions';
+import { camposAsignacionRecibo, camposRecibo } from '@/components/screens/altas/recibo';
 import { accountingService } from '@/services/accountingService';
 import { domainLoader } from '@/services/domains';
 
@@ -32,6 +33,24 @@ export default function ReceiptsPage() {
       ]}
       filters={[{ key: 'status', label: 'Estado', options: estadosRecibo }, { key: 'currencyCode', label: 'Moneda' }]}
       create={{ label: 'Registrar recibo', href: '/operaciones/contabilidad/recibos/crear' }}
+      /*
+       * Carga masiva de cobros: una fila por factura aplicada, agrupadas por la referencia del
+       * recibo. Un cobro que salda tres facturas son tres filas con la misma referencia, que es
+       * como lo exporta cualquier extracto de cartera.
+       */
+      importar={{
+        entidad: 'recibos',
+        fields: camposRecibo,
+        submit: (payload) => accountingService.createReceipt(payload),
+        lineas: {
+          name: 'allocations',
+          clave: 'recibo',
+          claveLabel: 'Referencia del recibo',
+          nombreLinea: 'factura aplicada',
+          ejemploClave: 'RECIBO-1',
+          fields: camposAsignacionRecibo,
+        },
+      }}
       edit={{
         description: 'El monto y las asignaciones no se editan aquí: eso descuadraría el asiento ya contabilizado.',
         fields: [

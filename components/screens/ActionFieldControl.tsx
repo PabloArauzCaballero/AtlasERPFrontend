@@ -5,7 +5,6 @@ import { ChipsField } from '@/components/atlas/ChipsField';
 import { CountryCityField } from '@/components/atlas/CountryCityField';
 import { FormField } from '@/components/atlas/FormField';
 import { MultiSelectField } from '@/components/atlas/MultiSelectField';
-import type { PayloadFieldDefinition } from '@/lib/formPayload';
 import type { ActionField } from './StructuredActionForm';
 
 /**
@@ -29,22 +28,11 @@ export function isSelectField(field: ActionField): boolean {
 /**
  * Definiciones para `formDataToPayload`.
  *
- * El tipo del control ya dice cómo hay que convertir el valor: un `datetime-local` entrega un texto
- * sin zona horaria que hay que pasar a ISO. Deducirlo aquí evita tener que repetir
- * `valueKind: 'datetime'` en cada pantalla y olvidarlo en una.
+ * Vive en `lib/formPayload.ts` —es una función pura sobre los campos, sin nada de React— para que
+ * también la pueda usar el importador de Excel, que corre fuera de un formulario. Se sigue
+ * reexportando aquí porque las cuatro superficies de formulario la importan de este módulo.
  */
-export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinition[] {
-  return fields
-    // Lo que asigna el backend no viaja: el control se pinta sólo para enseñarlo.
-    .filter((field) => !field.assignedByBackend)
-    .map((field) => ({
-      name: field.name,
-      valueKind:
-        field.valueKind ??
-        (field.type === 'datetime' ? 'datetime' : field.type === 'multiselect' ? 'codeList' : undefined),
-      optional: field.optional,
-    }));
-}
+export { payloadDefinitions } from '@/lib/formPayload';
 
 interface ActionFieldControlProps {
   field: ActionField;
