@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start -p 3010",
     "type-check": "tsc --noEmit",
+    "test:auth": "node --test tests/auth-session.test.mjs",
     "lint": "node scripts/check-pestanas-accion.mjs && node scripts/check-campos.mjs && node scripts/check-ayuda.mjs && eslint . --max-warnings=0",
     "check": "npm run type-check && npm run lint && npm run build",
     "test:e2e": "playwright test",

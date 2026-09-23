@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { clearAccessToken, getAccessToken, getSessionKind, setAccessToken } from '@/lib/apiClient';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { bootstrapSession, clearAccessToken, finishPendingRefresh, getSessionKind, setAccessToken } from '@/lib/apiClient';
 import type { SessionKind } from '@/lib/apiClient';
 import { authService } from '@/services/authService';
 import { isPinChallenge } from '@/services/authTypes';
@@ -40,9 +40,15 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   const [merchant, setMerchant] = useState<MerchantUserProfile | null>(null);
   const [sessionKind, setSessionKind] = useState<SessionKind>('internal');
   const [status, setStatus] = useState<AuthStatus>('loading');
+  const sessionAttempt = useRef(0);
 
   const loadSession = useCallback(async () => {
-    if (!getAccessToken()) {
+    const attempt = ++sessionAttempt.current;
+    const available = await bootstrapSession();
+    if (attempt !== sessionAttempt.current) return;
+    if (!available) {
+      setUser(null);
+      setMerchant(null);
       setStatus('unauthenticated');
       return;
     }
@@ -52,14 +58,17 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       // identidad suspendida entre dos visitas no debe seguir pintando una sesión válida.
       if (kind === 'merchant') {
         const profile = await authService.merchantMe();
+        if (attempt !== sessionAttempt.current) return;
         setMerchant(profile.user);
       } else {
         const profile = await authService.me();
+        if (attempt !== sessionAttempt.current) return;
         setUser(profile.user);
       }
       setSessionKind(kind);
       setStatus('authenticated');
     } catch {
+      if (attempt !== sessionAttempt.current) return;
       clearAccessToken();
       setUser(null);
       setMerchant(null);
@@ -73,6 +82,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
 
   useEffect(() => {
     function handleForcedLogout() {
+      sessionAttempt.current += 1;
       setUser(null);
       setMerchant(null);
       setStatus('unauthenticated');
@@ -83,6 +93,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
 
   /** Deja la sesión interna en pie. Compartido por el login de un paso y por el canje del PIN. */
   const adoptInternalSession = useCallback((result: { accessToken: string; user: InternalUserProfile }) => {
+    sessionAttempt.current += 1;
     setAccessToken(result.accessToken, 'internal');
     setUser(result.user);
     setMerchant(null);
@@ -110,6 +121,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
 
   const loginMerchant = useCallback(async (input: { email: string; password: string }) => {
     const result = await authService.merchantLogin(input);
+    sessionAttempt.current += 1;
     setAccessToken(result.accessToken, 'merchant');
     setMerchant(result.user);
     setUser(null);
@@ -118,6 +130,8 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   }, []);
 
   const logout = useCallback(async () => {
+    sessionAttempt.current += 1;
+    await finishPendingRefresh();
     const kind = getSessionKind();
     try {
       await (kind === 'merchant' ? authService.merchantLogout() : authService.logout());

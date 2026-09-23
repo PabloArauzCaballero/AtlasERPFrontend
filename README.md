@@ -147,11 +147,14 @@ El render inicial evita valores no determinísticos. UUIDs nuevos se generan ún
 
 ## Autenticación local
 
-El cliente lee `atlas_access_token` desde `localStorage` y envía:
+El cliente conserva el access token solo en memoria y envía:
 
 ```http
 Authorization: Bearer <token>
 ```
+
+Al recargar, renueva la sesión mediante la cookie de refresh `HttpOnly` del gateway; cualquier
+`atlas_access_token` antiguo en `localStorage` se elimina sin reutilizarlo.
 
 El bypass del backend solo debe usarse en desarrollo:
 

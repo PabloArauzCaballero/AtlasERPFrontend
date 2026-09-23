@@ -8,6 +8,7 @@
  * verdad. Corre con `PW_ONBOARDING_EVIDENCIA=1`; sin eso se salta, porque necesita ese backend.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { seedRefreshSession } from './support/auth-session';
 
 const ADMIN = {
   id: '1', tenantId: '1', email: 'admin@atlas.test', fullName: 'Admin de pruebas', name: 'Admin de pruebas',
@@ -16,13 +17,10 @@ const ADMIN = {
 };
 
 async function sesionInternaFingida(page: Page) {
-  await page.addInitScript(() => {
-    window.localStorage.setItem('atlas_access_token', 'e2e-internal-token');
-    window.localStorage.setItem('atlas_session_kind', 'internal');
-  });
+  await seedRefreshSession(page, 'internal');
   await page.route('**/api/v1/auth/me', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { user: ADMIN } }) }));
   await page.route('**/api/v1/**', (route) => {
-    if (route.request().url().includes('/auth/me')) return route.fallback();
+    if (route.request().url().includes('/auth/me') || route.request().url().includes('/auth/refresh')) return route.fallback();
     const { authorization: _quitada, Authorization: _quitada2, ...headers } = route.request().headers();
     return route.continue({ headers });
   });

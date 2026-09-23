@@ -47,6 +47,9 @@ jobs:
       - name: Tipos
         run: yarn type-check
 
+      - name: Sesión autenticada
+        run: yarn test:auth
+
       - name: Lint
         run: yarn lint
 

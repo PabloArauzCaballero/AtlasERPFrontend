@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { seedRefreshSession } from './support/auth-session';
 
 /**
  * La comisión por venta (MDR) de un contrato, desde su fila.
@@ -79,7 +80,7 @@ async function montar(page: Page): Promise<Espia> {
     const json = (body: unknown, status = 200) =>
       route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
-    if (ruta.includes('/auth/me')) return route.fallback();
+    if (ruta.includes('/auth/me') || ruta.includes('/auth/refresh')) return route.fallback();
 
     if (ruta.endsWith('/b2b/contracts/mdr-rules')) {
       if (peticion.method() === 'POST') {
@@ -118,14 +119,7 @@ async function montar(page: Page): Promise<Espia> {
     return json([]);
   });
 
-  /*
-   * Sin esto la consola redirige a `/login` y la prueba mide la pantalla equivocada: el guardia de
-   * sesión mira el token en `localStorage`, no la respuesta de `/auth/me`.
-   */
-  await page.addInitScript(() => {
-    window.localStorage.setItem('atlas_access_token', 'e2e-internal-token');
-    window.localStorage.setItem('atlas_session_kind', 'internal');
-  });
+  await seedRefreshSession(page, 'internal');
 
   return espia;
 }
