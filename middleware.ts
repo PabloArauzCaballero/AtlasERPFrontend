@@ -6,9 +6,26 @@ function apiOrigin(): string | null {
   try { return new URL(configured).origin; } catch { return null; }
 }
 
+function uploadOrigins(): string[] {
+  return (process.env.ATLAS_UPLOAD_ORIGINS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .flatMap((value) => {
+      try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && url.href === `${url.origin}/` ? [url.origin] : [];
+      } catch {
+        return [];
+      }
+    });
+}
+
 function policyFor(nonce: string): string {
   const development = process.env.NODE_ENV !== 'production';
-  const connect = ["'self'", apiOrigin(), ...(development ? ['ws:', 'wss:'] : [])].filter(Boolean).join(' ');
+  const connect = ["'self'", apiOrigin(), ...uploadOrigins(), ...(development ? ['ws:', 'wss:'] : [])]
+    .filter(Boolean)
+    .join(' ');
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ''}`,

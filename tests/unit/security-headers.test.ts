@@ -41,3 +41,15 @@ it('limita scripts y conexiones en producción sin duplicar CSP en next.config',
   expect(staticHeaders?.[0]?.headers.find((header) => header.key === 'X-Frame-Options')?.value).toBe('DENY');
   vi.unstubAllEnvs();
 });
+
+it('permite sólo los orígenes HTTPS de carga configurados', () => {
+  vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('ATLAS_UPLOAD_ORIGINS', 'https://storage.atlas.test, https://files.atlas.test/path, http://insecure.test, https://cdn.atlas.test');
+  const policy = responseForRequest().headers.get('Content-Security-Policy')!;
+  const connect = policy.match(/connect-src ([^;]+)/)?.[1];
+  expect(connect).toContain('https://storage.atlas.test');
+  expect(connect).toContain('https://cdn.atlas.test');
+  expect(connect).not.toContain('files.atlas.test');
+  expect(connect).not.toContain('insecure.test');
+  vi.unstubAllEnvs();
+});

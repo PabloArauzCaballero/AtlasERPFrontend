@@ -170,6 +170,9 @@ para que Next coloque ese nonce en los scripts de cada respuesta; esto desactiva
 estática de las páginas y aumenta el trabajo del servidor por request. `next.config.ts` contiene
 las demás cabeceras estáticas, sin una segunda CSP. El cliente usa el proxy `/api/v1` del mismo
 origen si `NEXT_PUBLIC_ATLAS_API_BASE_URL` no está configurada.
+Las cargas directas con URL firmada necesitan `ATLAS_UPLOAD_ORIGINS` en el servidor:
+una lista separada por comas de orígenes HTTPS exactos del almacenamiento autorizado.
+Sin esa variable, la CSP bloqueará cargas a otros orígenes.
 
 ## Regla de red
 
