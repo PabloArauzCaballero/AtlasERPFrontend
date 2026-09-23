@@ -95,7 +95,13 @@ test.describe('Recuperar el acceso del comercio', () => {
   test('el canal interno llama a su ruta y nunca a la del comercio', async ({ page }) => {
     const llamadas: string[] = [];
     await page.route('**/api/v1/auth/**', (route) => {
-      llamadas.push(new URL(route.request().url()).pathname);
+      const ruta = new URL(route.request().url()).pathname;
+      // El provider intenta renovar al arrancar; este caso no tiene sesión y sólo mide
+      // qué canal usa la solicitud de recuperación de contraseña.
+      if (ruta.endsWith('/refresh')) {
+        return route.fulfill({ status: 401, contentType: 'application/json', body: '{}' });
+      }
+      llamadas.push(ruta);
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
