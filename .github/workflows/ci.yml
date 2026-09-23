@@ -15,8 +15,7 @@
 # los tres gates de aquí pasaban en verde porque los dos son `string`. Un gate que sólo mira tipos
 # y sintaxis no puede ver un comportamiento equivocado.
 #
-# PENDIENTE (ATL-009): este repositorio no tiene runner de pruebas unitarias. Cuando se instale
-# Vitest + Testing Library, su paso va aquí, antes del build.
+# Vitest cubre cliente HTTP, sesión y reglas de importación antes del build.
 name: CI
 
 on:
@@ -49,6 +48,9 @@ jobs:
 
       - name: Sesión autenticada
         run: yarn test:auth
+
+      - name: Pruebas unitarias
+        run: yarn test:unit
 
       - name: Lint
         run: yarn lint

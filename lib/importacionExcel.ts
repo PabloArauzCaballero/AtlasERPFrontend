@@ -197,7 +197,18 @@ export function erroresDeFila(
 
   for (const campo of campos) {
     const valor = (crudo[campo.name] ?? '').trim();
-    if (!valor || !campo.options?.length) continue;
+    if (!valor) continue;
+    const normalizado = normalizar(valor, campo);
+    if ((campo.type === 'number' || campo.valueKind === 'number') && !Number.isFinite(Number(normalizado))) {
+      errores.push(`${prefijo}«${campo.label}» debe ser un número finito`);
+    }
+    if (campo.type === 'date') {
+      const fecha = /^\d{4}-\d{2}-\d{2}$/.test(normalizado) ? new Date(`${normalizado}T00:00:00.000Z`) : null;
+      if (!fecha || Number.isNaN(fecha.getTime()) || fecha.toISOString().slice(0, 10) !== normalizado) {
+        errores.push(`${prefijo}«${campo.label}» debe ser una fecha válida (AAAA-MM-DD)`);
+      }
+    }
+    if (!campo.options?.length) continue;
     if (valorDeOpcion(valor, campo) === null) {
       const ejemplos = campo.options.slice(0, 3).map((opcion) => opcion.label).join(', ');
       errores.push(`${prefijo}«${campo.label}» no admite «${valor}» (p. ej.: ${ejemplos})`);
