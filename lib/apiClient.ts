@@ -58,7 +58,8 @@ interface ApiEnvelope<T> {
   error?: { message?: string; code?: string; details?: unknown };
 }
 
-const defaultApiOrigin = 'http://localhost:3000';
+// Sin configuración explícita se usa el proxy del mismo origen, también en producción.
+const defaultApiOrigin = '';
 const defaultApiPrefix = 'api/v1';
 const defaultTimeoutMs = 20_000;
 const ACCESS_TOKEN_KEY = 'atlas_access_token';

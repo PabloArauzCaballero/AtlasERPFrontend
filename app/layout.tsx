@@ -5,6 +5,9 @@ import './tutorial.css';
 import { AuthProvider } from '@/lib/authContext';
 import { ToastHost } from '@/components/atlas/ToastHost';
 
+// El CSP usa un nonce nuevo por petición; el HTML debe generarse con ese nonce.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: { default: 'ATLAS ERP', template: '%s | ATLAS ERP' },
   description: 'Plataforma operacional y financiera ATLAS.',
