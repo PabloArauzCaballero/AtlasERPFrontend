@@ -90,12 +90,14 @@ describe('archivos autenticados', () => {
     }));
     const file = await api.apiFileDownload('documents/1', 'alternativo.pdf');
     expect(file.fileName).toBe('factura.pdf');
-    const content = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file.blob);
-    });
+    const content = typeof file.blob.text === 'function'
+      ? await file.blob.text()
+      : await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file.blob);
+      });
     expect(content).toBe('PDF');
   });
 
