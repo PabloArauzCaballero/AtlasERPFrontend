@@ -22,6 +22,9 @@ name: atlas-erp-frontend
 
 services:
   frontend:
+    environment:
+      APP_COMMIT_SHA: '${SOURCE_COMMIT:-}'
+      APP_VERSION: '0.1.0'
     networks: ['default', 'coolify']
     restart: unless-stopped
     logging:
