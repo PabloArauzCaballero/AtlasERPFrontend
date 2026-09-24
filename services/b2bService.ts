@@ -4,6 +4,46 @@ import type { UploadTicket } from '@/services/filesService';
 import { buildBackendQuery } from './query';
 import type { JsonObject, PageQuery, PaginatedResult, ResourceRow } from './types';
 
+/*
+ * Contrato de cobertura BNPL (P-04/P-05, 2026-09-24). Los importes viajan como cadena con dos
+ * decimales («300.00»): el backend los rechaza si pasan por `number` con más precisión.
+ */
+
+/** Registro de la liquidación al comercio. Todos obligatorios; sólo `paidAt` ya no basta. */
+export interface PayableSettlementInput extends JsonObject {
+  settlementReference: string;
+  amount: string;
+  currency: string;
+  beneficiaryAccountId: string;
+  paidAt: string;
+  evidenceFileId: string;
+}
+
+export interface CoverageSettlementResult extends ResourceRow {
+  outcome: 'PENDING_APPROVAL' | 'CONFIRMED' | 'REJECTED';
+  replayed: boolean;
+  payable?: ResourceRow;
+  settlement?: ResourceRow & { registeredByUserId?: string | null; status?: string };
+  recovery?: ResourceRow | null;
+}
+
+export interface ScheduleCoverageResult extends ResourceRow {
+  outcome: 'SCHEDULED' | 'REVIEW_REQUIRED';
+  reason?: string;
+  message?: string;
+}
+
+export interface RecoveryPaymentInput extends JsonObject {
+  amount: string;
+  paymentReference: string;
+  currency: string;
+  receivedAt?: string;
+}
+
+export interface RecoveryPaymentResult extends ResourceRow {
+  replayed?: boolean;
+}
+
 const b2bListKeys = ['status', 'search', 'category', 'businessLine', 'tag', 'includeArchived', 'sortBy', 'sortOrder'] as const;
 const b2bQuery = (query: PageQuery) =>
   buildBackendQuery(query, { pageSizeKey: 'limit', defaultPageSize: 25, allowedKeys: b2bListKeys });
@@ -61,6 +101,10 @@ export const b2bService = {
   },
   listRecoveries() {
     return apiRequest<ResourceRow[]>('/b2b/coverage/recoveries');
+  },
+  /** Cuotas que una persona tiene que mirar: avisos de pago sin verificar y coberturas en revisión. */
+  listCoverageReviewQueue() {
+    return apiRequest<ResourceRow[]>('/b2b/coverage/review-queue');
   },
   listProposals() {
     return apiRequest<ResourceRow[]>('/b2b/proposals');
@@ -323,19 +367,48 @@ export const b2bService = {
   registerMerchantPayment(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/billing/merchant-payments', { method: 'POST', body });
   },
+  /** 201 `SCHEDULED` con la cobertura, o 202 `REVIEW_REQUIRED` si una persona tiene que mirarla antes. */
   createPayable(body: JsonObject) {
-    return apiRequest<ResourceRow>('/b2b/coverage/payables', { method: 'POST', body });
+    return apiRequest<ScheduleCoverageResult>('/b2b/coverage/payables', { method: 'POST', body });
   },
-  markPayablePaid(payableId: string, body: JsonObject) {
+  /**
+   * Primera firma de la liquidación al comercio. Queda PENDIENTE (202) hasta que otra persona la
+   * apruebe: la cobertura no se da por pagada ni nace la recuperación con esta llamada.
+   */
+  registerPayableSettlement(payableId: string, body: PayableSettlementInput) {
     const safePayableId = requireUuidPathParam(payableId, 'el UUID del payable');
-    return apiRequest<ResourceRow>(`/b2b/coverage/payables/${safePayableId}/paid`, {
+    return apiRequest<CoverageSettlementResult>(`/b2b/coverage/payables/${safePayableId}/paid`, {
       method: 'PATCH',
       body,
     });
   },
-  applyRecoveryPayment(recoveryId: string, body: JsonObject) {
+  /** Segunda firma, de OTRA persona: 403 `FOUR_EYES_REQUIRED` si es quien la registró. */
+  approvePayableSettlement(payableId: string, body: { note?: string } = {}) {
+    const safePayableId = requireUuidPathParam(payableId, 'el UUID del payable');
+    return apiRequest<CoverageSettlementResult>(`/b2b/coverage/payables/${safePayableId}/settlement/approve`, {
+      method: 'PATCH',
+      body,
+    });
+  },
+  rejectPayableSettlement(payableId: string, body: { note: string }) {
+    const safePayableId = requireUuidPathParam(payableId, 'el UUID del payable');
+    return apiRequest<CoverageSettlementResult>(`/b2b/coverage/payables/${safePayableId}/settlement/reject`, {
+      method: 'PATCH',
+      body,
+    });
+  },
+  /** Revierte una cobertura aún no liquidada; la cuota puede volver a cubrirse. */
+  cancelPayable(payableId: string, body: { reason: string }) {
+    const safePayableId = requireUuidPathParam(payableId, 'el UUID del payable');
+    return apiRequest<ResourceRow>(`/b2b/coverage/payables/${safePayableId}/cancel`, {
+      method: 'PATCH',
+      body,
+    });
+  },
+  /** `paymentReference` identifica el cobro: repetirlo devuelve `replayed: true` sin volver a sumar. */
+  applyRecoveryPayment(recoveryId: string, body: RecoveryPaymentInput) {
     const safeRecoveryId = requireUuidPathParam(recoveryId, 'el UUID de la recuperación');
-    return apiRequest<ResourceRow>(`/b2b/coverage/recoveries/${safeRecoveryId}/apply-payment`, {
+    return apiRequest<RecoveryPaymentResult>(`/b2b/coverage/recoveries/${safeRecoveryId}/apply-payment`, {
       method: 'PATCH',
       body,
     });

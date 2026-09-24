@@ -1,0 +1,23 @@
+[
+  {
+    "requirementId": "B07-UI",
+    "packageId": "P-05",
+    "repository": "AtlasERPFrontend",
+    "title": "La pantalla de cobertura habla el contrato de liquidación con doble control",
+    "releaseIncluded": true,
+    "ownerRole": "E",
+    "acceptance": "Registrar el pago al comercio envía referencia, importe exacto como cadena, moneda, comercio beneficiario, fecha no futura y el id del comprobante subido (nunca sólo la fecha); quien registró no ve la acción de aprobar en su sesión y el 403 FOUR_EYES_REQUIRED se explica en lenguaje de usuario; la recuperación envía paymentReference y avisa si el cobro ya estaba registrado; los 409 de elegibilidad y la cola de revisión se leen sin jerga.",
+    "runner": "playwright",
+    "tests": [
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "registrar el pago al comercio sube el comprobante y manda el contrato nuevo completo" },
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "sin comprobante no se envía nada y se dice qué falta" },
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "aprobar el propio pago: el rechazo de doble control se explica en palabras claras" },
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "programar una cuota futura: el 409 dice que aún no venció" },
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "la cola de revisión lista los avisos con su motivo en palabras" },
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "el cobro de recuperación manda su referencia e importe exacto; repetirlo se avisa" },
+      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "cada código nuevo se dice sin jerga" }
+    ],
+    "requiresDatabase": false,
+    "blockedBy": null
+  }
+]
