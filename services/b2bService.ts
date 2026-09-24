@@ -36,12 +36,20 @@ export interface ScheduleCoverageResult extends ResourceRow {
 export interface RecoveryPaymentInput extends JsonObject {
   amount: string;
   paymentReference: string;
-  currency: string;
+  /** La de la recuperación (viene en el listado); sin ella el sistema toma BOB y rechaza otra moneda. */
+  currency?: string;
   receivedAt?: string;
 }
 
 export interface RecoveryPaymentResult extends ResourceRow {
   replayed?: boolean;
+}
+
+/** Resolución de un elemento de la cola de revisión; `note` es el motivo y siempre va. */
+export interface ResolveReviewItemInput extends JsonObject {
+  action: 'CONFIRM_NOTICE' | 'REJECT_NOTICE' | 'DISMISS';
+  note: string;
+  noticeId?: string;
 }
 
 const b2bListKeys = ['status', 'search', 'category', 'businessLine', 'tag', 'includeArchived', 'sortBy', 'sortOrder'] as const;
@@ -102,9 +110,31 @@ export const b2bService = {
   listRecoveries() {
     return apiRequest<ResourceRow[]>('/b2b/coverage/recoveries');
   },
-  /** Cuotas que una persona tiene que mirar: avisos de pago sin verificar y coberturas en revisión. */
-  listCoverageReviewQueue() {
-    return apiRequest<ResourceRow[]>('/b2b/coverage/review-queue');
+  /**
+   * Cuotas que una persona tiene que mirar: avisos de pago sin verificar y coberturas en revisión.
+   * Cada fila trae la cuota, los avisos pendientes y `allowedActions` para esta sesión.
+   */
+  listCoverageReviewQueue(status: 'OPEN' | 'RESOLVED' | 'ALL' = 'OPEN') {
+    return apiRequest<ResourceRow[]>('/b2b/coverage/review-queue', status === 'OPEN' ? {} : { query: { status } });
+  },
+  /** Cierra un elemento de la cola: confirmar o rechazar el aviso de pago, o descartar con motivo. */
+  resolveCoverageReviewItem(reviewItemId: string, body: ResolveReviewItemInput) {
+    const id = requireUuidPathParam(reviewItemId, 'el elemento de revisión');
+    return apiRequest<ResourceRow>(`/b2b/coverage/review-queue/${id}/resolve`, { method: 'POST', body });
+  },
+  /** Cobros y reversos de una recuperación, en el orden en que se registraron. */
+  listRecoveryMovements(recoveryId: string) {
+    const id = requireUuidPathParam(recoveryId, 'el UUID de la recuperación');
+    return apiRequest<ResourceRow[]>(`/b2b/coverage/recoveries/${id}/movements`);
+  },
+  /** Revierte un cobro con un movimiento compensatorio; el original se conserva. */
+  reverseRecoveryMovement(recoveryId: string, movementId: string, body: { reversalReference: string; reason: string }) {
+    const id = requireUuidPathParam(recoveryId, 'el UUID de la recuperación');
+    const movimiento = requireUuidPathParam(movementId, 'el cobro');
+    return apiRequest<RecoveryPaymentResult>(`/b2b/coverage/recoveries/${id}/movements/${movimiento}/reverse`, {
+      method: 'POST',
+      body,
+    });
   },
   listProposals() {
     return apiRequest<ResourceRow[]>('/b2b/proposals');

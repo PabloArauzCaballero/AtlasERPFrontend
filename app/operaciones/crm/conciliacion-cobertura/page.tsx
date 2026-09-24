@@ -4,12 +4,21 @@ import { useCallback, useRef, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { RecoveryMovementsDialog } from '@/components/screens/RecoveryMovementsDialog';
+import { accionesDeRevision } from '@/components/screens/coverageReviewActions';
 import {
   accionesDeLiquidacion,
   textoDeLiquidacion,
   type EstadoLocalDeLiquidacion,
 } from '@/components/screens/coverageSettlementActions';
-import { conMensajesDeCobertura, importeExacto, motivoDeRevision } from '@/lib/coberturaBnpl';
+import {
+  conMensajesDeCobertura,
+  descripcionDeCuota,
+  descripcionDelAviso,
+  importeExacto,
+  importeLegible,
+  motivoDeRevision,
+} from '@/lib/coberturaBnpl';
 import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
 import { loadB2BAccounts, loadMerchantBranches } from '@/services/optionLoaders';
@@ -27,7 +36,8 @@ import type { JsonObject, ResourceRow } from '@/services/types';
  *
  * Desde el 2026-09-24 (P-04/P-05) el pago al comercio lleva doble control —lo registra una persona
  * con su comprobante y lo aprueba otra— y hay una cuarta tabla: las cuotas que el sistema no cubre
- * solo y manda a revisión.
+ * solo y manda a revisión, que se resuelven desde su fila. Cada recuperación abre sus cobros, y un
+ * cobro equivocado se revierte desde ahí.
  */
 export default function CoverageReconciliationPage() {
   const [tab, setTab] = useState('coberturas');
@@ -39,6 +49,7 @@ export default function CoverageReconciliationPage() {
    * el estado de la ref, cualquier recarga —vieja o nueva— pinta lo último que se sabe.
    */
   const [estadoLocal, setEstadoLocal] = useState<Record<string, EstadoLocalDeLiquidacion | undefined>>({});
+  const [cobrosDe, setCobrosDe] = useState<ResourceRow | null>(null);
   const estadoLocalRef = useRef(estadoLocal);
   const marcar = useCallback((payableId: string, estado: EstadoLocalDeLiquidacion | undefined) => {
     estadoLocalRef.current = { ...estadoLocalRef.current, [payableId]: estado };
@@ -48,14 +59,25 @@ export default function CoverageReconciliationPage() {
     async () =>
       (await b2bService.listPayables()).map((row) => ({
         ...row,
-        liquidacion: textoDeLiquidacion(estadoLocalRef.current[String(row.id ?? '')]),
+        liquidacion: textoDeLiquidacion(row, estadoLocalRef.current[String(row.id ?? '')]),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version],
   );
   const cargarRevision = useCallback(
     async () =>
-      (await b2bService.listCoverageReviewQueue()).map((row) => ({ ...row, motivo: motivoDeRevision(row.reason) })),
+      (await b2bService.listCoverageReviewQueue()).map((row) => {
+        const avisos = Array.isArray(row.pendingNotices) ? (row.pendingNotices as ResourceRow[]) : [];
+        const cuota = (row.installment ?? null) as ResourceRow | null;
+        return {
+          ...row,
+          motivo: motivoDeRevision(row.reason),
+          cuota: cuota ? `${descripcionDeCuota(cuota)} · ${importeLegible(cuota.amount)}` : '—',
+          aviso: avisos.length > 0 ? avisos.map(descripcionDelAviso).join(' · ') : '—',
+          /* Quien pidió la cobertura no la resuelve: se le dice en la fila en vez de esconderle todo sin explicación. */
+          quien: row.openedByMe ? 'Usted la pidió: la resuelve otra persona' : '',
+        };
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [version],
   );
@@ -93,7 +115,8 @@ export default function CoverageReconciliationPage() {
       b2bService.applyRecoveryPayment(String(row.id ?? ''), {
         amount: importe,
         paymentReference: String(payload.paymentReference ?? '').trim(),
-        currency: 'BOB',
+        /* La moneda es la de la recuperación, no una supuesta: el sistema rechaza otra. */
+        ...(row.currency ? { currency: String(row.currency) } : {}),
         ...(recibido ? { receivedAt: recibido } : {}),
       }),
     );
@@ -298,14 +321,17 @@ export default function CoverageReconciliationPage() {
                 emptyHint="Nada que revisar: cada cuota vencida se cubrió o se pagó."
                 columns={[
                   { key: 'motivo', label: 'Motivo' },
+                  { key: 'cuota', label: 'Cuota' },
+                  { key: 'aviso', label: 'Pago avisado por el cliente' },
                   { key: 'openedAt', label: 'En revisión desde', kind: 'date' },
-                  { key: 'installmentId', label: 'Cuota', kind: 'mono' },
+                  { key: 'quien', label: 'Quién resuelve' },
                 ]}
                 filters={[{ key: 'motivo', label: 'Motivo' }]}
+                extraActions={accionesDeRevision(recargar)}
                 notice={{
                   tone: 'info',
                   title: 'Cómo se resuelve',
-                  body: 'Es una lista de consulta: verifique con el comercio si el cliente pagó esa cuota antes de cubrirla. Una cuota sale de aquí cuando se programa su cobertura.',
+                  body: 'Verifique con el comercio si el cliente pagó. Si el dinero llegó, confirme el pago: la cuota queda pagada o baja lo que falta. Si no llegó, rechace el aviso: la cuota vuelve a poder cubrirse. Una revisión por contrato no activo se descarta con su motivo. Lo resuelve una persona de finanzas distinta de quien pidió la cobertura, y queda en el historial.',
                 }}
               />
             ),
@@ -328,10 +354,19 @@ export default function CoverageReconciliationPage() {
                   { key: 'recoveryStatus', label: 'Estado', kind: 'status' },
                   { key: 'amountCoveredByAtlas', label: 'Cubierto por Atlas', kind: 'money', align: 'right' },
                   { key: 'amountRecovered', label: 'Recuperado', kind: 'money', align: 'right' },
+                  { key: 'currency', label: 'Moneda' },
                   { key: 'daysPastDue', label: 'Días de mora', align: 'right' },
                 ]}
                 filters={[{ key: 'recoveryStatus', label: 'Estado' }]}
                 extraActions={[
+                  {
+                    key: 'cobros',
+                    label: 'Ver cobros',
+                    icon: 'receipt_long',
+                    /* Sólo abre el detalle: los cobros se listan y se revierten dentro. */
+                    silent: true,
+                    run: async (row) => setCobrosDe(row),
+                  },
                   {
                     key: 'recuperar',
                     label: 'Aplicar recuperación',
@@ -339,7 +374,7 @@ export default function CoverageReconciliationPage() {
                     enabled: (row) => !['RECOVERED', 'WRITTEN_OFF'].includes(String(row.recoveryStatus ?? '')),
                     form: {
                       title: () => 'Aplicar un pago del consumidor',
-                      description: 'Aplica lo cobrado contra lo que Atlas adelantó al comercio.',
+                      description: 'Aplica lo cobrado contra lo que Atlas adelantó al comercio, en la moneda de la recuperación.',
                       submitLabel: 'Aplicar pago',
                       /* Por defecto, lo que falta por recuperar: es el importe que se aplica casi siempre. */
                       fields: (row) => [
@@ -353,7 +388,7 @@ export default function CoverageReconciliationPage() {
                         },
                         {
                           name: 'amount',
-                          label: 'Monto', tooltip: 'Importe en bolivianos, con hasta dos decimales. No puede superar lo que falta por recuperar.',
+                          label: `Monto (${String(row.currency ?? 'BOB')})`, tooltip: 'Importe en la moneda de la recuperación, con hasta dos decimales. No puede superar lo que falta por recuperar.',
                           type: 'number',
                           required: true,
                           /* En céntimos: restar dos importes con `Number` deja colas como 0.30000000000000004. */
@@ -376,6 +411,7 @@ export default function CoverageReconciliationPage() {
           },
         ]}
       />
+      {cobrosDe ? <RecoveryMovementsDialog recovery={cobrosDe} onClose={() => setCobrosDe(null)} onChanged={recargar} /> : null}
     </div>
   );
 }

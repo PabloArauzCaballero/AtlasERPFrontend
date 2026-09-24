@@ -29,7 +29,78 @@ const COBERTURA = {
   reason: 'CUSTOMER_INSTALLMENT_DEFAULT_COVERAGE',
   scheduledPaymentDate: '2026-09-20',
   paidAt: null,
+  currency: 'BOB',
+  settlementStatus: null,
+  settlementRegisteredByMe: false,
 };
+
+/* Coberturas con un pago ya registrado: por otra persona y por quien mira (lo dice el sistema). */
+const COBERTURA_DE_OTRO_ID = '8b2c3d4e-5f60-4b7c-9d8e-0f1a2b3c4d5e';
+const COBERTURA_MIA_ID = '6c3d4e5f-6071-4c8d-8e9f-1a2b3c4d5e6f';
+const COBERTURA_DE_OTRO = {
+  ...COBERTURA,
+  id: COBERTURA_DE_OTRO_ID,
+  settlementStatus: 'PENDING_APPROVAL',
+  settlementReference: 'TRF-1001',
+  settlementRegisteredByUserId: '99999999-9999-4999-8999-999999999999',
+  settlementRegisteredByMe: false,
+};
+const COBERTURA_MIA = {
+  ...COBERTURA,
+  id: COBERTURA_MIA_ID,
+  settlementStatus: 'PENDING_APPROVAL',
+  settlementReference: 'TRF-1002',
+  settlementRegisteredByUserId: '1',
+  settlementRegisteredByMe: true,
+};
+
+const REVISION_ID = '3e4f5a6b-7c8d-4e9f-8a0b-1c2d3e4f5a6b';
+const REVISION_PROPIA_ID = '4f5a6b7c-8d9e-4f0a-9b1c-2d3e4f5a6b7c';
+const REVISION_CONTRATO_ID = '5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c8d';
+const AVISO_ID = '0a1b2c3d-4e5f-4061-8728-394a5b6c7d8e';
+const REVISIONES = [
+  {
+    id: REVISION_ID,
+    installmentId: CUOTA_ID,
+    reason: 'PAYMENT_NOTICE_UNRESOLVED',
+    status: 'OPEN',
+    details: {},
+    openedAt: '2026-09-21T10:00:00.000Z',
+    openedByMe: false,
+    installment: { id: CUOTA_ID, installmentNumber: 2, dueDate: '2026-09-15', amount: '300.00', status: 'OVERDUE' },
+    pendingNotices: [{ id: AVISO_ID, amount: '300.00', paidAt: '2026-09-14T15:00:00.000Z', status: 'REPORTED', evidenceRef: null }],
+    allowedActions: ['CONFIRM_NOTICE', 'REJECT_NOTICE'],
+  },
+  {
+    id: REVISION_PROPIA_ID,
+    installmentId: CUOTA_ID,
+    reason: 'COVERAGE_WITH_PENDING_NOTICE',
+    status: 'OPEN',
+    details: {},
+    openedAt: '2026-09-22T10:00:00.000Z',
+    openedByMe: true,
+    installment: { id: CUOTA_ID, installmentNumber: 2, dueDate: '2026-09-15', amount: '300.00', status: 'OVERDUE' },
+    pendingNotices: [{ id: AVISO_ID, amount: '300.00', paidAt: '2026-09-14T15:00:00.000Z', status: 'REPORTED', evidenceRef: null }],
+    allowedActions: [],
+  },
+  {
+    id: REVISION_CONTRATO_ID,
+    installmentId: CUOTA_ID,
+    reason: 'CONTRACT_NOT_ACTIVE',
+    status: 'OPEN',
+    details: {},
+    openedAt: '2026-09-23T10:00:00.000Z',
+    openedByMe: false,
+    installment: { id: CUOTA_ID, installmentNumber: 2, dueDate: '2026-09-15', amount: '300.00', status: 'OVERDUE' },
+    pendingNotices: [],
+    allowedActions: ['DISMISS'],
+  },
+];
+
+const COBRO_ID = '1b2c3d4e-5f60-4172-8394-a5b6c7d8e9f0';
+const MOVIMIENTOS = [
+  { id: COBRO_ID, recoveryId: RECUPERACION_ID, movementType: 'PAYMENT', paymentReference: 'REC-100', amount: '100.10', currency: 'BOB', reversesMovementId: null, receivedAt: '2026-09-22T12:00:00.000Z', reason: null },
+];
 
 interface Espia {
   liquidaciones: Record<string, unknown>[];
@@ -37,16 +108,20 @@ interface Espia {
   cobros: Record<string, unknown>[];
   archivosRegistrados: Record<string, unknown>[];
   subidas: number;
+  resoluciones: Array<{ id: string; cuerpo: Record<string, unknown> }>;
+  reversos: Array<{ id: string; cuerpo: Record<string, unknown> }>;
 }
 
 interface Respuestas {
   aprobar?: { status: number; body: unknown };
   cobro?: { status: number; body: unknown };
   cubrir?: { status: number; body: unknown };
+  resolver?: { status: number; body: unknown };
+  coberturas?: Record<string, unknown>[];
 }
 
 async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
-  const espia: Espia = { liquidaciones: [], aprobaciones: 0, cobros: [], archivosRegistrados: [], subidas: 0 };
+  const espia: Espia = { liquidaciones: [], aprobaciones: 0, cobros: [], archivosRegistrados: [], subidas: 0, resoluciones: [], reversos: [] };
 
   await page.route('http://almacen.test/**', (route) => {
     espia.subidas += 1;
@@ -66,7 +141,7 @@ async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
         user: { id: '1', email: 'finanzas@atlas.test', fullName: 'Finanzas Atlas', roleCode: 'SUPER_ADMIN', status: 'ACTIVE', permissions: [] },
       });
     }
-    if (ruta.endsWith('/b2b/coverage/payables') && metodo === 'GET') return json([COBERTURA]);
+    if (ruta.endsWith('/b2b/coverage/payables') && metodo === 'GET') return json(respuestas.coberturas ?? [COBERTURA]);
     if (ruta.endsWith('/b2b/coverage/payables') && metodo === 'POST') {
       const r = respuestas.cubrir ?? { status: 201, body: { outcome: 'SCHEDULED', ...COBERTURA } };
       return json(r.body, r.status);
@@ -75,10 +150,20 @@ async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
       return json([{ id: CUOTA_ID, installmentNumber: 2, dueDate: '2026-10-30', amount: '300.00', status: 'SCHEDULED', purchaseId: 'c0ffee00-0000-4000-8000-000000000001' }]);
     }
     if (ruta.endsWith('/b2b/coverage/recoveries')) {
-      return json([{ id: RECUPERACION_ID, consumerId: 'x', amountCoveredByAtlas: '300.00', amountRecovered: '100.10', recoveryStatus: 'PARTIALLY_RECOVERED', daysPastDue: 12 }]);
+      return json([{ id: RECUPERACION_ID, consumerId: 'x', amountCoveredByAtlas: '300.00', amountRecovered: '100.10', currency: 'BOB', recoveryStatus: 'PARTIALLY_RECOVERED', daysPastDue: 12 }]);
     }
-    if (ruta.endsWith('/b2b/coverage/review-queue')) {
-      return json([{ id: 'r1', installmentId: CUOTA_ID, reason: 'PAYMENT_NOTICE_UNRESOLVED', status: 'OPEN', details: {}, openedAt: '2026-09-21T10:00:00.000Z' }]);
+    if (ruta.endsWith(`/recoveries/${RECUPERACION_ID}/movements`)) return json(MOVIMIENTOS);
+    const reverso = /\/recoveries\/[^/]+\/movements\/([^/]+)\/reverse$/.exec(ruta);
+    if (reverso) {
+      espia.reversos.push({ id: reverso[1]!, cuerpo: peticion.postDataJSON() as Record<string, unknown> });
+      return json({ id: RECUPERACION_ID, amountRecovered: '0.00', replayed: false }, 201);
+    }
+    if (ruta.endsWith('/b2b/coverage/review-queue')) return json(REVISIONES);
+    const resolucion = /\/review-queue\/([^/]+)\/resolve$/.exec(ruta);
+    if (resolucion) {
+      espia.resoluciones.push({ id: resolucion[1]!, cuerpo: peticion.postDataJSON() as Record<string, unknown> });
+      const r = respuestas.resolver ?? { status: 200, body: { outcome: 'NOTICE_CONFIRMED', pendingNoticesLeft: 0 } };
+      return json(r.body, r.status);
     }
     if (ruta.endsWith(`/payables/${COBERTURA_ID}/paid`)) {
       const cuerpo = peticion.postDataJSON() as Record<string, unknown>;
@@ -122,7 +207,9 @@ async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
 /* ------------------------------------------------------------------------------------------ */
 
 type ModuloCobertura = {
-  mensajeDeCobertura: (error: unknown) => string | null;
+  mensajeDeCobertura: (error: unknown, contexto?: 'liquidacion' | 'revision') => string | null;
+  estadoDeLiquidacion: (fila: Record<string, unknown>, registradaAqui?: boolean) => { texto: string; pendiente: boolean; registradaPorMi: boolean; hay: boolean };
+  importeLegible: (valor: unknown, moneda?: unknown) => string;
   importeExacto: (valor: unknown) => string | null;
   problemaDeLiquidacion: (datos: Record<string, unknown>, ahora?: Date) => string | null;
   motivoDeRevision: (codigo: unknown) => string;
@@ -148,6 +235,13 @@ test.describe('lib/coberturaBnpl', () => {
       expect(texto!, code).not.toMatch(/CxP|CxC|ATLAS→|backend|endpoint|UUID/i);
     }
     expect(m.mensajeDeCobertura({ code: 'FOUR_EYES_REQUIRED' })).toMatch(/otra persona/);
+    for (const code of ['REVIEW_ITEM_ALREADY_RESOLVED', 'REVIEW_ACTION_NOT_ALLOWED', 'NO_PENDING_NOTICE', 'NOTICE_NOT_PENDING', 'NOTICE_ID_REQUIRED', 'COVERAGE_IN_PLACE']) {
+      const texto = m.mensajeDeCobertura({ code, message: 'jerga' }, 'revision');
+      expect(texto, code).toBeTruthy();
+      expect(texto!, code).not.toMatch(/CxP|CxC|ATLAS→|backend|endpoint|UUID|aviso REPORTED/i);
+    }
+    // En la cola, el doble control habla de la cobertura que esa persona pidió, no de una liquidación.
+    expect(m.mensajeDeCobertura({ code: 'FOUR_EYES_REQUIRED' }, 'revision')).toMatch(/pidió la cobertura/);
     expect(m.mensajeDeCobertura({ code: 'CODIGO_DESCONOCIDO', message: 'x' })).toBeNull();
     expect(m.mensajeDeCobertura(new Error('sin código'))).toBeNull();
   });
@@ -181,6 +275,18 @@ test.describe('lib/coberturaBnpl', () => {
     expect(m.problemaDeLiquidacion({ ...bueno, amount: '0' }, ahora)).toMatch(/importe/i);
     expect(m.problemaDeLiquidacion({ ...bueno, paidAt: '2026-09-25T10:00:00Z' }, ahora)).toMatch(/posterior a hoy/);
     expect(m.problemaDeLiquidacion({ ...bueno, tieneComprobante: false }, ahora)).toMatch(/comprobante/);
+  });
+
+  test('la liquidación se lee desde el listado del sistema', () => {
+    expect(m.estadoDeLiquidacion({ settlementStatus: null })).toMatchObject({ texto: 'Sin registrar', hay: false, pendiente: false });
+    expect(m.estadoDeLiquidacion({ settlementStatus: 'PENDING_APPROVAL', settlementRegisteredByMe: true })).toMatchObject({ pendiente: true, registradaPorMi: true });
+    expect(m.estadoDeLiquidacion({ settlementStatus: 'PENDING_APPROVAL', settlementRegisteredByMe: false })).toMatchObject({ pendiente: true, registradaPorMi: false });
+    // Lo recién registrado aquí cuenta como propio aunque la tabla aún no haya recargado.
+    expect(m.estadoDeLiquidacion({ settlementStatus: null }, true)).toMatchObject({ pendiente: true, registradaPorMi: true });
+    expect(m.estadoDeLiquidacion({ settlementStatus: 'CONFIRMED' })).toMatchObject({ texto: 'Pago aprobado', pendiente: false });
+    expect(m.importeLegible('1234.5')).toBe('Bs 1.234,50');
+    expect(m.importeLegible('0.00')).toBe('Bs 0,00');
+    expect(m.importeLegible('10', 'USD')).toBe('USD 10,00');
   });
 
   test('los motivos de revisión se leen como frase', () => {
@@ -245,7 +351,10 @@ test('sin comprobante no se envía nada y se dice qué falta', async ({ page }) 
 });
 
 test('aprobar el propio pago: el rechazo de doble control se explica en palabras claras', async ({ page }) => {
+  // El listado no la marca como propia (p. ej. se registró desde otra sesión con el mismo usuario):
+  // la acción se ofrece, y si el sistema la rechaza por doble control se explica.
   const espia = await montar(page, {
+    coberturas: [{ ...COBERTURA_DE_OTRO, id: COBERTURA_ID }],
     aprobar: { status: 403, body: { success: false, error: { code: 'FOUR_EYES_REQUIRED', message: 'Quien registró la liquidación no puede confirmarla: debe hacerlo otra persona.' } } },
   });
   await page.goto('/operaciones/crm/conciliacion-cobertura');
@@ -270,12 +379,91 @@ test('programar una cuota futura: el 409 dice que aún no venció', async ({ pag
   await expect(dialogo.getByText(/todavía no venció/)).toBeVisible();
 });
 
+test('aprobar y rechazar sólo se ofrecen con un pago pendiente, y nunca a quien lo registró', async ({ page }) => {
+  await montar(page, { coberturas: [COBERTURA, COBERTURA_DE_OTRO, COBERTURA_MIA] });
+  await page.goto('/operaciones/crm/conciliacion-cobertura');
+  await expect(page.getByTestId(`fila-${COBERTURA_MIA_ID}`)).toBeVisible();
+
+  // Sin pago registrado: se registra; no hay nada que aprobar.
+  await expect(page.getByTestId(`accion-liquidar-${COBERTURA_ID}`)).toBeVisible();
+  await expect(page.getByTestId(`accion-aprobar-${COBERTURA_ID}`)).toHaveCount(0);
+  await expect(page.getByTestId(`fila-${COBERTURA_ID}`)).toContainText('Sin registrar');
+
+  // Pendiente y registrado por otra persona: se aprueba o rechaza; no se registra otro.
+  await expect(page.getByTestId(`accion-aprobar-${COBERTURA_DE_OTRO_ID}`)).toBeVisible();
+  await expect(page.getByTestId(`accion-liquidar-${COBERTURA_DE_OTRO_ID}`)).toHaveCount(0);
+  await expect(page.getByTestId(`fila-${COBERTURA_DE_OTRO_ID}`)).toContainText('espera la aprobación de otra persona');
+  await page.getByTestId(`mas-acciones-${COBERTURA_DE_OTRO_ID}`).click();
+  await expect(page.getByTestId(`accion-rechazar-${COBERTURA_DE_OTRO_ID}`)).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  // Pendiente y registrado por quien mira: ninguna decisión, y la fila lo dice.
+  const mia = page.getByTestId(`fila-${COBERTURA_MIA_ID}`);
+  await expect(mia).toContainText('Registrado por usted');
+  await expect(page.getByTestId(`accion-aprobar-${COBERTURA_MIA_ID}`)).toHaveCount(0);
+  await expect(page.getByTestId(`accion-rechazar-${COBERTURA_MIA_ID}`)).toHaveCount(0);
+  await expect(page.getByTestId(`mas-acciones-${COBERTURA_MIA_ID}`)).toHaveCount(0);
+  await page.screenshot({ path: `${EVIDENCIA}/cobertura-pago-pendiente-por-persona.png`, fullPage: true });
+});
+
 test('la cola de revisión lista los avisos con su motivo en palabras', async ({ page }) => {
   await montar(page);
   await page.goto('/operaciones/crm/conciliacion-cobertura');
   await page.getByRole('tab', { name: /en revisión/i }).click();
-  await expect(page.getByText('El cliente avisó un pago que nadie verificó a tiempo')).toBeVisible();
+  const fila = page.getByTestId(`fila-${REVISION_ID}`);
+  await expect(fila).toContainText('El cliente avisó un pago que nadie verificó a tiempo');
+  await expect(fila).toContainText('Cuota 2 · vence el 15/09/2026');
+  await expect(fila).toContainText('Bs 300,00 pagados el 14/09/2026');
   await page.screenshot({ path: `${EVIDENCIA}/cobertura-en-revision.png`, fullPage: true });
+});
+
+test('confirmar el pago del cliente desde la fila manda la acción y lo verificado', async ({ page }) => {
+  const espia = await montar(page);
+  await page.goto('/operaciones/crm/conciliacion-cobertura');
+  await page.getByRole('tab', { name: /en revisión/i }).click();
+  await page.getByTestId(`accion-confirmar-aviso-${REVISION_ID}`).click();
+  const dialogo = page.getByRole('dialog');
+  await expect(dialogo.getByText(/comprobó con el comercio que recibió el dinero/)).toBeVisible();
+  await dialogo.getByLabel('Qué se verificó*', { exact: true }).fill('Extracto del comercio del 14/09');
+  await page.screenshot({ path: `${EVIDENCIA}/cobertura-revision-confirmar.png`, fullPage: true });
+  await dialogo.getByRole('button', { name: 'Confirmar pago' }).click();
+  await expect.poll(() => espia.resoluciones.length).toBe(1);
+  // Con un solo aviso pendiente no se pregunta cuál: no viaja `noticeId`.
+  expect(espia.resoluciones[0]).toEqual({ id: REVISION_ID, cuerpo: { action: 'CONFIRM_NOTICE', note: 'Extracto del comercio del 14/09' } });
+});
+
+test('rechazar el aviso con motivo; si otra persona ya lo resolvió se explica', async ({ page }) => {
+  const espia = await montar(page, {
+    resolver: { status: 409, body: { success: false, error: { code: 'REVIEW_ITEM_ALREADY_RESOLVED', message: 'El elemento ya se resolvió (NOTICE_CONFIRMED).' } } },
+  });
+  await page.goto('/operaciones/crm/conciliacion-cobertura');
+  await page.getByRole('tab', { name: /en revisión/i }).click();
+  await page.getByTestId(`mas-acciones-${REVISION_ID}`).click();
+  await page.getByTestId(`accion-rechazar-aviso-${REVISION_ID}`).click();
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Motivo del rechazo*', { exact: true }).fill('El comercio no recibió el dinero');
+  await dialogo.getByRole('button', { name: 'Rechazar aviso' }).click();
+  await expect(dialogo.getByText(/Otra persona ya resolvió esta revisión/)).toBeVisible();
+  expect(espia.resoluciones[0]).toEqual({ id: REVISION_ID, cuerpo: { action: 'REJECT_NOTICE', note: 'El comercio no recibió el dinero' } });
+});
+
+test('quien pidió la cobertura no ve cómo resolverla; un contrato no activo sólo se descarta', async ({ page }) => {
+  const espia = await montar(page);
+  await page.goto('/operaciones/crm/conciliacion-cobertura');
+  await page.getByRole('tab', { name: /en revisión/i }).click();
+
+  const propia = page.getByTestId(`fila-${REVISION_PROPIA_ID}`);
+  await expect(propia).toContainText('Usted la pidió: la resuelve otra persona');
+  await expect(page.getByTestId(`accion-confirmar-aviso-${REVISION_PROPIA_ID}`)).toHaveCount(0);
+  await expect(page.getByTestId(`mas-acciones-${REVISION_PROPIA_ID}`)).toHaveCount(0);
+
+  await expect(page.getByTestId(`accion-confirmar-aviso-${REVISION_CONTRATO_ID}`)).toHaveCount(0);
+  await page.getByTestId(`accion-descartar-${REVISION_CONTRATO_ID}`).click();
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Motivo*', { exact: true }).fill('Contrato suspendido');
+  await dialogo.getByRole('button', { name: 'Descartar' }).click();
+  await expect.poll(() => espia.resoluciones.length).toBe(1);
+  expect(espia.resoluciones[0]).toEqual({ id: REVISION_CONTRATO_ID, cuerpo: { action: 'DISMISS', note: 'Contrato suspendido' } });
 });
 
 test('el cobro de recuperación manda su referencia e importe exacto; repetirlo se avisa', async ({ page }) => {
@@ -285,10 +473,50 @@ test('el cobro de recuperación manda su referencia e importe exacto; repetirlo 
   await page.getByTestId(`accion-recuperar-${RECUPERACION_ID}`).click();
   const dialogo = page.getByRole('dialog');
   // Lo que falta, en céntimos exactos: 300.00 − 100.10.
-  await expect(dialogo.getByLabel('Monto*', { exact: true })).toHaveValue('199.90');
+  await expect(dialogo.getByLabel('Monto (BOB)*', { exact: true })).toHaveValue('199.90');
   await dialogo.getByLabel('Referencia del cobro*', { exact: true }).fill('REC-55102');
   await dialogo.getByRole('button', { name: 'Aplicar pago' }).click();
   await expect.poll(() => espia.cobros.length).toBe(1);
   expect(espia.cobros[0]).toEqual({ amount: '199.90', paymentReference: 'REC-55102', currency: 'BOB' });
   await expect(page.getByText('Ese cobro ya estaba registrado')).toBeVisible();
+});
+
+test('la moneda del cobro es la de la recuperación, no una supuesta', async ({ page }) => {
+  const espia = await montar(page);
+  await page.route('**/api/v1/b2b/coverage/recoveries', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([{ id: RECUPERACION_ID, consumerId: 'x', amountCoveredByAtlas: '300.00', amountRecovered: '0.00', currency: 'USD', recoveryStatus: 'OPEN', daysPastDue: 3 }]),
+    }),
+  );
+  await page.goto('/operaciones/crm/conciliacion-cobertura');
+  await page.getByRole('tab', { name: /recuperaciones/i }).click();
+  await page.getByTestId(`accion-recuperar-${RECUPERACION_ID}`).click();
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Referencia del cobro*', { exact: true }).fill('REC-77');
+  await dialogo.getByRole('button', { name: 'Aplicar pago' }).click();
+  await expect.poll(() => espia.cobros.length).toBe(1);
+  expect(espia.cobros[0]).toMatchObject({ currency: 'USD', amount: '300.00' });
+});
+
+test('los cobros de una recuperación se ven y uno se revierte con referencia y motivo', async ({ page }) => {
+  const espia = await montar(page);
+  await page.goto('/operaciones/crm/conciliacion-cobertura');
+  await page.getByRole('tab', { name: /recuperaciones/i }).click();
+  await page.getByTestId(`accion-cobros-${RECUPERACION_ID}`).click();
+  const detalle = page.getByRole('dialog');
+  await expect(detalle.getByText('Cobros de la recuperación')).toBeVisible();
+  const cobro = page.getByTestId(`fila-${COBRO_ID}`);
+  await expect(cobro).toContainText('REC-100');
+  await expect(cobro).toContainText('Vigente');
+  await page.screenshot({ path: `${EVIDENCIA}/recuperacion-cobros.png`, fullPage: true });
+
+  await page.getByTestId(`accion-revertir-${COBRO_ID}`).click();
+  const formulario = page.getByRole('dialog').filter({ hasText: 'Revertir el cobro REC-100' });
+  await expect(formulario.getByLabel('Referencia del reverso*', { exact: true })).toHaveValue('REV-REC-100');
+  await formulario.getByLabel('Motivo*', { exact: true }).fill('El banco devolvió la transferencia');
+  await formulario.getByRole('button', { name: 'Revertir cobro' }).click();
+  await expect.poll(() => espia.reversos.length).toBe(1);
+  expect(espia.reversos[0]).toEqual({ id: COBRO_ID, cuerpo: { reversalReference: 'REV-REC-100', reason: 'El banco devolvió la transferencia' } });
 });

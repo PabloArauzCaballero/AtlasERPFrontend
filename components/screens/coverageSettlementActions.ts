@@ -1,4 +1,4 @@
-import { conMensajesDeCobertura, importeExacto, problemaDeLiquidacion } from '@/lib/coberturaBnpl';
+import { conMensajesDeCobertura, estadoDeLiquidacion, importeExacto, problemaDeLiquidacion } from '@/lib/coberturaBnpl';
 import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
 import { subirArchivoDelErp } from '@/services/filesService';
@@ -12,10 +12,14 @@ import type { CrudExtraAction } from './CrudDirectory';
  *
  * Antes bastaba una fecha para dar por pagado al comercio, y con eso nacía la deuda del cliente.
  * Ahora el pago se registra con su referencia, importe, moneda, comercio y comprobante, y queda
- * PENDIENTE hasta que OTRA persona lo aprueba (doble control). La pantalla no puede saber desde el
- * listado quién registró cada liquidación —el listado no lo trae—, así que:
- *  - lo que registró esta misma sesión se recuerda aquí y la fila deja de ofrecer aprobar/rechazar;
- *  - para lo demás, el rechazo del sistema (`FOUR_EYES_REQUIRED`) se explica con palabras claras.
+ * PENDIENTE hasta que OTRA persona lo aprueba (doble control).
+ *
+ * El listado trae la liquidación viva de cada cobertura (`settlementStatus`) y si la registró quien
+ * mira (`settlementRegisteredByMe`, lo calcula el sistema con la sesión). Con eso:
+ *  - «Registrar pago» sólo aparece si no hay un pago registrado;
+ *  - «Aprobar» y «Rechazar» sólo aparecen si hay uno PENDIENTE y no lo registró quien mira;
+ *  - lo que esta pantalla acaba de registrar cuenta como propio aunque la tabla no haya recargado;
+ *  - si aun así el sistema rechaza por doble control (`FOUR_EYES_REQUIRED`), se explica en claro.
  */
 
 /** Estados de la cobertura en los que todavía se puede pagar o cancelar. */
@@ -31,10 +35,9 @@ export interface DependenciasDeLiquidacion {
   recargar: () => void;
 }
 
-/** Texto de la columna «Liquidación» para lo que esta sesión conoce. */
-export function textoDeLiquidacion(estado: EstadoLocalDeLiquidacion | undefined): string {
-  if (estado === 'REGISTRADA_POR_MI') return 'Registrada por usted · falta la aprobación de otra persona';
-  return '';
+/** Texto de la columna «Pago al comercio»: lo que dice el sistema, más lo recién hecho aquí. */
+export function textoDeLiquidacion(row: ResourceRow, estado: EstadoLocalDeLiquidacion | undefined): string {
+  return estadoDeLiquidacion(row, estado === 'REGISTRADA_POR_MI').texto;
 }
 
 const TIPOS_DE_COMPROBANTE = 'application/pdf,image/jpeg,image/png';
@@ -81,7 +84,10 @@ async function registrar(row: ResourceRow, payload: JsonObject, deps: Dependenci
 }
 
 export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtraAction[] {
-  const mia = (row: ResourceRow) => deps.estadoLocal[String(row.id ?? '')] === 'REGISTRADA_POR_MI';
+  const estado = (row: ResourceRow) =>
+    estadoDeLiquidacion(row, deps.estadoLocal[String(row.id ?? '')] === 'REGISTRADA_POR_MI');
+  /* Hay un pago esperando la segunda firma y quien mira NO lo registró: puede decidir sobre él. */
+  const decidible = (row: ResourceRow) => abierta(row) && estado(row).pendiente && !estado(row).registradaPorMi;
 
   return [
     {
@@ -89,7 +95,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
       label: 'Registrar pago al comercio',
       icon: 'paid',
       primary: true,
-      enabled: (row) => abierta(row) && !deps.estadoLocal[String(row.id ?? '')],
+      enabled: (row) => abierta(row) && !estado(row).hay && !deps.estadoLocal[String(row.id ?? '')],
       form: {
         title: () => 'Registrar el pago de la cobertura al comercio',
         description:
@@ -113,8 +119,8 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
       icon: 'verified',
       tone: 'success',
       primary: true,
-      /* Quien registró no aprueba: lo que se registró en esta sesión ya no ofrece la acción. */
-      enabled: (row) => abierta(row) && !mia(row),
+      /* Sólo con un pago pendiente, y nunca a quien lo registró. */
+      enabled: decidible,
       form: {
         title: () => 'Aprobar el pago registrado',
         description:
@@ -140,7 +146,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
       label: 'Rechazar pago',
       icon: 'block',
       tone: 'danger',
-      enabled: (row) => abierta(row) && !mia(row),
+      enabled: decidible,
       form: {
         title: () => 'Rechazar el pago registrado',
         description:
@@ -165,7 +171,8 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
       label: 'Cancelar cobertura',
       icon: 'cancel',
       tone: 'danger',
-      enabled: (row) => abierta(row) && !mia(row),
+      /* Con un pago registrado el sistema no la cancela: primero se rechaza el pago. */
+      enabled: (row) => abierta(row) && !estado(row).hay,
       form: {
         title: () => 'Cancelar la cobertura',
         description:
