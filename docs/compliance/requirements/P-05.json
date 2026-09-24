@@ -6,16 +6,101 @@
     "title": "La pantalla de cobertura habla el contrato de liquidación con doble control",
     "releaseIncluded": true,
     "ownerRole": "E",
-    "acceptance": "Registrar el pago al comercio envía referencia, importe exacto como cadena, moneda, comercio beneficiario, fecha no futura y el id del comprobante subido (nunca sólo la fecha); quien registró no ve la acción de aprobar en su sesión y el 403 FOUR_EYES_REQUIRED se explica en lenguaje de usuario; la recuperación envía paymentReference y avisa si el cobro ya estaba registrado; los 409 de elegibilidad y la cola de revisión se leen sin jerga.",
+    "acceptance": "Registrar el pago al comercio envía referencia, importe exacto como cadena, moneda, comercio beneficiario, fecha no futura y el id del comprobante subido (nunca sólo la fecha); aprobar/rechazar sólo se ofrecen con una liquidación PENDING_APPROVAL que no registró quien mira (settlementRegisteredByMe del listado) y el 403 FOUR_EYES_REQUIRED se explica en lenguaje de usuario; la recuperación envía paymentReference y avisa si el cobro ya estaba registrado; los 409 de elegibilidad y la cola de revisión se leen sin jerga.",
     "runner": "playwright",
     "tests": [
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "registrar el pago al comercio sube el comprobante y manda el contrato nuevo completo" },
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "sin comprobante no se envía nada y se dice qué falta" },
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "aprobar el propio pago: el rechazo de doble control se explica en palabras claras" },
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "programar una cuota futura: el 409 dice que aún no venció" },
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "la cola de revisión lista los avisos con su motivo en palabras" },
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "el cobro de recuperación manda su referencia e importe exacto; repetirlo se avisa" },
-      { "file": "e2e/cobertura-bnpl.evidencia.spec.ts", "name": "cada código nuevo se dice sin jerga" }
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "registrar el pago al comercio sube el comprobante y manda el contrato nuevo completo"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "sin comprobante no se envía nada y se dice qué falta"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "aprobar el propio pago: el rechazo de doble control se explica en palabras claras"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "programar una cuota futura: el 409 dice que aún no venció"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "la cola de revisión lista los avisos con su motivo en palabras"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "el cobro de recuperación manda su referencia e importe exacto; repetirlo se avisa"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "cada código nuevo se dice sin jerga"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "aprobar y rechazar sólo se ofrecen con un pago pendiente, y nunca a quien lo registró"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "la liquidación se lee desde el listado del sistema"
+      }
+    ],
+    "requiresDatabase": false,
+    "blockedBy": null
+  },
+  {
+    "requirementId": "B08-resolucion-cola-UI",
+    "packageId": "P-04",
+    "repository": "AtlasERPFrontend",
+    "title": "La cola «En revisión» se resuelve desde la fila (confirmar, rechazar o descartar) en lenguaje de usuario",
+    "releaseIncluded": true,
+    "ownerRole": "E",
+    "acceptance": "Cada fila muestra motivo, cuota, pago avisado y quién resuelve; las acciones salen de allowedActions del sistema (quien pidió la cobertura no ve ninguna); confirmar envía CONFIRM_NOTICE con lo verificado, rechazar REJECT_NOTICE con motivo, descartar DISMISS con motivo; los rechazos (ya resuelto por otra persona, doble control, cobertura ya pagada) se explican sin jerga.",
+    "runner": "playwright",
+    "tests": [
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "la cola de revisión lista los avisos con su motivo en palabras"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "confirmar el pago del cliente desde la fila manda la acción y lo verificado"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "rechazar el aviso con motivo; si otra persona ya lo resolvió se explica"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "quien pidió la cobertura no ve cómo resolverla; un contrato no activo sólo se descarta"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "cada código nuevo se dice sin jerga"
+      }
+    ],
+    "requiresDatabase": false,
+    "blockedBy": null
+  },
+  {
+    "requirementId": "B07-recuperacion-UI",
+    "packageId": "P-05",
+    "repository": "AtlasERPFrontend",
+    "title": "Recuperación: moneda de la recuperación, cobros visibles y reverso con referencia y motivo",
+    "releaseIncluded": true,
+    "ownerRole": "E",
+    "acceptance": "El cobro viaja con la moneda que trae el listado (no BOB fijo); «Ver cobros» lista cobros y reversos; «Revertir cobro» sólo en un cobro vigente y envía reversalReference y reason al endpoint de reverso (movimiento compensatorio).",
+    "runner": "playwright",
+    "tests": [
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "la moneda del cobro es la de la recuperación, no una supuesta"
+      },
+      {
+        "file": "e2e/cobertura-bnpl.evidencia.spec.ts",
+        "name": "los cobros de una recuperación se ven y uno se revierte con referencia y motivo"
+      }
     ],
     "requiresDatabase": false,
     "blockedBy": null
