@@ -35,6 +35,12 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly timedOut = false,
+    /**
+     * El código estable del rechazo (`FOUR_EYES_REQUIRED`, `DUPLICATE_REFERENCE`…), cuando el
+     * backend lo manda. El mensaje es para leer; el código es para que una pantalla decida qué
+     * decir con sus propias palabras sin tener que adivinarlo por el texto.
+     */
+    readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -196,6 +202,11 @@ function describeValidationDetails(details: unknown): string | null {
   return rest > 0 ? `${shown} (y ${rest} más)` : shown;
 }
 
+/** El código del sobre de error, si lo hay. */
+function extractErrorCode<T>(payload: ApiEnvelope<T> | T | null): string | undefined {
+  return isApiEnvelope(payload) && typeof payload.error?.code === 'string' ? payload.error.code : undefined;
+}
+
 function extractErrorMessage<T>(response: Response, payload: ApiEnvelope<T> | T | null): string {
   if (isApiEnvelope(payload) && payload.error?.message) {
     const details = describeValidationDetails(payload.error.details);
@@ -212,7 +223,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await readPayload<T>(response);
 
   if (!response.ok) {
-    throw new ApiError(extractErrorMessage(response, payload), response.status);
+    throw new ApiError(extractErrorMessage(response, payload), response.status, false, extractErrorCode(payload));
   }
 
   if (isApiEnvelope<T>(payload) && payload.success === true) return payload.data as T;
@@ -414,7 +425,7 @@ export async function apiFileDownload(
 
   if (!response.ok) {
     const payload = await readPayload<unknown>(response);
-    throw new ApiError(extractErrorMessage(response, payload), response.status);
+    throw new ApiError(extractErrorMessage(response, payload), response.status, false, extractErrorCode(payload));
   }
 
   return {
@@ -455,7 +466,7 @@ export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}):
   if (!response.ok) {
     // El cuerpo del error SÍ es JSON aunque lo pedido sean bytes: se lee para conservar el motivo.
     const payload = await readPayload<unknown>(response);
-    throw new ApiError(extractErrorMessage(response, payload), response.status);
+    throw new ApiError(extractErrorMessage(response, payload), response.status, false, extractErrorCode(payload));
   }
 
   return URL.createObjectURL(await response.blob());

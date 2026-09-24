@@ -1,6 +1,6 @@
 import type { ActionField } from '@/components/screens/StructuredActionForm';
 
-export type FieldValueKind = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'stringList' | 'codeList';
+export type FieldValueKind = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'stringList' | 'codeList' | 'file';
 
 export interface PayloadFieldDefinition {
   name: string;
@@ -9,6 +9,11 @@ export interface PayloadFieldDefinition {
 }
 
 function convertValue(value: FormDataEntryValue, definition: PayloadFieldDefinition): unknown {
+  /*
+   * Un `<input type="file">` sin elegir entrega un `File` vacío y sin nombre, no `null`. El archivo
+   * se entrega tal cual —no es JSON: la pantalla lo sube y manda sólo el id que devuelve el almacén—.
+   */
+  if (definition.valueKind === 'file') return typeof value !== 'string' && value.size > 0 ? value : undefined;
   const text = String(value).trim();
   if (definition.optional && text === '') return undefined;
   if (definition.valueKind === 'number') return Number(text);
@@ -70,7 +75,13 @@ export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinitio
       name: field.name,
       valueKind:
         field.valueKind ??
-        (field.type === 'datetime' ? 'datetime' : field.type === 'multiselect' ? 'codeList' : undefined),
+        (field.type === 'datetime'
+          ? 'datetime'
+          : field.type === 'multiselect'
+            ? 'codeList'
+            : field.type === 'file'
+              ? 'file'
+              : undefined),
       optional: field.optional,
     }));
 }
