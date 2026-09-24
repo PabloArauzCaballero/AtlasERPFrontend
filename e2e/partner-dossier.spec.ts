@@ -50,7 +50,6 @@ test.describe('expediente del negocio', () => {
     const pendientes = page.getByTestId('expediente-pendientes');
     await expect(pendientes).toBeVisible();
     await expect(pendientes.locator('[data-requirement="branch"]')).toBeVisible();
-    await expect(pendientes.locator('[data-requirement="business_qr"]')).toBeVisible();
     await expect(pendientes.locator('[data-requirement="bank_qr"]')).toBeVisible();
     await page.screenshot({ path: `${EVIDENCIA}/02-pendientes.png`, fullPage: true });
 
@@ -113,6 +112,7 @@ test.describe('expediente del negocio', () => {
     const celda = page.getByTestId(`cajas-de-${vieja}`);
     await expect(celda).toContainText('SN-00042');
     await expect(celda.getByTestId('qr-terminal').first()).toHaveAttribute('data-qr-value', 'SN-00042');
+    await expect(celda.getByTestId('qr-terminal').first()).toHaveCSS('width', '192px');
 
     // El terminal cuelga de la sucursal desde la que se dio de alta: sin esto, un cobro no se
     // puede situar en un local.
@@ -154,10 +154,6 @@ test.describe('expediente del negocio', () => {
      */
     await page.getByTestId('tab-qr').click();
 
-    await page.getByTestId('input-qr-negocio').setInputFiles({ name: 'qr.png', mimeType: 'image/png', buffer: PNG });
-    await page.getByTestId('btn-subir-qr-negocio').click();
-    await expect(page.getByTestId('qr-negocio-vigente')).toBeVisible();
-
     // La entidad se elige de `portal.bankInstitution`; ya no se teclea la sigla.
     await page.getByTestId('campo-entidad').click();
     await page.getByTestId('select-bankInstitutionCode-option-BNB').click();
@@ -176,10 +172,9 @@ test.describe('expediente del negocio', () => {
     await page.screenshot({ path: `${EVIDENCIA}/03-qr.png`, fullPage: true });
 
     // --- Envío ------------------------------------------------------------------------------
-    // Los dos QR dejaron de faltar, y se comprueba en el embudo del expediente: es lo que prueba
+    // El QR bancario dejó de faltar, y se comprueba en el embudo del expediente: es lo que prueba
     // que subirlos en otra pantalla cuenta para el mismo trámite.
     await page.getByTestId('tab-estado').click();
-    await expect(pendientes.locator('[data-requirement="business_qr"]')).toHaveCount(0);
     await expect(pendientes.locator('[data-requirement="bank_qr"]')).toHaveCount(0);
 
     // Queda un requisito que esta pantalla todavía no cubre —el representante legal—, así que el
