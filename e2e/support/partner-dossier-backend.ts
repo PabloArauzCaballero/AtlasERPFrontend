@@ -96,9 +96,6 @@ function gapsOf(state: DossierState) {
     gaps.push({ requirement: 'branch', detail: 'Falta registrar al menos una sucursal.' });
   }
   const live = state.qrCodes.filter((qr) => qr.status === 'pending_review' || qr.status === 'active');
-  if (!live.some((qr) => qr.qrKind === 'business')) {
-    gaps.push({ requirement: 'business_qr', detail: 'Falta subir el QR del negocio.' });
-  }
   if (!live.some((qr) => qr.qrKind === 'bank')) {
     gaps.push({ requirement: 'bank_qr', detail: 'Falta subir el QR bancario de cobro.' });
   }

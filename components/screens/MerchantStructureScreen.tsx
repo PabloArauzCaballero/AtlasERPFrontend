@@ -560,8 +560,8 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                             ) : (
                               <div className="flex flex-wrap gap-3">
                                 {terminales.map((pos) => (
-                                  <div key={pos.terminalId} className="w-28 space-y-1 text-center">
-                                    <QrCanvas value={pos.terminalSerial} size={96} className="mx-auto" />
+                                  <div key={pos.terminalId} className="w-48 space-y-1 text-center">
+                                    <QrCanvas value={pos.terminalSerial} size={192} className="mx-auto" />
                                     <p className="truncate font-bold text-slate-800" title={pos.terminalAlias ?? pos.terminalSerial}>
                                       {pos.terminalAlias ?? pos.terminalSerial}
                                     </p>
