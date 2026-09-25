@@ -34,9 +34,32 @@ export function downloadCsvTemplate(filename: string, headers: string[]): void {
   triggerCsvDownload(filename, `${headers.join(',')}\n`);
 }
 
-/** Escapa un valor para CSV: comillas dobladas y envuelto si trae coma, comilla o salto de línea. */
-function escapeCsvCell(value: unknown): string {
-  const text = value === null || value === undefined ? '' : String(value);
+/** Lo que una hoja de cálculo lee como el comienzo de una fórmula. */
+const INICIO_DE_FORMULA = /^[=+\-@\t\r]/;
+
+/** Un número negativo tal cual (`-12.50`, `-3`): se deja como número para que la hoja pueda sumarlo. */
+const NUMERO_NEGATIVO = /^-\d+(\.\d+)?$/;
+
+/**
+ * Neutraliza una celda que Excel, LibreOffice o Sheets ejecutarían como fórmula.
+ *
+ * Los datos exportados los escribió gente de fuera —el nombre de un comercio, una glosa—, y una celda
+ * `=HYPERLINK("http://…","Ver")` abierta en la hoja se vuelve un enlace o una llamada al exterior. Se
+ * antepone un apóstrofo, que la hoja no muestra y que hace leer el resto como texto. Coste asumido:
+ * un texto que de verdad empieza por `+`, `=` o `@` (un teléfono `+591…`) lleva ese apóstrofo al
+ * volver a importarse. Los negativos puros quedan como número: `-12.50` no ejecuta nada.
+ */
+export function neutralizarFormula(text: string): string {
+  if (!INICIO_DE_FORMULA.test(text) || NUMERO_NEGATIVO.test(text)) return text;
+  return `'${text}`;
+}
+
+/**
+ * Escapa un valor para CSV: neutraliza fórmulas, dobla comillas y envuelve si trae coma, comilla o
+ * salto de línea.
+ */
+export function escapeCsvCell(value: unknown): string {
+  const text = neutralizarFormula(value === null || value === undefined ? '' : String(value));
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
