@@ -22,9 +22,15 @@
  *
  * ## Qué se repite
  *
- *  - GET: ante cualquier fallo transitorio, incluido el corte de red y el plazo agotado.
- *  - Cualquier otro método: sólo si la pasarela contestó 404/500/502/503. Nunca ante un plazo
- *    agotado, un corte o un 504: ahí la petición pudo llegar y ejecutarse sin que volviera respuesta.
+ *  - GET y HEAD: ante cualquier fallo transitorio, incluido el corte de red y el plazo agotado.
+ *  - Una mutación (POST, PUT, PATCH, DELETE) CON llave de idempotencia (`x-idempotency-key`): igual
+ *    que un GET, y siempre con la MISMA llave, porque el backend reconoce la repetición y devuelve la
+ *    respuesta guardada en vez de ejecutarla dos veces.
+ *  - Una mutación SIN llave: nunca. Ni siquiera ante un 404/500/502/503 que no es JSON: el proxy de
+ *    Next también contesta `Internal Server Error` en texto cuando el backend cortó la conexión DESPUÉS
+ *    de recibir la petición (medido en `next-proxy-reset.cjs`, plan de producción 2026-09-24). Antes se
+ *    daba por «no llegó» y un asiento contable podía mandarse hasta 22 veces. Ahora se manda una vez y,
+ *    si la respuesta no la escribió el backend, `apiClient` avisa de que el resultado es desconocido.
  */
 
 export const PRESUPUESTO_REINTENTOS_MS = 45_000;
@@ -36,13 +42,32 @@ const DISPERSION = 0.25;
 
 const DE_PASARELA = new Set([404, 500, 502, 503, 504]);
 
-/** Sin el 504: un plazo agotado en la pasarela no dice si el backend llegó a recibir la petición. */
-const NO_LLEGO = new Set([404, 500, 502, 503]);
+/** Nombres (en minúsculas) con los que viaja la llave de idempotencia. El backend lee `x-idempotency-key`. */
+const CABECERAS_DE_LLAVE = new Set(['x-idempotency-key', 'idempotency-key']);
 
-export type Repeticion = 'segura' | 'solo-si-no-llego';
+/**
+ * - `segura`: repetir no cambia nada (lectura, o una subida a la misma URL firmada).
+ * - `con-llave`: mutación con llave de idempotencia; el backend descarta la repetición.
+ * - `unica`: mutación sin llave; se manda una sola vez.
+ */
+export type Repeticion = 'segura' | 'con-llave' | 'unica';
 
-export function repeticionDe(method: string | undefined): Repeticion {
-  return (method ?? 'GET').toUpperCase() === 'GET' ? 'segura' : 'solo-si-no-llego';
+export function esMutacion(method: string | undefined): boolean {
+  const metodo = (method ?? 'GET').toUpperCase();
+  return metodo !== 'GET' && metodo !== 'HEAD';
+}
+
+/** La llave de idempotencia de la petición, venga con el nombre que venga; `null` si no hay. */
+export function llaveDeIdempotencia(headers: Record<string, string> | undefined): string | null {
+  for (const [nombre, valor] of Object.entries(headers ?? {})) {
+    if (CABECERAS_DE_LLAVE.has(nombre.toLowerCase()) && valor.trim()) return valor;
+  }
+  return null;
+}
+
+export function repeticionDe(method: string | undefined, headers?: Record<string, string>): Repeticion {
+  if (!esMutacion(method)) return 'segura';
+  return llaveDeIdempotencia(headers) ? 'con-llave' : 'unica';
 }
 
 /** La respuesta la produjo lo que está delante del backend, no el backend. */
@@ -55,11 +80,9 @@ export function esRespuestaDePasarela(response: Response): boolean {
 export type Resultado = { response: Response } | { error: unknown; sinRespuesta: boolean };
 
 export function merecePrueba(resultado: Resultado, repeticion: Repeticion): boolean {
-  if ('response' in resultado) {
-    if (!esRespuestaDePasarela(resultado.response)) return false;
-    return repeticion === 'segura' || NO_LLEGO.has(resultado.response.status);
-  }
-  return repeticion === 'segura' && resultado.sinRespuesta;
+  if (repeticion === 'unica') return false;
+  if ('response' in resultado) return esRespuestaDePasarela(resultado.response);
+  return resultado.sinRespuesta;
 }
 
 export function esperaAntesDelIntento(n: number, azar: () => number = Math.random): number {
