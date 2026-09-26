@@ -1,9 +1,12 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { Modal } from '@/components/atlas/Modal';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { asientoDesdeExcel, camposAsiento, camposLineaAsiento } from '@/components/screens/altas/asientoContable';
 import { accountingService } from '@/services/accountingService';
+import type { ResourceRow } from '@/services/types';
 
 /**
  * Documentos contables: el listado es la pantalla.
@@ -14,6 +17,8 @@ import { accountingService } from '@/services/accountingService';
  */
 export default function AccountingDocumentsPage() {
   const load = useCallback(() => accountingService.listDocuments(), []);
+  /** El asiento cuyo comprobante de respaldo se está viendo. `null` cierra el diálogo. */
+  const [respaldoDe, setRespaldoDe] = useState<ResourceRow | null>(null);
 
   return (
     <CrudDirectory
@@ -62,6 +67,17 @@ export default function AccountingDocumentsPage() {
       extraActions={[
         {
           /*
+           * El comprobante que respalda el asiento (la factura, el recibo, el extracto). Se ofrece
+           * también en un asiento contabilizado: adjuntar la prueba no cambia el asiento.
+           */
+          key: 'respaldo',
+          label: 'Respaldo',
+          icon: 'attach_file',
+          silent: true,
+          run: async (row) => setRespaldoDe(row),
+        },
+        {
+          /*
            * La reversión: el aviso de esta misma pantalla decía «lo que corresponde es
            * contabilizarlo o reversarlo» y sólo estaba lo primero. El endpoint y el
            * método del servicio existían; faltaba el botón, así que un asiento
@@ -102,6 +118,19 @@ export default function AccountingDocumentsPage() {
           },
         },
       ]}
-    />
+    >
+      {respaldoDe ? (
+        <Modal
+          open
+          title={`Respaldo · ${String(respaldoDe.documentNo ?? 'asiento')}`}
+          description="El comprobante que prueba el asiento: factura, recibo, extracto. Se guarda en el almacén de evidencia de Atlas."
+          icon="attach_file"
+          width="lg"
+          onClose={() => setRespaldoDe(null)}
+        >
+          <FileAttachmentsPanel ownerType="ACCOUNTING_DOCUMENT" ownerId={String(respaldoDe.id ?? '')} title="Comprobantes de respaldo" />
+        </Modal>
+      ) : null}
+    </CrudDirectory>
   );
 }
