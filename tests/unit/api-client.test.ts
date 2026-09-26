@@ -22,6 +22,7 @@ describe('apiRequest', () => {
     const api = await client(fetchImpl);
     expect(await api.apiRequest('items', { query: { page: 2, active: false, empty: undefined } })).toEqual({ total: 2 });
     const [url, options] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toMatch(/^http:\/\/localhost:3010\/api\/v1\/items/);
     expect(url).toContain('/api/v1/items?page=2&active=false');
     expect(url).not.toContain('empty=');
     expect(options.credentials).toBe('include');

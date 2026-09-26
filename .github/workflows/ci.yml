@@ -91,6 +91,8 @@ jobs:
         run: yarn build
 
       - name: Levantar el servidor y esperar a que responda
+        env:
+          ATLAS_UPLOAD_ORIGINS: https://storage.atlas.test
         run: |
           # `nohup` + log propio: si el servidor no arranca, el motivo tiene que poder leerse. Sin
           # el log, un fallo de arranque llega como «todas las pruebas rojas» y se diagnostica mal.

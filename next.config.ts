@@ -1,6 +1,19 @@
 import type { NextConfig } from 'next';
 
+function securityHeaders() {
+  return [
+    // CSP vive en middleware.ts: el nonce cambia por petición.
+    { key: 'X-Frame-Options', value: 'DENY' },
+    { key: 'X-Content-Type-Options', value: 'nosniff' },
+    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  ];
+}
+
 const nextConfig: NextConfig = {
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders() }];
+  },
   /**
    * Salida autónoma: `.next/standalone` trae su propio `server.js` con sólo las dependencias que el
    * servidor usa de verdad, así que la imagen no arrastra el `node_modules` de construcción ni el
