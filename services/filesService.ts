@@ -1,5 +1,5 @@
 import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
-import { conReintentos } from '@/lib/reintentos';
+import { subirAlAlmacen } from '@/lib/almacen';
 import { sha256Hex } from '@/lib/sha256';
 import type { JsonObject, ResourceRow } from './types';
 
@@ -51,17 +51,11 @@ export function sha256DeArchivo(file: File): Promise<string> {
 }
 
 /**
- * Sube el archivo DIRECTO al almacén con el permiso firmado; no pasa por el ERP ni lleva su sesión.
- * Repetible ante la pasarela: el almacén se despliega junto a AtlasBackend y puede no estar unos segundos.
+ * Sube el archivo al almacén con el permiso firmado, a través de este mismo origen: ver
+ * `lib/almacen.ts` (el PUT directo al almacén lo bloqueaba el navegador por contenido mixto).
  */
 export async function uploadWithTicket(ticket: UploadTicket, file: File): Promise<void> {
-  const response = await conReintentos(
-    () => fetch(ticket.uploadUrl, { method: ticket.method, headers: ticket.requiredHeaders, body: file }),
-    { repeticion: 'segura', esSinRespuesta: (error) => error instanceof TypeError },
-  );
-  if (!response.ok) {
-    throw new Error(`El almacenamiento rechazó la subida del archivo (${response.status}).`);
-  }
+  await subirAlAlmacen(ticket, file);
 }
 
 /** Los tres pasos juntos: permiso, subida y registro verificado. Devuelve el archivo registrado. */

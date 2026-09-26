@@ -124,8 +124,9 @@ interface Respuestas {
 async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
   const espia: Espia = { liquidaciones: [], aprobaciones: 0, cobros: [], archivosRegistrados: [], subidas: 0, resoluciones: [], reversos: [] };
 
-  await page.route('https://storage.atlas.test/**', (route) => {
-    espia.subidas += 1;
+  // La subida va al reenvío de este mismo origen (`lib/almacen.ts`) con el permiso en una cabecera.
+  await page.route('**/almacen/subida', (route) => {
+    if (route.request().headers()['x-almacen-destino'] === 'https://storage.atlas.test/subida') espia.subidas += 1;
     return route.fulfill({ status: 200, body: '' });
   });
 

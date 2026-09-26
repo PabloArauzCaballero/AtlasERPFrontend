@@ -1,6 +1,6 @@
 import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
 import type { JsonObject } from '@/services/types';
-import { conReintentos } from '@/lib/reintentos';
+import { subirAlAlmacen } from '@/lib/almacen';
 
 /**
  * El expediente verificable del comercio.
@@ -218,24 +218,12 @@ export const partnerOnboardingService = {
 /**
  * Sube el archivo del QR al almacenamiento con el ticket firmado.
  *
- * Va **directo al almacenamiento** y no a través de la API: el ticket firma tipo y tamaño, así que
- * el bucket rechaza cualquier subida que no coincida con lo autorizado. Hacer pasar el binario por
- * el backend sólo añadiría un salto y un límite de cuerpo que nadie necesita.
- *
- * No usa el cliente HTTP del portal a propósito —ni debe—: aquél inyecta la sesión de ATLAS en cada
- * llamada, y mandar la credencial del portal a un origen de almacenamiento sería filtrarla.
+ * El ticket firma tipo y tamaño, así que el bucket rechaza cualquier subida que no coincida con lo
+ * autorizado. Pasa por este mismo origen y no directo al almacén: ver `lib/almacen.ts`. No lleva la
+ * sesión de ATLAS: mandarla al almacenamiento sería filtrarla.
  */
 export async function uploadQrFile(ticket: QrUploadTicket, file: File): Promise<void> {
-  // Repetible: un PUT a la misma URL firmada deja el mismo objeto, y el almacén se despliega junto a
-  // AtlasBackend, así que puede no estar unos segundos. Ver `lib/reintentos.ts`. Un error del propio
-  // almacén (XML, p. ej. la firma vencida) no es de pasarela y no se repite.
-  const response = await conReintentos(
-    () => fetch(ticket.uploadUrl, { method: ticket.method, headers: ticket.requiredHeaders, body: file }),
-    { repeticion: 'segura', esSinRespuesta: (error) => error instanceof TypeError },
-  );
-  if (!response.ok) {
-    throw new Error(`El almacenamiento rechazó la subida del archivo (${response.status}).`);
-  }
+  await subirAlAlmacen(ticket, file);
 }
 
 /** Rótulos de los requisitos, para no enseñar la clave del contrato en pantalla. */

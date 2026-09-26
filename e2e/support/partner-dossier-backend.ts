@@ -415,9 +415,9 @@ export async function installPartnerDossierBackend(page: Page) {
     return json(route, 404, {});
   });
 
-  // El binario del QR va DIRECTO al almacenamiento, sin pasar por la API: se intercepta aparte
-  // porque es otro origen, y que lo sea es justamente parte del diseño.
-  await page.route('https://storage.atlas.test/**', (route) => route.fulfill({ status: 200, body: '' }));
+  // El binario del QR no pasa por la API: va al reenvío al almacén de este mismo origen
+  // (`lib/almacen.ts`), que se intercepta aparte.
+  await page.route('**/almacen/subida', (route) => route.fulfill({ status: 200, body: '' }));
 
   return state;
 }
