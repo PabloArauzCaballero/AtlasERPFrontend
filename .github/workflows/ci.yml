@@ -53,6 +53,9 @@ jobs:
       - name: Contrato del smoke público
         run: node --test .github/tests/post-deploy-smoke.test.mjs
 
+      - name: Unitarias
+        run: yarn test
+
       - name: Build
         run: yarn build
 

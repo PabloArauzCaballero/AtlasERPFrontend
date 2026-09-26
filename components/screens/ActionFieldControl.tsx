@@ -155,6 +155,26 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
     );
   }
 
+  /*
+   * Un archivo no tiene valor inicial (el navegador no deja fijarlo) ni opciones: sólo el selector
+   * y los tipos que se admiten, para que el almacén no rechace después lo que aquí se dejó elegir.
+   */
+  if (field.type === 'file') {
+    return (
+      <FormField
+        name={field.name}
+        label={field.label}
+        required={required}
+        softRequired={props.softRequired}
+        type="file"
+        accept={field.accept}
+        hint={field.hint}
+        tooltip={field.tooltip}
+        className={className}
+      />
+    );
+  }
+
   if (isSelectField(field)) {
     const loaded = field.options ?? dynamicOptions[field.name] ?? [];
     const current = defaultValue !== undefined && defaultValue !== null ? String(defaultValue) : '';

@@ -9,7 +9,8 @@
     "start": "next start -p 3010",
     "type-check": "tsc --noEmit",
     "lint": "node scripts/check-pestanas-accion.mjs && node scripts/check-campos.mjs && node scripts/check-ayuda.mjs && eslint . --max-warnings=0",
-    "check": "npm run type-check && npm run lint && npm run build",
+    "test": "vitest run",
+    "check": "npm run type-check && npm run lint && npm run test && npm run build",
     "test:e2e": "playwright test",
     "test:e2e:ci": "PW_SOLO_SIMULADO=1 playwright test --project=chromium",
     "test:e2e:headed": "playwright test --headed"
@@ -29,7 +30,9 @@
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "^15.5.20",
-    "typescript": "^5.7.2"
+    "jsdom": "26.1.0",
+    "typescript": "^5.7.2",
+    "vitest": "3.2.4"
   },
   "overrides": {
     "postcss": "^8.5.10"

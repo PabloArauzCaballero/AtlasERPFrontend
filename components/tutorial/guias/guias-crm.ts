@@ -254,6 +254,14 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Primero se programa la cobertura, después se confirman los pagos y sólo entonces se concilia el período. Al revés, se concilia contra datos incompletos.',
       },
       {
+        title: 'Un pago al comercio lleva dos firmas',
+        body: 'Quien paga registra la referencia, el importe y el comprobante; otra persona lo revisa y lo aprueba. Hasta esa aprobación la cobertura no figura pagada ni se abre la recuperación frente al cliente.',
+      },
+      {
+        title: 'Lo que no se cubre solo va a revisión',
+        body: 'Una cuota con un aviso de pago del cliente sin verificar, o de un contrato que no está activo, no se cubre automáticamente: aparece en «En revisión» para que alguien la mire.',
+      },
+      {
         title: 'Una recuperación no es un pago normal',
         body: 'Se aplica sobre algo que ya se dio por perdido, y por eso se registra aparte: mezclarlas distorsiona cualquier medida de morosidad.',
       },
