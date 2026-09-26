@@ -290,9 +290,13 @@ function writeFormat(m: Matrix, mask: number): void {
     const bit = (bits >> i) & 1;
     // Copia junto al localizador superior izquierdo (ISO/IEC 18004 §7.9.1): bits 0–7 bajando por
     // la columna 8 y 8–14 hacia la izquierda por la fila 8, saltando los temporizadores. Hasta el
-    // 2026-09-26 esta copia iba TRASPUESTA (fila por columna) y no coincidia con la otra: los
-    // lectores lo toleraban quedandose con la copia repartida, asi que el QR se leia... salvo que
-    // esa otra copia estuviera tapada o manchada. Lo fija `tests/unit/qr.test.ts`.
+    // 2026-09-26 esta copia iba TRASPUESTA (fila por columna) y ademas corrida un modulo: el bit 8
+    // caia en (6,8), que es del temporizador vertical, y (7,8) no se escribia nunca. No coincidia
+    // con la otra copia y, segun la mascara, apagaba un modulo del temporizador. Los lectores lo
+    // toleraban quedandose con la copia repartida, asi que el QR se leia... salvo que esa otra
+    // copia estuviera tapada o manchada. Corregirlo cambia tambien la penalizacion de cada mascara:
+    // cerca de 1 de cada 3 seriales pasa a otra mascara y con ella cambia la imagen entera del QR,
+    // aunque el contenido y la lectura son los mismos. Lo fija `tests/unit/qr.test.ts`.
     if (i < 6) m.modules[i * m.size + 8] = bit;
     else if (i === 6) m.modules[7 * m.size + 8] = bit;
     else if (i === 7) m.modules[8 * m.size + 8] = bit;

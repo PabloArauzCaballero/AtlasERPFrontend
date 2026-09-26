@@ -2,9 +2,10 @@
 """
 Comprueba que un QR generado por el portal SE LEE, y que dice lo que debe decir.
 
-El generador de `lib/qr.ts` no tiene dependencias, asi que nadie mas garantiza que su salida sea un
-QR valido: un error en la correccion Reed-Solomon o en la mascara produce un cuadro que se ve
-perfecto y que ningun telefono descifra. Esto pasa la imagen por el lector de codigos del sistema
+Un error en la correccion Reed-Solomon o en la mascara de `lib/qr.ts` produce un cuadro que se ve
+perfecto y que ningun telefono descifra. La garantia que corre en CI es `tests/unit/qr.test.ts`
+(lectura con jsqr, formato y version contra un BCH propio, y referencias bit a bit). Esto es una
+comprobacion adicional, solo en macOS: pasa una captura real por el lector de codigos del sistema
 —el mismo motor que usa la camara de macOS— y compara el texto devuelto con el esperado.
 
 Uso: python3 scripts/verificar-qr.py <imagen.png> <texto esperado>

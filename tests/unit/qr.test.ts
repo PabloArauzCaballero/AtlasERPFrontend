@@ -252,6 +252,13 @@ describe('qrMatrix · contra otra implementación, bit a bit', () => {
     expect([...new Set(casos.map((caso) => caso.version))].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
+  // Los 200 seriales nunca eligen la máscara 7 (y casi nunca la 5): sin estos casos, una entrada
+  // mal de `FORMAT_M` o un fallo de Reed-Solomon que sólo asome con esas máscaras pasaría todo,
+  // porque jsqr lo corrige. Cada caso fuerza una máscara con un contenido que `lib/qr.ts` elige así.
+  it('las referencias cubren las ocho máscaras', () => {
+    expect([...new Set(casos.map((caso) => caso.mascara))].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  });
+
   it.each(casos.map((caso) => [caso.version, caso.mascara, caso] as const))(
     'versión %i, máscara %i: la misma matriz que node-qrcode',
     (_version, mascara, caso) => {
@@ -262,6 +269,8 @@ describe('qrMatrix · contra otra implementación, bit a bit', () => {
       const matriz = qrMatrix(caso.contenido);
       expect(matriz.length).toBe(lado);
       expect(((formatos(matriz).segunda ^ 0x5412) >> 10) & 7).toBe(mascara);
+      // Las dos copias contra el BCH calculado aquí, no sólo contra la otra implementación.
+      expect(formatos(matriz)).toEqual({ primera: FORMATOS_M_VALIDOS[mascara], segunda: FORMATOS_M_VALIDOS[mascara] });
       expect(matriz).toEqual(esperada);
     },
   );

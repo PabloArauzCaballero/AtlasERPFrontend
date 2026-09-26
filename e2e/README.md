@@ -62,5 +62,8 @@ npx playwright test e2e/mi-empresa-real.spec.ts
 python3 scripts/verificar-qr.py docs/visual-evidence/portal-comercio/qr-sucursal-cpa.png CPA-CENTRO-01
 ```
 
-El generador (`lib/qr.ts`) no tiene dependencias, así que nadie más garantiza que su salida sea
-legible: esa segunda orden es la que lo garantiza.
+La garantía de que el generador (`lib/qr.ts`) produce QR legibles la da `tests/unit/qr.test.ts`,
+que corre en CI con `yarn test:unit`: rasteriza cada QR y lo lee con `jsqr`, mira las dos copias del
+formato y de la versión contra un BCH propio y compara bit a bit contra otra implementación en las
+diez versiones y las ocho máscaras. La segunda orden de arriba es una comprobación adicional, sólo
+en macOS: lee la captura REAL de la pantalla con el mismo motor que usa la cámara del sistema.
