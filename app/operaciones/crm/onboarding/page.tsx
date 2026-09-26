@@ -281,6 +281,7 @@ export default function OnboardingPage() {
                   { name: 'riskSegment', label: 'Segmento de riesgo', tooltip: 'Segmento de riesgo del cliente al que aplica la regla; vacío = todos.', type: 'select', optional: true, optionsSource: 'domain:crm.riskTier', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todos.' },
                   { name: 'minFeeAmount', label: 'Piso (Bs)', tooltip: 'Comisión mínima en bolivianos por venta, aunque el porcentaje dé menos.', type: 'number', valueKind: 'number', optional: true },
                   { name: 'maxFeeAmount', label: 'Techo (Bs)', tooltip: 'Comisión máxima en bolivianos por venta, aunque el porcentaje dé más.', type: 'number', valueKind: 'number', optional: true },
+                  { name: 'pricingExceptionReason', label: 'Justificación de excepción', tooltip: 'Por qué se pacta una comisión por debajo del mínimo que Atlas permite; lo lee quien la aprueba.', type: 'textarea', optional: true, placeholder: 'Sólo si la comisión queda por debajo del mínimo.', hint: 'Si la comisión queda por debajo del mínimo, la regla no se activa hasta que alguien apruebe la excepción.', span: 3 },
                 ],
                 submit: (row, payload: JsonObject) => b2bService.createCaseMdrRule(String(row.id ?? ''), payload),
                 submitLabel: 'Pactar comisión',
