@@ -1,6 +1,7 @@
 import { accountingService } from './accountingService';
 import { adsService } from './adsService';
 import { b2bService } from './b2bService';
+import { filesService } from './filesService';
 import type { PaginatedResult, ResourceRow } from './types';
 
 export interface Option {
@@ -179,6 +180,17 @@ export const loadPayables = async (): Promise<Option[]> =>
   (await b2bService.listPayables()).map((row) => ({
     value: s(row.id),
     label: `${s(row.amount)} — ${s(row.status)} (programado ${s(row.scheduledPaymentDate).slice(0, 10)})`,
+  }));
+
+/**
+ * Comprobantes ya subidos al expediente de un comercio (sólo los vigentes: el listado de archivos
+ * no devuelve los retirados). Sirve para no volver a subir el mismo PDF cuando un registro falló.
+ */
+export const loadMerchantEvidenceFiles = async (accountId: string): Promise<Option[]> =>
+  (await filesService.listFiles('B2B_ACCOUNT', accountId)).map((row) => ({
+    value: s(row.id),
+    label: s(row.fileName) || 'Archivo sin nombre',
+    description: row.createdAt ? `Subido el ${s(row.createdAt).slice(0, 10)}` : undefined,
   }));
 
 /** Recuperaciones abiertas, por mora e importe cubierto. */

@@ -18,7 +18,9 @@ import { formChangeHandler, useFieldOptions } from '@/hooks/useFieldOptions';
 export interface ActionField {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'multiselect' | 'chips' | 'countryCity' | 'address';
+  type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'multiselect' | 'chips' | 'countryCity' | 'address' | 'file';
+  /** `file`: tipos que admite el selector (p. ej. `application/pdf,image/jpeg,image/png`). */
+  accept?: string | undefined;
   valueKind?: FieldValueKind | undefined;
   required?: boolean | undefined;
   optional?: boolean | undefined;

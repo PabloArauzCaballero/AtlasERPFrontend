@@ -29,6 +29,7 @@ function session(fetchImpl, stored = {}) {
     './reintentos': {
       conReintentos: (attempt) => attempt(),
       esRespuestaDePasarela: () => false,
+      esMutacion: (method) => !['GET', 'HEAD', 'OPTIONS'].includes((method ?? 'GET').toUpperCase()),
       repeticionDe: () => 'segura',
     },
     './mensajesValidacion': { describirIncidencia: () => '' },

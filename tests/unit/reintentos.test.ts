@@ -7,14 +7,14 @@ describe('pasarela durante un despliegue', () => {
     const backend = new Response('{"error":"x"}', { status: 503, headers: { 'content-type': 'application/json' } });
     expect(esRespuestaDePasarela(html)).toBe(true);
     expect(esRespuestaDePasarela(backend)).toBe(false);
-    expect(merecePrueba({ response: html }, 'solo-si-no-llego')).toBe(true);
+    expect(merecePrueba({ response: html }, 'con-llave')).toBe(true);
     expect(merecePrueba({ response: backend }, 'segura')).toBe(false);
   });
 
   it('no repite POST ante 504 ni corte de red que pudieron llegar al backend', () => {
     const gatewayTimeout = new Response('Gateway Timeout', { status: 504 });
-    expect(merecePrueba({ response: gatewayTimeout }, 'solo-si-no-llego')).toBe(false);
-    expect(merecePrueba({ error: new Error('red'), sinRespuesta: true }, 'solo-si-no-llego')).toBe(false);
+    expect(merecePrueba({ response: gatewayTimeout }, 'unica')).toBe(false);
+    expect(merecePrueba({ error: new Error('red'), sinRespuesta: true }, 'unica')).toBe(false);
   });
 
   it('reintenta GET tras un 503 HTML y termina con la respuesta JSON', async () => {

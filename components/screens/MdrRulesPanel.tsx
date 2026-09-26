@@ -69,6 +69,8 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
   const [reglas, setReglas] = useState<ResourceRow[]>([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** La tarifa de la última regla que quedó esperando aprobación: no se cobra hasta que se decida. */
+  const [enAprobacion, setEnAprobacion] = useState<number | null>(null);
 
   const crear = useAtlasMutation(useCallback((body: JsonObject) => b2bService.createMdrRule(body), []));
   const cambiar = useAtlasMutation(useCallback(({ id, body }: { id: string; body: JsonObject }) => b2bService.updateMdrRule(id, body), []));
@@ -104,7 +106,7 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
       return bruto === '' ? undefined : Number(bruto);
     };
     try {
-      await crear.execute({
+      const creada = await crear.execute({
         contractVersionId,
         ratePercent: Number(form.get('ratePercent') ?? 0),
         productCategory: opcional('productCategory'),
@@ -112,7 +114,10 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
         riskSegment: opcional('riskSegment'),
         minFeeAmount: numero('minFeeAmount'),
         maxFeeAmount: numero('maxFeeAmount'),
+        pricingExceptionReason: opcional('pricingExceptionReason'),
       });
+      // Por debajo del mínimo la regla nace inactiva y abre una solicitud: decirlo evita creer que ya cobra.
+      setEnAprobacion(creada.approvalRequestId ? Number(creada.ratePercent) : null);
       // `currentTarget` ya es null dentro del `await`: el formulario se guarda antes de esperar.
       formulario.reset();
       await recargar(contractVersionId);
@@ -154,12 +159,24 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
           <FormField tooltip="Rubro del producto vendido; decide la comisión que aplica." kind="select" label="Rubro del producto" name="productCategory" options={[CUALQUIERA, ...categoriaOptions]} hint="Vacío: aplica a todos." />
           <FormField tooltip="Segmento de riesgo del cliente al que aplica la regla; vacío = todos." kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riesgoOptions]} hint="Vacío: aplica a todos." />
         </div>
+        <div className="mt-3">
+          <FormField tooltip="Por qué se pacta una comisión por debajo del mínimo que Atlas permite; lo lee quien la aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" minLength={5} maxLength={1000} hint="Sólo si la comisión queda por debajo del mínimo: la regla no se activa hasta que alguien apruebe la excepción. En los demás casos, déjela vacía." placeholder="Explique por qué este comercio tiene una comisión menor a la política estándar." />
+        </div>
         {/* Fuera de la rejilla: dentro parecía un campo más y competía con ellos por la vista. */}
         <div className="mt-3 flex justify-end">
           <AtlasButton type="submit" icon="add" loading={crear.isLoading}>Agregar regla</AtlasButton>
         </div>
         {crear.error ? <InlineNotice className="mt-3" tone="danger">{crear.error}</InlineNotice> : null}
       </form>
+
+      {enAprobacion !== null ? (
+        <InlineNotice className="mt-3" tone="warning" title="Comisión pendiente de aprobación">
+          La comisión de {enAprobacion.toFixed(2)} % está por debajo del mínimo que Atlas permite, así que la
+          regla quedó inactiva y no se cobra todavía. Empezará a aplicarse cuando quien aprueba las
+          excepciones de tarifa la autorice; si la rechaza, seguirá inactiva.
+        </InlineNotice>
+      ) : null}
+      {cambiar.error ? <InlineNotice className="mt-3" tone="danger">{cambiar.error}</InlineNotice> : null}
 
       <div className="mt-4">
         {cargando ? <p className="py-6 text-center text-xs text-slate-500">Cargando…</p>

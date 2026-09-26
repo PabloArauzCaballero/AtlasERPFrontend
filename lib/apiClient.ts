@@ -1,5 +1,5 @@
 import { newCorrelationId } from './correlationId';
-import { conReintentos, esRespuestaDePasarela, repeticionDe } from './reintentos';
+import { conReintentos, esMutacion, esRespuestaDePasarela, repeticionDe, type Repeticion } from './reintentos';
 import { describirIncidencia } from './mensajesValidacion';
 
 export interface ApiRequestOptions {
@@ -29,16 +29,34 @@ export interface ApiRequestOptions {
  * `status` es `0` cuando la petición no llegó a tener respuesta (red caída o abortada por timeout);
  * `timedOut` separa ese caso del corte de red, porque el reintento tiene sentido en los dos pero el
  * mensaje no es el mismo.
+ *
+ * `resultadoDesconocido` marca una operación que PUDO haberse guardado: se mandó una sola vez y no
+ * volvió una respuesta del sistema que lo confirme o lo niegue. Ahí «inténtelo otra vez» es justo el
+ * consejo equivocado —podría duplicar un cobro o un asiento—, así que el mensaje pide comprobar antes.
  */
 export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
     readonly timedOut = false,
+    readonly resultadoDesconocido = false,
+    /**
+     * El código estable del rechazo (`FOUR_EYES_REQUIRED`, `DUPLICATE_REFERENCE`…), cuando el
+     * backend lo manda. El mensaje es para leer; el código es para que una pantalla decida qué
+     * decir con sus propias palabras sin tener que adivinarlo por el texto.
+     */
+    readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
   }
+}
+
+export const MENSAJE_RESULTADO_DESCONOCIDO =
+  'No pudimos confirmar si la operación se guardó: el sistema no respondió como esperábamos. Antes de volver a hacerla, revise si ya aparece registrada; si no la encuentra o tiene dudas, avísele a soporte.';
+
+function resultadoDesconocido(status: number, timedOut = false): ApiError {
+  return new ApiError(MENSAJE_RESULTADO_DESCONOCIDO, status, timedOut, true);
 }
 
 /**
@@ -219,6 +237,11 @@ function describeValidationDetails(details: unknown): string | null {
   return rest > 0 ? `${shown} (y ${rest} más)` : shown;
 }
 
+/** El código del sobre de error, si lo hay. */
+function extractErrorCode<T>(payload: ApiEnvelope<T> | T | null): string | undefined {
+  return isApiEnvelope(payload) && typeof payload.error?.code === 'string' ? payload.error.code : undefined;
+}
+
 function extractErrorMessage<T>(response: Response, payload: ApiEnvelope<T> | T | null): string {
   if (isApiEnvelope(payload) && payload.error?.message) {
     const details = describeValidationDetails(payload.error.details);
@@ -231,14 +254,44 @@ function extractErrorMessage<T>(response: Response, payload: ApiEnvelope<T> | T 
   return `No se pudo completar la operación (${response.status}). Inténtelo otra vez; si sigue, avísele a soporte.`;
 }
 
-async function parseResponse<T>(response: Response): Promise<T> {
-  const payload = await readPayload<T>(response);
-
+/**
+ * Convierte la respuesta en el dato que espera la pantalla, o en un `ApiError`.
+ *
+ * Un 2xx NO basta para dar algo por bueno. Antes, un `200` con HTML (la página de un proxy o de un
+ * inicio de sesión) llegaba a la pantalla como `null` y un `{ success: false }` llegaba como si fuera
+ * el dato: el formulario decía «guardado» sin que nada se guardara. Ahora sólo es éxito:
+ *  - un 204/205, o un 2xx sin cuerpo (se devuelve `null`, como siempre);
+ *  - un JSON legible que no sea un sobre `{ success }` distinto de `true`.
+ * Las descargas de archivos no pasan por aquí (`apiFileDownload`, `apiBlobUrl`).
+ */
+async function parseResponse<T>(response: Response, mutacion = false): Promise<T> {
   if (!response.ok) {
-    throw new ApiError(extractErrorMessage(response, payload), response.status);
+    const payload = await readPayload<T>(response);
+    throw new ApiError(extractErrorMessage(response, payload), response.status, false, false, extractErrorCode(payload));
   }
 
-  if (isApiEnvelope<T>(payload) && payload.success === true) return payload.data as T;
+  if (response.status === 204 || response.status === 205) return null as T;
+  const texto = await response.text().catch(() => '');
+  if (texto.trim() === '') return null as T;
+
+  const ilegible = () =>
+    mutacion
+      ? resultadoDesconocido(response.status)
+      : new ApiError('La respuesta del sistema no se pudo leer. Inténtelo otra vez; si sigue, avísele a soporte.', response.status);
+  if (!(response.headers.get('content-type') ?? '').includes('json')) throw ilegible();
+
+  let payload: ApiEnvelope<T> | T | null;
+  try {
+    payload = JSON.parse(texto) as ApiEnvelope<T> | T | null;
+  } catch {
+    throw ilegible();
+  }
+
+  if (isApiEnvelope<T>(payload)) {
+    if (payload.success === true) return payload.data as T;
+    const motivo = payload.error?.message ? extractErrorMessage(response, payload) : 'El sistema rechazó la operación sin explicar el motivo. Si sigue, avísele a soporte.';
+    throw new ApiError(motivo, response.status, false, false, extractErrorCode(payload));
+  }
   return payload as T;
 }
 
@@ -323,11 +376,32 @@ async function performFetch(path: string, options: ApiRequestOptions): Promise<R
  * Envía la petición y la repite si el backend no estaba. Ver `reintentos.ts`: durante un despliegue
  * contesta la pasarela, y eso no es un error que el operador tenga que ver ni resolver.
  */
-function enviar(path: string, options: ApiRequestOptions): Promise<Response> {
+function enviar(
+  path: string,
+  options: ApiRequestOptions,
+  repeticion: Repeticion = repeticionDe(options.method, options.headers),
+): Promise<Response> {
   return conReintentos(() => performFetch(path, options), {
-    repeticion: repeticionDe(options.method),
+    repeticion,
     esSinRespuesta: (error) => error instanceof ApiError && error.status === 0,
   });
+}
+
+/**
+ * `enviar` para `apiRequest`: en una mutación, un desenlace sin respuesta del backend —corte, plazo
+ * agotado, o una respuesta que escribió la pasarela— no es «falló», es «no se sabe». Se dice así.
+ */
+async function enviarConfirmando(path: string, options: ApiRequestOptions, repeticion?: Repeticion): Promise<Response> {
+  if (!esMutacion(options.method)) return enviar(path, options, repeticion);
+  let response: Response;
+  try {
+    response = await enviar(path, options, repeticion);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 0) throw resultadoDesconocido(0, error.timedOut);
+    throw error;
+  }
+  if (esRespuestaDePasarela(response)) throw resultadoDesconocido(response.status);
+  return response;
 }
 
 /**
@@ -350,8 +424,8 @@ async function tryRefreshSession(): Promise<Renovacion> {
     refreshPromise = (async () => {
       try {
         const refreshPath = getSessionKind() === 'merchant' ? 'auth/merchant/refresh' : 'auth/refresh';
-        // Un refresco que SÍ llegó no se repite: el backend rota el token. `enviar` ya lo respeta —
-        // un POST sólo se repite si la pasarela confirma que no llegó.
+        // Un refresco no se repite: si llegó, el backend ya rotó el token y repetirlo con el viejo lo
+        // rechazaría. Es un POST sin llave, así que `enviar` lo manda una sola vez.
         const response = await enviar(refreshPath, { method: 'POST', skipAuthRetry: true });
         if (esRespuestaDePasarela(response)) return 'no-disponible';
         const payload = await parseResponse<{ accessToken: string }>(response);
@@ -397,18 +471,21 @@ function handleRenewalFailure(outcome: Renovacion): void {
  */
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const tokenAtStart = getAccessToken();
-  const response = await enviar(path, options);
+  const mutacion = esMutacion(options.method);
+  const response = await enviarConfirmando(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
     const renovacion = await recoverAfter401(tokenAtStart);
     if (renovacion === 'renovada') {
-      const retryResponse = await enviar(path, options);
-      return parseResponse<T>(retryResponse);
+      // El 401 dice que el backend no la ejecutó, así que se manda otra vez con la sesión nueva. Pero
+      // una mutación sale UNA vez: no se abre otro ciclo entero de reintentos detrás del primero.
+      const retryResponse = await enviarConfirmando(path, options, mutacion ? 'unica' : undefined);
+      return parseResponse<T>(retryResponse, mutacion);
     }
     handleRenewalFailure(renovacion);
   }
 
-  return parseResponse<T>(response);
+  return parseResponse<T>(response, mutacion);
 }
 
 /**
@@ -457,7 +534,7 @@ export async function apiFileDownload(
 
   if (!response.ok) {
     const payload = await readPayload<unknown>(response);
-    throw new ApiError(extractErrorMessage(response, payload), response.status);
+    throw new ApiError(extractErrorMessage(response, payload), response.status, false, false, extractErrorCode(payload));
   }
 
   return {
@@ -501,7 +578,7 @@ export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}):
   if (!response.ok) {
     // El cuerpo del error SÍ es JSON aunque lo pedido sean bytes: se lee para conservar el motivo.
     const payload = await readPayload<unknown>(response);
-    throw new ApiError(extractErrorMessage(response, payload), response.status);
+    throw new ApiError(extractErrorMessage(response, payload), response.status, false, false, extractErrorCode(payload));
   }
 
   return URL.createObjectURL(await response.blob());

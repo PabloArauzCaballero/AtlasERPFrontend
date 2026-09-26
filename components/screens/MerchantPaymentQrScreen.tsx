@@ -59,7 +59,7 @@ interface MerchantPaymentQrScreenProps {
    * Qué hacer cuando un QR se registró y el expediente de quien contiene esta pantalla se queda
    * viejo.
    *
-   * Subir el QR CIERRA un requisito del alta (`business_qr`, `bank_qr`). Sin este aviso el
+   * Subir el QR CIERRA el requisito bancario del alta (`bank_qr`). Sin este aviso el
    * comercio subía su código aquí y al volver a «Estado del expediente» seguía leyendo que le
    * faltaba: la pestaña vecina conservaba el embudo de antes de la subida. Mientras fueron dos
    * páginas distintas no se notaba —navegar volvía a pedirlo todo—, y al juntarlas dejó de serlo.
@@ -124,16 +124,6 @@ export function MerchantPaymentQrScreen({
   const entidades = useOptions(domainLoader('domain:portal.bankInstitution'));
   const [cuenta, setCuenta] = useState('');
   const archivo = useRef<HTMLInputElement>(null);
-  /*
-   * El QR del NEGOCIO, que hasta ahora sólo se podía subir dentro del expediente.
-   *
-   * Son dos códigos distintos y por eso tienen su propio archivo y su propio aviso: el bancario es
-   * con el que le pagan —lleva entidad y cuenta— y el del negocio es evidencia del alta. Compartir
-   * un solo `input` obligaría a elegir cuál se está subiendo, que es justo la confusión que hacía
-   * falta quitar.
-   */
-  const archivoNegocio = useRef<HTMLInputElement>(null);
-  const [subiendoNegocio, setSubiendoNegocio] = useState(false);
 
   const recargar = useCallback(async (id: string) => {
     setCargando(true);
@@ -236,7 +226,7 @@ export function MerchantPaymentQrScreen({
       });
       setAviso({
         tono: 'success',
-        texto: 'QR de cobro actualizado. Es el que verán sus clientes al pulsar «pagar» en la app.',
+        texto: 'QR bancario registrado y enviado a revisión. Los clientes lo verán cuando Atlas lo apruebe; mientras tanto sigue vigente el QR anterior, si lo hay.',
       });
       if (archivo.current) archivo.current.value = '';
       await recargarYAvisar(partnerId);
@@ -244,48 +234,6 @@ export function MerchantPaymentQrScreen({
       setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR.' });
     } finally {
       setSubiendo(false);
-    }
-  }
-
-  /**
-   * El QR del negocio: mismo camino que el bancario, sin datos de banco.
-   *
-   * Vive aquí y ya no en el expediente por lo mismo que el bancario: el backend cierra la edición
-   * del expediente al aprobarlo, así que el comercio que ya opera era el único que no podía
-   * reemplazar su propio código. Y tenerlos en dos pantallas distintas obligaba a recordar cuál se
-   * subía dónde.
-   */
-  async function subirNegocio() {
-    const file = archivoNegocio.current?.files?.[0];
-    if (!file) {
-      setAviso({ tono: 'info', texto: 'Elija primero la imagen del QR de su negocio.' });
-      return;
-    }
-
-    setSubiendoNegocio(true);
-    setAviso(null);
-    try {
-      if ((await imagenTieneQr(file)) === 'sin-codigo') {
-        setAviso({ tono: 'danger', texto: AVISO_SIN_QR });
-        return;
-      }
-      const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
-        qrKind: 'business',
-        contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
-        sizeBytes: file.size,
-      });
-      await uploadQrFile(ticket, file);
-      await partnerOnboardingService.registerQr(partnerId, {
-        qrKind: 'business',
-        storageKey: ticket.storageKey,
-      });
-      setAviso({ tono: 'success', texto: 'QR del negocio actualizado.' });
-      if (archivoNegocio.current) archivoNegocio.current.value = '';
-      await recargarYAvisar(partnerId);
-    } catch (fallo) {
-      setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR del negocio.' });
-    } finally {
-      setSubiendoNegocio(false);
     }
   }
 
@@ -298,9 +246,6 @@ export function MerchantPaymentQrScreen({
   const enRevision = bancarios.find((codigo) => codigo.status === 'pending_review');
   const vigente = aprobado ?? enRevision;
   const ultimoRechazo = bancarios.find((codigo) => codigo.status === 'rejected');
-  const negocioVigente = codigos.find(
-    (codigo) => codigo.qrKind === 'business' && (codigo.status === 'active' || codigo.status === 'pending_review'),
-  );
   const historial = bancarios.filter((codigo) => codigo !== vigente && codigo !== enRevision);
   const bloqueo = motivoSinSubida(estadoExpediente);
   const estadoVigente = vigente ? (ESTADO_QR[vigente.status] ?? { tono: 'neutral' as const, texto: vigente.status }) : null;
@@ -412,18 +357,21 @@ export function MerchantPaymentQrScreen({
         </div>
       ) : null}
 
-      {!cargando && !vigente ? (
+      {!cargando && !aprobado ? (
         <InlineNotice tone="warning" title="Sus clientes todavía no pueden pagarle">
-          Mientras no suba su QR bancario, la app les dice que la cuota se paga a su comercio pero no tiene ningún código
-          que enseñarles. Súbalo aquí abajo.
+          {enRevision
+            ? 'El QR bancario está en revisión. Hasta que Atlas lo apruebe, la app no mostrará un código de pago.'
+            : 'Suba su QR bancario. Hasta que Atlas lo apruebe, la app no mostrará un código de pago.'}
         </InlineNotice>
       ) : null}
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Panel
           data-tutorial-id="qr-cobro-vigente"
-          title="Lo que ve su cliente"
-          description="Esta es la imagen exacta que aparece en la app cuando su cliente pulsa «pagar»."
+          title={aprobado ? 'Lo que ve su cliente' : 'QR bancario del comercio'}
+          description={aprobado
+            ? 'Esta es la imagen exacta que aparece en la app cuando su cliente pulsa «pagar».'
+            : 'Vista previa del QR enviado. La app solo lo mostrará después de la aprobación de Atlas.'}
           icon="smartphone"
           action={embedded ? acciones : undefined}
         >
@@ -506,69 +454,6 @@ export function MerchantPaymentQrScreen({
           </div>
         </Panel>
       </div>
-
-      {/*
-        El QR del NEGOCIO, debajo del bancario y no al lado.
-        
-        El orden es la jerarquía: el bancario es con el que le pagan y es lo que esta pantalla viene a
-        resolver; el del negocio es evidencia del alta. Ponerlos en paralelo diría que valen lo mismo
-        y haría dudar de cuál es el que escanea el cliente — que es exactamente la duda que había
-        cuando los dos vivían juntos en una pestaña del expediente.
-      */}
-      <Panel
-        title={negocioVigente ? 'QR del negocio' : 'Subir el QR del negocio'}
-        description="Es evidencia de tu alta, no el código con el que te pagan. Se reemplaza igual que el bancario: el anterior queda archivado."
-        icon="storefront"
-      >
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-bold text-slate-700">Imagen del QR (PNG o JPG)</span>
-              <input
-                ref={archivoNegocio}
-                type="file"
-                accept="image/png,image/jpeg"
-                className="text-xs"
-                data-testid="input-qr-negocio"
-              />
-            </label>
-            <AtlasButton
-              type="button"
-              icon="upload"
-              loading={subiendoNegocio}
-              disabled={!partnerId || bloqueo !== null}
-              title={bloqueo ?? undefined}
-              onClick={() => void subirNegocio()}
-              data-testid="btn-subir-qr-negocio"
-            >
-              {negocioVigente ? 'Reemplazar QR del negocio' : 'Subir QR del negocio'}
-            </AtlasButton>
-          </div>
-          <div className="text-xs">
-            {negocioVigente ? (
-              <dl className="space-y-1" data-testid="qr-negocio-vigente">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-slate-500">Huella</dt>
-                  <dd className="font-mono text-[11px]">{negocioVigente.fingerprint}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-slate-500">Estado</dt>
-                  <dd>
-                    <StatusPill tone={ESTADO_QR[negocioVigente.status]?.tono ?? 'neutral'}>
-                      {ESTADO_QR[negocioVigente.status]?.texto ?? negocioVigente.status}
-                    </StatusPill>
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="text-slate-500">
-                Todavía no lo has subido. Falta como requisito del alta, y mientras falte el expediente no
-                se puede enviar a revisión.
-              </p>
-            )}
-          </div>
-        </div>
-      </Panel>
 
       {historial.length > 0 ? (
         <Panel title={`QR anteriores (${historial.length})`} description="Se conservan para poder reconstruir contra qué QR se cobró cada día." icon="history">
