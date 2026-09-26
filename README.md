@@ -146,6 +146,15 @@ http://localhost:3000/portal-comercio/compras-bnpl
 
 El render inicial evita valores no determinísticos. UUIDs nuevos se generan únicamente después de interacciones del cliente. No se ocultan advertencias con `suppressHydrationWarning` global.
 
+## Verificación posterior al despliegue
+
+El workflow de `dev` espera a que Coolify termine y consulta el dominio publicado: portada,
+login, JS/CSS, proxy `/api/v1/health` y `/version`. Este último expone el SHA servido, inyectado
+desde `SOURCE_COMMIT`, y debe ser exactamente el que pasó CI. Después Chromium abre el login
+y falla si la página lanza un error JavaScript. Si Coolify no informa el dominio, se configura
+`DEV_SMOKE_BASE_URL` en GitHub Variables. El dominio público de este portal puede usar `:3010`;
+el smoke conserva ese puerto.
+
 ## Autenticación local
 
 El cliente conserva el access token solo en memoria y envía:
