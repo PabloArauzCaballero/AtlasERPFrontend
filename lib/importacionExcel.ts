@@ -59,6 +59,8 @@ export function camposImportables(fields: ActionField[]): ActionField[] {
      * dirección se completa después desde la ficha.
      */
     if (field.type === 'address') continue;
+    // Un archivo no cabe en una celda: se sube después desde la fila.
+    if (field.type === 'file') continue;
     /*
      * `countryCity` es UN campo que pinta DOS controles —el país y, dentro de él, la ciudad— y
      * manda los dos nombres en el envío. En una hoja de cálculo eso son dos columnas: sin

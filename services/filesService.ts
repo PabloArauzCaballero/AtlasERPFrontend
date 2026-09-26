@@ -1,6 +1,7 @@
 import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
 import { subirAlAlmacen } from '@/lib/almacen';
 import { sha256Hex } from '@/lib/sha256';
+import { toast } from '@/lib/toast';
 import type { JsonObject, ResourceRow } from './types';
 
 /** El permiso de subida que emite AtlasBackend a través del ERP. */
@@ -76,4 +77,27 @@ export async function subirArchivoDelErp(ownerType: string, ownerId: string, fil
     contentType,
     byteSize: file.size,
   });
+}
+
+/**
+ * Sube el archivo elegido en un formulario de alta, una vez que el registro ya existe.
+ *
+ * El dueño del archivo es el registro recién creado, así que no se puede subir antes. Si la subida
+ * falla NO se lanza: el registro ya está guardado, y un error aquí haría que el usuario lo volviera
+ * a crear. Se avisa de qué pasó y de dónde subirlo otra vez.
+ */
+export async function adjuntarAlCrear(
+  ownerType: string,
+  ownerId: unknown,
+  archivo: unknown,
+  queSeCreo: string,
+): Promise<void> {
+  if (!(archivo instanceof File) || !ownerId) return;
+  try {
+    await subirArchivoDelErp(ownerType, String(ownerId), archivo);
+    toast.success('Documento guardado', `«${archivo.name}» quedó adjunto.`);
+  } catch (error) {
+    const motivo = error instanceof Error ? error.message : 'No se pudo subir el archivo.';
+    toast.warning(`${queSeCreo} se guardó, pero el documento no`, `${motivo} Vuelve a subirlo desde la fila, con «Documentos».`);
+  }
 }

@@ -1,8 +1,11 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { Modal } from '@/components/atlas/Modal';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { accountingService } from '@/services/accountingService';
+import { adjuntarAlCrear } from '@/services/filesService';
 import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
@@ -18,11 +21,14 @@ const headerFields: ActionField[] = [
   { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date' as const, required: true },
   { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date' as const, optional: true },
   { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, span: 2 as const, optionsSource: 'catalog:currency' },
+  { name: 'documento', label: 'Documento del contrato', tooltip: 'El contrato firmado (PDF o imagen). Si la contraparte es un comercio, se guarda también en la carpeta «documentos» del comercio, en Archivos.', type: 'file' as const, accept: 'application/pdf,image/jpeg,image/png', hint: 'PDF, JPEG o PNG hasta 15 MB. También se puede subir después, desde la fila.', optional: true, span: 2 as const },
 ];
 
 export default function AccountingContractsPage() {
   const tiposContrato = useOptions(domainLoader('domain:accounting.contractType'));
   const estadosContrato = useOptions(domainLoader('domain:accounting.contractStatus'));
+  /** El contrato cuyos documentos se están viendo. `null` cierra el diálogo. */
+  const [documentosDe, setDocumentosDe] = useState<ResourceRow | null>(null);
 
   /*
    * La contraparte se guarda como UUID y así llegaba a la tabla: una columna de 36 caracteres que
@@ -71,7 +77,12 @@ export default function AccountingContractsPage() {
         title: 'Nuevo contrato contable',
         description: 'Identificación, contrapartes, vigencia y moneda.',
         fields: headerFields,
-        submit: (payload: JsonObject) => accountingService.createContract(payload),
+        submit: async (payload: JsonObject) => {
+          const { documento, ...datos } = payload as JsonObject & { documento?: unknown };
+          const creado = await accountingService.createContract(datos);
+          await adjuntarAlCrear('CONTRACT', (creado as ResourceRow).id, documento, 'El contrato');
+          return creado;
+        },
       }}
       edit={{
         description: 'Con quién se firma y qué empresa firma no se cambian: eso movería el contrato de libro contable.',
@@ -98,6 +109,14 @@ export default function AccountingContractsPage() {
        */
       extraActions={[
         {
+          key: 'documentos',
+          label: 'Documentos',
+          icon: 'attach_file',
+          /* `silent`: abre la lista de documentos de ESE contrato para verlos o subir más. */
+          silent: true,
+          run: async (row) => setDocumentosDe(row),
+        },
+        {
           key: 'termino',
           label: 'Agregar condición',
           icon: 'data_object',
@@ -121,6 +140,19 @@ export default function AccountingContractsPage() {
           },
         },
       ]}
-    />
+    >
+      {documentosDe ? (
+        <Modal
+          open
+          title={`Documentos · ${String(documentosDe.contractNo ?? 'contrato')}`}
+          description="El contrato firmado y sus anexos, en el almacén de evidencia de Atlas. Si la contraparte es un comercio, también se ven en su carpeta de Archivos."
+          icon="attach_file"
+          width="lg"
+          onClose={() => setDocumentosDe(null)}
+        >
+          <FileAttachmentsPanel ownerType="CONTRACT" ownerId={String(documentosDe.id ?? '')} title="Documentos del contrato" />
+        </Modal>
+      ) : null}
+    </CrudDirectory>
   );
 }

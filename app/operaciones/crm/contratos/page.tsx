@@ -3,8 +3,10 @@
 import { useCallback, useState } from 'react';
 import { Modal } from '@/components/atlas/Modal';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
 import { b2bService } from '@/services/b2bService';
+import { adjuntarAlCrear } from '@/services/filesService';
 import { loadInternalUsers, loadProposals } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -12,6 +14,8 @@ export default function CommercialContractsPage() {
   const load = useCallback(() => b2bService.listContracts(), []);
   /** El contrato cuya comisión se está administrando. `null` cierra el diálogo. */
   const [comisionDe, setComisionDe] = useState<ResourceRow | null>(null);
+  /** El contrato cuyos documentos se están viendo. `null` cierra el diálogo. */
+  const [documentosDe, setDocumentosDe] = useState<ResourceRow | null>(null);
 
   return (
     <CrudDirectory
@@ -52,9 +56,19 @@ export default function CommercialContractsPage() {
           { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date', optional: true },
           { name: 'billingCycle', label: 'Ciclo de facturación', tooltip: 'Cada cuánto se factura al comercio: mensual, trimestral, por transacción…', required: true, defaultValue: 'MONTHLY', optionsSource: 'domain:crm.contractBillingCycle' },
           { name: 'settlementPolicy', label: 'Política de liquidación', tooltip: 'Cómo se liquida lo cobrado: por contrato, por sucursal o por cuenta.', required: true, defaultValue: 'PER_CONTRACT', optionsSource: 'domain:crm.contractSettlementPolicy' },
-          { name: 'documentUrl', label: 'URL del documento', tooltip: 'Enlace al contrato firmado en el repositorio de documentos, con https://.', type: 'url', optional: true, span: 2 },
+          /*
+           * El documento se SUBE, no se enlaza. Antes era un campo «URL del documento» que pedía un
+           * https:// a otro repositorio: el contrato firmado quedaba fuera de Atlas, sin hash y sin
+           * sesión. Ahora va al almacén de evidencia, a la carpeta `documentos/` del comercio.
+           */
+          { name: 'documento', label: 'Documento del contrato', tooltip: 'El contrato firmado (PDF o imagen). Se guarda en la carpeta «documentos» del comercio, en Archivos.', type: 'file', accept: 'application/pdf,image/jpeg,image/png', hint: 'PDF, JPEG o PNG hasta 15 MB. También se puede subir después, desde la fila.', optional: true, span: 2 },
         ],
-        submit: (payload: JsonObject) => b2bService.createContractFromProposal(payload),
+        submit: async (payload: JsonObject) => {
+          const { documento, ...datos } = payload as JsonObject & { documento?: unknown };
+          const creado = (await b2bService.createContractFromProposal(datos)) as { contract?: { id?: string } };
+          await adjuntarAlCrear('CONTRACT', creado.contract?.id, documento, 'El contrato');
+          return creado;
+        },
       }}
       /*
        * Las dos operaciones del contrato viven en SU FILA.
@@ -87,6 +101,14 @@ export default function CommercialContractsPage() {
           },
         },
         {
+          key: 'documentos',
+          label: 'Documentos',
+          icon: 'attach_file',
+          /* `silent`: no ejecuta nada, abre la lista de documentos de ESE contrato para verlos o subir más. */
+          silent: true,
+          run: async (row) => setDocumentosDe(row),
+        },
+        {
           key: 'comision',
           label: 'Comisión por venta (MDR)',
           icon: 'percent',
@@ -117,6 +139,18 @@ export default function CommercialContractsPage() {
             contractVersionId={String(comisionDe.currentVersionId ?? '')}
             accountId={String(comisionDe.accountId ?? '')}
           />
+        </Modal>
+      ) : null}
+      {documentosDe ? (
+        <Modal
+          open
+          title={`Documentos · ${String(documentosDe.contractNumber ?? 'contrato')}`}
+          description="El contrato firmado y sus anexos. Se guardan en la carpeta «documentos» del comercio, en Archivos."
+          icon="attach_file"
+          width="lg"
+          onClose={() => setDocumentosDe(null)}
+        >
+          <FileAttachmentsPanel ownerType="CONTRACT" ownerId={String(documentosDe.id ?? '')} title="Documentos del contrato" />
         </Modal>
       ) : null}
     </CrudDirectory>
