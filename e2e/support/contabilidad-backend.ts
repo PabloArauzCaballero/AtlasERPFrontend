@@ -1,4 +1,5 @@
 import type { Page, Route } from '@playwright/test';
+import { seedRefreshSession } from './auth-session';
 
 /**
  * Backend simulado de contabilidad, con el MISMO contrato que sirve AtlasERPBackend.
@@ -115,10 +116,7 @@ export async function instalarContabilidad(page: Page): Promise<ContabilidadDobl
   };
   const fallos = new Map<string, Fallo>();
 
-  await page.addInitScript(() => {
-    window.localStorage.setItem('atlas_access_token', 'e2e-internal-token');
-    window.localStorage.setItem('atlas_session_kind', 'internal');
-  });
+  await seedRefreshSession(page, 'internal');
 
   await page.route('**/api/v1/auth/me', (route) =>
     ok(route, {
@@ -136,7 +134,7 @@ export async function instalarContabilidad(page: Page): Promise<ContabilidadDobl
   /* Todo lo que no esté declarado abajo: vacío y en verde, para que ninguna pantalla reviente. */
   await page.route('**/api/v1/**', (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname.includes('/auth/me') || url.pathname.includes('/catalog/domains')) return route.fallback();
+    if (url.pathname.includes('/auth/me') || url.pathname.includes('/auth/refresh') || url.pathname.includes('/catalog/domains')) return route.fallback();
 
     const ruta = url.pathname.replace(/^\/api\/v1/, '');
     const metodo = route.request().method();

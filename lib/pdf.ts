@@ -8,7 +8,7 @@ import { apiFileDownload } from './apiClient';
  * (`/documents/generate`). La pantalla sólo dice QUÉ contar; el molde, el pie institucional y la
  * paginación son del worker, y por eso todos los documentos de Atlas salen iguales.
  *
- * Se descarga con `fetch` y no con un enlace: el token vive en `localStorage`, una navegación no
+ * Se descarga con `fetch` y no con un enlace: el bearer vive en memoria, una navegación no
  * lo lleva, y lo que se guardaría sería el 401.
  */
 

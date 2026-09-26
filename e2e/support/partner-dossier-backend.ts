@@ -1,4 +1,5 @@
 import type { Page, Route } from '@playwright/test';
+import { seedRefreshSession } from './auth-session';
 
 /**
  * Backend simulado del expediente del partner, con el MISMO contrato que sirve AtlasBackend.
@@ -423,8 +424,5 @@ export async function installPartnerDossierBackend(page: Page) {
 
 /** Deja una sesión de comercio en el navegador antes de que la página arranque. */
 export async function seedMerchantSession(page: Page) {
-  await page.addInitScript(() => {
-    window.localStorage.setItem('atlas_access_token', 'e2e-merchant-token');
-    window.localStorage.setItem('atlas_session_kind', 'merchant');
-  });
+  await seedRefreshSession(page, 'merchant');
 }

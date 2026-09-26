@@ -76,11 +76,15 @@ interface ApiEnvelope<T> {
   error?: { message?: string; code?: string; details?: unknown };
 }
 
-const defaultApiOrigin = 'http://localhost:3000';
+// Sin configuración explícita se usa el proxy del mismo origen, también en producción.
+const defaultApiOrigin = '';
 const defaultApiPrefix = 'api/v1';
 const defaultTimeoutMs = 20_000;
 const ACCESS_TOKEN_KEY = 'atlas_access_token';
 const SESSION_KIND_KEY = 'atlas_session_kind';
+// El módulo cliente vive solo en esta pestaña. Nunca se lee ni escribe un bearer persistido.
+let memoryAccessToken: string | null = null;
+let sessionVersion = 0;
 
 function trimSlashes(value: string): string {
   return value.replace(/^\/+|\/+$/g, '');
@@ -155,19 +159,38 @@ export function getSessionKind(): SessionKind {
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
+  return memoryAccessToken;
 }
 
 export function setAccessToken(token: string, kind: SessionKind = getSessionKind()): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionVersion += 1;
+  memoryAccessToken = token;
   window.localStorage.setItem(SESSION_KIND_KEY, kind);
 }
 
 export function clearAccessToken(): void {
   if (typeof window === 'undefined') return;
+  sessionVersion += 1;
+  memoryAccessToken = null;
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.localStorage.removeItem(SESSION_KIND_KEY);
+}
+
+/** El token heredado se destruye sin usarlo; la cookie httpOnly permite renovar tras recargar. */
+export async function bootstrapSession(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+  if (memoryAccessToken) return true;
+  await tryRefreshSession();
+  // El login pudo completar mientras el refresh inicial seguía pendiente.
+  return memoryAccessToken !== null;
+}
+
+/** El logout espera una rotación en curso para revocar la cookie vigente. */
+export async function finishPendingRefresh(): Promise<void> {
+  await refreshPromise;
 }
 
 /** Notifica a `AuthProvider` que la sesión ya no es válida (el refresh contra /auth/refresh falló). */
@@ -397,6 +420,7 @@ let refreshPromise: Promise<Renovacion> | null = null;
  */
 async function tryRefreshSession(): Promise<Renovacion> {
   if (!refreshPromise) {
+    const versionAtStart = sessionVersion;
     refreshPromise = (async () => {
       try {
         const refreshPath = getSessionKind() === 'merchant' ? 'auth/merchant/refresh' : 'auth/refresh';
@@ -405,11 +429,15 @@ async function tryRefreshSession(): Promise<Renovacion> {
         const response = await enviar(refreshPath, { method: 'POST', skipAuthRetry: true });
         if (esRespuestaDePasarela(response)) return 'no-disponible';
         const payload = await parseResponse<{ accessToken: string }>(response);
+        if (versionAtStart !== sessionVersion) return 'rechazada';
+        if (!payload || typeof payload.accessToken !== 'string' || !payload.accessToken) return 'rechazada';
         setAccessToken(payload.accessToken);
         return 'renovada';
       } catch (error) {
-        // Sin respuesta (red, plazo agotado) el token de refresco no se ha rechazado: sigue valiendo.
-        return error instanceof ApiError && error.status === 0 ? 'no-disponible' : 'rechazada';
+        // Red, plazo, límite o error del servidor no significan que la cookie haya sido rechazada.
+        return error instanceof ApiError && (error.status === 0 || error.status === 429 || error.status >= 500)
+          ? 'no-disponible'
+          : 'rechazada';
       } finally {
         refreshPromise = null;
       }
@@ -419,6 +447,22 @@ async function tryRefreshSession(): Promise<Renovacion> {
   return refreshPromise;
 }
 
+async function recoverAfter401(tokenAtStart: string | null): Promise<Renovacion> {
+  // Si otra petición ya renovó, se evita una segunda rotación de la cookie.
+  if (getAccessToken() && tokenAtStart !== getAccessToken()) return 'renovada';
+  const outcome = await tryRefreshSession();
+  // Un login nuevo pudo completar durante el refresh anterior.
+  return getAccessToken() && tokenAtStart !== getAccessToken() ? 'renovada' : outcome;
+}
+
+function handleRenewalFailure(outcome: Renovacion): void {
+  if (outcome === 'no-disponible') {
+    throw new ApiError('El servicio se está actualizando. Vuelve a intentarlo en unos segundos.', 503);
+  }
+  clearAccessToken();
+  broadcastForcedLogout();
+}
+
 /**
  * Cliente para `atlas-integrated-backend` (puerto 3000 por defecto): Contabilidad, CRM B2B, Ads,
  * Auditoría, y — desde el gateway de auth — también login/usuarios/roles/permisos, que
@@ -426,23 +470,19 @@ async function tryRefreshSession(): Promise<Renovacion> {
  * `{success: false, error}`. Es el único backend al que el frontend habla directamente.
  */
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  const tokenAtStart = getAccessToken();
   const mutacion = esMutacion(options.method);
   const response = await enviarConfirmando(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
-    const renovacion = await tryRefreshSession();
+    const renovacion = await recoverAfter401(tokenAtStart);
     if (renovacion === 'renovada') {
       // El 401 dice que el backend no la ejecutó, así que se manda otra vez con la sesión nueva. Pero
       // una mutación sale UNA vez: no se abre otro ciclo entero de reintentos detrás del primero.
       const retryResponse = await enviarConfirmando(path, options, mutacion ? 'unica' : undefined);
       return parseResponse<T>(retryResponse, mutacion);
     }
-    if (renovacion === 'no-disponible') {
-      // La sesión se conserva: lo que falló es el servidor, no la sesión.
-      throw new ApiError('El servicio se está actualizando. Vuelve a intentarlo en unos segundos.', 503);
-    }
-    clearAccessToken();
-    broadcastForcedLogout();
+    handleRenewalFailure(renovacion);
   }
 
   return parseResponse<T>(response, mutacion);
@@ -454,7 +494,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
  * Hace falta porque una etiqueta `<img>` **no puede mandar la cabecera `Authorization`**: sólo
  * tiene una URL. Apuntarla directo a una ruta del backend da 401 y una imagen vacía, que en
  * pantalla se lee como «la imagen no existe» cuando lo que pasa es que nadie la pidió con sesión.
- * El token de este portal vive en `localStorage`, no en una cookie, así que la navegación del
+ * El bearer de este portal vive en memoria, así que la navegación del
  * navegador no lo lleva sola.
  *
  * Lo que devuelve hay que revocarlo (`URL.revokeObjectURL`) al desmontar: un blob no revocado se
@@ -472,7 +512,7 @@ export interface ArchivoDescargado {
  * Descarga un ARCHIVO autenticado, con el nombre que propone el servidor.
  *
  * No vale `<a href="/api/v1/…" download>`: seguir un enlace es una navegación del navegador y ahí
- * no viaja el `Authorization` —el token de este portal vive en `localStorage`, no en una cookie—,
+ * no viaja el `Authorization` —el bearer vive en memoria, no en una cookie—,
  * así que lo que se guardaría en disco sería el 401 en JSON con extensión de PDF.
  *
  * Se distingue de `apiBlobUrl` en que conserva el nombre: una imagen para un `<img>` no necesita
@@ -483,10 +523,13 @@ export async function apiFileDownload(
   fallbackFileName: string,
   options: ApiRequestOptions = {},
 ): Promise<ArchivoDescargado> {
+  const tokenAtStart = getAccessToken();
   let response = await enviar(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
-    if ((await tryRefreshSession()) === 'renovada') response = await enviar(path, options);
+    const renovacion = await recoverAfter401(tokenAtStart);
+    if (renovacion === 'renovada') response = await enviar(path, options);
+    else handleRenewalFailure(renovacion);
   }
 
   if (!response.ok) {
@@ -523,10 +566,13 @@ function fileNameFromDisposition(response: Response): string | null {
 }
 
 export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}): Promise<string> {
+  const tokenAtStart = getAccessToken();
   let response = await enviar(path, options);
 
   if (response.status === 401 && !options.skipAuthRetry) {
-    if ((await tryRefreshSession()) === 'renovada') response = await enviar(path, options);
+    const renovacion = await recoverAfter401(tokenAtStart);
+    if (renovacion === 'renovada') response = await enviar(path, options);
+    else handleRenewalFailure(renovacion);
   }
 
   if (!response.ok) {

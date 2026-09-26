@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { seedRefreshSession } from './support/auth-session';
 
 /**
  * El menú de la consola interna después de la simplificación del 2026-09-18.
@@ -14,6 +15,7 @@ const EVIDENCIA = 'docs/visual-evidence/operaciones';
 
 /** Sesión de personal interno: el perfil lo sirve el doble, no hay login de verdad. */
 async function sesionInterna(page: Page) {
+  await seedRefreshSession(page, 'internal');
   await page.route('**/api/v1/auth/me', (route) =>
     route.fulfill({
       status: 200,
@@ -37,12 +39,8 @@ async function sesionInterna(page: Page) {
   );
   /* Todo lo demás del tablero: vacío y en verde. Aquí sólo se mira el menú. */
   await page.route('**/api/v1/**', (route) => {
-    if (route.request().url().includes('/auth/me')) return route.fallback();
+    if (route.request().url().includes('/auth/me') || route.request().url().includes('/auth/refresh')) return route.fallback();
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], total: 0 }) });
-  });
-  await page.addInitScript(() => {
-    window.localStorage.setItem('atlas_access_token', 'e2e-internal-token');
-    window.localStorage.setItem('atlas_session_kind', 'internal');
   });
 }
 
