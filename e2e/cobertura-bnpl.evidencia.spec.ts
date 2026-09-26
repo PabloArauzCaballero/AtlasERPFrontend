@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import ts from 'typescript';
+import { seedRefreshSession } from './support/auth-session';
 
 /**
  * Cobertura BNPL con doble control (P-04/P-05, 2026-09-24), contra un backend SIMULADO.
@@ -123,7 +124,7 @@ interface Respuestas {
 async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
   const espia: Espia = { liquidaciones: [], aprobaciones: 0, cobros: [], archivosRegistrados: [], subidas: 0, resoluciones: [], reversos: [] };
 
-  await page.route('http://almacen.test/**', (route) => {
+  await page.route('https://storage.atlas.test/**', (route) => {
     espia.subidas += 1;
     return route.fulfill({ status: 200, body: '' });
   });
@@ -184,7 +185,7 @@ async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
       return json({ items: [{ id: CUENTA_ID, tradeName: 'Roho Home Center' }], total: 1 });
     }
     if (ruta.endsWith('/files/upload-signature')) {
-      return json({ storageKey: 'b2b/comprobante.pdf', uploadUrl: 'http://almacen.test/subida', method: 'PUT', requiredHeaders: {}, expiresAt: '2099-01-01T00:00:00Z' });
+      return json({ storageKey: 'b2b/comprobante.pdf', uploadUrl: 'https://storage.atlas.test/subida', method: 'PUT', requiredHeaders: {}, expiresAt: '2099-01-01T00:00:00Z' });
     }
     if (ruta.endsWith('/files') && metodo === 'POST') {
       espia.archivosRegistrados.push(peticion.postDataJSON() as Record<string, unknown>);
@@ -195,10 +196,7 @@ async function montar(page: Page, respuestas: Respuestas = {}): Promise<Espia> {
     return json([]);
   });
 
-  await page.addInitScript(() => {
-    window.localStorage.setItem('atlas_access_token', 'e2e-internal-token');
-    window.localStorage.setItem('atlas_session_kind', 'internal');
-  });
+  await seedRefreshSession(page, 'internal');
   return espia;
 }
 
