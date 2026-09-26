@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/atlas/Icon';
 import { useAuth } from '@/lib/authContext';
+import { NOTIFICACIONES_MASIVAS_VISIBLE } from '@/lib/modulos';
 
 function initialsFrom(name: string | undefined): string {
   if (!name) return '??';
@@ -101,9 +102,11 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           <Link href="/operaciones/contabilidad/documentos/crear" className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Nueva transacción">
             <Icon name="add" className="text-[20px]" />
           </Link>
-          <Link href="/operaciones/admin/notificaciones" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 sm:grid" aria-label="Notificaciones">
-            <Icon name="notifications" className="text-[20px]" />
-          </Link>
+          {NOTIFICACIONES_MASIVAS_VISIBLE ? (
+            <Link href="/operaciones/admin/notificaciones" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 sm:grid" aria-label="Notificaciones">
+              <Icon name="notifications" className="text-[20px]" />
+            </Link>
+          ) : null}
           <Link href="/operaciones/admin/seguridad" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 sm:grid" aria-label="Seguridad">
             <Icon name="settings" className="text-[20px]" />
           </Link>
@@ -126,9 +129,11 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
                   {user?.roles.length ? <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-wide text-primary">{user.roles.join(', ')}</p> : null}
                 </div>
                 {/* En móvil estos dos accesos no caben en la barra; aquí sí. */}
-                <Link href="/operaciones/admin/notificaciones" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-semibold text-slate-600 hover:bg-slate-50 sm:hidden">
-                  <Icon name="notifications" className="text-[16px]" />Notificaciones
-                </Link>
+                {NOTIFICACIONES_MASIVAS_VISIBLE ? (
+                  <Link href="/operaciones/admin/notificaciones" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-semibold text-slate-600 hover:bg-slate-50 sm:hidden">
+                    <Icon name="notifications" className="text-[16px]" />Notificaciones
+                  </Link>
+                ) : null}
                 <Link href="/operaciones/admin/seguridad" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-semibold text-slate-600 hover:bg-slate-50 sm:hidden">
                   <Icon name="settings" className="text-[16px]" />Seguridad
                 </Link>

@@ -19,3 +19,13 @@
  * del menú, la tarjeta «Operación publicitaria» del resumen ejecutivo y su panel de excepciones.
  */
 export const PUBLICIDAD_VISIBLE = false;
+
+/**
+ * Notificaciones masivas (`/operaciones/admin/notificaciones`): campañas y segmentos a clientes de
+ * la app.
+ *
+ * Oculto el 2026-09-26 a petición de Pablo —«quita notificaciones masivas del ERP»—. Al encenderlo
+ * vuelven la entrada «Notificaciones masivas» de Control y la campana de la barra superior (y su
+ * copia en el menú de perfil en móvil), que llevaban a la misma pantalla.
+ */
+export const NOTIFICACIONES_MASIVAS_VISIBLE = false;

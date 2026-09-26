@@ -1,4 +1,4 @@
-import { PUBLICIDAD_VISIBLE } from '@/lib/modulos';
+import { NOTIFICACIONES_MASIVAS_VISIBLE, PUBLICIDAD_VISIBLE } from '@/lib/modulos';
 
 export interface NavItem {
   label: string;
@@ -131,7 +131,9 @@ export const NAVIGATION: NavGroup[] = [
     label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control',
     items: [
       { label: 'Registro de actividad', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
-      { label: 'Notificaciones masivas', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' },
+      ...(NOTIFICACIONES_MASIVAS_VISIBLE
+        ? [{ label: 'Notificaciones masivas', href: '/operaciones/admin/notificaciones', icon: 'notifications_active' }]
+        : []),
       { label: 'Usuarios internos', href: '/operaciones/admin/seguridad', icon: 'manage_accounts' },
       { label: 'Roles y permisos', href: '/operaciones/admin/roles', icon: 'admin_panel_settings' },
     ],
