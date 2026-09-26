@@ -111,6 +111,7 @@ export const NAVIGATION: NavGroup[] = [
       { label: 'Contratos', href: '/operaciones/contabilidad/contratos', icon: 'description' },
       { label: 'Documentos', href: '/operaciones/contabilidad/documentos', icon: 'post_add' },
       { label: 'Factura AR', href: '/operaciones/contabilidad/factura-ar', icon: 'request_quote' },
+      { label: 'Facturación electrónica', href: '/operaciones/contabilidad/facturacion-electronica', icon: 'receipt_long' },
       { label: 'Recibos', href: '/operaciones/contabilidad/recibos', icon: 'payments' },
       { label: 'Cierres', href: '/operaciones/contabilidad/cierres', icon: 'lock_clock' },
     ],
