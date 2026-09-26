@@ -15,6 +15,8 @@ import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
 import { loadBusinessPartners, loadCostCenters, loadGlAccounts, loadLegalEntities } from '@/services/optionLoaders';
 import { formatBob } from '@/lib/formatters';
+import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
+import { adjuntarAlCrear } from '@/services/filesService';
 import type { JsonObject } from '@/services/types';
 import { newUuid } from '@/lib/uuid';
 
@@ -111,6 +113,8 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
       const created = await createMutation.execute(payload);
       if (created.id) setDocumentId(String(created.id));
       setNumeroAsignado(created.documentNo ? String(created.documentNo) : '');
+      // El comprobante elegido antes de guardar se sube ahora que el asiento existe: es su dueño.
+      await adjuntarAlCrear('ACCOUNTING_DOCUMENT', created.id, form.get('respaldo'), 'El asiento');
       await onDone?.();
     } catch { /* el error se pinta arriba */ }
   }
@@ -209,6 +213,24 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
               </table>
             </div>
           </Panel>
+          {/*
+            * El comprobante que respalda el asiento. Antes de guardar se elige el archivo (se sube
+            * al guardar, porque su dueño es el asiento); después, se ven y se añaden más.
+            */}
+          {documentId ? (
+            <FileAttachmentsPanel ownerType="ACCOUNTING_DOCUMENT" ownerId={documentId} title="Comprobante de respaldo" description="La factura, el recibo o el extracto que prueba el asiento. PDF, JPEG o PNG hasta 15 MB." />
+          ) : (
+            <Panel title="Comprobante de respaldo" icon="attach_file">
+              <FormField
+                tooltip="La factura, el recibo o el extracto que prueba el asiento. Se sube al guardar el borrador."
+                label="Documento de respaldo"
+                name="respaldo"
+                type="file"
+                accept="application/pdf,image/jpeg,image/png"
+                hint="PDF, JPEG o PNG hasta 15 MB. Opcional; también puedes adjuntarlo después desde el listado."
+              />
+            </Panel>
+          )}
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-20">
