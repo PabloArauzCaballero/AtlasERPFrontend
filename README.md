@@ -99,24 +99,25 @@ cp .env.example .env.local
 ```
 
 ```env
-NEXT_PUBLIC_ATLAS_API_BASE_URL=http://localhost:3000/api/v1
+NEXT_PUBLIC_ATLAS_API_BASE_URL=
 NEXT_PUBLIC_ATLAS_DEFAULT_PAGE_SIZE=25
 ```
 
 ## Instalación y validación
 
 ```bash
-npm ci
-npm run type-check
-npm run lint
-NEXT_TELEMETRY_DISABLED=1 CI=1 npm run build
+corepack yarn@1.22.22 install --frozen-lockfile
+corepack yarn@1.22.22 type-check
+corepack yarn@1.22.22 lint
+corepack yarn@1.22.22 test:auth
+corepack yarn@1.22.22 test:unit
+NEXT_TELEMETRY_DISABLED=1 CI=1 corepack yarn@1.22.22 build
 ```
 
 Validación integral:
 
 ```bash
-NEXT_TELEMETRY_DISABLED=1 CI=1 npm run check
-npm audit --omit=dev
+NEXT_TELEMETRY_DISABLED=1 CI=1 corepack yarn@1.22.22 check
 ```
 
 ## Ejecución
@@ -161,6 +162,17 @@ El bypass del backend solo debe usarse en desarrollo:
 ```env
 AUTH_DISABLED_FOR_LOCAL_TESTING=true
 ```
+
+## Cabeceras de seguridad
+
+`middleware.ts` emite una CSP con nonce distinto por petición. El layout raíz usa render dinámico
+para que Next coloque ese nonce en los scripts de cada respuesta; esto desactiva la generación
+estática de las páginas y aumenta el trabajo del servidor por request. `next.config.ts` contiene
+las demás cabeceras estáticas, sin una segunda CSP. El cliente usa el proxy `/api/v1` del mismo
+origen si `NEXT_PUBLIC_ATLAS_API_BASE_URL` no está configurada.
+Las cargas directas con URL firmada necesitan `ATLAS_UPLOAD_ORIGINS` en el servidor:
+una lista separada por comas de orígenes HTTPS exactos del almacenamiento autorizado.
+Sin esa variable, la CSP bloqueará cargas a otros orígenes.
 
 ## Regla de red
 
