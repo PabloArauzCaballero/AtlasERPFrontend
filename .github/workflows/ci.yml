@@ -50,6 +50,9 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      - name: Contrato del smoke público
+        run: node --test .github/tests/post-deploy-smoke.test.mjs
+
       - name: Unitarias
         run: yarn test
 
@@ -137,3 +140,13 @@ jobs:
           tar -xzf gitleaks.tar.gz gitleaks && sudo install gitleaks /usr/local/bin/gitleaks && rm gitleaks gitleaks.tar.gz
       - name: Escanear el árbol
         run: gitleaks dir . --config .gitleaks.toml --redact --exit-code 1
+
+  deploy-dev:
+    name: Desplegar DEV sólo después de los quality gates
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    needs:
+      - static
+      - e2e
+      - secret-scan
+    uses: ./.github/workflows/deploy-dev.yml
+    secrets: inherit
