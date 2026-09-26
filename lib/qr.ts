@@ -9,8 +9,9 @@
  * seleccion de mascara por penalizacion) y no una aproximacion: la unica forma de que un QR sea
  * correcto es que lo sea del todo.
  *
- * Modo byte y nivel de correccion M, versiones 1 a 10. Da para 216 bytes, muy por encima de un
- * serial de terminal; por encima de eso se lanza en vez de recortar el contenido en silencio, que
+ * Modo byte y nivel de correccion M, versiones 1 a 10. Da para 213 bytes (UTF-8): la version 10-M
+ * tiene 216 bytes de datos, pero el modo y el contador de 16 bits se comen 20 bits. Un serial de
+ * terminal ocupa 23. Por encima de 213 se lanza en vez de recortar el contenido en silencio, que
  * produciria un QR valido apuntando a otra cosa.
  */
 
@@ -287,11 +288,20 @@ function writeFormat(m: Matrix, mask: number): void {
   const bits = FORMAT_M[mask]!;
   for (let i = 0; i < 15; i += 1) {
     const bit = (bits >> i) & 1;
-    // Copia junto al localizador superior izquierdo.
-    if (i < 6) m.modules[8 * m.size + i] = bit;
-    else if (i === 6) m.modules[8 * m.size + 7] = bit;
+    // Copia junto al localizador superior izquierdo (ISO/IEC 18004 §7.9.1): bits 0–7 bajando por
+    // la columna 8 y 8–14 hacia la izquierda por la fila 8, saltando los temporizadores. Hasta el
+    // 2026-09-26 esta copia iba TRASPUESTA (fila por columna) y ademas corrida un modulo: el bit 8
+    // caia en (6,8), que es del temporizador vertical, y (7,8) no se escribia nunca. No coincidia
+    // con la otra copia y, segun la mascara, apagaba un modulo del temporizador. Los lectores lo
+    // toleraban quedandose con la copia repartida, asi que el QR se leia... salvo que esa otra
+    // copia estuviera tapada o manchada. Corregirlo cambia tambien la penalizacion de cada mascara:
+    // cerca de 1 de cada 3 seriales pasa a otra mascara y con ella cambia la imagen entera del QR,
+    // aunque el contenido y la lectura son los mismos. Lo fija `tests/unit/qr.test.ts`.
+    if (i < 6) m.modules[i * m.size + 8] = bit;
+    else if (i === 6) m.modules[7 * m.size + 8] = bit;
     else if (i === 7) m.modules[8 * m.size + 8] = bit;
-    else m.modules[(14 - i) * m.size + 8] = bit;
+    else if (i === 8) m.modules[8 * m.size + 7] = bit;
+    else m.modules[8 * m.size + (14 - i)] = bit;
     // Copia repartida entre los otros dos.
     if (i < 8) m.modules[8 * m.size + (m.size - 1 - i)] = bit;
     else m.modules[(m.size - 15 + i) * m.size + 8] = bit;
