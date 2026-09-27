@@ -177,3 +177,25 @@ test('factura de comercio: se eligen VARIOS cargos, sólo los pendientes del com
   expect(cuerpos[0]).toMatchObject({ accountId: A, receivableIds: ['r1', 'r2'] });
   expect(cuerpos[0]).not.toHaveProperty('receivableIdsCsv');
 });
+
+test('emisor: el producto del SIN para facturas de contabilidad sale del catálogo y viaja como número', async ({ page }) => {
+  await abrir(page);
+  await page.getByRole('tab', { name: /Emisor y credenciales/ }).click();
+  await page.getByTestId('crud-crear').first().click();
+  const alta = page.getByRole('dialog').last();
+  await alta.getByLabel('Empresa que factura').click();
+  await page.getByRole('option').first().click();
+  await alta.getByLabel('NIT').fill('1020304050');
+  await alta.getByLabel('Razón social').fill('Atlas Bolivia S.A.');
+  await alta.getByLabel('Municipio').fill('La Paz');
+  await alta.getByLabel('Dirección').fill('Av. Arce 2631');
+  await alta.getByLabel('Actividad económica').fill('620100');
+  await alta.getByLabel('Producto del SIN para facturas de contabilidad').click();
+  await page.getByRole('option', { name: /620100/ }).click();
+  await alta.getByRole('button', { name: /Registrar emisor/ }).click();
+  await expect.poll(() => doble.llamadas.find((l) => l.metodo === 'POST' && l.ruta === '/issuer-profiles')?.cuerpo ?? null).not.toBeNull();
+  const cuerpo = doble.llamadas.find((l) => l.metodo === 'POST' && l.ruta === '/issuer-profiles')!.cuerpo!;
+  expect(cuerpo.productoSinDefault).toBe(620100);
+  /* Sin elegir unidad no viaja: el backend pone 58 (servicios). */
+  expect(cuerpo.unidadMedidaDefault ?? null).toBeNull();
+});
