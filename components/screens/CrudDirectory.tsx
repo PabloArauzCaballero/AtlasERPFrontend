@@ -18,7 +18,7 @@ import { Modal } from '@/components/atlas/Modal';
 import { OptionsMenu, type MenuOption } from '@/components/atlas/OptionsMenu';
 import { ActionFormModal } from './ActionFormModal';
 import { useExcelImport, type ExcelImportSpec } from './useExcelImport';
-import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
+import { formatBob, formatDate, maskPii, statusTone, type StatusTone } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject, PaginatedResult, ResourceRow } from '@/services/types';
@@ -28,6 +28,13 @@ export interface CrudColumn {
   label: string;
   kind?: 'text' | 'status' | 'money' | 'date' | 'pii' | 'mono' | 'list' | 'bool' | undefined;
   align?: 'left' | 'right' | undefined;
+  /**
+   * Etiqueta de cada código (la del dominio que publica el sistema): la celda y la búsqueda dicen
+   * «Validada por Impuestos» y no `ACCEPTED`. Un código sin etiqueta se enseña tal cual.
+   */
+  labels?: Record<string, string> | undefined;
+  /** Color del estado por código, cuando la regla general de `statusTone` no lo acierta. */
+  tone?: ((code: string) => StatusTone) | undefined;
 }
 
 export interface CrudFilter {
@@ -172,6 +179,7 @@ function rowsFrom(data: ResourceRow[] | PaginatedResult<ResourceRow> | null): Re
 
 function cellText(row: ResourceRow, column: CrudColumn): string {
   const raw = row[column.key];
+  if (column.labels && raw !== null && raw !== undefined && column.labels[String(raw)]) return column.labels[String(raw)]!;
   if (column.kind === 'status') return String(raw ?? '').replaceAll('_', ' ');
   if (column.kind === 'money') return formatBob(Number(raw ?? 0));
   if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);
@@ -185,8 +193,10 @@ function renderCell(row: ResourceRow, column: CrudColumn) {
   const raw = row[column.key];
   if (column.kind === 'status') {
     const text = String(raw ?? 'SIN ESTADO');
-    return <StatusPill tone={statusTone(text)}>{text.replaceAll('_', ' ')}</StatusPill>;
+    const tone = column.tone ? column.tone(text) : statusTone(text);
+    return <StatusPill tone={tone}>{column.labels?.[text] ?? text.replaceAll('_', ' ')}</StatusPill>;
   }
+  if (column.labels && raw !== null && raw !== undefined && raw !== '') return column.labels[String(raw)] ?? String(raw);
   if (column.kind === 'bool') return <StatusPill tone={raw ? 'success' : 'neutral'} dot={false}>{raw ? 'Sí' : 'No'}</StatusPill>;
   if (column.kind === 'money') return formatBob(Number(raw ?? 0));
   if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);

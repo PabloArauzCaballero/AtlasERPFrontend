@@ -743,33 +743,104 @@
     "accounting.siatStatus": [
       {
         "code": "PENDING",
-        "label": "Pendiente de envío",
-        "help": "Emitida en el ERP pero todavía no transmitida a Impuestos."
+        "label": "Pendiente",
+        "help": "Registro heredado de antes de la integración: nunca se transmitió a Impuestos."
+      },
+      {
+        "code": "QUEUED",
+        "label": "En cola de envío",
+        "help": "Emitida en el ERP con su CUF; el procesador la enviará al SIAT en segundos."
       },
       {
         "code": "SENT",
         "label": "Enviada",
-        "help": "Transmitida al SIAT; falta la respuesta de validación."
+        "help": "Transmitida al SIAT; falta su respuesta. Si no llega, el ERP consulta el estado por CUF."
       },
       {
         "code": "ACCEPTED",
-        "label": "Aceptada",
-        "help": "Impuestos la validó; tiene CUF vigente y respalda crédito fiscal."
+        "label": "Validada por Impuestos",
+        "help": "El SIAT la validó (908): es factura fiscal y respalda crédito fiscal."
       },
       {
         "code": "OBSERVED",
         "label": "Observada",
-        "help": "El SIAT halló inconsistencias; hay que corregir y reenviar."
+        "help": "El SIAT la registró con observaciones (904). Si son sólo advertencias vale; si son errores, se anula y se emite otra."
       },
       {
         "code": "REJECTED",
         "label": "Rechazada",
-        "help": "Impuestos no la admitió; no vale como respaldo tributario."
+        "help": "Impuestos no la admitió (902): no vale como factura. Se emite un documento nuevo para la misma venta."
+      },
+      {
+        "code": "OFFLINE",
+        "label": "Emitida fuera de línea",
+        "help": "Emitida durante una contingencia con el último CUFD válido; vale como factura y se enviará en un paquete al recuperar la conexión."
+      },
+      {
+        "code": "PACKAGED",
+        "label": "Enviada en paquete",
+        "help": "Viajó en un paquete de contingencia; falta que el SIAT termine de validarlo."
+      },
+      {
+        "code": "ERROR",
+        "label": "Error de envío",
+        "help": "No se pudo transmitir o el SIAT respondió algo no previsto. Se reintenta sola; si persiste, revisar el detalle."
       },
       {
         "code": "VOIDED",
         "label": "Anulada ante el SIAT",
-        "help": "Se comunicó su anulación dentro del plazo que fija la norma."
+        "help": "El SIAT confirmó su anulación (905) dentro del plazo que fija la norma."
+      }
+    ],
+    "fiscal.sourceType": [
+      {
+        "code": "AR_INVOICE",
+        "label": "Factura de cuentas por cobrar",
+        "help": "Factura contable emitida desde Contabilidad a un socio de negocio."
+      },
+      {
+        "code": "MERCHANT_INVOICE",
+        "label": "Factura a comercio",
+        "help": "Factura de comisiones y cargos a un comercio afiliado (serie FAC-CM)."
+      },
+      {
+        "code": "AD_INVOICE",
+        "label": "Factura de publicidad",
+        "help": "Factura de campañas de publicidad a un anunciante (serie FAC-AD)."
+      }
+    ],
+    "fiscal.issuerStatus": [
+      {
+        "code": "ACTIVE",
+        "label": "Activo",
+        "help": "Se usa para emitir facturas fiscales."
+      },
+      {
+        "code": "INACTIVE",
+        "label": "Inactivo",
+        "help": "Conservado por historia; no emite. Sus facturas ya emitidas siguen siendo válidas."
+      }
+    ],
+    "fiscal.eventStatus": [
+      {
+        "code": "OPEN",
+        "label": "Abierta",
+        "help": "El SIN no responde: las facturas se emiten fuera de línea con el último CUFD válido."
+      },
+      {
+        "code": "CLOSED",
+        "label": "Cerrada",
+        "help": "La conexión volvió; falta registrar el evento ante el SIN."
+      },
+      {
+        "code": "REGISTERED",
+        "label": "Registrada",
+        "help": "El SIN aceptó el evento; falta enviar los paquetes con las facturas emitidas en él."
+      },
+      {
+        "code": "DISPATCHED",
+        "label": "Paquetes enviados",
+        "help": "Todas las facturas del evento viajaron al SIN."
       }
     ],
     "accounting.periodCloseType": [
@@ -1094,6 +1165,40 @@
         "code": "REJECTED",
         "label": "Rechazar",
         "help": "Deniega las condiciones; la propuesta vuelve a quien la armó."
+      }
+    ],
+    "crm.coverageReviewAction": [
+      {
+        "code": "CONFIRM_NOTICE",
+        "label": "Confirmar el pago del cliente",
+        "help": "Se comprobó que el comercio recibió el pago avisado: descuenta de lo que falta pagar."
+      },
+      {
+        "code": "REJECT_NOTICE",
+        "label": "Rechazar el aviso de pago",
+        "help": "El pago avisado no se sostiene: la cuota sigue impaga y se puede cubrir."
+      },
+      {
+        "code": "DISMISS",
+        "label": "Descartar la revisión",
+        "help": "Se cierra sin tocar pagos, con un motivo (por ejemplo, contrato suspendido)."
+      }
+    ],
+    "crm.coverageReviewQueueFilter": [
+      {
+        "code": "OPEN",
+        "label": "Por resolver",
+        "help": "Lo que todavía espera una decisión."
+      },
+      {
+        "code": "RESOLVED",
+        "label": "Resueltos",
+        "help": "Lo ya decidido, con quién lo decidió, cuándo y por qué."
+      },
+      {
+        "code": "ALL",
+        "label": "Todos",
+        "help": "Abiertos y resueltos juntos."
       }
     ],
     "crm.termType": [
@@ -1631,6 +1736,28 @@
         "code": "CRITICAL",
         "label": "Crítico",
         "help": "No se opera sin aprobación expresa de riesgo y cumplimiento."
+      }
+    ],
+    "crm.coreCreditRiskBand": [
+      {
+        "code": "A",
+        "label": "A",
+        "help": "Menor riesgo de crédito; sin prima sobre la tasa base del producto."
+      },
+      {
+        "code": "B",
+        "label": "B",
+        "help": "Riesgo de crédito bajo-medio."
+      },
+      {
+        "code": "C",
+        "label": "C",
+        "help": "Riesgo de crédito medio-alto."
+      },
+      {
+        "code": "D",
+        "label": "D",
+        "help": "Mayor riesgo de crédito dentro de lo aprobado; prima máxima."
       }
     ],
     "crm.merchantCategory": [

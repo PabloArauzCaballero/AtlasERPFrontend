@@ -1,10 +1,15 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { b2bService } from '@/services/b2bService';
+import { useOptions } from '@/hooks/useOptions';
+import { toast } from '@/lib/toast';
+import { domainLoader } from '@/services/domains';
+import { fiscalService } from '@/services/fiscalService';
+import { etiquetas, toneSiat } from '@/components/screens/facturacion-electronica/comun';
 import { descargarFactura, facturaDeComercio } from '@/lib/facturaPdf';
 import { loadAccountingPeriods, loadB2BAccounts, loadB2BContracts, loadBusinessPartners, loadGlAccounts, loadLedgers, loadLegalEntities, loadReceivables, withEmpty } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
@@ -21,8 +26,31 @@ export default function B2BBillingPage() {
   const [tab, setTab] = useState('facturas');
   const [version, setVersion] = useState(0);
   const recargar = useCallback(() => setVersion((value) => value + 1), []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const cargarFacturas = useCallback(() => b2bService.listMerchantInvoices(), [version]);
+  /*
+   * Con facturación electrónica encendida, la referencia fiscal la da Impuestos: no se escribe a
+   * mano, y cada factura enseña su estado ante Impuestos. Si no se puede saber, se asume apagada.
+   */
+  const [fiscalActiva, setFiscalActiva] = useState(false);
+  useEffect(() => {
+    fiscalService.status().then((estado) => setFiscalActiva(estado.activo === true)).catch(() => setFiscalActiva(false));
+  }, []);
+  const estadosSiat = useOptions(domainLoader('domain:accounting.siatStatus'));
+  const etiquetasSiat = useMemo<Record<string, string>>(() => ({ ...etiquetas(estadosSiat), SIN_DOCUMENTO: 'Sin documento fiscal' }), [estadosSiat]);
+  const cargarFacturas = useCallback(async () => {
+    const facturas = await b2bService.listMerchantInvoices();
+    if (!fiscalActiva) return facturas;
+    /* Quien no ve los documentos fiscales (otro rol) sigue viendo sus facturas, sin esa columna. */
+    const documentos = await fiscalService.listAllDocuments({ sourceType: 'MERCHANT_INVOICE' }).catch(() => []);
+    const porFactura = new Map(documentos.map((documento) => [String(documento.sourceId ?? ''), documento]));
+    /* El contrato dice lista, pero se acepta también la forma paginada: una tabla vacía por eso no. */
+    const filas: ResourceRow[] = Array.isArray(facturas) ? facturas : ((facturas as { items?: ResourceRow[] })?.items ?? []);
+    return filas.map((fila) => {
+      const propio = (fila.fiscalDocument ?? null) as Record<string, unknown> | null;
+      const documento = propio ?? porFactura.get(String(fila.id ?? ''));
+      return { ...fila, siatStatus: documento?.siatStatus ?? 'SIN_DOCUMENTO', numeroFiscal: documento?.numeroFactura ?? null };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version, fiscalActiva]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const cargarCxc = useCallback(() => b2bService.listReceivables(), [version]);
 
@@ -30,6 +58,13 @@ export default function B2BBillingPage() {
     const csv = String(payload.receivableIdsCsv ?? '');
     const { receivableIdsCsv: _csv, ...body } = payload;
     const factura = await b2bService.createBillingInvoice({ ...body, receivableIds: csv.split(',').map((value) => value.trim()).filter(Boolean) });
+    const fiscal = (factura as Record<string, unknown>).fiscalDocument as Record<string, unknown> | null | undefined;
+    if (fiscal) {
+      toast.success(
+        'Factura enviada a Impuestos',
+        `N° fiscal ${String(fiscal.numeroFactura ?? '—')}: ${etiquetasSiat[String(fiscal.siatStatus ?? '')] ?? String(fiscal.siatStatus ?? '')}. Su validación se sigue en Contabilidad › Facturación electrónica.`,
+      );
+    }
     recargar();
     return factura;
   }
@@ -90,6 +125,12 @@ export default function B2BBillingPage() {
                   { key: 'invoiceDate', label: 'Emisión', kind: 'date' },
                   { key: 'totalAmount', label: 'Importe', kind: 'money', align: 'right' },
                   { key: 'status', label: 'Estado', kind: 'status' },
+                  ...(fiscalActiva
+                    ? [
+                        { key: 'numeroFiscal', label: 'N° fiscal', kind: 'mono' as const },
+                        { key: 'siatStatus', label: 'Ante Impuestos', kind: 'status' as const, labels: etiquetasSiat, tone: toneSiat },
+                      ]
+                    : []),
                   { key: 'accountId', label: 'Cuenta', kind: 'mono' },
                 ]}
                 filters={[{ key: 'status', label: 'Estado' }]}
@@ -104,7 +145,9 @@ export default function B2BBillingPage() {
                     { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
                     { name: 'dueDate', label: 'Fecha vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
                     { name: 'receivableIdsCsv', label: 'Cuenta por cobrar a facturar', tooltip: 'Cuenta por cobrar que se incluye en la factura.', type: 'select', required: true, span: 2, valueKind: 'stringList', optionsLoader: loadReceivables },
-                    { name: 'externalTaxRef', label: 'Referencia fiscal externa', tooltip: 'Número de la factura fiscal emitida fuera del ERP, para cruzarla.', optional: true, span: 2 },
+                    ...(fiscalActiva
+                      ? []
+                      : [{ name: 'externalTaxRef', label: 'Referencia fiscal externa', tooltip: 'Número de la factura fiscal emitida fuera del ERP, para cruzarla.', optional: true, span: 2 as const }]),
                   ],
                 }}
                 extraActions={[

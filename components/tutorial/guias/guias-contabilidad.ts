@@ -254,6 +254,30 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
     ],
   },
 
+  '/operaciones/contabilidad/facturacion-electronica': {
+    eyebrow: 'Contabilidad',
+    title: 'Facturación electrónica',
+    intro: 'Cada factura del ERP tal como la ve Impuestos Nacionales: si la validó, con qué número fiscal y qué respondió.',
+    sections: [
+      {
+        title: 'La factura se envía sola',
+        body: 'Al emitir una factura en el ERP nace su documento fiscal y el sistema lo envía a Impuestos en segundos. Aquí no se emite nada: se vigila. «Validada por Impuestos» es la única que respalda crédito fiscal.',
+      },
+      {
+        title: 'Si algo falla, se ve en la fila',
+        body: 'Un «Error de envío» se reintenta solo; «Reintentar envío» sólo lo adelanta. Una factura validada u observada se anula ante Impuestos desde su fila, con el motivo de su catálogo, hasta el día 9 del mes siguiente y si no tiene cobros.',
+      },
+      {
+        title: 'El emisor y sus códigos',
+        body: 'Cada empresa factura con su NIT, sucursal y punto de venta. El sistema pide y renueva los códigos de autorización (CUIS y CUFD); en «Emisor y credenciales» se ve su vigencia y se piden a mano si hace falta.',
+      },
+      {
+        title: 'Sin conexión también se factura',
+        body: 'Si Impuestos no responde, las facturas se emiten fuera de línea y valen igual. Al volver la conexión viajan en paquetes: eso es «Contingencias».',
+      },
+    ],
+  },
+
   '/operaciones/contabilidad/recibos': {
     eyebrow: 'Contabilidad',
     title: 'Recibos',
