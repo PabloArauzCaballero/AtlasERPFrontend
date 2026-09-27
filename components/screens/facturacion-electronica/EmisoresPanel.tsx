@@ -11,6 +11,23 @@ import type { JsonObject, ResourceRow } from '@/services/types';
 import { etiquetas } from './comun';
 import { EstadoEmisorModal } from './EstadoEmisorModal';
 
+/** Productos del SIN sincronizados, uno por código (el catálogo los repite por actividad). */
+async function cargarProductosSin() {
+  const filas = await fiscalService.listCatalog('PRODUCTOS').catch(() => []);
+  const porCodigo = new Map<string, string>();
+  for (const fila of filas ?? []) {
+    const extra = (fila.extra ?? {}) as { codigoProducto?: unknown };
+    const codigo = String(extra.codigoProducto ?? String(fila.codigo ?? '').split('|').pop() ?? '');
+    if (codigo && !porCodigo.has(codigo)) porCodigo.set(codigo, `${codigo} — ${String(fila.descripcion ?? '')}`);
+  }
+  return [...porCodigo].map(([value, label]) => ({ value, label }));
+}
+
+async function cargarUnidadesSin() {
+  const filas = await fiscalService.listCatalog('UNIDAD_MEDIDA').catch(() => []);
+  return (filas ?? []).map((fila) => ({ value: String(fila.codigo ?? ''), label: String(fila.descripcion ?? '') }));
+}
+
 /** Lo que se puede cambiar de un emisor sin rehacer su registro ante Impuestos. */
 const camposEditables: ActionField[] = [
   { name: 'razonSocial', label: 'Razón social', tooltip: 'Nombre legal tal como figura en el padrón de Impuestos; sale impreso en cada factura.', required: true, span: 2 },
@@ -19,6 +36,28 @@ const camposEditables: ActionField[] = [
   { name: 'direccion', label: 'Dirección', tooltip: 'Dirección de la sucursal registrada ante Impuestos; sale impresa en la factura.', required: true, span: 2 },
   { name: 'actividadEconomica', label: 'Actividad económica', tooltip: 'Código de la actividad registrada en Impuestos (CAEB), sólo dígitos. Ej.: 620100.', required: true, placeholder: '620100' },
   { name: 'leyendaDefault', label: 'Leyenda por defecto', tooltip: 'Leyenda de la Ley 453 que se imprime si la actividad no trae otra; opcional.', optional: true, type: 'textarea', span: 2 },
+  {
+    name: 'productoSinDefault',
+    label: 'Producto del SIN para facturas de contabilidad',
+    tooltip: 'Producto homologado con que salen las facturas de Contabilidad (AR), que no tienen catálogo propio. Sin él, esas facturas no se pueden emitir con la facturación electrónica encendida.',
+    type: 'select',
+    valueKind: 'number',
+    optional: true,
+    span: 2,
+    emptyOption: '— Sin definir —',
+    optionsLoader: cargarProductosSin,
+  },
+  {
+    name: 'unidadMedidaDefault',
+    label: 'Unidad de medida de esas facturas',
+    tooltip: 'Unidad del catálogo del SIN con que se facturan; para servicios suele ser «UNIDAD (SERVICIOS)».',
+    type: 'select',
+    valueKind: 'number',
+    optional: true,
+    span: 2,
+    emptyOption: '— UNIDAD (SERVICIOS) —',
+    optionsLoader: cargarUnidadesSin,
+  },
 ];
 
 const camposAlta: ActionField[] = [
