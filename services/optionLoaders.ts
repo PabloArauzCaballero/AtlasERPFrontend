@@ -104,6 +104,26 @@ export const loadReceivables = async (): Promise<Option[]> =>
   toOptions(await b2bService.listReceivables(), (r) => `${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`);
 
 /**
+ * Cargos que se pueden facturar: PENDIENTES, todavía sin factura y —si se indica— del comercio
+ * elegido, con su nombre delante. Mezclar cargos de dos comercios el backend lo rechaza con «no
+ * pertenecen al comercio».
+ */
+export const loadReceivablesPorFacturar = async (accountId?: string): Promise<Option[]> => {
+  const [cargos, cuentas] = await Promise.all([
+    b2bService.listReceivables(),
+    b2bService.listAccounts({ page: 1, limit: 100 }),
+  ]);
+  const nombres = new Map(rowsOf(cuentas).map((c) => [s(c.id), s(c.tradeName || c.legalName)]));
+  const pendientes = cargos.filter(
+    (r) => s(r.status) === 'PENDING' && !r.invoiceId && (!accountId || s(r.accountId) === accountId),
+  );
+  return toOptions(
+    pendientes,
+    (r) => `${nombres.get(s(r.accountId)) ?? 'Comercio'} · ${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`,
+  );
+};
+
+/**
  * Casos de onboarding, etiquetados por el NOMBRE del comercio y su estado.
  *
  * La pantalla pedia el uuid a mano porque el backend no exponia lectura. Se etiqueta con el nombre
