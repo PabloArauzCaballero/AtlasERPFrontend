@@ -11,7 +11,7 @@ import { domainLoader } from '@/services/domains';
 import { fiscalService } from '@/services/fiscalService';
 import { etiquetas, toneSiat } from '@/components/screens/facturacion-electronica/comun';
 import { descargarFactura, facturaDeComercio } from '@/lib/facturaPdf';
-import { loadAccountingPeriods, loadB2BAccounts, loadB2BContracts, loadBusinessPartners, loadGlAccounts, loadLedgers, loadLegalEntities, loadReceivables, withEmpty } from '@/services/optionLoaders';
+import { loadAccountingPeriods, loadB2BAccounts, loadB2BContracts, loadBusinessPartners, loadGlAccounts, loadLedgers, loadLegalEntities, loadReceivablesPorFacturar, withEmpty } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 /**
@@ -37,17 +37,24 @@ export default function B2BBillingPage() {
   const estadosSiat = useOptions(domainLoader('domain:accounting.siatStatus'));
   const etiquetasSiat = useMemo<Record<string, string>>(() => ({ ...etiquetas(estadosSiat), SIN_DOCUMENTO: 'Sin documento fiscal' }), [estadosSiat]);
   const cargarFacturas = useCallback(async () => {
-    const facturas = await b2bService.listMerchantInvoices();
-    if (!fiscalActiva) return facturas;
-    /* Quien no ve los documentos fiscales (otro rol) sigue viendo sus facturas, sin esa columna. */
-    const documentos = await fiscalService.listAllDocuments({ sourceType: 'MERCHANT_INVOICE' }).catch(() => []);
+    const [facturas, cuentas, documentos] = await Promise.all([
+      b2bService.listMerchantInvoices(),
+      /* El nombre del comercio, no su uuid: sin permiso para listarlos, la columna queda en «—». */
+      b2bService.listAccounts({ page: 1, limit: 100 }).catch(() => null),
+      /* Quien no ve los documentos fiscales (otro rol) sigue viendo sus facturas, sin esa columna. */
+      fiscalActiva ? fiscalService.listAllDocuments({ sourceType: 'MERCHANT_INVOICE' }).catch(() => []) : Promise.resolve([]),
+    ]);
+    const filasCuentas: ResourceRow[] = Array.isArray(cuentas) ? cuentas : ((cuentas as { items?: ResourceRow[] } | null)?.items ?? []);
+    const nombres = new Map(filasCuentas.map((c) => [String(c.id ?? ''), String(c.tradeName || c.legalName || '')]));
     const porFactura = new Map(documentos.map((documento) => [String(documento.sourceId ?? ''), documento]));
     /* El contrato dice lista, pero se acepta también la forma paginada: una tabla vacía por eso no. */
     const filas: ResourceRow[] = Array.isArray(facturas) ? facturas : ((facturas as { items?: ResourceRow[] })?.items ?? []);
     return filas.map((fila) => {
+      const cuenta = nombres.get(String(fila.accountId ?? '')) || '—';
+      if (!fiscalActiva) return { ...fila, cuenta };
       const propio = (fila.fiscalDocument ?? null) as Record<string, unknown> | null;
       const documento = propio ?? porFactura.get(String(fila.id ?? ''));
-      return { ...fila, siatStatus: documento?.siatStatus ?? 'SIN_DOCUMENTO', numeroFiscal: documento?.numeroFactura ?? null };
+      return { ...fila, cuenta, siatStatus: documento?.siatStatus ?? 'SIN_DOCUMENTO', numeroFiscal: documento?.numeroFactura ?? null };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version, fiscalActiva]);
@@ -55,9 +62,12 @@ export default function B2BBillingPage() {
   const cargarCxc = useCallback(() => b2bService.listReceivables(), [version]);
 
   async function emitir(payload: JsonObject) {
-    const csv = String(payload.receivableIdsCsv ?? '');
+    const elegidos = payload.receivableIdsCsv;
+    const receivableIds = (Array.isArray(elegidos) ? elegidos.map(String) : String(elegidos ?? '').split(','))
+      .map((value) => value.trim())
+      .filter(Boolean);
     const { receivableIdsCsv: _csv, ...body } = payload;
-    const factura = await b2bService.createBillingInvoice({ ...body, receivableIds: csv.split(',').map((value) => value.trim()).filter(Boolean) });
+    const factura = await b2bService.createBillingInvoice({ ...body, receivableIds });
     const fiscal = (factura as Record<string, unknown>).fiscalDocument as Record<string, unknown> | null | undefined;
     if (fiscal) {
       toast.success(
@@ -131,7 +141,7 @@ export default function B2BBillingPage() {
                         { key: 'siatStatus', label: 'Ante Impuestos', kind: 'status' as const, labels: etiquetasSiat, tone: toneSiat },
                       ]
                     : []),
-                  { key: 'accountId', label: 'Cuenta', kind: 'mono' },
+                  { key: 'cuenta', label: 'Comercio' },
                 ]}
                 filters={[{ key: 'status', label: 'Estado' }]}
                 create={{
@@ -144,7 +154,7 @@ export default function B2BBillingPage() {
                     { name: 'contractId', label: 'Contrato', tooltip: 'Contrato del comercio del que nace lo facturado; vacío si la factura no cuelga de ninguno.', type: 'select', optional: true, span: 2, optionsLoader: async () => withEmpty(await loadB2BContracts()) },
                     { name: 'invoiceDate', label: 'Fecha factura', tooltip: 'Fecha de emisión de la factura; desde ella se cuentan plazos e impuestos.', type: 'date', required: true },
                     { name: 'dueDate', label: 'Fecha vencimiento', tooltip: 'Fecha límite de pago; a partir de ella la factura entra en mora.', type: 'date', required: true },
-                    { name: 'receivableIdsCsv', label: 'Cuenta por cobrar a facturar', tooltip: 'Cuenta por cobrar que se incluye en la factura.', type: 'select', required: true, span: 2, valueKind: 'stringList', optionsLoader: loadReceivables },
+                    { name: 'receivableIdsCsv', label: 'Cuentas por cobrar a facturar', tooltip: 'Cargos pendientes del comercio elegido que entran en esta factura; se pueden marcar varios.', type: 'multiselect', required: true, span: 2, dependsOn: 'accountId', optionsLoaderFor: (cuenta: string) => loadReceivablesPorFacturar(cuenta) },
                     ...(fiscalActiva
                       ? []
                       : [{ name: 'externalTaxRef', label: 'Referencia fiscal externa', tooltip: 'Número de la factura fiscal emitida fuera del ERP, para cruzarla.', optional: true, span: 2 as const }]),

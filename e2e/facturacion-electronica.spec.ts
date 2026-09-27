@@ -114,3 +114,66 @@ test('factura de comercio: apagada, la referencia fiscal externa sigue disponibl
   await page.getByTestId('crud-crear').first().click();
   await expect(page.getByRole('dialog').getByLabel('Referencia fiscal externa')).toBeVisible();
 });
+
+test('factura de comercio: se eligen VARIOS cargos, sólo los pendientes del comercio elegido, y viajan todos', async ({ page }) => {
+  doble = await instalarFacturacionElectronica(page);
+  const A = 'a2000000-0000-4000-8000-00000000000a';
+  const B = 'a2000000-0000-4000-8000-00000000000b';
+  const cuerpos: Record<string, unknown>[] = [];
+  await page.route('**/api/v1/b2b/accounts**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { items: [{ id: A, tradeName: 'Farmacia Illimani' }, { id: B, tradeName: 'Ferretería El Alto' }], total: 2, page: 1, limit: 100 },
+      }),
+    }),
+  );
+  await page.route('**/api/v1/b2b/receivables**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: [
+          { id: 'r1', accountId: A, sourceType: 'MDR', amountOpen: '120.00', dueDate: '2026-10-26', status: 'PENDING', invoiceId: null },
+          { id: 'r2', accountId: A, sourceType: 'MDR', amountOpen: '37.50', dueDate: '2026-10-26', status: 'PENDING', invoiceId: null },
+          { id: 'r3', accountId: A, sourceType: 'MDR', amountOpen: '10.00', dueDate: '2026-10-26', status: 'PENDING', invoiceId: 'ya-facturado' },
+          { id: 'r4', accountId: B, sourceType: 'MDR', amountOpen: '99.00', dueDate: '2026-10-26', status: 'PENDING', invoiceId: null },
+        ],
+      }),
+    }),
+  );
+  await page.route('**/api/v1/b2b/billing/invoices', (route) => {
+    if (route.request().method() !== 'POST') {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: [] }) });
+    }
+    cuerpos.push(route.request().postDataJSON() as Record<string, unknown>);
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: { id: 'f-nueva', invoiceNumber: 'FAC-CM-2026-000009', fiscalDocument: { numeroFactura: '9', siatStatus: 'QUEUED' } } }),
+    });
+  });
+  await stubCatalogDomains(page);
+  await page.goto('/operaciones/crm/facturacion');
+  await expect(page.getByRole('columnheader', { name: 'Ante Impuestos' })).toBeVisible();
+  await page.getByTestId('crud-crear').first().click();
+  const alta = page.getByRole('dialog');
+  await alta.getByLabel('Cuenta B2B').click();
+  await page.getByRole('option', { name: 'Farmacia Illimani' }).click();
+  /* Sólo los dos pendientes y sin factura de ESE comercio; ni el ya facturado ni el del otro. */
+  await expect(alta.getByText(/Farmacia Illimani · MDR — saldo 120\.00/)).toBeVisible();
+  await expect(alta.getByText(/Farmacia Illimani · MDR — saldo 37\.50/)).toBeVisible();
+  await expect(alta.getByText(/saldo 10\.00/)).toHaveCount(0);
+  await expect(alta.getByText(/Ferretería El Alto · MDR/)).toHaveCount(0);
+  await alta.getByText(/saldo 120\.00/).click();
+  await alta.getByText(/saldo 37\.50/).click();
+  await alta.getByLabel('Fecha factura').fill('2026-09-27');
+  await alta.getByLabel('Fecha vencimiento').fill('2026-10-12');
+  await alta.getByRole('button', { name: /Emitir factura/ }).click();
+  await expect.poll(() => cuerpos.length).toBe(1);
+  expect(cuerpos[0]).toMatchObject({ accountId: A, receivableIds: ['r1', 'r2'] });
+  expect(cuerpos[0]).not.toHaveProperty('receivableIdsCsv');
+});
