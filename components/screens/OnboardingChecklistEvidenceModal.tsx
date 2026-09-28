@@ -39,6 +39,12 @@ function etiquetaDeEstado(item: Requisito): string {
   return estado;
 }
 
+function fechaLegible(valor: string | null | undefined): string | null {
+  if (!valor) return null;
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? null : fecha.toLocaleDateString('es-BO', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 function tamanoLegible(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -58,13 +64,22 @@ function tamanoLegible(bytes: number): string {
  * almacén sin registrar y un «Listo» que nunca llegaba. El archivo se elige con `FileDropField`
  * (se arrastra o se elige, y se ve antes de adjuntarlo): el selector del navegador sale en su
  * idioma («Choose File»), sin tamaño y sin vista previa.
+ *
+ * Un requisito guarda UN archivo: el backend pisa el anterior al registrar otro. Por eso, si ya
+ * tiene uno, se dice antes de elegir y el botón pasa a «Reemplazar archivo». Los requisitos se leen
+ * del caso que devuelve el propio registro, no de la fila con la que se abrió el modal: esa fila es
+ * de antes de subir, y con ella el requisito recién respaldado seguía diciendo «falta el archivo» y
+ * el segundo archivo reemplazaba al primero sin aviso (Pablo, 2026-09-28).
  */
 export function OnboardingChecklistEvidenceModal({
   caso,
   onClose,
   onDone,
 }: Readonly<{ caso: ResourceRow | null; onClose: () => void; onDone: () => void }>) {
-  const requisitos = (Array.isArray(caso?.checklistItems) ? caso!.checklistItems : []) as Requisito[];
+  /* El caso tal como lo devolvió el último registro; `null` = el de la fila, todavía sin tocar. */
+  const [casoActual, setCasoActual] = useState<ResourceRow | null>(null);
+  const vigente = casoActual ?? caso;
+  const requisitos = (Array.isArray(vigente?.checklistItems) ? vigente!.checklistItems : []) as Requisito[];
   const [itemId, setItemId] = useState<string>('');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [fase, setFase] = useState<Fase | null>(null);
@@ -79,10 +94,12 @@ export function OnboardingChecklistEvidenceModal({
     setError(null);
     setHecho(null);
     setViendoActual(false);
+    setCasoActual(null);
   }, [caso?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const elegido = requisitos.find((item) => item.id === itemId) ?? null;
   const ocupado = fase !== null;
+  const reemplaza = Boolean(elegido?.hasEvidence);
 
   function elegirArchivo(file: File | null) {
     setError(null);
@@ -110,8 +127,13 @@ export function OnboardingChecklistEvidenceModal({
       setFase('subiendo');
       await uploadWithTicket(ticket, archivo);
       setFase('registrando');
-      await b2bService.attachChecklistEvidence(caseId, itemId, { storageKey: ticket.storageKey, sha256, contentType, sizeBytes: archivo.size });
-      setHecho(`«${archivo.name}» quedó registrado para «${elegido?.description ?? 'el requisito'}». Ya puede marcarlo completado desde la fila.`);
+      const actualizado = await b2bService.attachChecklistEvidence(caseId, itemId, { storageKey: ticket.storageKey, sha256, contentType, sizeBytes: archivo.size });
+      if (Array.isArray(actualizado?.checklistItems)) setCasoActual(actualizado);
+      setHecho(
+        reemplaza
+          ? `«${archivo.name}» reemplazó al archivo anterior de «${elegido?.description ?? 'el requisito'}».`
+          : `«${archivo.name}» quedó registrado para «${elegido?.description ?? 'el requisito'}». Ya puede marcarlo completado desde la fila.`,
+      );
       setArchivo(null);
       // La vista del archivo «actual» enseñaría el anterior: se cierra y se vuelve a pedir al abrirla.
       setViendoActual(false);
@@ -164,9 +186,14 @@ export function OnboardingChecklistEvidenceModal({
           required
           disabled={ocupado}
           value={itemId}
-          onChange={(event) => setItemId(event.target.value)}
+          onChange={(event) => { setItemId(event.target.value); setHecho(null); setViendoActual(false); }}
           options={requisitos.map((item) => ({ value: item.id, label: `${item.description} (${item.itemType}) · ${etiquetaDeEstado(item)}` }))}
         />
+        {reemplaza ? (
+          <InlineNotice tone="warning" title="Este requisito ya tiene un archivo">
+            {`Se subió${fechaLegible(elegido?.evidenceUploadedAt) ? ` el ${fechaLegible(elegido?.evidenceUploadedAt)}` : ''}. Cada requisito guarda un solo archivo: si adjunta otro, reemplazará al anterior. Use «Ver archivo actual» para compararlos antes.`}
+          </InlineNotice>
+        ) : null}
         <FileDropField
           label="Archivo"
           tooltip="El documento que prueba el requisito elegido: el NIT, el poder o el contrato escaneado."
@@ -207,8 +234,8 @@ export function OnboardingChecklistEvidenceModal({
               {viendoActual ? 'Ocultar archivo actual' : 'Ver archivo actual'}
             </AtlasButton>
           ) : null}
-          <AtlasButton type="submit" icon="upload" loading={ocupado} disabled={!itemId || !archivo} data-testid="btn-adjuntar-evidencia">
-            {ocupado ? 'Adjuntando…' : 'Adjuntar archivo'}
+          <AtlasButton type="submit" icon={reemplaza ? 'swap_horiz' : 'upload'} loading={ocupado} disabled={!itemId || !archivo} data-testid="btn-adjuntar-evidencia">
+            {ocupado ? (reemplaza ? 'Reemplazando…' : 'Adjuntando…') : reemplaza ? 'Reemplazar archivo' : 'Adjuntar archivo'}
           </AtlasButton>
         </div>
       </form>

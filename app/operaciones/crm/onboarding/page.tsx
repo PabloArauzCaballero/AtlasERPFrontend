@@ -199,9 +199,28 @@ export default function OnboardingPage() {
               label: 'Enlazar expediente de Atlas',
               description: 'Busca el expediente del comercio en Atlas, primero por su cuenta y luego por NIT, y lo vincula a este caso. Sin ese vínculo no se puede pedir la verificación.',
               icon: 'link',
-              /* Sólo mientras no hay puente: pedir la verificación lo intenta solo, pero así se ve POR QUÉ falla (por cuenta, luego por NIT). */
-              enabled: (row) => abierto(row) && puedePedirVerificacion && !row.partnerProfileId,
-              run: (row) => b2bService.linkPartnerProfile(String(row.id ?? '')),
+              /*
+               * Se ofrece también cuando ya hay puente, para que quien lo busque lea que está hecho en
+               * vez de no encontrar el botón; y dice lo que pasó, no «Operación registrada»: ese aviso
+               * salía igual con la carpeta ya enlazada que con Atlas sin expediente para el comercio.
+               */
+              enabled: (row) => abierto(row) && puedePedirVerificacion,
+              silent: true,
+              run: async (row) => {
+                if (row.partnerProfileId) {
+                  toast.info('Esta cuenta ya tiene su carpeta en Atlas', `El expediente de ${String(row.tradeName ?? 'este comercio')} ya está enlazado a este caso. No hace falta volver a enlazarlo.`);
+                  return;
+                }
+                const enlace = await b2bService.linkPartnerProfile(String(row.id ?? ''));
+                if (enlace.alreadyLinked) {
+                  toast.info('Esta cuenta ya tiene su carpeta en Atlas', 'El expediente ya estaba enlazado a este caso.');
+                } else if (enlace.linked) {
+                  toast.success('Carpeta enlazada', `El expediente de ${String(row.tradeName ?? 'este comercio')} en Atlas queda enlazado a este caso.`);
+                } else {
+                  toast.warning('Atlas no tiene expediente para este comercio', 'No se encontró ni por la cuenta ni por el NIT. El comercio tiene que abrirlo desde su portal.');
+                }
+                recargar();
+              },
             },
             {
               key: 'verificar',
