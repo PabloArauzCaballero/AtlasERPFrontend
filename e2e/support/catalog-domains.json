@@ -1648,6 +1648,23 @@
         "help": "Gestión que no encaja en los canales anteriores."
       }
     ],
+    "crm.activityStatus": [
+      {
+        "code": "PENDING",
+        "label": "Pendiente",
+        "help": "Está por hacerse; aparece en la lista de pendientes de su responsable."
+      },
+      {
+        "code": "DONE",
+        "label": "Hecha",
+        "help": "Ya ocurrió o se cumplió; queda como constancia en la cuenta."
+      },
+      {
+        "code": "CANCELLED",
+        "label": "Cancelada",
+        "help": "No se va a hacer; se conserva para saber que se decidió no hacerla."
+      }
+    ],
     "crm.segmentSubject": [
       {
         "code": "CREDIT_APPLICANT",
