@@ -1,7 +1,7 @@
 import { conMensajesDeCobertura, estadoDeLiquidacion, importeExacto, problemaDeLiquidacion } from '@/lib/coberturaBnpl';
 import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
-import { subirArchivoDelErp } from '@/services/filesService';
+import { subirArchivoDelErp, TAMANO_MAXIMO_EVIDENCIA } from '@/services/filesService';
 import { loadB2BAccounts, loadMerchantEvidenceFiles } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 import type { CrudExtraAction } from './CrudDirectory';
@@ -109,7 +109,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
           { name: 'currency', label: 'Moneda', tooltip: 'Moneda del pago según el comprobante.', required: true, defaultValue: String(row.currency ?? 'BOB'), optionsSource: 'catalog:currency' },
           { name: 'beneficiaryAccountId', label: 'Comercio que recibió el pago', tooltip: 'El comercio al que se transfirió. Debe ser el de la cobertura.', type: 'select', required: true, span: 2, defaultValue: String(row.accountId ?? ''), optionsLoader: loadB2BAccounts },
           { name: 'paidAt', label: 'Fecha y hora del pago', tooltip: 'Fecha y hora exactas según el comprobante. No puede ser posterior a hoy.', type: 'datetime', required: true, span: 2 },
-          { name: 'evidenceFile', label: 'Comprobante', tooltip: 'El comprobante del pago en PDF, JPG o PNG. Queda en el expediente del comercio.', type: 'file', accept: TIPOS_DE_COMPROBANTE, optional: true, span: 2, hint: 'Adjunte uno nuevo o elija abajo uno ya subido.' },
+          { name: 'evidenceFile', label: 'Comprobante', tooltip: 'El comprobante del pago en PDF, JPG o PNG. Queda en el expediente del comercio.', type: 'file', accept: TIPOS_DE_COMPROBANTE, maxBytes: TAMANO_MAXIMO_EVIDENCIA, optional: true, span: 2, hint: 'Adjunte uno nuevo o elija abajo uno ya subido.' },
           { name: 'evidenceFileId', label: 'O un comprobante ya subido', tooltip: 'Comprobantes que ya están en el expediente de este comercio.', type: 'select', optional: true, span: 2, emptyOption: '— Ninguno: adjunto uno nuevo —', dependsOn: 'beneficiaryAccountId', optionsLoaderFor: loadMerchantEvidenceFiles },
         ],
       },

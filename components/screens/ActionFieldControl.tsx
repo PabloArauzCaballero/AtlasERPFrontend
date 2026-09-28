@@ -3,6 +3,7 @@
 import { AddressMapField } from '@/components/atlas/AddressMapField';
 import { ChipsField } from '@/components/atlas/ChipsField';
 import { CountryCityField } from '@/components/atlas/CountryCityField';
+import { FileDropField } from '@/components/atlas/FileDropField';
 import { FormField } from '@/components/atlas/FormField';
 import { MultiSelectField } from '@/components/atlas/MultiSelectField';
 import type { ActionField } from './StructuredActionForm';
@@ -156,18 +157,20 @@ export function ActionFieldControl(props: ActionFieldControlProps) {
   }
 
   /*
-   * Un archivo no tiene valor inicial (el navegador no deja fijarlo) ni opciones: sólo el selector
-   * y los tipos que se admiten, para que el almacén no rechace después lo que aquí se dejó elegir.
+   * Un archivo no tiene valor inicial (el navegador no deja fijarlo) ni opciones: sólo la zona para
+   * soltarlo o elegirlo, con su vista previa, y los tipos y el peso que se admiten, para que el
+   * almacén no rechace después lo que aquí se dejó elegir. El archivo sigue viajando en el
+   * `FormData` del formulario: `FileDropField` lleva dentro el `<input type="file">` con su `name`.
    */
   if (field.type === 'file') {
     return (
-      <FormField
+      <FileDropField
         name={field.name}
         label={field.label}
         required={required}
         softRequired={props.softRequired}
-        type="file"
         accept={field.accept}
+        maxBytes={field.maxBytes}
         hint={field.hint}
         tooltip={field.tooltip}
         className={className}

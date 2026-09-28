@@ -21,6 +21,8 @@ export interface ActionField {
   type?: 'text' | 'email' | 'number' | 'date' | 'datetime' | 'url' | 'textarea' | 'select' | 'multiselect' | 'chips' | 'countryCity' | 'address' | 'file';
   /** `file`: tipos que admite el selector (p. ej. `application/pdf,image/jpeg,image/png`). */
   accept?: string | undefined;
+  /** `file`: peso máximo en bytes; lo que lo supere se rechaza al elegirlo, antes de enviar. */
+  maxBytes?: number | undefined;
   valueKind?: FieldValueKind | undefined;
   required?: boolean | undefined;
   optional?: boolean | undefined;

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
+import { FileDropField } from '@/components/atlas/FileDropField';
 import { FormField } from '@/components/atlas/FormField';
 import { Panel } from '@/components/atlas/Panel';
 import { partnerOnboardingService, uploadQrFile } from '@/services/partnerOnboardingService';
@@ -143,22 +144,17 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
               placeholder="1234567"
               data-testid="campo-representante-documento"
             />
-            <label className="block md:col-span-2">
-              <span className="mb-1.5 block text-xs font-bold text-slate-700">
-                Poder notarial {faltaPoder ? <span className="text-red-600">*</span> : null}
-              </span>
-              <input
-                ref={poder}
-                type="file"
-                accept="application/pdf,image/png,image/jpeg"
-                className="text-xs"
-                data-testid="campo-poder"
-              />
-              <span className="mt-1 block text-[11px] text-slate-500">
-                PDF o imagen del poder, hasta 10 MB. Se guarda como evidencia del expediente; sin él no se puede
-                enviar a revisión.
-              </span>
-            </label>
+            <FileDropField
+              label="Poder notarial"
+              tooltip="El poder notarial escaneado que acredita que esta persona firma por la empresa."
+              softRequired={faltaPoder}
+              accept="application/pdf,image/png,image/jpeg"
+              maxBytes={10 * 1024 * 1024}
+              inputRef={poder}
+              hint="PDF o imagen del poder, hasta 10 MB. Se guarda como evidencia del expediente; sin él no se puede enviar a revisión."
+              className="md:col-span-2"
+              data-testid="campo-poder"
+            />
             <div className="md:col-span-2 flex justify-end">
               <AtlasButton type="submit" icon="save" disabled={ocupado} data-testid="btn-guardar-representante">
                 Guardar representante

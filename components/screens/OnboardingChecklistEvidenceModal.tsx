@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
+import { FileDropField } from '@/components/atlas/FileDropField';
+import { StoredFilePreview } from '@/components/atlas/FilePreview';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
-import { LoadingSpinner } from '@/components/ui/LoadingIndicator';
 import { b2bService } from '@/services/b2bService';
-import { contentTypeDeArchivo, sha256DeArchivo, uploadWithTicket } from '@/services/filesService';
+import { contentTypeDeArchivo, sha256DeArchivo, TIPOS_DE_EVIDENCIA, uploadWithTicket } from '@/services/filesService';
 import type { ResourceRow } from '@/services/types';
 
 interface Requisito {
@@ -54,8 +55,9 @@ function tamanoLegible(bytes: number): string {
  * sin él. Se abre desde la fila del caso, que es donde ya se sabe de qué comercio se habla.
  *
  * Mientras sube, el modal no se cierra ni se cambia nada: cerrar a medias dejaba un archivo en el
- * almacén sin registrar y un «Listo» que nunca llegaba. El `<input type="file">` nativo se pinta
- * con un selector propio: el del navegador sale en su idioma («Choose File») y sin tamaño.
+ * almacén sin registrar y un «Listo» que nunca llegaba. El archivo se elige con `FileDropField`
+ * (se arrastra o se elige, y se ve antes de adjuntarlo): el selector del navegador sale en su
+ * idioma («Choose File»), sin tamaño y sin vista previa.
  */
 export function OnboardingChecklistEvidenceModal({
   caso,
@@ -63,12 +65,12 @@ export function OnboardingChecklistEvidenceModal({
   onDone,
 }: Readonly<{ caso: ResourceRow | null; onClose: () => void; onDone: () => void }>) {
   const requisitos = (Array.isArray(caso?.checklistItems) ? caso!.checklistItems : []) as Requisito[];
-  const entrada = useRef<HTMLInputElement>(null);
   const [itemId, setItemId] = useState<string>('');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [fase, setFase] = useState<Fase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hecho, setHecho] = useState<string | null>(null);
+  const [viendoActual, setViendoActual] = useState(false);
 
   useEffect(() => {
     setItemId(requisitos.find((item) => item.requiresEvidence && !item.hasEvidence)?.id ?? requisitos[0]?.id ?? '');
@@ -76,6 +78,7 @@ export function OnboardingChecklistEvidenceModal({
     setFase(null);
     setError(null);
     setHecho(null);
+    setViendoActual(false);
   }, [caso?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const elegido = requisitos.find((item) => item.id === itemId) ?? null;
@@ -110,7 +113,8 @@ export function OnboardingChecklistEvidenceModal({
       await b2bService.attachChecklistEvidence(caseId, itemId, { storageKey: ticket.storageKey, sha256, contentType, sizeBytes: archivo.size });
       setHecho(`«${archivo.name}» quedó registrado para «${elegido?.description ?? 'el requisito'}». Ya puede marcarlo completado desde la fila.`);
       setArchivo(null);
-      if (entrada.current) entrada.current.value = '';
+      // La vista del archivo «actual» enseñaría el anterior: se cierra y se vuelve a pedir al abrirla.
+      setViendoActual(false);
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo adjuntar el archivo.');
@@ -119,7 +123,11 @@ export function OnboardingChecklistEvidenceModal({
     }
   }
 
-  async function ver() {
+  /*
+   * El archivo actual se ve AQUÍ, debajo del selector, en vez de sólo en otra pestaña: al decidir
+   * si hay que reemplazarlo lo que importa es compararlo con el que se va a subir.
+   */
+  async function abrirEnPestana() {
     if (!caso?.id || !itemId) return;
     setError(null);
     try {
@@ -159,41 +167,30 @@ export function OnboardingChecklistEvidenceModal({
           onChange={(event) => setItemId(event.target.value)}
           options={requisitos.map((item) => ({ value: item.id, label: `${item.description} (${item.itemType}) · ${etiquetaDeEstado(item)}` }))}
         />
-        <div>
-          <span className="mb-1.5 block text-xs font-bold text-slate-700">Archivo</span>
-          <input
-            ref={entrada}
-            type="file"
-            accept="application/pdf,image/png,image/jpeg"
-            className="sr-only"
-            data-testid="campo-evidencia"
-            disabled={ocupado}
-            onChange={(event) => elegirArchivo(event.target.files?.[0] ?? null)}
-          />
-          <div className={`flex min-h-[52px] items-center gap-3 rounded-md border px-3 py-2 ${archivo ? 'border-slate-300 bg-white' : 'border-dashed border-slate-300 bg-slate-50'}`} data-testid="selector-evidencia">
-            <Icon name={archivo ? (archivo.type === 'application/pdf' ? 'picture_as_pdf' : 'image') : 'attach_file'} className={`text-[22px] ${archivo ? 'text-slate-700' : 'text-slate-400'}`} />
-            <div className="min-w-0 flex-1">
-              {archivo ? (
-                <>
-                  <p className="truncate text-xs font-bold text-slate-800" title={archivo.name}>{archivo.name}</p>
-                  <p className="text-[11px] text-slate-500">{tamanoLegible(archivo.size)}{ocupado && fase ? ` · ${TEXTO_FASE[fase]}` : ''}</p>
-                </>
-              ) : (
-                <p className="text-xs text-slate-500">Ningún archivo elegido todavía.</p>
-              )}
+        <FileDropField
+          label="Archivo"
+          tooltip="El documento que prueba el requisito elegido: el NIT, el poder o el contrato escaneado."
+          accept={TIPOS_DE_EVIDENCIA}
+          maxBytes={TAMANO_MAXIMO}
+          files={archivo ? [archivo] : []}
+          onFilesChange={(files) => elegirArchivo(files[0] ?? null)}
+          status={ocupado && fase ? TEXTO_FASE[fase] : undefined}
+          disabled={ocupado}
+          hint={elegido?.requiresEvidence ? 'Este requisito es documental: no se puede dar por completado sin su archivo.' : undefined}
+          data-testid="campo-evidencia"
+        />
+        {elegido?.hasEvidence && viendoActual ? (
+          <div className="overflow-hidden rounded-lg border border-slate-200" data-testid="vista-evidencia-actual">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-1.5">
+              <span className="text-[11px] font-bold text-slate-700">Archivo actual del requisito</span>
+              <button type="button" onClick={abrirEnPestana} className="inline-flex items-center gap-1 text-[11px] font-bold text-[#006a61] hover:underline">
+                <Icon name="open_in_new" className="text-[14px]" />
+                Abrir en otra pestaña
+              </button>
             </div>
-            {ocupado ? (
-              <LoadingSpinner label={fase ? TEXTO_FASE[fase] : 'Procesando'} className="text-slate-600" />
-            ) : (
-              <AtlasButton variant="secondary" icon={archivo ? 'swap_horiz' : 'folder_open'} onClick={() => entrada.current?.click()} data-testid="btn-elegir-evidencia">
-                {archivo ? 'Cambiar' : 'Elegir archivo'}
-              </AtlasButton>
-            )}
+            <StoredFilePreview cargar={() => b2bService.checklistEvidenceUrl(String(caso?.id ?? ''), itemId)} nombre={`evidencia-${itemId}`} />
           </div>
-          {elegido?.requiresEvidence ? (
-            <span className="mt-1 block text-[11px] text-slate-500">Este requisito es documental: no se puede dar por completado sin su archivo.</span>
-          ) : null}
-        </div>
+        ) : null}
         {ocupado && fase ? (
           <div className="space-y-1" role="status" aria-live="polite">
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
@@ -206,8 +203,8 @@ export function OnboardingChecklistEvidenceModal({
         {hecho ? <InlineNotice tone="success" title="Listo">{hecho}</InlineNotice> : null}
         <div className="flex flex-wrap justify-end gap-2">
           {elegido?.hasEvidence ? (
-            <AtlasButton variant="secondary" icon="visibility" onClick={ver} disabled={ocupado}>
-              Ver archivo actual
+            <AtlasButton variant="secondary" icon={viendoActual ? 'visibility_off' : 'visibility'} onClick={() => setViendoActual((actual) => !actual)} disabled={ocupado} aria-expanded={viendoActual}>
+              {viendoActual ? 'Ocultar archivo actual' : 'Ver archivo actual'}
             </AtlasButton>
           ) : null}
           <AtlasButton type="submit" icon="upload" loading={ocupado} disabled={!itemId || !archivo} data-testid="btn-adjuntar-evidencia">

@@ -15,6 +15,16 @@ export interface UploadTicket {
 
 export type FileContentType = 'application/pdf' | 'image/jpeg' | 'image/png';
 
+/**
+ * El peso que las pantallas prometen para el almacén de evidencia («PDF, JPEG o PNG hasta 15 MB»).
+ * Vive aquí para que el campo de archivo lo compruebe al elegir, en vez de que cada pantalla lo
+ * repita a mano y lo descubra el almacén al rechazar la subida.
+ */
+export const TAMANO_MAXIMO_EVIDENCIA = 15 * 1024 * 1024;
+
+/** Los tipos que admite el almacén de evidencia, con la sintaxis de `accept`. */
+export const TIPOS_DE_EVIDENCIA = 'application/pdf,image/jpeg,image/png';
+
 export const filesService = {
   listFiles(ownerType: string, ownerId: string) {
     return apiRequest<ResourceRow[]>('/files', { query: { ownerType, ownerId } });

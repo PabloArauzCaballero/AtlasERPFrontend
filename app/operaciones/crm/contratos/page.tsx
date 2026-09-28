@@ -6,7 +6,7 @@ import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { MdrRulesPanel } from '@/components/screens/MdrRulesPanel';
 import { b2bService } from '@/services/b2bService';
-import { adjuntarAlCrear } from '@/services/filesService';
+import { adjuntarAlCrear, TAMANO_MAXIMO_EVIDENCIA } from '@/services/filesService';
 import { loadInternalUsers, loadProposals } from '@/services/optionLoaders';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -61,7 +61,7 @@ export default function CommercialContractsPage() {
            * https:// a otro repositorio: el contrato firmado quedaba fuera de Atlas, sin hash y sin
            * sesión. Ahora va al almacén de evidencia, a la carpeta `documentos/` del comercio.
            */
-          { name: 'documento', label: 'Documento del contrato', tooltip: 'El contrato firmado (PDF o imagen). Se guarda en la carpeta «documentos» del comercio, en Archivos.', type: 'file', accept: 'application/pdf,image/jpeg,image/png', hint: 'PDF, JPEG o PNG hasta 15 MB. También se puede subir después, desde la fila.', optional: true, span: 2 },
+          { name: 'documento', label: 'Documento del contrato', tooltip: 'El contrato firmado (PDF o imagen). Se guarda en la carpeta «documentos» del comercio, en Archivos.', type: 'file', accept: 'application/pdf,image/jpeg,image/png', maxBytes: TAMANO_MAXIMO_EVIDENCIA, hint: 'PDF, JPEG o PNG hasta 15 MB. También se puede subir después, desde la fila.', optional: true, span: 2 },
         ],
         submit: async (payload: JsonObject) => {
           const { documento, ...datos } = payload as JsonObject & { documento?: unknown };
