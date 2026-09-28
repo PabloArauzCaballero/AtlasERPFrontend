@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
@@ -59,11 +60,12 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
     const form = event.currentTarget;
     const data = new FormData(form);
     try {
-      await createMutation.execute({
+      const creado = await createMutation.execute({
         accountId: String(data.get('accountId') ?? ''),
         ownerUserId: String(data.get('ownerUserId') ?? ''),
         checklistItems: items.map(({ itemType, description }) => ({ itemType, description })),
       });
+      avisarCarpetaDelComercio(creado.carpetaDelComercio);
       form.reset();
       setItems(requisitosIniciales());
       await onDone?.();
@@ -122,4 +124,29 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
       </form>
     </div>
   );
+}
+
+/**
+ * Qué pasó con la carpeta del comercio en Archivos, que nace con el caso.
+ *
+ * El caso se abre aunque la carpeta no se pueda crear —casi siempre porque a la cuenta le falta el
+ * NIT o un contacto con correo—, así que hay que decirlo: sin carpeta, el contrato firmado que se
+ * suba después no aparece en Archivos.
+ */
+const MOTIVO_SIN_CARPETA: Record<string, string> = {
+  SIN_CORREO_DE_CONTACTO: 'La cuenta no tiene ningún contacto con correo. Añade uno en la ficha de la cuenta.',
+  DATOS_DE_LA_CUENTA_INVALIDOS: 'A la cuenta le falta el NIT (7 a 15 dígitos) o la razón social. Complétalos en la ficha de la cuenta.',
+  CUENTA_ENLAZADA_A_OTRA_FICHA: 'El NIT de esta cuenta ya pertenece a la ficha de otra cuenta del ERP. Revisa si la cuenta está duplicada.',
+  ATLAS_NO_RESPONDIO: 'Atlas no respondió. Se volverá a intentar al subir el primer documento del contrato.',
+  CUENTA_NO_ENCONTRADA: 'No se encontró la cuenta.',
+};
+
+function avisarCarpetaDelComercio(carpeta: unknown): void {
+  const resultado = (carpeta ?? null) as { expedienteId?: string | null; created?: boolean; reason?: string | null } | null;
+  if (!resultado) return;
+  if (resultado.expedienteId) {
+    toast.success('Carpeta del comercio lista', resultado.created ? 'Se abrió su ficha y su carpeta en Archivos, con «documentos».' : 'Su carpeta en Archivos ya existía y queda enlazada.');
+    return;
+  }
+  toast.warning('El caso se abrió, pero el comercio no tiene carpeta en Archivos', MOTIVO_SIN_CARPETA[resultado.reason ?? ''] ?? 'No se pudo crear la carpeta del comercio.');
 }
