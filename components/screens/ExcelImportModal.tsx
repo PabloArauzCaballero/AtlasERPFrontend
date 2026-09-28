@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { Icon } from '@/components/atlas/Icon';
+import { FileDropField } from '@/components/atlas/FileDropField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -36,6 +36,9 @@ interface ExcelImportModalProps {
 
 const TOPE_FILAS = 500;
 
+/** Lo que `leerTabla` sabe leer. La extensión va además del tipo: Windows entrega un CSV como `application/vnd.ms-excel`. */
+const TIPOS_DE_HOJA = '.xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv';
+
 /**
  * Importar registros desde un Excel, en la pantalla del propio registro.
  *
@@ -52,8 +55,7 @@ const TOPE_FILAS = 500;
  * cuál y por qué, en vez de perder las cien porque la fila 34 traía un NIT repetido.
  */
 export function ExcelImportModal(props: ExcelImportModalProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [nombreArchivo, setNombreArchivo] = useState('');
+  const [archivo, setArchivo] = useState<File | null>(null);
   const [filas, setFilas] = useState<RegistroPreparado[]>([]);
   const [errorArchivo, setErrorArchivo] = useState('');
   const [importando, setImportando] = useState(false);
@@ -101,7 +103,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     if (importando) return;
     if (creadas > 0) props.onImported();
     setFilas([]);
-    setNombreArchivo('');
+    setArchivo(null);
     setErrorArchivo('');
     setProgreso(0);
     setTerminado(false);
@@ -132,7 +134,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     if (!file) return;
     setErrorArchivo('');
     setTerminado(false);
-    setNombreArchivo(file.name);
+    setArchivo(file);
     try {
       const tabla = await leerTabla(file);
       if (!tabla.filas.length) {
@@ -155,6 +157,14 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
       setFilas([]);
       setErrorArchivo(error instanceof Error ? error.message : 'No se pudo leer el archivo.');
     }
+  }
+
+  /** «Quitar» el archivo: se descarta lo leído, para no importar filas de un Excel que ya no está. */
+  function quitarArchivo() {
+    setArchivo(null);
+    setFilas([]);
+    setErrorArchivo('');
+    setTerminado(false);
   }
 
   async function importar() {
@@ -200,30 +210,19 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
           </span>
         </div>
 
-        <input
-          ref={inputRef}
-          className="hidden"
-          type="file"
-          accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+        {/*
+          * El mismo campo de archivo que el resto del ERP: el Excel elegido se ve como ficha (nombre,
+          * peso y tipo) con «Cambiar» y «Quitar», en vez de un nombre suelto bajo la zona.
+          */}
+        <FileDropField
+          label="Archivo de Excel"
+          tooltip="La plantilla rellenada, en .xlsx o .csv; antes de crear nada se revisa fila por fila."
+          accept={TIPOS_DE_HOJA}
+          files={archivo ? [archivo] : []}
+          onFilesChange={(elegidos) => (elegidos[0] ? void cargar(elegidos[0]) : quitarArchivo())}
+          status={importando ? 'Importando…' : undefined}
           data-testid="importar-archivo"
-          onChange={(event) => void cargar(event.target.files?.[0])}
         />
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => { event.preventDefault(); void cargar(event.dataTransfer.files[0]); }}
-          className="grid min-h-32 w-full place-items-center rounded-md border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center hover:border-[#006a61] hover:bg-primary-wash"
-        >
-          <div>
-            <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-white text-[#006a61] shadow-sm ring-1 ring-slate-200">
-              <Icon name="cloud_upload" className="text-[24px]" />
-            </span>
-            <p className="mt-2 text-sm font-bold text-slate-800">Arrastra aquí el Excel</p>
-            <p className="mt-0.5 text-xs text-slate-500">o haz clic para buscarlo. Acepta .xlsx y .csv</p>
-            {nombreArchivo ? <p className="mt-2 font-mono text-[11px] text-teal-700">{nombreArchivo}</p> : null}
-          </div>
-        </button>
 
         {errorArchivo ? <InlineNotice tone="danger" title="No se pudo usar el archivo">{errorArchivo}</InlineNotice> : null}
 

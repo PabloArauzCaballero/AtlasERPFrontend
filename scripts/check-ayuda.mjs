@@ -6,8 +6,8 @@
  * escribía qué significaba; y la única ayuda de campo era un `hint` siempre visible que casi
  * nadie rellenaba. Esto impide que vuelva. Falla si en `app/` o `components/`:
  *   1. un campo declarativo (`{ name: '…', label: '…' }`) no tiene `tooltip`;
- *   2. un `<FormField`, `<ChipsField`, `<CountryCityField`, `<AddressMapField` o
- *      `<MultiSelectField` en JSX no tiene `tooltip=`;
+ *   2. un `<FormField`, `<ChipsField`, `<CountryCityField`, `<AddressMapField`,
+ *      `<MultiSelectField` o `<FileDropField` en JSX no tiene `tooltip=`;
  *   3. un catálogo de `lib/catalogs.ts` tiene una opción sin `description`;
  *   4. un `tooltip`/`description` repite la etiqueta (sin tildes ni mayúsculas) o tiene menos de
  *      cuatro palabras;

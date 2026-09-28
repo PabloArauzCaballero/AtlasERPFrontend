@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
+import { FileDropField } from '@/components/atlas/FileDropField';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
@@ -124,6 +125,8 @@ export function MerchantPaymentQrScreen({
   const entidades = useOptions(domainLoader('domain:portal.bankInstitution'));
   const [cuenta, setCuenta] = useState('');
   const archivo = useRef<HTMLInputElement>(null);
+  /** Cuántos QR se subieron en esta visita: remonta el campo de archivo vacío después de cada uno. */
+  const [subidas, setSubidas] = useState(0);
 
   const recargar = useCallback(async (id: string) => {
     setCargando(true);
@@ -229,6 +232,7 @@ export function MerchantPaymentQrScreen({
         texto: 'QR bancario registrado y enviado a revisión. Los clientes lo verán cuando Atlas lo apruebe; mientras tanto sigue vigente el QR anterior, si lo hay.',
       });
       if (archivo.current) archivo.current.value = '';
+      setSubidas((cuenta) => cuenta + 1);
       await recargarYAvisar(partnerId);
     } catch (fallo) {
       setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR.' });
@@ -410,10 +414,15 @@ export function MerchantPaymentQrScreen({
           icon="upload"
         >
           <div className="space-y-3">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-bold text-slate-700">Imagen del QR (PNG o JPG)</span>
-              <input ref={archivo} type="file" accept="image/png,image/jpeg" className="text-xs" data-testid="input-qr-cobro" />
-            </label>
+            {/* `key`: tras subir, el campo se monta de nuevo vacío; vaciar sólo el input real dejaría la ficha del QR ya subido. */}
+            <FileDropField
+              key={subidas}
+              label="Imagen del QR (PNG o JPG)"
+              tooltip="La imagen del QR que le dio su banco, tal cual: se guarda con su huella para poder comprobarla."
+              accept="image/png,image/jpeg"
+              inputRef={archivo}
+              data-testid="input-qr-cobro"
+            />
             <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
               {/* La sigla ASFI es lo que permite cruzar el QR con el padrón del regulador y frenar
                   un cobro contra una entidad sin licencia vigente. */}

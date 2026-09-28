@@ -5,7 +5,7 @@ import { Modal } from '@/components/atlas/Modal';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
 import { accountingService } from '@/services/accountingService';
-import { adjuntarAlCrear } from '@/services/filesService';
+import { adjuntarAlCrear, TAMANO_MAXIMO_EVIDENCIA } from '@/services/filesService';
 import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
@@ -21,7 +21,7 @@ const headerFields: ActionField[] = [
   { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date' as const, required: true },
   { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date' as const, optional: true },
   { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda del importe (ISO 4217). Ej.: BOB. Decide el tipo de cambio al contabilizar.', defaultValue: 'BOB', required: true, span: 2 as const, optionsSource: 'catalog:currency' },
-  { name: 'documento', label: 'Documento del contrato', tooltip: 'El contrato firmado (PDF o imagen). Si la contraparte es un comercio, se guarda también en la carpeta «documentos» del comercio, en Archivos.', type: 'file' as const, accept: 'application/pdf,image/jpeg,image/png', hint: 'PDF, JPEG o PNG hasta 15 MB. También se puede subir después, desde la fila.', optional: true, span: 2 as const },
+  { name: 'documento', label: 'Documento del contrato', tooltip: 'El contrato firmado (PDF o imagen). Si la contraparte es un comercio, se guarda también en la carpeta «documentos» del comercio, en Archivos.', type: 'file' as const, accept: 'application/pdf,image/jpeg,image/png', maxBytes: TAMANO_MAXIMO_EVIDENCIA, hint: 'PDF, JPEG o PNG hasta 15 MB. También se puede subir después, desde la fila.', optional: true, span: 2 as const },
 ];
 
 export default function AccountingContractsPage() {

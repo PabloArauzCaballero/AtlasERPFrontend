@@ -4,6 +4,8 @@ import { FieldTooltip } from '@/components/atlas/FieldTooltip';
 interface FieldLabelProps {
   /** `id` del control al que nombra. Sin él pinta un `<span>` (para `fieldset`/`legend` propios). */
   htmlFor?: string | undefined;
+  /** `id` del propio `<label>`, para que otro control lo cite en su `aria-describedby`. */
+  id?: string | undefined;
   label: ReactNode;
   required?: boolean | undefined;
   /** Qué poner en el campo y por qué importa. Pinta el ⓘ. */
@@ -43,7 +45,7 @@ export function FieldLabel(props: FieldLabelProps) {
    */
   return (
     <div className={`mb-1.5 flex min-w-0 items-center text-xs font-bold text-slate-700 ${props.className ?? ''}`}>
-      {props.htmlFor ? <label className="min-w-0 break-words" htmlFor={props.htmlFor}>{text}</label> : <span className="min-w-0 break-words">{text}</span>}
+      {props.htmlFor ? <label id={props.id} className="min-w-0 break-words" htmlFor={props.htmlFor}>{text}</label> : <span className="min-w-0 break-words">{text}</span>}
       {props.tooltip && props.describedById ? (
         <FieldTooltip text={props.tooltip} label={labelText} describedById={props.describedById} forceOpen={props.controlFocused} />
       ) : null}

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { domainLoader } from '@/services/domains';
 import { accountingService } from '@/services/accountingService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
+import { FileDropField } from '@/components/atlas/FileDropField';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
@@ -16,7 +17,7 @@ import { useOptions } from '@/hooks/useOptions';
 import { loadBusinessPartners, loadCostCenters, loadGlAccounts, loadLegalEntities } from '@/services/optionLoaders';
 import { formatBob } from '@/lib/formatters';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
-import { adjuntarAlCrear } from '@/services/filesService';
+import { adjuntarAlCrear, TAMANO_MAXIMO_EVIDENCIA, TIPOS_DE_EVIDENCIA } from '@/services/filesService';
 import type { JsonObject } from '@/services/types';
 import { newUuid } from '@/lib/uuid';
 
@@ -221,12 +222,12 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
             <FileAttachmentsPanel ownerType="ACCOUNTING_DOCUMENT" ownerId={documentId} title="Comprobante de respaldo" description="La factura, el recibo o el extracto que prueba el asiento. PDF, JPEG o PNG hasta 15 MB." />
           ) : (
             <Panel title="Comprobante de respaldo" icon="attach_file">
-              <FormField
+              <FileDropField
                 tooltip="La factura, el recibo o el extracto que prueba el asiento. Se sube al guardar el borrador."
                 label="Documento de respaldo"
                 name="respaldo"
-                type="file"
-                accept="application/pdf,image/jpeg,image/png"
+                accept={TIPOS_DE_EVIDENCIA}
+                maxBytes={TAMANO_MAXIMO_EVIDENCIA}
                 hint="PDF, JPEG o PNG hasta 15 MB. Opcional; también puedes adjuntarlo después desde el listado."
               />
             </Panel>
