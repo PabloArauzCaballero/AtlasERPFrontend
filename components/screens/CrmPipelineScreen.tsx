@@ -31,7 +31,7 @@ interface CrmPipelineScreenProps {
  * (`/operaciones/crm/aprobaciones`) y tienen su entrada en el menú de CRM. Así lo quiere Pablo, y
  * es su decisión: no se vuelven a meter como pestaña.
  */
-export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenProps = {}) {
+export function CrmPipelineScreen({ initialTab = 'tablero' }: CrmPipelineScreenProps = {}) {
   const [version, setVersion] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(() => b2bService.listOpportunities(), [version]);
@@ -47,6 +47,16 @@ export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenP
         keepMounted
         initialId={initialTab}
         tabs={[
+          /*
+           * El Tablero va PRIMERO y es lo que se abre al entrar (Pablo, 2026-09-28): el pipeline se
+           * trabaja moviendo tratos de etapa; la tabla es para buscar y exportar.
+           */
+          {
+            id: 'tablero',
+            label: 'Tablero',
+            icon: 'view_kanban',
+            content: <OpportunityKanbanScreen embedded version={version} />,
+          },
           {
             id: 'listado',
             label: 'Oportunidades',
@@ -102,16 +112,8 @@ export function CrmPipelineScreen({ initialTab = 'listado' }: CrmPipelineScreenP
               />
             ),
           },
-          {
-            id: 'tablero',
-            label: 'Tablero',
-            icon: 'view_kanban',
-            content: <OpportunityKanbanScreen embedded version={version} />,
-          },
           /*
-           * Propuestas va la ÚLTIMA, y es una decisión de orden, no de sitio: las pestañas siguen
-           * el recorrido del trato —se registra la oportunidad, se mueve por el tablero y, cuando
-           * hay algo que ofrecer, sale la propuesta—.
+           * Propuestas va la ÚLTIMA: cuando hay algo que ofrecer, sale la propuesta.
            */
           {
             id: 'propuestas',
