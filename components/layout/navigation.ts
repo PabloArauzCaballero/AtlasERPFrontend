@@ -141,6 +141,33 @@ export const NAVIGATION: NavGroup[] = [
   },
 ];
 
+/**
+ * El menú del portal del comercio. Vive aquí, junto al de la consola, por la misma razón: lo pintan
+ * el lateral y el cajón del portal, y el asistente lo lee para decir en qué sección está quien pregunta.
+ */
+export const PORTAL_COMERCIO_NAV: NavItem[] = [
+  /*
+   * Cinco entradas, y ese número es la decisión.
+   *
+   * Eran doce, y siete de ellas eran pedazos de otras tres: «Solicitudes» y «Comprobantes» son los
+   * dos momentos de la misma venta; «Mi QR de cobro» y «Sucursales» son partes de la ficha del
+   * negocio; «Centro de Tutoriales» es la misma pregunta que «Soporte» hecha antes de preguntar.
+   * Un menú de doce obliga a elegir doce veces al día dónde estará lo que uno busca.
+   */
+  /* Lo primero: es donde el comercio responde a sus clientes, y por eso es también su portada. */
+  { href: '/portal-comercio/gestion-pos', label: 'Gestión POS', icon: 'point_of_sale' },
+  { href: '/portal-comercio/cartera', label: 'Mi cartera', icon: 'account_balance_wallet' },
+  { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
+  /* La ficha del negocio: su estado, sus datos, su QR de cobro y sus sucursales con sus cajas. */
+  { href: '/portal-comercio/expediente', label: 'Mi empresa', icon: 'badge' },
+  /*
+   * Hablar con Atlas y aprender a usar esto. Va al final y no arriba a proposito: no es trabajo
+   * diario del comercio, pero tiene que estar SIEMPRE a la vista — un soporte que hay que buscar
+   * termina siendo un WhatsApp personal a alguien de Atlas, donde nada queda registrado ni medido.
+   */
+  { href: '/portal-comercio/soporte', label: 'Soporte y tutoriales', icon: 'support_agent' },
+];
+
 /** `true` si la ruta actual es ese ítem o cuelga de él. */
 export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
