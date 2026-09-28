@@ -13,12 +13,13 @@ import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { LegalContractNotice } from '@/components/screens/LegalContractNotice';
+import { MerchantAccessModal } from '@/components/screens/MerchantAccessModal';
 import { OnboardingChecklistEvidenceModal } from '@/components/screens/OnboardingChecklistEvidenceModal';
 import { OnboardingQueueDashboard, type OnboardingScope } from '@/components/screens/OnboardingQueueDashboard';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/lib/authContext';
+import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
-import { portalService } from '@/services/portalService';
 import { engineExecutionUrl, engineManualReviewUrl } from '@/lib/engineLinks';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
@@ -68,6 +69,7 @@ export default function OnboardingPage() {
   const puedePedirCredenciales = hasPermission(PERMISO_PEDIR_CREDENCIALES);
   /* El caso cuyo requisito se está respaldando con un archivo; `null` cierra el modal. */
   const [evidenciaDe, setEvidenciaDe] = useState<ResourceRow | null>(null);
+  const [accesoDe, setAccesoDe] = useState<ResourceRow | null>(null);
   const [scope, setScope] = useState<OnboardingScope>('abiertos');
   const [version, setVersion] = useState(0);
   const recargar = useCallback(() => setVersion((value) => value + 1), []);
@@ -299,7 +301,7 @@ export default function OnboardingPage() {
             {
               key: 'credenciales',
               label: 'Dar acceso a una persona',
-              description: 'Registra a una persona del comercio y pide su usuario para el portal. Atlas genera la contraseña al aprobarlo.',
+              description: 'Pide el usuario del portal para un contacto de la cuenta (o para otra persona). Atlas genera la contraseña al aprobarlo.',
               icon: 'person_add',
               primary: true,
               /*
@@ -316,36 +318,10 @@ export default function OnboardingPage() {
                * con cuatro, y el formulario dice cuántos hay ya para que nadie lo pida dos veces.
                */
               enabled: (row) => abierto(row) && puedePedirCredenciales,
-              form: {
-                title: (row) => `Acceso al portal para ${String(row.tradeName ?? 'el comercio')}`,
-                description: (row) => {
-                  const c = (row.credentials ?? {}) as { concedidas?: number; pendientes?: number };
-                  const concedidas = Number(c.concedidas ?? 0);
-                  const pendientes = Number(c.pendientes ?? 0);
-                  const yaHay = [
-                    concedidas ? `${concedidas} acceso(s) ya concedido(s)` : '',
-                    pendientes ? `${pendientes} esperando aprobación` : '',
-                  ].filter(Boolean).join(' y ');
-                  return `Se registra a la persona en el CRM y se encola su acceso. La contraseña la genera Atlas al aprobar; el ERP nunca la ve.${yaHay ? ` Este comercio tiene ${yaHay}: cada persona entra con su propio correo.` : ''}`;
-                },
-                fields: (row) => [
-                  { name: 'fullName', label: 'Nombre completo', tooltip: 'Nombre y apellidos completos de la persona, como en su documento de identidad.', required: true, placeholder: 'Nombre del responsable' },
-                  { name: 'email', label: 'Correo corporativo', tooltip: 'Correo corporativo del usuario del comercio; ahí llegan las credenciales.', type: 'email', required: true, placeholder: 'usuario@empresa.com' },
-                  { name: 'roleCode', label: 'Rol', tooltip: 'Papel del socio frente a la entidad legal: cliente, proveedor, acreedor…', type: 'select', required: true, defaultValue: 'MERCHANT_OPERATOR', optionsSource: 'domain:portal.merchantUserRole' },
-                  {
-                    name: 'branchId',
-                    label: 'Sucursal', tooltip: 'Sucursal del comercio; sólo las habilitadas pueden originar operaciones.',
-                    type: 'select',
-                    optional: true,
-                    hint: 'Vacío: alcance global sobre el comercio.',
-                    optionsLoader: async () => {
-                      const rows = await portalService.listBranches(String(row.accountId ?? ''));
-                      return [{ label: '— Alcance global —', value: '' }, ...rows.map((branch) => ({ value: String(branch.id), label: String(branch.name ?? 'Sucursal') }))];
-                    },
-                  },
-                ],
-                submit: (row, payload: JsonObject) => b2bService.createMerchantUser({ accountId: String(row.accountId ?? ''), ...payload }),
-                submitLabel: 'Pedir acceso',
+              /* Abre el modal que parte de los contactos de la cuenta (ver `MerchantAccessModal`). */
+              silent: true,
+              run: async (row) => {
+                setAccesoDe(row);
               },
             },
             {
@@ -401,6 +377,18 @@ export default function OnboardingPage() {
           summary.reload();
         }}
       />
+      {accesoDe ? (
+        <MerchantAccessModal
+          caso={accesoDe}
+          onClose={() => setAccesoDe(null)}
+          onDone={() => {
+            setAccesoDe(null);
+            toast.success('Acceso pedido', 'Queda esperando que Atlas lo apruebe; la contraseña la recibe la persona por correo.');
+            recargar();
+            summary.reload();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
