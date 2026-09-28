@@ -4,41 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
+import { AtlasAssist } from '@/components/atlas/AtlasAssist';
 import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
 import { NavDrawer } from './NavDrawer';
-import { isActivePath } from './navigation';
-
-const links = [
-  /*
-   * Cinco entradas, y ese número es la decisión.
-   *
-   * Eran doce, y siete de ellas eran pedazos de otras tres: «Solicitudes» y «Comprobantes» son los
-   * dos momentos de la misma venta; «Mi QR de cobro» y «Sucursales» son partes de la ficha del
-   * negocio; «Centro de Tutoriales» es la misma pregunta que «Soporte» hecha antes de preguntar.
-   * Un menú de doce obliga a elegir doce veces al día dónde estará lo que uno busca.
-   */
-  /* Lo primero: es donde el comercio responde a sus clientes, y por eso es también su portada. */
-  { href: '/portal-comercio/gestion-pos', label: 'Gestión POS', icon: 'point_of_sale' },
-  { href: '/portal-comercio/cartera', label: 'Mi cartera', icon: 'account_balance_wallet' },
-  { href: '/portal-comercio/facturacion', label: 'Consumo y facturación', icon: 'receipt_long' },
-  /* La ficha del negocio: su estado, sus datos, su QR de cobro y sus sucursales con sus cajas. */
-  { href: '/portal-comercio/expediente', label: 'Mi empresa', icon: 'badge' },
-  /*
-   * Hablar con Atlas y aprender a usar esto. Va al final y no arriba a proposito: no es trabajo
-   * diario del comercio, pero tiene que estar SIEMPRE a la vista — un soporte que hay que buscar
-   * termina siendo un WhatsApp personal a alguien de Atlas, donde nada queda registrado ni medido.
-   */
-  { href: '/portal-comercio/soporte', label: 'Soporte y tutoriales', icon: 'support_agent' },
-];
-
+import { isActivePath, PORTAL_COMERCIO_NAV } from './navigation';
 
 function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNavigate?: () => void }) {
   return (
     <nav data-tutorial-id="portal-nav" className="space-y-1">
-      {links.map((item) => {
+      {PORTAL_COMERCIO_NAV.map((item) => {
         const active = isActivePath(pathname, item.href);
         return (
           <Link
@@ -125,6 +102,8 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         </aside>
         <main className="min-w-0 p-3 sm:p-4 md:p-6 xl:p-8">{children}</main>
       </div>
+
+      <AtlasAssist surface="merchant-portal" />
     </div>
     </TutorialProvider>
   );
