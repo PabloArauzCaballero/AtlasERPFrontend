@@ -47,7 +47,9 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         <AtlasSidebar onNavigate={() => setNavOpen(false)} />
       </NavDrawer>
 
-      <main className="relative z-10 pt-16 lg:pl-64">
+      {/* `pb-24`: el botón flotante del asistente (esquina inferior derecha, h-14 + margen) tapaba
+          las acciones de la última fila; con ese margen el contenido puede subir por encima. */}
+      <main className="relative z-10 pb-24 pt-16 lg:pl-64">
         <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-4 md:space-y-6 md:p-6">{children}</div>
       </main>
 

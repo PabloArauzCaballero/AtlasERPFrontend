@@ -42,6 +42,22 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
    */
   const [completarNit, setCompletarNit] = useState(false);
   const cargada = resource.status === 'success' && Boolean(account.id);
+  /*
+   * Las acciones de la cuenta son PREDECESORAS (Pablo, 2026-09-28): calificar → crear oportunidad →
+   * iniciar onboarding. El backend lo exige (409); aquí se enseña el orden y por qué falta un paso.
+   */
+  const loadOportunidades = useCallback(() => (requestedId ? b2bService.listOpportunities({ accountId: requestedId }) : Promise.resolve([] as ResourceRow[])), [requestedId]);
+  const oportunidades = useAsyncResource(loadOportunidades, Boolean(requestedId));
+  const estado = String(account.lifecycleStatus ?? '');
+  const calificada = estado !== '' && estado !== 'LEAD' && estado !== 'DISQUALIFIED';
+  // Lista o página (`{ items }`): la ficha no puede caerse por la forma de la respuesta.
+  const respuestaOportunidades: unknown = oportunidades.data;
+  const filasOportunidad: ResourceRow[] = Array.isArray(respuestaOportunidades)
+    ? respuestaOportunidades
+    : Array.isArray((respuestaOportunidades as { items?: unknown } | null)?.items)
+      ? (respuestaOportunidades as { items: ResourceRow[] }).items
+      : [];
+  const conOportunidad = filasOportunidad.some((op) => String(op.stage ?? '') !== 'CLOSED_LOST');
   const sinNit = cargada && !NIT_VALIDO.test(String(account.taxId ?? '').trim());
   const sinCorreo = cargada && !(Array.isArray(account.contacts) ? account.contacts : []).some((c) => String((c as ResourceRow).email ?? '').trim());
 
@@ -119,9 +135,9 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
             <aside className="space-y-4">
               <Panel title="Acciones rápidas" icon="bolt">
                 <div className="space-y-2">
-                  <Quick href={`/operaciones/crm/cuentas/calificar?accountId=${requestedId}`} icon="verified" title="Calificar cuenta" detail="Ejecutar evaluación comercial" />
-                  <Quick href="/operaciones/crm/oportunidades" icon="handshake" title="Crear oportunidad" detail="Iniciar nuevo negocio" />
-                  <Quick href="/operaciones/crm/onboarding/crear" icon="fact_check" title="Iniciar onboarding" detail="Preparar activación del comercio" />
+                  <Quick step={1} done={calificada} href={`/operaciones/crm/cuentas/calificar?accountId=${requestedId}`} icon="verified" title="Calificar cuenta" detail={calificada ? 'Calificada: puedes revisar su clasificación' : 'Clasificar el negocio y decidir si encaja'} />
+                  <Quick step={2} done={conOportunidad} href={`/operaciones/crm/oportunidades?accountId=${requestedId}`} icon="handshake" title="Crear oportunidad" detail="Iniciar nuevo negocio" blockedReason={calificada ? undefined : estado === 'DISQUALIFIED' ? 'La cuenta está descalificada.' : 'Primero califica la cuenta.'} />
+                  <Quick step={3} href={`/operaciones/crm/onboarding/crear?accountId=${requestedId}`} icon="fact_check" title="Iniciar onboarding" detail="Preparar activación del comercio" blockedReason={conOportunidad ? undefined : 'Primero crea una oportunidad para la cuenta.'} />
                 </div>
               </Panel>
               <Panel title="Historial de acciones" icon="history_edu">
@@ -195,8 +211,17 @@ function ContactList({ contacts }: { contacts: unknown[] }) {
   if (!contacts.length) return <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center"><Icon name="contact_page" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-700">Sin contactos asociados</p></div>;
   return <div className="space-y-2">{contacts.map((value, index) => { const contact = value as ResourceRow; return <article key={String(contact.id ?? index)} className="grid items-center gap-2 rounded-md border border-slate-200 p-3 text-xs grid-cols-1 sm:grid-cols-[1fr_1fr_auto]"><div><b className="block text-slate-800">{String(contact.fullName ?? '—')}</b><span className="text-slate-500">{String(contact.roleTitle ?? contact.decisionRole ?? 'Sin cargo')}</span></div><div className="text-slate-600"><span className="block">{maskPii(contact.email, 'email')}</span><span>{maskPii(contact.phone, 'phone')}</span></div><StatusPill tone={contact.isPrimary ? 'success' : 'neutral'}>{contact.isPrimary ? 'Principal' : String(contact.status ?? 'Activo')}</StatusPill></article>; })}</div>;
 }
-function Quick({ href, icon, title, detail }: { href: string; icon: string; title: string; detail: string }) {
-  return <Link href={href} className="flex items-center gap-3 rounded-md border border-slate-200 p-3 hover:border-slate-300 hover:bg-slate-50"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary-wash text-primary"><Icon name={icon} className="text-[18px]" /></span><span className="min-w-0 flex-1"><b className="block text-xs">{title}</b><span className="block truncate text-[11px] text-slate-500">{detail}</span></span><Icon name="chevron_right" className="text-[17px] text-slate-500" /></Link>;
+/** Un paso de la cuenta. Bloqueado no es un enlace: se ve el paso y por qué aún no toca. */
+function Quick({ step, done = false, href, icon, title, detail, blockedReason }: { step: number; done?: boolean; href: string; icon: string; title: string; detail: string; blockedReason?: string | undefined }) {
+  const cuerpo = (
+    <>
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${blockedReason ? 'bg-slate-100 text-slate-400' : 'bg-primary-wash text-primary'}`}><Icon name={done ? 'check_circle' : icon} className="text-[18px]" /></span>
+      <span className="min-w-0 flex-1"><b className="block text-xs">{step}. {title}</b><span className="block text-[11px] text-slate-500">{blockedReason ?? detail}</span></span>
+      {blockedReason ? <Icon name="lock" className="text-[17px] text-slate-400" /> : <Icon name="chevron_right" className="text-[17px] text-slate-500" />}
+    </>
+  );
+  if (blockedReason) return <div aria-disabled="true" className="flex cursor-not-allowed items-center gap-3 rounded-md border border-dashed border-slate-200 p-3 text-slate-500">{cuerpo}</div>;
+  return <Link href={href} className="flex items-center gap-3 rounded-md border border-slate-200 p-3 hover:border-slate-300 hover:bg-slate-50">{cuerpo}</Link>;
 }
 function Timeline({ label, detail }: { label: string; detail: string }) {
   return <div className="flex gap-3"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-500 ring-4 ring-teal-50" /><div><b>{label}</b><p className="mt-0.5 text-[11px] leading-4 text-slate-500">{detail}</p></div></div>;

@@ -53,6 +53,7 @@ export interface ResolveReviewItemInput extends JsonObject {
 }
 
 const b2bListKeys = ['status', 'search', 'category', 'businessLine', 'tag', 'includeArchived', 'sortBy', 'sortOrder'] as const;
+const activityListKeys = ['accountId', 'opportunityId', 'activityType', 'status', 'search', 'pending'] as const;
 const b2bQuery = (query: PageQuery) =>
   buildBackendQuery(query, { pageSizeKey: 'limit', defaultPageSize: 25, allowedKeys: b2bListKeys });
 
@@ -452,8 +453,16 @@ export const b2bService = {
     return apiRequest<ResourceRow>('/b2b/reconciliation/runs', { method: 'POST', body });
   },
   // ---- Actividades comerciales (timeline, notas, tareas) ----
-  listActivities(query: { accountId?: string; opportunityId?: string; activityType?: string; pending?: 'true' | 'false' }) {
-    return apiRequest<ResourceRow[]>('/b2b/activities', { query });
+  /** Paginado en el servidor: busca en asunto, detalle y responsable; filtra por tipo y estado. */
+  listActivities(query: PageQuery & { accountId?: string; opportunityId?: string }) {
+    return apiRequest<PaginatedResult<ResourceRow>>('/b2b/activities', {
+      query: buildBackendQuery(query, { pageSizeKey: 'limit', defaultPageSize: 25, allowedKeys: activityListKeys }),
+    });
+  },
+  /** PENDING (pendiente), DONE (hecha) o CANCELLED (cancelada). */
+  setActivityStatus(id: string, status: 'PENDING' | 'DONE' | 'CANCELLED') {
+    const activityId = requireUuidPathParam(id, 'el UUID de la actividad');
+    return apiRequest<ResourceRow>(`/b2b/activities/${activityId}`, { method: 'PATCH', body: { status } });
   },
   createActivity(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/activities', { method: 'POST', body });

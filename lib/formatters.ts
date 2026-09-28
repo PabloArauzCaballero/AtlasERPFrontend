@@ -46,6 +46,20 @@ export function formatDate(value: string | Date | null | undefined): string {
   return Number.isNaN(date.getTime()) ? '—' : dateFormatter.format(date);
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat('es-BO', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'America/La_Paz',
+});
+
+/** Fecha y hora en La Paz. Una fecha sin hora (`AAAA-MM-DD`) se pinta como fecha, sin inventar una hora. */
+export function formatDateTime(value: string | Date | null | undefined): string {
+  if (!value) return '—';
+  if (typeof value === 'string' && SOLO_FECHA.test(value)) return formatDate(value);
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : dateTimeFormatter.format(date);
+}
+
 export function maskPii(value: unknown, fieldName: string): string {
   if (value === null || value === undefined) return '—';
   const text = String(value);
@@ -81,5 +95,7 @@ export function statusTone(value: unknown): StatusTone {
   if (/REJECT|BLOCK|FAIL|CANCEL|CLOSED|VOID|REVERS|LOST|OVERDUE|DEFAULT|SUSPEND|DISQUALIF/.test(upper)) return 'danger';
   if (/PEND|REVIEW|DRAFT|PROGRESS|PARTIAL|SCHEDULED|WAITING|HOLD/.test(upper)) return 'warning';
   if (/ACTIVE|APPROV|ACCEPT|SUCCESS|PAID|SIGNED|POSTED|COMPLET|OPEN|ISSUED|SETTLED|RECOVERED|CONFIRMED|VERIFIED|CUSTOMER/.test(upper)) return 'success';
+  // Palabra entera: «DONE» está dentro de «ABANDONED».
+  if (/(^|_)DONE(_|$)/.test(upper)) return 'success';
   return 'neutral';
 }

@@ -1,164 +1,228 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { ActionFormModal } from '@/components/screens/ActionFormModal';
-import { b2bService } from '@/services/b2bService';
-import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useCallback, useMemo } from 'react';
+import { LiveDirectoryScreen, type RowAction } from '@/components/screens/LiveDirectoryScreen';
+import type { ActionField } from '@/components/screens/StructuredActionForm';
 import { useOptions } from '@/hooks/useOptions';
-import { loadInternalUsers } from '@/services/optionLoaders';
-import { AtlasButton } from '@/components/atlas/AtlasButton';
-import { FormField } from '@/components/atlas/FormField';
-import { Icon } from '@/components/atlas/Icon';
-import { InlineNotice } from '@/components/atlas/InlineNotice';
-import { Panel } from '@/components/atlas/Panel';
-import { StatusPill } from '@/components/atlas/StatusPill';
-import { formatDate } from '@/lib/formatters';
-import type { JsonObject, ResourceRow } from '@/services/types';
+import { b2bService } from '@/services/b2bService';
+import { resolveOptions } from '@/services/domains';
+import type { Option } from '@/services/optionLoaders';
+import type { JsonObject, PageQuery, ResourceRow } from '@/services/types';
 
-const activityTypeOptions = [
-  { label: 'Nota', value: 'NOTE' },
-  { label: 'Llamada', value: 'CALL' },
-  { label: 'Reunión', value: 'MEETING' },
-  { label: 'Correo', value: 'EMAIL' },
-  { label: 'WhatsApp', value: 'WHATSAPP' },
-  { label: 'Visita', value: 'VISIT' },
-  { label: 'Tarea / recordatorio', value: 'TASK' },
-  { label: 'Otro', value: 'OTHER' },
-];
+type ActivityStatus = 'PENDING' | 'DONE' | 'CANCELLED';
 
-const typeIcon: Record<string, string> = {
-  NOTE: 'sticky_note_2', CALL: 'call', MEETING: 'groups', EMAIL: 'mail',
-  WHATSAPP: 'chat', VISIT: 'place', TASK: 'task_alt', OTHER: 'bolt',
+/**
+ * Las palabras de cada estado. Los valores válidos y su ayuda los publica el servidor
+ * (`crm.activityStatus`); esto es sólo cómo se lee la columna mientras el catálogo llega.
+ */
+const STATUS_LABELS: Record<ActivityStatus, string> = {
+  PENDING: 'Pendiente',
+  DONE: 'Hecha',
+  CANCELLED: 'Cancelada',
 };
 
-const emptyForm = { activityType: 'NOTE', subject: '', description: '', ownerUserId: '', dueAt: '' };
+/** El detalle entero no cabe en una fila: se enseña el principio y el resto va en la ficha. */
+function resumen(texto: unknown): string {
+  const limpio = String(texto ?? '').replace(/\s+/g, ' ').trim();
+  if (!limpio) return '—';
+  return limpio.length > 32 ? `${limpio.slice(0, 31)}…` : limpio;
+}
 
+/**
+ * El valor de un `datetime-local` es hora LOCAL. Cortar el ISO del servidor (`…T19:00Z`) enseñaba
+ * la hora de Greenwich: una reunión de las 15:00 en La Paz aparecía a las 19:00 al reprogramarla.
+ */
+function aHoraLocal(valor: unknown): string {
+  if (typeof valor !== 'string' || !valor) return '';
+  const fecha = new Date(valor);
+  if (Number.isNaN(fecha.getTime())) return '';
+  return new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+/** Sólo el nombre: el código del rol («COMMERCIAL_EXECUTIVE») no le dice nada a quien opera. */
+const loadResponsables = async (): Promise<Option[]> =>
+  (await b2bService.listInternalUsers())
+    .filter((user) => user.id)
+    .map((user) => ({ value: String(user.id), label: String(user.fullName ?? user.email ?? 'Sin nombre') }));
+
+const loadActivityTypes = () => resolveOptions('domain:crm.activityType');
+const loadActivityStatuses = () => resolveOptions('domain:crm.activityStatus');
+
+/**
+ * «Actividad y tareas» de la ficha de una cuenta B2B (y, si se pasa, de una oportunidad).
+ *
+ * Era un formulario abierto encima de un timeline que traía TODAS las actividades de una vez, sin
+ * buscar ni filtrar, y sólo sabía «Completar» una tarea: una que ya no se iba a hacer había que
+ * borrarla. Ahora es la forma estándar del ERP (`LiveDirectoryScreen`): tabla paginada en el
+ * servidor con buscador y filtros por tipo y estado, alta en un modal desde «Añadir actividad», y
+ * el estado —pendiente, hecha o cancelada— se cambia desde la fila.
+ */
 export function AccountActivitiesPanel({ accountId, opportunityId }: { accountId: string; opportunityId?: string }) {
+  const activityTypes = useOptions(loadActivityTypes);
+  const activityStatuses = useOptions(loadActivityStatuses);
+  const typeLabels = useMemo(
+    () => Object.fromEntries(activityTypes.map((option) => [option.value, option.label])),
+    [activityTypes],
+  );
+
   const load = useCallback(
-    () => b2bService.listActivities(opportunityId ? { accountId, opportunityId } : { accountId }),
+    async (query: PageQuery) => {
+      const page = await b2bService.listActivities({ ...query, accountId, ...(opportunityId ? { opportunityId } : {}) });
+      // «Fecha»: la programada si la tiene; si no, cuándo se registró. Dos columnas de fecha empujaban
+      // las acciones de la fila fuera de la pantalla.
+      const items = (page.items ?? page.rows ?? []).map((row) => ({ ...row, fecha: row.dueAt ?? row.createdAt, detalleCorto: resumen(row.description) }));
+      return { ...page, items };
+    },
     [accountId, opportunityId],
   );
-  const resource = useAsyncResource(load, Boolean(accountId));
-  const activities = (resource.data ?? []) as ResourceRow[];
-  const internalUsers = useOptions(loadInternalUsers);
 
-  const [form, setForm] = useState({ ...emptyForm });
-  const [saving, setSaving] = useState(false);
-  const [reprogramando, setReprogramando] = useState<ResourceRow | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const setField = (key: keyof typeof emptyForm) => (value: string) => setForm((c) => ({ ...c, [key]: value }));
+  const createFields: ActionField[] = [
+    {
+      name: 'activityType',
+      label: 'Tipo',
+      tooltip: 'Qué clase de gestión fue: una nota, una llamada, una reunión o una tarea por hacer.',
+      optionsSource: 'domain:crm.activityType',
+      required: true,
+      defaultValue: 'NOTE',
+    },
+    {
+      name: 'ownerUserId',
+      label: 'Responsable',
+      tooltip: 'Ejecutivo comercial que responde por esta actividad; es quien la ve en sus pendientes.',
+      optionsLoader: loadResponsables,
+      required: true,
+    },
+    {
+      name: 'subject',
+      label: 'Asunto',
+      tooltip: 'Una línea que diga de qué se trata, para reconocerla en la tabla sin abrirla.',
+      placeholder: 'Llamada de seguimiento, propuesta enviada…',
+      required: true,
+      span: 2,
+    },
+    {
+      name: 'dueAt',
+      label: 'Fecha programada',
+      type: 'datetime',
+      tooltip: 'Cuándo tiene que hacerse. Si la pones, la actividad queda pendiente hasta que la marques como hecha.',
+      hint: 'Déjala vacía para anotar algo que ya ocurrió: queda como hecha.',
+      span: 2,
+    },
+    {
+      name: 'description',
+      label: 'Detalle',
+      type: 'textarea',
+      tooltip: 'Qué se habló o qué hay que hacer, para quien lo lea después.',
+      placeholder: 'Acuerdos, próximos pasos…',
+      span: 2,
+    },
+  ];
 
-  async function addActivity() {
-    setSaving(true);
-    setError(null);
-    try {
-      const body: JsonObject = {
-        accountId,
-        ownerUserId: form.ownerUserId.trim(),
-        activityType: form.activityType,
-        subject: form.subject.trim(),
-        ...(opportunityId ? { opportunityId } : {}),
-        ...(form.description.trim() ? { description: form.description.trim() } : {}),
-        ...(form.dueAt ? { dueAt: new Date(form.dueAt).toISOString() } : {}),
-      };
-      await b2bService.createActivity(body);
-      setForm((c) => ({ ...emptyForm, ownerUserId: c.ownerUserId, activityType: c.activityType }));
-      await resource.reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar la actividad.');
-    } finally {
-      setSaving(false);
-    }
+  async function create(payload: JsonObject) {
+    const due = typeof payload.dueAt === 'string' && payload.dueAt ? payload.dueAt : null;
+    const description = typeof payload.description === 'string' ? payload.description.trim() : '';
+    await b2bService.createActivity({
+      accountId,
+      ...(opportunityId ? { opportunityId } : {}),
+      ownerUserId: String(payload.ownerUserId ?? ''),
+      activityType: String(payload.activityType ?? 'NOTE'),
+      subject: String(payload.subject ?? '').trim(),
+      ...(description ? { description } : {}),
+      ...(due ? { dueAt: new Date(due).toISOString() } : {}),
+    });
   }
 
-  async function complete(id: unknown) {
-    try { await b2bService.completeActivity(String(id)); await resource.reload(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'No se pudo completar.'); }
-  }
-  /**
-   * Reprogramar una tarea.
-   *
-   * `PATCH /b2b/activities/:id` existía con su método en el servicio y el panel sólo sabía crear,
-   * completar y borrar: una tarea con fecha equivocada había que borrarla y volver a escribirla,
-   * perdiendo su historia. Se corrige lo que de verdad cambia —cuándo vence— y no el asunto: cambiar
-   * el asunto de una actividad ya registrada reescribe lo que se dijo que pasó.
-   */
-  async function reprogramar(activity: ResourceRow, payload: JsonObject) {
-    await b2bService.updateActivity(String(activity.id), { dueAt: new Date(String(payload.dueAt)).toISOString() });
-    setReprogramando(null);
-    await resource.reload();
-  }
+  function rowActions(row: ResourceRow): RowAction[] {
+    const id = row.id ? String(row.id) : '';
+    if (!id) return [];
+    const status = String(row.status ?? 'PENDING') as ActivityStatus;
+    const subject = String(row.subject ?? 'esta actividad');
+    const setStatus = (next: ActivityStatus) => async () => { await b2bService.setActivityStatus(id, next); };
 
-  async function remove(id: unknown) {
-    try { await b2bService.deleteActivity(String(id)); await resource.reload(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'No se pudo eliminar.'); }
-  }
+    const hecha: RowAction = {
+      key: 'hecha', label: 'Hecha', icon: 'task_alt', primary: true,
+      description: 'Marca la actividad como hecha; deja de figurar entre los pendientes.',
+      onClick: setStatus('DONE'),
+    };
+    const cancelar: RowAction = {
+      key: 'cancelar', label: 'Cancelar', icon: 'block', primary: true, tone: 'danger',
+      description: 'La actividad no se va a hacer. Se conserva en la cuenta para saber que se decidió así.',
+      onClick: setStatus('CANCELLED'),
+      confirm: {
+        title: 'Cancelar actividad',
+        message: `«${subject}» quedará como cancelada. Podrás volver a ponerla como pendiente cuando quieras.`,
+        confirmLabel: 'Cancelar actividad', tone: 'danger', successMessage: 'Actividad cancelada',
+      },
+    };
+    const pendiente: RowAction = {
+      key: 'pendiente', label: 'Pendiente', icon: 'undo', primary: true,
+      description: 'Vuelve a poner la actividad como pendiente.',
+      onClick: setStatus('PENDING'),
+    };
+    const reprogramar: RowAction = {
+      key: 'reprogramar', label: 'Reprogramar', icon: 'event_repeat',
+      description: 'Cambia sólo la fecha programada. El asunto y el detalle no se tocan: reescribirlos cambiaría lo que se dijo que pasó.',
+      form: {
+        title: () => `Reprogramar «${subject}»`,
+        description: 'Se cambia sólo la fecha programada; el asunto y el detalle quedan como están.',
+        submitLabel: 'Reprogramar',
+        fields: [{
+          name: 'dueAt', label: 'Nueva fecha programada', type: 'datetime', required: true, span: 2,
+          tooltip: 'Nueva fecha y hora en que tiene que hacerse.',
+          defaultValue: aHoraLocal(row.dueAt),
+        }],
+        submit: async (_row, payload) => {
+          await b2bService.updateActivity(id, { dueAt: new Date(String(payload.dueAt)).toISOString() });
+        },
+      },
+    };
+    const eliminar: RowAction = {
+      key: 'eliminar', label: 'Eliminar', icon: 'delete', tone: 'danger',
+      description: 'Borra la actividad de la cuenta. Si sólo no se va a hacer, mejor cancélala: así queda constancia.',
+      onClick: async () => { await b2bService.deleteActivity(id); },
+      confirm: {
+        title: 'Eliminar actividad',
+        message: `«${subject}» se borrará de la cuenta y no se podrá recuperar.`,
+        confirmLabel: 'Eliminar', tone: 'danger', successMessage: 'Actividad eliminada',
+      },
+    };
 
-  const canSave = form.subject.trim() && form.ownerUserId.trim();
+    if (status === 'PENDING') return [hecha, cancelar, reprogramar, eliminar];
+    if (status === 'DONE') return [pendiente, { ...cancelar, primary: false }, eliminar];
+    return [pendiente, { ...hecha, primary: false }, eliminar];
+  }
 
   return (
-    <Panel title="Actividad y tareas" description="Notas, llamadas, reuniones y tareas/recordatorios de la cuenta (timeline)." icon="history_edu">
-      <div className="mb-4 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3">
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-          <FormField tooltip="Tipo de actividad: llamada, reunión, tarea, nota…" kind="select" label="Tipo" name="activityType" value={form.activityType} onChange={(e) => setField('activityType')(e.target.value)} options={activityTypeOptions} />
-          <FormField tooltip="Nueva fecha y hora límite de la tarea." label="Vencimiento (para tareas)" name="dueAt" type="datetime-local" value={form.dueAt} onChange={(e) => setField('dueAt')(e.target.value)} />
-        </div>
-        <FormField tooltip="A quién agrupa el segmento: comercios, sucursales o usuarios." label="Asunto" name="subject" required value={form.subject} onChange={(e) => setField('subject')(e.target.value)} placeholder="Llamada de seguimiento, propuesta enviada..." />
-        <FormField tooltip="Texto libre que explica el registro a quien lo lea después." kind="textarea" label="Detalle" name="description" value={form.description} onChange={(e) => setField('description')(e.target.value)} placeholder="Notas de la interacción..." />
-        <FormField tooltip="Ejecutivo comercial que responde por esta cuenta; recibe las tareas y los avisos." kind="select" label="Responsable" name="ownerUserId" required value={form.ownerUserId} onChange={(e) => setField('ownerUserId')(e.target.value)} options={[{ label: '— Seleccione responsable —', value: '' }, ...internalUsers]} hint="Usuario comercial responsable de la actividad." />
-        {error ? <InlineNotice tone="danger" title="Error">{error}</InlineNotice> : null}
-        <AtlasButton icon="add" loading={saving} disabled={!canSave} onClick={addActivity}>Registrar actividad</AtlasButton>
-      </div>
-
-      {resource.error && !activities.length ? <InlineNotice tone="warning" title="No se pudo cargar el timeline">{resource.error}</InlineNotice> : null}
-      {activities.length ? (
-        <ol className="space-y-3">
-          {activities.map((activity) => {
-            const type = String(activity.activityType ?? 'NOTE');
-            const isTask = Boolean(activity.dueAt);
-            const done = Boolean(activity.completedAt);
-            return (
-              <li key={String(activity.id)} className="flex gap-3">
-                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-wash text-primary"><Icon name={typeIcon[type] ?? 'bolt'} className="text-[16px]" /></span>
-                <div className="min-w-0 flex-1 rounded-md border border-slate-200 p-2.5">
-                  <div className="flex items-center gap-2">
-                    <b className="truncate text-xs text-slate-800">{String(activity.subject ?? '—')}</b>
-                    {isTask ? <StatusPill tone={done ? 'success' : 'warning'} dot={false}>{done ? 'Completada' : 'Pendiente'}</StatusPill> : <StatusPill tone="neutral" dot={false}>{type}</StatusPill>}
-                  </div>
-                  {activity.description ? <p className="mt-1 text-[11px] leading-4 text-slate-600">{String(activity.description)}</p> : null}
-                  <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-500">
-                    <span>Creada {formatDate(typeof activity.createdAt === 'string' ? activity.createdAt : undefined)}</span>
-                    {isTask ? <span>· Vence {formatDate(typeof activity.dueAt === 'string' ? activity.dueAt : undefined)}</span> : null}
-                    <span className="ml-auto flex gap-2">
-                      {isTask && !done ? <button className="font-bold text-emerald-700 hover:underline" onClick={() => complete(activity.id)}>Completar</button> : null}
-                      {isTask && !done ? <button className="font-bold text-slate-600 hover:underline" onClick={() => setReprogramando(activity)}>Reprogramar</button> : null}
-                      <button className="font-bold text-red-600 hover:underline" onClick={() => remove(activity.id)}>Eliminar</button>
-                    </span>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      ) : !resource.error ? (
-        <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-center">
-          <Icon name="history" className="text-[28px] text-slate-400" />
-          <p className="mt-2 text-xs font-bold text-slate-700">Sin actividad registrada</p>
-          <p className="mt-1 text-[11px] text-slate-500">Registre la primera nota, llamada o tarea de esta cuenta.</p>
-        </div>
-      ) : null}
-      {reprogramando ? (
-        <ActionFormModal
-          open
-          icon="event_repeat"
-          title={`Reprogramar «${String(reprogramando.subject ?? '')}»`}
-          description="Se cambia sólo el vencimiento. El asunto y el detalle no se tocan: reescribirlos cambiaría lo que se dijo que pasó."
-          submitLabel="Reprogramar"
-          fields={[{ name: 'dueAt', label: 'Nuevo vencimiento', tooltip: 'Nueva fecha y hora límite de la tarea.', type: 'datetime', required: true, span: 2, defaultValue: typeof reprogramando.dueAt === 'string' ? reprogramando.dueAt.slice(0, 16) : '' }]}
-          onClose={() => setReprogramando(null)}
-          onSubmit={(payload) => reprogramar(reprogramando, payload)}
-        />
-      ) : null}
-    </Panel>
+    <section data-testid="actividades-cuenta">
+      <LiveDirectoryScreen
+        embedded
+        moduleLabel="CRM"
+        title="Actividad y tareas"
+        description="Notas, llamadas, reuniones y tareas de la cuenta. Marca cada una como hecha, cancelada o pendiente desde su fila."
+        load={load}
+        createLabel="Añadir actividad"
+        create={{
+          title: 'Añadir actividad',
+          description: 'Una tarea o algo con fecha programada queda pendiente; lo demás se anota como hecho.',
+          icon: 'add_task',
+          fields: createFields,
+          submit: create,
+        }}
+        searchPlaceholder="Buscar por asunto, detalle o responsable..."
+        statusOptions={activityStatuses.length ? activityStatuses : Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
+        filters={[{ key: 'activityType', label: 'Tipo', options: activityTypes }]}
+        columns={[
+          { key: 'subject', label: 'Asunto' },
+          { key: 'activityType', label: 'Tipo', labels: typeLabels },
+          { key: 'status', label: 'Estado', kind: 'status', labels: STATUS_LABELS },
+          { key: 'ownerName', label: 'Responsable' },
+          { key: 'fecha', label: 'Fecha', kind: 'datetime' },
+          { key: 'detalleCorto', label: 'Detalle' },
+        ]}
+        /* Sin tira de números: el total ya está al pie de la tabla y el filtro «Pendiente» cuenta los que faltan. */
+        metrics={[]}
+        rowActions={rowActions}
+      />
+    </section>
   );
 }
