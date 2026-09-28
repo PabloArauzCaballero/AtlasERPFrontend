@@ -89,19 +89,19 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/crm/cuentas/calificar': {
     eyebrow: 'CRM B2B',
     title: 'Calificar cuenta',
-    intro: 'Deja por escrito si esta empresa encaja como cliente, y por qué.',
+    intro: 'Decide si esta empresa encaja como cliente y clasifícala con los datos que el equipo comercial usa para priorizar.',
     sections: [
       {
-        title: 'Calificar es decidir, no describir',
-        body: 'La decisión que se registra aquí abre o cierra el resto del embudo: una cuenta no calificada no genera oportunidad, y sin oportunidad no hay propuesta ni contrato.',
+        title: 'Calificar es clasificar',
+        body: 'Sector, categoría, rubro, qué ofrece el negocio, su tamaño y cuánto se espera que venda con Atlas. Con eso la cartera se agrupa y se prioriza; sin saber qué ofrece el negocio, la cuenta no se califica.',
       },
       {
-        title: 'La justificación es lo que se audita',
-        body: 'Meses después nadie recuerda por qué se aceptó o descartó una cuenta. El texto que escribas aquí es lo que quedará, y es lo que revisará control interno.',
+        title: 'Es el primer paso de tres',
+        body: 'Calificar → crear oportunidad → iniciar onboarding. Una cuenta sin calificar no puede tener oportunidad, y sin oportunidad no se abre su onboarding. La ficha de la cuenta enseña qué paso toca.',
       },
       {
-        title: 'Puede crear la oportunidad por ti',
-        body: 'Cuando la calificación es favorable, el mismo formulario deja la oportunidad abierta en el pipeline. Evita el paso manual y evita olvidarlo.',
+        title: 'Descartar también se justifica',
+        body: 'Si no encaja, el motivo es lo que queda: meses después nadie recuerda por qué se descartó, y es lo que revisará control interno.',
       },
     ],
   },

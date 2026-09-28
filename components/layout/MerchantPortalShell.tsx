@@ -100,7 +100,8 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           <PortalNav pathname={pathname} />
           <div className="mt-8 rounded-lg bg-[#006a61] p-4 text-white"><Icon name="verified_user" className="text-[22px] text-cyan-300" /><p className="mt-3 text-xs font-bold">Canal merchant seguro</p><p className="mt-1 text-[10px] leading-4 text-slate-300">Las acciones se registran con trazabilidad y permisos separados del panel operativo.</p></div>
         </aside>
-        <main className="min-w-0 p-3 sm:p-4 md:p-6 xl:p-8">{children}</main>
+        {/* `pb-24`: deja sitio al botón flotante del asistente para que no tape la última fila. */}
+        <main className="min-w-0 p-3 pb-24 sm:p-4 sm:pb-24 md:p-6 md:pb-24 xl:p-8 xl:pb-24">{children}</main>
       </div>
 
       <AtlasAssist surface="merchant-portal" />
