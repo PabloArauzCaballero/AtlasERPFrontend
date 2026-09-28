@@ -1,5 +1,6 @@
 'use client';
 
+import { asRows } from '@/lib/asRows';
 import { useCallback, useMemo, useState } from 'react';
 import { b2bService } from '@/services/b2bService';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
@@ -33,7 +34,7 @@ export function OpportunityKanbanScreen({ embedded = false, version = 0 }: Oppor
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(() => b2bService.listOpportunities(), [version]);
   const resource = useAsyncResource(load);
-  const opportunities = useMemo(() => (resource.data ?? []) as ResourceRow[], [resource.data]);
+  const opportunities = useMemo(() => asRows(resource.data), [resource.data]);
   const [error, setError] = useState<string | null>(null);
   const [movingId, setMovingId] = useState<string | null>(null);
   const [lossFor, setLossFor] = useState<{ op: ResourceRow; stage: string } | null>(null);
