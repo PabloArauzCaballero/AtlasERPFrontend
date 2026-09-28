@@ -291,9 +291,11 @@ test('propuestas es pestaña del pipeline y aprobaciones vive en el menú izquie
   await page.goto('/operaciones/crm/oportunidades');
   const pestanas = page.getByRole('tab');
   await expect(pestanas).toHaveCount(3);
-  await expect(pestanas.nth(0)).toHaveText(/oportunidades/i);
-  await expect(pestanas.nth(1)).toHaveText(/tablero/i);
+  // El Tablero va primero y es el que se abre al entrar (Pablo, 2026-09-28).
+  await expect(pestanas.nth(0)).toHaveText(/tablero/i);
+  await expect(pestanas.nth(1)).toHaveText(/oportunidades/i);
   await expect(pestanas.nth(2)).toHaveText(/propuestas/i);
+  await expect(page.getByTestId('tab-tablero')).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('tab', { name: /aprobaciones/i })).toHaveCount(0);
 
   // Su ruta abre esa misma pestaña, para que los enlaces guardados sigan llevando a donde decían.

@@ -86,7 +86,8 @@ test('las propuestas se leen, se filtran y se pueden corregir desde la propia fi
 
 test('el tablero de oportunidades se lee del servidor', async ({ page }) => {
   await page.goto('/operaciones/crm/oportunidades');
-  await expect(page.getByRole('heading', { name: /oportunidad/i }).first()).toBeVisible({ timeout: 120_000 });
+  // El tablero es la pestaña que se abre al entrar (Pablo, 2026-09-28).
+  await expect(page.getByRole('heading', { name: /tablero del embudo/i }).first()).toBeVisible({ timeout: 120_000 });
   // No queda ni rastro del aviso de que el pipeline no se podía leer.
   await expect(page.getByText(/todav[ií]a no expone un get/i)).toHaveCount(0);
   await expect(page.getByText(/no inventa registros hist/i)).toHaveCount(0);
