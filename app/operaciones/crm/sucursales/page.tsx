@@ -86,6 +86,7 @@ export default function MerchantBranchesPage() {
         {
           key: 'estado',
           label: 'Cambiar estado',
+          description: 'Habilita o da de baja la sucursal. Sólo las habilitadas pueden originar ventas; su historial se conserva.',
           icon: 'published_with_changes',
           form: {
             title: (row) => `Estado de «${String(row.name ?? '')}»`,

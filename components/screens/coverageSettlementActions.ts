@@ -93,6 +93,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
     {
       key: 'liquidar',
       label: 'Registrar pago al comercio',
+      description: 'Anota el pago que Atlas le hizo al comercio por la cobertura. Queda pendiente hasta que otra persona lo apruebe.',
       icon: 'paid',
       primary: true,
       enabled: (row) => abierta(row) && !estado(row).hay && !deps.estadoLocal[String(row.id ?? '')],
@@ -116,6 +117,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
     {
       key: 'aprobar',
       label: 'Aprobar pago',
+      description: 'Da el visto bueno al pago registrado por otra persona; la cobertura queda pagada y empieza la recuperación.',
       icon: 'verified',
       tone: 'success',
       primary: true,
@@ -144,6 +146,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
     {
       key: 'rechazar',
       label: 'Rechazar pago',
+      description: 'Anula un pago mal registrado (importe, comercio, comprobante) para que se pueda volver a registrar.',
       icon: 'block',
       tone: 'danger',
       enabled: decidible,
@@ -169,6 +172,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
     {
       key: 'cancelar',
       label: 'Cancelar cobertura',
+      description: 'Anula la cobertura antes de pagarla; la cuota podrá volver a cubrirse más adelante.',
       icon: 'cancel',
       tone: 'danger',
       /* Con un pago registrado el sistema no la cancela: primero se rechaza el pago. */

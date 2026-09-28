@@ -138,6 +138,7 @@ export default function OnboardingPage() {
             {
               key: 'requisito',
               label: 'Mover un requisito',
+              description: 'Marca un requisito del checklist de alta como completado, eximido o bloqueado.',
               icon: 'task_alt',
               /*
                * Las TRES que se quedan en la fila; el resto vive en «Más acciones», con su nombre.
@@ -182,6 +183,7 @@ export default function OnboardingPage() {
             {
               key: 'evidencia',
               label: 'Adjuntar archivo de un requisito',
+              description: 'Sube el documento que respalda un requisito (NIT, poder, extracto…) y lo deja guardado en el caso.',
               icon: 'upload_file',
               enabled: abierto,
               /* Abre el modal con el archivo; los formularios de fila no admiten adjuntos. */
@@ -193,6 +195,7 @@ export default function OnboardingPage() {
             {
               key: 'enlazar',
               label: 'Enlazar expediente de Atlas',
+              description: 'Busca el expediente del comercio en Atlas, primero por su cuenta y luego por NIT, y lo vincula a este caso. Sin ese vínculo no se puede pedir la verificación.',
               icon: 'link',
               /* Sólo mientras no hay puente: pedir la verificación lo intenta solo, pero así se ve POR QUÉ falla (por cuenta, luego por NIT). */
               enabled: (row) => abierto(row) && puedePedirVerificacion && !row.partnerProfileId,
@@ -201,6 +204,7 @@ export default function OnboardingPage() {
             {
               key: 'verificar',
               label: 'Pedir verificación al Motor',
+              description: 'Envía el comercio a la revisión de riesgo (KYB) de Atlas. Sin su aprobación el comercio no se puede activar.',
               icon: 'verified_user',
               enabled: (row) => puedePedirVerificacion && PUEDE_PEDIR_VERIFICACION.has(String(row.status ?? '')),
               form: {
@@ -214,6 +218,7 @@ export default function OnboardingPage() {
             {
               key: 'ejecucion',
               label: 'Ver ejecución en el Motor',
+              description: 'Abre en el Motor de decisión la evaluación que se hizo de este comercio, con sus reglas y resultados.',
               icon: 'open_in_new',
               enabled: (row) => engineExecutionUrl(String(row.decisionExecutionId ?? '') || null) !== null,
               href: (row) => engineExecutionUrl(String(row.decisionExecutionId ?? '')) ?? '#',
@@ -221,6 +226,7 @@ export default function OnboardingPage() {
             {
               key: 'caso-motor',
               label: 'Ver caso de revisión manual',
+              description: 'Abre en el Motor el caso que un analista de riesgo está revisando a mano para este comercio.',
               icon: 'rule',
               enabled: (row) => engineManualReviewUrl(String(row.manualReviewCaseCode ?? '') || null) !== null,
               href: (row) => engineManualReviewUrl(String(row.manualReviewCaseCode ?? '')) ?? '#',
@@ -228,6 +234,7 @@ export default function OnboardingPage() {
             {
               key: 'sincronizar',
               label: 'Actualizar verificación',
+              description: 'Consulta al Motor si ya hay una decisión (por ejemplo, una revisión manual resuelta) y la trae al caso.',
               icon: 'sync',
               enabled: (row) => ESPERA_AL_MOTOR.has(String(row.status ?? '')),
               run: async (row) => {
@@ -239,6 +246,7 @@ export default function OnboardingPage() {
             {
               key: 'contrato',
               label: 'Pactar contrato',
+              description: 'Elige cuál versión de contrato de este comercio rige el alta. Para activarlo, esa versión tiene que estar activa y vigente.',
               icon: 'draw',
               enabled: abierto,
               form: {
@@ -269,6 +277,7 @@ export default function OnboardingPage() {
             {
               key: 'comision',
               label: 'Pactar comisión (MDR)',
+              description: 'Define cuánto cobra Atlas por cada venta del comercio (MDR), con piso y techo opcionales, sobre el contrato pactado.',
               icon: 'percent',
               /* Sin contrato pactado no hay de dónde colgarla: el backend lo rechaza y aquí ni se ofrece. */
               enabled: (row) => abierto(row) && Boolean(row.contractVersionId),
@@ -290,6 +299,7 @@ export default function OnboardingPage() {
             {
               key: 'credenciales',
               label: 'Dar acceso a una persona',
+              description: 'Registra a una persona del comercio y pide su usuario para el portal. Atlas genera la contraseña al aprobarlo.',
               icon: 'person_add',
               primary: true,
               /*
@@ -341,6 +351,7 @@ export default function OnboardingPage() {
             {
               key: 'acuse',
               label: 'Comprobar credenciales',
+              description: 'Pregunta a Atlas en qué quedaron los accesos pedidos y actualiza cuántos están concedidos o en espera.',
               icon: 'sync',
               /* Sólo cuando hay algo que preguntar: una petición encolada y sin resolver. */
               enabled: (row) => abierto(row) && Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0,
@@ -353,6 +364,7 @@ export default function OnboardingPage() {
             {
               key: 'activar',
               label: 'Activar comercio',
+              description: 'Cierra el alta: Atlas revisa la aprobación de riesgo, los requisitos y el contrato; si todo está bien, el comercio queda operativo.',
               icon: 'rocket_launch',
               tone: 'success',
               primary: true,

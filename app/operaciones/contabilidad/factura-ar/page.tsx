@@ -121,7 +121,7 @@ export default function ArInvoicePage() {
            */
         ],
       }}
-      extraActions={[{ key: 'descargar', label: 'Descargar factura', icon: 'download', run: descargar }]}
+      extraActions={[{ key: 'descargar', label: 'Descargar factura', description: 'Descarga la factura en PDF para enviarla o archivarla.', icon: 'download', run: descargar }]}
       edit={{
         description: 'Ni el número ni los importes se editan: el correlativo es del sistema y una factura emitida se corrige con una nota de crédito, no reescribiéndola.',
         fields: [

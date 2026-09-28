@@ -187,6 +187,7 @@ export default function CrmSegmentsPage() {
         {
           key: 'regla',
           label: 'Cambiar la regla',
+          description: 'Cambia la condición que decide quién entra en el segmento (por ejemplo, ciudad o nivel de riesgo).',
           icon: 'rule',
           // Sólo donde hay UNA regla: colapsar a una un segmento creado con tres por API sería
           // cambiarle la población sin que quien lo edita lo hubiera pedido.

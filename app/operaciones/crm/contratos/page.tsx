@@ -83,6 +83,7 @@ export default function CommercialContractsPage() {
         {
           key: 'firmar',
           label: 'Firmar y activar',
+          description: 'Registra quién aprobó el contrato y cuándo se firmó. Desde la firma el contrato entra en vigor.',
           icon: 'draw',
           primary: true,
           /* Firmar es lo que pone en vigor lo pactado: se ofrece mientras no haya firma. */
@@ -103,6 +104,7 @@ export default function CommercialContractsPage() {
         {
           key: 'documentos',
           label: 'Documentos',
+          description: 'Abre los documentos adjuntos a este contrato para verlos o subir otros.',
           icon: 'attach_file',
           /* `silent`: no ejecuta nada, abre la lista de documentos de ESE contrato para verlos o subir más. */
           silent: true,
@@ -111,6 +113,7 @@ export default function CommercialContractsPage() {
         {
           key: 'comision',
           label: 'Comisión por venta (MDR)',
+          description: 'Muestra, agrega o desactiva las reglas de cuánto cobra Atlas por cada venta del comercio.',
           icon: 'percent',
           primary: true,
           /*

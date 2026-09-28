@@ -111,6 +111,7 @@ export default function AccountingContractsPage() {
         {
           key: 'documentos',
           label: 'Documentos',
+          description: 'Abre los documentos adjuntos a este contrato para verlos o subir otros.',
           icon: 'attach_file',
           /* `silent`: abre la lista de documentos de ESE contrato para verlos o subir más. */
           silent: true,
@@ -119,6 +120,7 @@ export default function AccountingContractsPage() {
         {
           key: 'termino',
           label: 'Agregar condición',
+          description: 'Agrega una condición pactada (plazo de pago, comisión, tope) con su vigencia, sin borrar las anteriores.',
           icon: 'data_object',
           form: {
             title: (row) => `Condición de ${String(row.contractNo ?? 'el contrato')}`,

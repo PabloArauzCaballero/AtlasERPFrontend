@@ -57,6 +57,7 @@ export default function AdvertisersPage() {
         {
           key: 'estado',
           label: 'Cambiar estado',
+          description: 'Activa, suspende o cambia el nivel de riesgo del anunciante. Suspenderlo corta la entrega de sus anuncios.',
           icon: 'published_with_changes',
           form: {
             title: () => `Estado de ${String(row.tradeName ?? row.legalName ?? '')}`,
@@ -73,6 +74,7 @@ export default function AdvertisersPage() {
         {
           key: 'facturacion',
           label: 'Perfil de facturación',
+          description: 'Agrega los datos fiscales (razón social, NIT, correo) con los que se le emiten las facturas al anunciante.',
           icon: 'receipt_long',
           form: {
             title: () => `Facturación de ${String(row.tradeName ?? row.legalName ?? '')}`,

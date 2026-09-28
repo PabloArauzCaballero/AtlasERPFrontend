@@ -65,6 +65,7 @@ export function ApprovalsDirectory({ embedded = false }: ApprovalsDirectoryProps
         {
           key: 'decidir',
           label: 'Registrar decisión',
+          description: 'Aprueba o rechaza esta solicitud de excepción, con una justificación que queda a tu nombre.',
           icon: 'gavel',
           /* Solo las que siguen esperando: sobre una decidida no hay nada que decidir. */
           enabled: (row) => String(row.status ?? '') === 'PENDING',

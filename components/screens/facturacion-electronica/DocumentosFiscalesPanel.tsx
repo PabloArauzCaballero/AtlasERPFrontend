@@ -60,6 +60,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'reintentar',
           label: 'Reintentar envío',
+          description: 'Vuelve a enviar a Impuestos una factura que falló, con el mismo número y código de autorización.',
           icon: 'send',
           primary: true,
           enabled: (row) => row.siatStatus === 'ERROR',
@@ -73,6 +74,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'anular',
           label: 'Anular ante Impuestos',
+          description: 'Anula la factura ante Impuestos y revierte su asiento. Es definitivo y sólo vale hasta el día 9 del mes siguiente.',
           icon: 'block',
           tone: 'danger',
           primary: true,
@@ -99,6 +101,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'pdf',
           label: 'Descargar PDF',
+          description: 'Descarga la representación impresa de la factura para entregarla al cliente.',
           icon: 'picture_as_pdf',
           primary: true,
           silent: true,
@@ -108,6 +111,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'xml',
           label: 'Descargar XML',
+          description: 'Descarga el archivo XML firmado que se envió a Impuestos, el que tiene validez legal.',
           icon: 'code',
           primary: true,
           silent: true,

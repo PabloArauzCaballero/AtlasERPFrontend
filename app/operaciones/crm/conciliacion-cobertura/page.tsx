@@ -287,6 +287,7 @@ export default function CoverageReconciliationPage() {
                   {
                     key: 'cubrir',
                     label: 'Programar cobertura',
+                    description: 'Genera el pago que Atlas le hace al comercio por esta cuota que el cliente no pagó.',
                     icon: 'shield',
                     /* Sólo tiene sentido sobre lo que sigue impagado: lo cubierto ya tiene su compromiso. */
                     enabled: (row) => ['SCHEDULED', 'OVERDUE'].includes(String(row.status ?? '')),
@@ -362,6 +363,7 @@ export default function CoverageReconciliationPage() {
                   {
                     key: 'cobros',
                     label: 'Ver cobros',
+                    description: 'Lista lo cobrado al cliente en esta recuperación; desde ahí se puede revertir un cobro.',
                     icon: 'receipt_long',
                     /* Sólo abre el detalle: los cobros se listan y se revierten dentro. */
                     silent: true,
@@ -370,6 +372,7 @@ export default function CoverageReconciliationPage() {
                   {
                     key: 'recuperar',
                     label: 'Aplicar recuperación',
+                    description: 'Registra un pago del cliente y lo descuenta de lo que Atlas le adelantó al comercio.',
                     icon: 'currency_exchange',
                     enabled: (row) => !['RECOVERED', 'WRITTEN_OFF'].includes(String(row.recoveryStatus ?? '')),
                     form: {

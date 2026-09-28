@@ -80,7 +80,7 @@ export default function BusinessPartnersPage() {
         submit: (id, payload) => accountingService.updateBusinessPartner(id, payload),
       }}
       extraActions={[
-        { key: 'ficha', label: 'Abrir ficha completa', icon: 'visibility', href: (row) => `${detailBase}?id=${String(row.id ?? '')}` },
+        { key: 'ficha', label: 'Abrir ficha completa', description: 'Abre la ficha del socio con todos sus datos, roles, cuentas y movimientos.', icon: 'visibility', href: (row) => `${detailBase}?id=${String(row.id ?? '')}` },
         {
           /*
            * Los roles del socio (cliente, proveedor, comercio…) se podían dar de alta por API y por
@@ -90,6 +90,7 @@ export default function BusinessPartnersPage() {
            */
           key: 'rol',
           label: 'Asignar rol',
+          description: 'Le da al socio un papel (cliente, proveedor, comercio…) con fecha de vigencia. El rol decide en qué listados aparece.',
           icon: 'badge',
           form: {
             title: (row) => `Rol de ${String(row.legalName ?? '')}`,

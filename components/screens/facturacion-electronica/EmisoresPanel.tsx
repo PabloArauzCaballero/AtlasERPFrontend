@@ -123,6 +123,7 @@ export function EmisoresPanel({ activo }: Readonly<{ activo: boolean }>) {
           {
             key: 'estado',
             label: 'Ver estado ante Impuestos',
+            description: 'Muestra si hay conexión con Impuestos y si los códigos CUIS y CUFD del emisor están vigentes.',
             icon: 'monitor_heart',
             primary: true,
             silent: true,
@@ -131,6 +132,7 @@ export function EmisoresPanel({ activo }: Readonly<{ activo: boolean }>) {
           {
             key: 'cuis',
             label: 'Pedir código de sistema (CUIS)',
+            description: 'Pide a Impuestos un código de sistema nuevo. Sólo hace falta si el vigente venció o se perdió.',
             icon: 'key',
             enabled: () => activo,
             confirm: {
@@ -143,6 +145,7 @@ export function EmisoresPanel({ activo }: Readonly<{ activo: boolean }>) {
           {
             key: 'cufd',
             label: 'Pedir código diario (CUFD)',
+            description: 'Pide a Impuestos el código del día. Se renueva solo; úsalo si el de hoy no llegó.',
             icon: 'event_available',
             enabled: () => activo,
             confirm: {

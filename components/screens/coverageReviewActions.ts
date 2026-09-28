@@ -71,6 +71,7 @@ export function accionesDeRevision(recargar: () => void): CrudExtraAction[] {
     {
       key: 'confirmar-aviso',
       label: 'Confirmar pago del cliente',
+      description: 'Da por bueno el pago que el cliente avisó haber hecho y lo descuenta de la cuota.',
       icon: 'task_alt',
       tone: 'success',
       primary: true,
@@ -90,6 +91,7 @@ export function accionesDeRevision(recargar: () => void): CrudExtraAction[] {
     {
       key: 'rechazar-aviso',
       label: 'Rechazar aviso de pago',
+      description: 'Descarta el pago que avisó el cliente porque el comercio no lo recibió; la cuota sigue impaga.',
       icon: 'block',
       tone: 'danger',
       enabled: (row) => permite(row, 'REJECT_NOTICE'),
@@ -108,6 +110,7 @@ export function accionesDeRevision(recargar: () => void): CrudExtraAction[] {
     {
       key: 'descartar',
       label: 'Descartar revisión',
+      description: 'Cierra la revisión sin tocar pagos ni programar cobertura, dejando el motivo en el historial.',
       icon: 'do_not_disturb_on',
       enabled: (row) => permite(row, 'DISMISS'),
       form: {

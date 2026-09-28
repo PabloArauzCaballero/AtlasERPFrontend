@@ -58,6 +58,7 @@ export default function PeriodClosingPage() {
         {
           key: 'cerrar',
           label: 'Cerrar período',
+          description: 'Cierra el mes o el ejercicio: desde ahí nadie puede registrar asientos con fecha de ese período.',
           icon: 'lock',
           enabled: abierto,
           form: {
@@ -74,6 +75,7 @@ export default function PeriodClosingPage() {
         {
           key: 'reabrir',
           label: 'Reabrir período',
+          description: 'Vuelve a abrir un período cerrado para corregir algo. Exige un motivo y queda en la auditoría.',
           icon: 'lock_open',
           tone: 'danger',
           enabled: (row) => !abierto(row),

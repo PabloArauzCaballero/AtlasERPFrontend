@@ -83,6 +83,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
         {
           key: 'enviar',
           label: 'Enviar al cliente',
+          description: 'Marca la propuesta como enviada al cliente, con la fecha de envío. No sale si tiene aprobaciones pendientes.',
           icon: 'send',
           run: (row) => b2bService.sendProposal(String(row.id ?? '')),
           confirm: {
@@ -94,6 +95,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
         {
           key: 'aceptar',
           label: 'Marcar aceptada',
+          description: 'Registra que el cliente aceptó la propuesta; la oportunidad pasa a contratación.',
           icon: 'task_alt',
           run: (row) => b2bService.acceptProposal(String(row.id ?? '')),
           confirm: {
@@ -109,6 +111,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
            */
           key: 'rechazar',
           label: 'Rechazar',
+          description: 'Registra que el cliente rechazó la propuesta, con el motivo para preparar la siguiente oferta.',
           icon: 'cancel',
           tone: 'danger',
           enabled: (row) => RECHAZABLES.has(estado(row)),

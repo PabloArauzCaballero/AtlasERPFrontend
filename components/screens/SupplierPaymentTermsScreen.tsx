@@ -130,6 +130,7 @@ export function SupplierPaymentTermsScreen() {
         {
           key: 'simular',
           label: 'Simular vencimiento',
+          description: 'Calcula cuándo vence una factura con esta condición de pago y cuánto se descuenta por pronto pago. No guarda nada.',
           icon: 'event_available',
           form: {
             title: (row: ResourceRow) => `Vencimiento con «${s(row.name)}»`,

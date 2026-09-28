@@ -78,6 +78,7 @@ export function RecoveryMovementsDialog({
           {
             key: 'revertir',
             label: 'Revertir cobro',
+            description: 'Compensa un cobro cargado por error o devuelto por el banco; lo recuperado baja en ese importe.',
             icon: 'undo',
             tone: 'danger',
             /* Sólo un cobro que sigue vigente: un reverso no se revierte y un cobro se revierte una vez. */

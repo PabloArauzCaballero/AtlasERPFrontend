@@ -57,14 +57,14 @@ export default function B2BAccountsPage() {
         const name = String(row.tradeName ?? row.legalName ?? 'esta empresa');
         const archived = Boolean(row.archivedAt);
         const actions = id
-          ? [{ key: 'ver', label: 'Ver', icon: 'chevron_right', href: `/operaciones/crm/cuentas/detalle?id=${id}` }]
+          ? [{ key: 'ver', label: 'Ver', description: 'Abre la ficha de la empresa con sus contactos, contratos e historial.', icon: 'chevron_right', href: `/operaciones/crm/cuentas/detalle?id=${id}` }]
           : [];
         if (!id) return actions;
         return [
           ...actions,
           archived
             ? {
-                key: 'restaurar', label: 'Restaurar', icon: 'unarchive',
+                key: 'restaurar', label: 'Restaurar', description: 'Devuelve la empresa archivada a los listados, con su estado y su historial intactos.', icon: 'unarchive',
                 onClick: async () => { await b2bService.restoreAccount(id); },
                 confirm: {
                   title: 'Restaurar empresa',
@@ -74,7 +74,7 @@ export default function B2BAccountsPage() {
                 },
               }
             : {
-                key: 'archivar', label: 'Archivar', icon: 'archive', tone: 'danger' as const,
+                key: 'archivar', label: 'Archivar', description: 'Saca la empresa de los listados operativos sin borrarla; se puede restaurar cuando quieras.', icon: 'archive', tone: 'danger' as const,
                 onClick: async () => { await b2bService.archiveAccount(id); },
                 confirm: {
                   title: 'Archivar empresa',

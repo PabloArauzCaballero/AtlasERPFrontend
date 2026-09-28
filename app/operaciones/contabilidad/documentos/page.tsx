@@ -72,6 +72,7 @@ export default function AccountingDocumentsPage() {
            */
           key: 'respaldo',
           label: 'Respaldo',
+          description: 'Adjunta o consulta el comprobante (factura, recibo, extracto) que respalda este asiento.',
           icon: 'attach_file',
           silent: true,
           run: async (row) => setRespaldoDe(row),
@@ -85,6 +86,7 @@ export default function AccountingDocumentsPage() {
            */
           key: 'reversar',
           label: 'Reversar',
+          description: 'Crea un asiento contrario que anula el efecto de este, sin borrar el original.',
           icon: 'undo',
           enabled: (row) => String(row.status ?? '').toUpperCase() === 'POSTED',
           form: {
@@ -109,6 +111,7 @@ export default function AccountingDocumentsPage() {
         {
           key: 'contabilizar',
           label: 'Contabilizar',
+          description: 'Pasa el asiento a firme: impacta en los saldos y ya no se puede editar, sólo reversar.',
           icon: 'task_alt',
           run: (row) => accountingService.postDocument(String(row.id ?? '')),
           confirm: {

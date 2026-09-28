@@ -74,7 +74,7 @@ export default function GlAccountsPage() {
         ],
         submit: (id, payload) => accountingService.updateGlAccount(id, payload),
       }}
-      extraActions={[{ key: 'ficha', label: 'Abrir ficha completa', icon: 'visibility', href: (row) => `${detailBase}?id=${String(row.id ?? '')}` }]}
+      extraActions={[{ key: 'ficha', label: 'Abrir ficha completa', description: 'Abre la ficha de la cuenta contable con su configuración y sus movimientos.', icon: 'visibility', href: (row) => `${detailBase}?id=${String(row.id ?? '')}` }]}
     />
   );
 }

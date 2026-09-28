@@ -11,6 +11,7 @@ import { OptionsMenu, type MenuOption } from '@/components/atlas/OptionsMenu';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
+import { NombreYExplicacion } from '@/components/atlas/NombreYExplicacion';
 import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -65,6 +66,8 @@ export interface DirectoryFilter {
 export interface RowAction {
   key: string;
   label: string;
+  /** Qué hace, en una frase: se lee debajo del nombre en «Más acciones» y en el globo de la fila. */
+  description: string;
   href?: string;
   onClick?: (row: ResourceRow) => void | Promise<void>;
   icon?: string;
@@ -450,8 +453,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                               const toneClass = action.tone === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-primary hover:bg-primary-wash';
                               const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold ${toneClass}`;
                               return action.href
-                                ? <Link key={action.key} className={className} href={action.href}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
-                                : <button key={action.key} type="button" className={className} onClick={() => { if (action.form) setRowForm({ action, row }); else if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
+                                ? <Link key={action.key} className={className} href={action.href} title={action.description}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
+                                : <button key={action.key} type="button" className={className} title={action.description} onClick={() => { if (action.form) setRowForm({ action, row }); else if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
                             })}
                             {enCajon(actions).length ? (
                               <button
@@ -557,11 +560,11 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
           <div className="space-y-1.5">
             {masAcciones.actions.map((action) => {
               const fila = masAcciones.row;
-              const clase = `flex w-full items-center gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold transition hover:border-slate-300 hover:bg-slate-50 ${action.tone === 'danger' ? 'text-red-600' : 'text-slate-700'}`;
+              const clase = `flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold transition hover:border-slate-300 hover:bg-slate-50 ${action.tone === 'danger' ? 'text-red-600' : 'text-slate-700'}`;
               return action.href ? (
                 <Link key={action.key} href={action.href} className={clase} onClick={() => setMasAcciones(null)}>
-                  {action.icon ? <Icon name={action.icon} className="text-[18px] text-slate-500" /> : null}
-                  {action.label}
+                  {action.icon ? <Icon name={action.icon} className="mt-px text-[18px] text-slate-500" /> : null}
+                  <NombreYExplicacion nombre={action.label} explicacion={action.description} />
                 </Link>
               ) : (
                 <button
@@ -576,8 +579,8 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                     else void runAction(action, fila);
                   }}
                 >
-                  {action.icon ? <Icon name={action.icon} className="text-[18px] text-slate-500" /> : null}
-                  {action.label}
+                  {action.icon ? <Icon name={action.icon} className="mt-px text-[18px] text-slate-500" /> : null}
+                  <NombreYExplicacion nombre={action.label} explicacion={action.description} />
                 </button>
               );
             })}

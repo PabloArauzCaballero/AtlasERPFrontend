@@ -98,6 +98,7 @@ export default function CampaignsPage() {
            */
           key: 'rendimiento',
           label: 'Ver rendimiento',
+          description: 'Muestra impresiones, clics y gasto de la campaña en el rango de fechas que elijas. No cambia nada.',
           icon: 'query_stats',
           form: {
             icon: 'query_stats',
@@ -120,6 +121,7 @@ export default function CampaignsPage() {
         {
           key: 'conjunto',
           label: 'Añadir conjunto de anuncios',
+          description: 'Crea dentro de la campaña un grupo de anuncios con su audiencia, puja, espacios y tope de frecuencia.',
           icon: 'ad_units',
           form: {
             icon: 'ad_units',
@@ -141,6 +143,7 @@ export default function CampaignsPage() {
         {
           key: 'creatividad',
           label: 'Añadir creatividad',
+          description: 'Crea una pieza (imagen, texto o vídeo) para el anunciante; pasa por revisión de políticas antes de mostrarse.',
           icon: 'image',
           form: {
             icon: 'image',
@@ -161,6 +164,7 @@ export default function CampaignsPage() {
         {
           key: 'anuncio',
           label: 'Añadir anuncio',
+          description: 'Junta un conjunto de la campaña con una creatividad aprobada para que empiece a mostrarse.',
           icon: 'ads_click',
           form: {
             icon: 'ads_click',
@@ -179,6 +183,7 @@ export default function CampaignsPage() {
         {
           key: 'estado',
           label: 'Cambiar estado',
+          description: 'Pausa, activa o finaliza la campaña, con un motivo que queda en la auditoría.',
           icon: 'published_with_changes',
           form: {
             icon: 'published_with_changes',

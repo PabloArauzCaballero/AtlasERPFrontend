@@ -64,6 +64,7 @@ export function ContingenciasPanel({ activo }: Readonly<{ activo: boolean }>) {
           {
             key: 'paquetes',
             label: 'Ver paquetes',
+            description: 'Muestra los paquetes de facturas emitidas sin conexión y si Impuestos ya los recibió y validó.',
             icon: 'inventory_2',
             primary: true,
             silent: true,

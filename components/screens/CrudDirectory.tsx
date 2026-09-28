@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
 import { FieldLabel } from '@/components/atlas/FieldLabel';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
+import { NombreYExplicacion } from '@/components/atlas/NombreYExplicacion';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -49,6 +50,14 @@ export interface CrudFilter {
 export interface CrudExtraAction {
   key: string;
   label: string;
+  /**
+   * Qué hace, en una frase y en el idioma de quien opera: se lee debajo del nombre en «Más
+   * acciones» y en el globo del icono del carril.
+   *
+   * Obligatoria. El cajón listaba sólo nombres («Pactar contrato», «Pedir verificación al Motor»)
+   * y quien no conocía el proceso tenía que pulsar para averiguar qué iba a pasar.
+   */
+  description: string;
   icon: string;
   tone?: 'default' | 'danger' | 'success' | undefined;
   /** Acción que llama al backend y recarga la tabla. Excluyente con `href` y con `form`. */
@@ -704,14 +713,14 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                           {enCarril(props.extraActions ?? [], row).map((action) => {
                             const clase = 'grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900';
                             return action.href ? (
-                              <Link key={action.key} href={action.href(row)} title={action.label} aria-label={`${action.label}: ${labelFor(row)}`} data-testid={`accion-${action.key}-${id}`} className={clase}>
+                              <Link key={action.key} href={action.href(row)} title={`${action.label} — ${action.description}`} aria-label={`${action.label}: ${labelFor(row)}`} data-testid={`accion-${action.key}-${id}`} className={clase}>
                                 <Icon name={action.icon} className="text-[17px]" />
                               </Link>
                             ) : (
                               <button
                                 key={action.key}
                                 type="button"
-                                title={action.label}
+                                title={`${action.label} — ${action.description}`}
                                 aria-label={`${action.label}: ${labelFor(row)}`}
                                 data-testid={`accion-${action.key}-${id}`}
                                 onClick={() => void launchExtra(action, row)}
@@ -902,11 +911,11 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           <div className="space-y-1.5">
             {enCajon(props.extraActions ?? [], masAcciones).map((accion) => {
               const fila = masAcciones;
-              const clase = 'flex w-full items-center gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50';
+              const clase = 'flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50';
               return accion.href ? (
                 <Link key={accion.key} href={accion.href(fila)} data-testid={`accion-${accion.key}-${String(fila[idKey] ?? '')}`} className={clase} onClick={() => setMasAcciones(null)}>
-                  <Icon name={accion.icon} className="text-[18px] text-slate-500" />
-                  {accion.label}
+                  <Icon name={accion.icon} className="mt-px text-[18px] text-slate-500" />
+                  <NombreYExplicacion nombre={accion.label} explicacion={accion.description} />
                 </Link>
               ) : (
                 <button
@@ -921,8 +930,8 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                     void launchExtra(accion, fila);
                   }}
                 >
-                  <Icon name={accion.icon} className="text-[18px] text-slate-500" />
-                  {accion.label}
+                  <Icon name={accion.icon} className="mt-px text-[18px] text-slate-500" />
+                  <NombreYExplicacion nombre={accion.label} explicacion={accion.description} />
                 </button>
               );
             })}

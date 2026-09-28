@@ -164,12 +164,14 @@ export default function B2BBillingPage() {
                   {
                     key: 'descargar',
                     label: 'Descargar factura',
+                    description: 'Descarga la factura en PDF para enviarla o archivarla.',
                     icon: 'download',
                     run: descargar,
                   },
                   {
                     key: 'postear',
                     label: 'Postear al mayor',
+                    description: 'Registra la venta en la contabilidad: genera el asiento de cuenta por cobrar, ingreso e IVA.',
                     icon: 'account_balance',
                     enabled: (row) => !row.accountingDocumentId,
                     form: {
@@ -225,6 +227,7 @@ export default function B2BBillingPage() {
                   {
                     key: 'pago',
                     label: 'Registrar pago',
+                    description: 'Anota un pago recibido y lo descuenta del saldo pendiente de esta cuenta por cobrar.',
                     icon: 'payments',
                     enabled: (row) => Number(row.amountOpen ?? 0) > 0,
                     form: {
