@@ -85,6 +85,11 @@ export const b2bService = {
     return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/qualify`, { method: 'POST', body });
   },
   /** Archivado reversible: la cuenta sale de los listados pero no se borra. */
+  /** Completa el NIT de una cuenta creada sin él: sin NIT no hay carpeta en Atlas ni onboarding. */
+  setAccountTaxId(accountId: string, body: JsonObject) {
+    const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/tax-id`, { method: 'PATCH', body });
+  },
   archiveAccount(accountId: string) {
     const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
     return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/archive`, { method: 'PATCH' });

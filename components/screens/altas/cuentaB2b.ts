@@ -26,7 +26,7 @@ export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
     title: 'Datos de la empresa', icon: 'domain', description: 'Quién es la empresa y a qué se dedica.', fields: [
       { name: 'legalName', label: 'Razón social', tooltip: 'Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos.', required: true, placeholder: 'Empresa Ejemplo S.R.L.', span: 2 },
       { name: 'tradeName', label: 'Nombre comercial', tooltip: 'Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa».', required: true, placeholder: 'Marca Ejemplo' },
-      { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón.', optional: true, placeholder: 'Número de identificación tributaria' },
+      { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones, de 7 a 15 dígitos. Ej.: 1023456019. Sin él Atlas no abre la carpeta del comercio ni se puede iniciar su onboarding.', required: true, placeholder: '1023456019', hint: 'De 7 a 15 dígitos, sin puntos ni guiones.' },
       /* Los valores válidos los publica el backend. La lista local ofrecía ENTERPRISE, que el
          esquema rechaza, y no tenía DISTRIBUTOR ni FINANCIAL_ALLY. */
       { name: 'accountType', label: 'Tipo de cuenta', tooltip: 'Tipo de cuenta B2B; agrupa la cartera por tipo de comercio y decide qué reglas aplican.', type: 'select', required: true, defaultValue: 'MERCHANT', optionsSource: 'domain:crm.accountType' },

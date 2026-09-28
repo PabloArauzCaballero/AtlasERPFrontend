@@ -114,3 +114,39 @@ test('enlazar sin expediente en Atlas avisa en vez de dar por hecho', async ({ p
   await expect(page.getByText(/operación registrada/i)).toHaveCount(0);
   expect(llamadas.enlaces).toBe(1);
 });
+
+test('la ficha de una cuenta sin NIT lo pide y deja completarlo', async ({ page }) => {
+  const CUENTA = '55555555-5555-4555-8555-555555555555';
+  let taxId: string | null = null;
+  let enviado: unknown = null;
+  await page.addInitScript(() => window.localStorage.setItem('atlas_session_kind', 'internal'));
+  await page.route('**/api/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/auth/refresh')) return responder(route, 200, { accessToken: 'e2e-internal-token' });
+    if (path.endsWith('/auth/me')) {
+      return responder(route, 200, { user: { id: '1', email: 'admin@atlas.test', fullName: 'Admin', status: 'ACTIVE', roles: ['ADMIN'], permissions: [] } });
+    }
+    if (path.endsWith(`/b2b/accounts/${CUENTA}/tax-id`)) {
+      enviado = route.request().postDataJSON();
+      taxId = (enviado as { taxId: string }).taxId;
+      return responder(route, 200, { id: CUENTA, taxId });
+    }
+    if (path.endsWith(`/b2b/accounts/${CUENTA}`)) {
+      return responder(route, 200, {
+        id: CUENTA, tradeName: 'Cuenta sin NIT', legalName: 'Cuenta sin NIT SRL', taxId, lifecycleStatus: 'LEAD',
+        contacts: [{ id: 'c-1', fullName: 'Contacto', email: 'contacto@empresa.bo', isPrimary: true }],
+      });
+    }
+    return responder(route, 200, { items: [], total: 0 });
+  });
+
+  await page.goto(`/operaciones/crm/cuentas/detalle?id=${CUENTA}`);
+  await expect(page.getByText(/a esta cuenta le faltan datos para su carpeta en atlas/i)).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByText(/falta el NIT\./i)).toBeVisible();
+  await page.screenshot({ path: 'test-results/cuenta-sin-nit.png', fullPage: true });
+  await page.getByTestId('btn-completar-nit').click();
+  await page.getByRole('dialog').getByRole('textbox', { name: /NIT/ }).fill('1023456019');
+  await page.getByRole('dialog').getByRole('button', { name: /guardar nit/i }).click();
+  await expect(page.getByText(/a esta cuenta le faltan datos/i)).toHaveCount(0);
+  expect(enviado).toEqual({ taxId: '1023456019' });
+});
