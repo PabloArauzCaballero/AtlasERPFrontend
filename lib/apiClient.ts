@@ -46,6 +46,12 @@ export class ApiError extends Error {
      * decir con sus propias palabras sin tener que adivinarlo por el texto.
      */
     readonly code?: string,
+    /**
+     * Los segundos de `Retry-After`, cuando el rechazo dice cuánto esperar (un 409 o un 429). Sin
+     * esto, quien repite la MISMA petición —el asistente, con su `clientMessageId`— tendría que
+     * inventarse la espera en vez de usar la que pide el servidor.
+     */
+    readonly retryAfterSeconds?: number,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -237,6 +243,12 @@ function describeValidationDetails(details: unknown): string | null {
   return rest > 0 ? `${shown} (y ${rest} más)` : shown;
 }
 
+/** `Retry-After` en segundos enteros, la forma que usa el backend; una fecha u otra cosa se ignora. */
+function segundosDeRetryAfter(response: Response): number | undefined {
+  const valor = response.headers.get('retry-after')?.trim();
+  return valor && /^\d{1,3}$/.test(valor) ? Number(valor) : undefined;
+}
+
 /** El código del sobre de error, si lo hay. */
 function extractErrorCode<T>(payload: ApiEnvelope<T> | T | null): string | undefined {
   return isApiEnvelope(payload) && typeof payload.error?.code === 'string' ? payload.error.code : undefined;
@@ -267,7 +279,14 @@ function extractErrorMessage<T>(response: Response, payload: ApiEnvelope<T> | T 
 async function parseResponse<T>(response: Response, mutacion = false): Promise<T> {
   if (!response.ok) {
     const payload = await readPayload<T>(response);
-    throw new ApiError(extractErrorMessage(response, payload), response.status, false, false, extractErrorCode(payload));
+    throw new ApiError(
+      extractErrorMessage(response, payload),
+      response.status,
+      false,
+      false,
+      extractErrorCode(payload),
+      segundosDeRetryAfter(response),
+    );
   }
 
   if (response.status === 204 || response.status === 205) return null as T;
