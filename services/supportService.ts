@@ -1,5 +1,7 @@
 import { apiRequest, getAccessToken, cabecerasDeOrigen } from '@/lib/apiClient';
 import { newCorrelationId } from '../lib/correlationId';
+import { createSupportSseParser, type EventoEnVivo } from './support-sse-parser';
+export type { EventoEnVivo } from './support-sse-parser';
 
 /**
  * Soporte del comercio: sus casos y la conversación con Atlas.
@@ -85,12 +87,6 @@ export interface ArticuloDeAyuda {
   shortAnswer: string | null;
   body: string;
   escalateWhen: string | null;
-}
-
-/** Lo que llega por el hilo en vivo. El tipo viaja DENTRO del dato, no como nombre de evento SSE. */
-export interface EventoEnVivo {
-  type: 'message.created' | 'message.read' | 'agent.typing' | 'channel.closed' | string;
-  data: Record<string, unknown>;
 }
 
 export const supportService = {
@@ -208,31 +204,21 @@ export function suscribirseAlChat(
       alCambiarConexion?.(true);
       const lector = respuesta.body.getReader();
       const decodificador = new TextDecoder();
-      let pendiente = '';
+      const parser = createSupportSseParser();
 
       for (;;) {
         const { done, value } = await lector.read();
         if (done) break;
-        pendiente += decodificador.decode(value, { stream: true });
-
-        // Los eventos SSE se separan por línea en blanco; un chunk puede cortar uno por la mitad,
-        // así que sólo se procesa lo que ya está completo y el resto espera al siguiente trozo.
-        const bloques = pendiente.split('\n\n');
-        pendiente = bloques.pop() ?? '';
-
-        for (const bloque of bloques) {
-          const datos = bloque
-            .split('\n')
-            .filter((linea) => linea.startsWith('data:'))
-            .map((linea) => linea.slice(5).trim())
-            .join('');
-          if (!datos) continue;
-          try {
-            alRecibir(JSON.parse(datos) as EventoEnVivo);
-          } catch {
-            // Un evento ilegible no puede tumbar el hilo: se ignora y se sigue escuchando.
-          }
+        let eventos: EventoEnVivo[];
+        try {
+          eventos = parser.push(decodificador.decode(value, { stream: true }));
+        } catch (error) {
+          // Evento por encima del tope: se suelta esta conexión (si no, el cuerpo sigue llegando sin
+          // nadie que lo lea) y se reconecta como ante cualquier otro corte.
+          await lector.cancel().catch(() => undefined);
+          throw error;
         }
+        for (const evento of eventos) alRecibir(evento);
       }
     } catch {
       // Abortar al desmontar entra por aquí y no es un fallo: por eso se comprueba `cerrado`.
