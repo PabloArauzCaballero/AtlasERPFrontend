@@ -16,7 +16,7 @@ import { Resumen } from '@/components/atlas/Resumen';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { formatBob, formatDate, maskPii, statusTone } from '@/lib/formatters';
+import { formatBob, formatDate, formatDateTime, maskPii, statusTone } from '@/lib/formatters';
 import { downloadCsv } from '@/lib/csv';
 import { descargarPdf, nombreArchivoPdf, tablaPdf } from '@/lib/pdf';
 import { ConfirmDialog } from '@/components/atlas/ConfirmDialog';
@@ -30,8 +30,14 @@ import { ScreenState } from '@/components/ui/ScreenState';
 export interface DirectoryColumn {
   key: string;
   label: string;
-  kind?: 'text' | 'status' | 'money' | 'date' | 'pii' | 'mono' | 'list';
+  /** `datetime`: fecha y hora (una reunión a las 15:00 no es sólo «2 oct»). */
+  kind?: 'text' | 'status' | 'money' | 'date' | 'datetime' | 'pii' | 'mono' | 'list';
   align?: 'left' | 'right' | 'center';
+  /**
+   * Cómo se lee cada código: `{ PENDING: 'Pendiente' }`. El color de un `status` se sigue
+   * decidiendo por el código, que es estable; lo que se enseña es la palabra del negocio.
+   */
+  labels?: Record<string, string> | undefined;
 }
 
 interface MetricDefinition {
@@ -148,9 +154,12 @@ function rowsFrom(data: PaginatedResult<ResourceRow> | null): ResourceRow[] {
 /** Texto plano de una celda para el CSV: mismos formatos que la tabla, sin nodos de React. */
 function cellText(row: ResourceRow, column: DirectoryColumn): string {
   const raw = row[column.key];
+  const label = column.labels && raw !== null && raw !== undefined ? column.labels[String(raw)] : undefined;
+  if (label) return label;
   if (column.kind === 'status') return String(raw ?? 'SIN ESTADO').replaceAll('_', ' ');
   if (column.kind === 'money') return formatBob(Number(raw ?? 0));
   if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);
+  if (column.kind === 'datetime') return formatDateTime(typeof raw === 'string' ? raw : undefined);
   if (column.kind === 'pii') return maskPii(raw, column.key);
   if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join('; ') : '';
   return raw === null || raw === undefined ? '' : String(raw);
@@ -160,10 +169,12 @@ function renderCell(row: ResourceRow, column: DirectoryColumn) {
   const raw = row[column.key];
   if (column.kind === 'status') {
     const text = String(raw ?? 'SIN ESTADO');
-    return <StatusPill tone={statusTone(text)}>{text.replaceAll('_', ' ')}</StatusPill>;
+    return <StatusPill tone={statusTone(text)}>{column.labels?.[text] ?? text.replaceAll('_', ' ')}</StatusPill>;
   }
+  if (column.labels && raw !== null && raw !== undefined && column.labels[String(raw)]) return column.labels[String(raw)];
   if (column.kind === 'money') return formatBob(Number(raw ?? 0));
   if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);
+  if (column.kind === 'datetime') return formatDateTime(typeof raw === 'string' ? raw : undefined);
   if (column.kind === 'pii') return maskPii(raw, column.key);
   if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join(', ') : '—';
   return <span className={column.kind === 'mono' ? 'font-mono text-[11px]' : ''}>{String(raw ?? '—')}</span>;
