@@ -1,4 +1,5 @@
 import { accountingService } from './accountingService';
+import { asRows } from '@/lib/asRows';
 import { adsService } from './adsService';
 import { b2bService } from './b2bService';
 import { filesService } from './filesService';
@@ -162,7 +163,7 @@ export const loadPendingApprovals = async (): Promise<Option[]> =>
 
 /** Oportunidades del pipeline, por nombre y etapa. */
 export const loadOpportunities = async (): Promise<Option[]> =>
-  (await b2bService.listOpportunities()).map((row) => ({
+  asRows(await b2bService.listOpportunities()).map((row) => ({
     value: s(row.id),
     label: `${s(row.name)} — ${s(row.stage)}`,
   }));
