@@ -20,6 +20,9 @@ import type { ResourceRow } from '@/services/types';
 import { useOptions } from '@/hooks/useOptions';
 import { loadB2BAccounts } from '@/services/optionLoaders';
 
+/** La regla de Atlas para abrir la carpeta del comercio: 7 a 15 dígitos, sin puntos ni guiones. */
+const NIT_VALIDO = /^[0-9]{7,15}$/;
+
 export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) {
   const [accountId, setAccountId] = useState(initialId);
   /* Las cuentas se ELIGEN: nadie recuerda un uuid, y tecleado mal solo da «no encontrada». */
@@ -33,6 +36,14 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
    * ENSEÑAR los contactos. Una cuenta recién creada se quedaba sin interlocutor y no había forma
    * de añadirle uno desde la consola. */
   const [nuevoContacto, setNuevoContacto] = useState(false);
+  /*
+   * El NIT se podía dejar vacío al crear la cuenta y después no había dónde ponerlo. Sin él Atlas no
+   * abre la carpeta del comercio y el onboarding no arranca (Pablo, 2026-09-28): se pide aquí.
+   */
+  const [completarNit, setCompletarNit] = useState(false);
+  const cargada = resource.status === 'success' && Boolean(account.id);
+  const sinNit = cargada && !NIT_VALIDO.test(String(account.taxId ?? '').trim());
+  const sinCorreo = cargada && !(Array.isArray(account.contacts) ? account.contacts : []).some((c) => String((c as ResourceRow).email ?? '').trim());
 
   return (
     <div className="space-y-5">
@@ -55,6 +66,17 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 
       {requestedId && !resource.error ? (
         <>
+          {sinNit || sinCorreo ? (
+            <InlineNotice tone="warning" title="A esta cuenta le faltan datos para su carpeta en Atlas">
+              <span className="block">
+                {`Falta ${[sinNit ? 'el NIT' : '', sinCorreo ? 'un contacto con correo' : ''].filter(Boolean).join(' y ')}. Sin eso no se puede iniciar su onboarding ni se crea la carpeta del comercio.`}
+              </span>
+              <span className="mt-2 flex flex-wrap gap-2">
+                {sinNit ? <AtlasButton variant="secondary" icon="badge" onClick={() => setCompletarNit(true)} data-testid="btn-completar-nit">Completar NIT</AtlasButton> : null}
+                {sinCorreo ? <AtlasButton variant="secondary" icon="person_add" onClick={() => setNuevoContacto(true)}>Añadir contacto</AtlasButton> : null}
+              </span>
+            </InlineNotice>
+          ) : null}
           <Resumen
         datos={[
           { label: 'Estado comercial', value: <StatusPill tone="success">{String(account.lifecycleStatus ?? 'CARGANDO')}</StatusPill> },
@@ -111,6 +133,24 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
           <AccountActivitiesPanel accountId={requestedId} />
           <FileAttachmentsPanel ownerType="B2B_ACCOUNT" ownerId={requestedId} title="Documentos de la cuenta" />
         </>
+      ) : null}
+      {completarNit ? (
+        <ActionFormModal
+          open
+          icon="badge"
+          title={`NIT de ${name}`}
+          description="El NIT del comercio, tal como figura en el padrón. Atlas lo usa para abrir su ficha y su carpeta; no puede repetirse en otra cuenta."
+          submitLabel="Guardar NIT"
+          fields={[
+            { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones, de 7 a 15 dígitos. Ej.: 1023456019.', required: true, placeholder: '1023456019', hint: 'De 7 a 15 dígitos, sin puntos ni guiones.', span: 2 },
+          ]}
+          onClose={() => setCompletarNit(false)}
+          onSubmit={async (payload) => {
+            await b2bService.setAccountTaxId(requestedId, payload);
+            setCompletarNit(false);
+            await resource.reload();
+          }}
+        />
       ) : null}
       {nuevoContacto ? (
         <ActionFormModal
