@@ -50,7 +50,14 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
   const oportunidades = useAsyncResource(loadOportunidades, Boolean(requestedId));
   const estado = String(account.lifecycleStatus ?? '');
   const calificada = estado !== '' && estado !== 'LEAD' && estado !== 'DISQUALIFIED';
-  const conOportunidad = (oportunidades.data ?? []).some((op) => String(op.stage ?? '') !== 'CLOSED_LOST');
+  // Lista o página (`{ items }`): la ficha no puede caerse por la forma de la respuesta.
+  const respuestaOportunidades: unknown = oportunidades.data;
+  const filasOportunidad: ResourceRow[] = Array.isArray(respuestaOportunidades)
+    ? respuestaOportunidades
+    : Array.isArray((respuestaOportunidades as { items?: unknown } | null)?.items)
+      ? (respuestaOportunidades as { items: ResourceRow[] }).items
+      : [];
+  const conOportunidad = filasOportunidad.some((op) => String(op.stage ?? '') !== 'CLOSED_LOST');
   const sinNit = cargada && !NIT_VALIDO.test(String(account.taxId ?? '').trim());
   const sinCorreo = cargada && !(Array.isArray(account.contacts) ? account.contacts : []).some((c) => String((c as ResourceRow).email ?? '').trim());
 
