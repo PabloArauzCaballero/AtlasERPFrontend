@@ -5,6 +5,11 @@ export interface DatoDeResumen {
   value: React.ReactNode;
   /** Pinta el valor en ámbar cuando hay algo que atender (mora, saldo vencido). */
   alerta?: boolean | undefined;
+  /**
+   * De qué sale el número cuando no es el total: «en esta página». Sin ella un recuento de las
+   * veinticinco filas cargadas se leía como el de todo el listado.
+   */
+  nota?: string | undefined;
 }
 
 /**
@@ -48,6 +53,7 @@ export function Resumen({ datos, className }: Readonly<{ datos: DatoDeResumen[];
           <dd className={cn('mt-0.5 truncate text-lg font-bold tabular-nums tracking-tight', dato.alerta ? 'text-amber-700' : 'text-slate-900')}>
             {dato.value}
           </dd>
+          {dato.nota ? <dd className="text-[10px] font-medium text-slate-500">{dato.nota}</dd> : null}
         </div>
       ))}
     </dl>

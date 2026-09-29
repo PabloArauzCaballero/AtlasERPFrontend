@@ -117,7 +117,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Mover la tarjeta cambia el estado de verdad',
-        body: 'No es un tablero decorativo: cambiar de columna guarda el cambio y queda registrado con quién lo hizo. Si la operación falla, la tarjeta vuelve a su sitio.',
+        body: 'No es un tablero decorativo: cambiar de columna guarda el cambio y deja una fila en el «Registro de actividad» con quién lo hizo. Si la operación falla, la tarjeta vuelve a su sitio.',
       },
       {
         title: 'La etapa condiciona lo que viene después',
@@ -137,8 +137,8 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
     intro: 'Arma los términos económicos que se le ofrecen a un cliente y déjalos aprobados antes de enviarlos.',
     sections: [
       {
-        title: 'Cada línea es un concepto cobrable',
-        body: 'Tasa, monto fijo, mínimo mensual, periodicidad. Lo que se escriba aquí es lo que después factura el sistema: la propuesta no es un documento comercial suelto, es la fuente de los cobros.',
+        title: 'Cada línea es una condición pactada',
+        body: 'Tasa, monto fijo, mínimo mensual, periodicidad. De todo eso, lo único que el sistema cobra es la comisión por venta (MDR), a través de las reglas del contrato. Los montos fijos, los mínimos y la periodicidad se guardan como lo pactado, pero hoy no generan cobros solos.',
       },
       {
         title: 'Salirse de la tarifa estándar exige aprobación',
@@ -165,8 +165,8 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
         body: 'Aprobar o rechazar queda registrado con tu identidad, la fecha y el motivo. No se puede deshacer discretamente: la corrección es otra decisión, también registrada.',
       },
       {
-        title: 'El impacto estimado es orientativo',
-        body: 'Sirve para priorizar la revisión, no para sustituirla. Una excepción pequeña repetida cien veces no es pequeña.',
+        title: 'Mira la propuesta antes de decidir',
+        body: 'La cola dice el tipo y el motivo de la excepción, no su impacto económico: ábrela desde su propuesta para ver tasas e importes. Una excepción pequeña repetida cien veces no es pequeña.',
       },
     ],
   },

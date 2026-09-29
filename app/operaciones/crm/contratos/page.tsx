@@ -1,5 +1,6 @@
 'use client';
 
+import { tope } from '@/lib/topes';
 import { useCallback, useState } from 'react';
 import { Modal } from '@/components/atlas/Modal';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
@@ -21,28 +22,30 @@ export default function CommercialContractsPage() {
     <CrudDirectory
       moduleLabel="CRM"
       title="Contratos comerciales"
-      description="Todos los contratos generados desde propuestas aceptadas, con su vigencia, ciclo de facturación y estado de firma."
+      tope={tope('los 200 contratos más recientes')}
+      description="Los contratos generados desde propuestas aceptadas, con su comercio, su vigencia y su estado de firma. Lo que se cobra de verdad es la comisión por venta (MDR) de cada contrato."
       load={load}
       searchPlaceholder="Buscar por número de contrato o estado…"
       emptyHint="Genera el primer contrato desde una propuesta aceptada con el botón «Generar contrato»."
       labelKey="contractNumber"
       columns={[
         { key: 'contractNumber', label: 'Número', kind: 'mono' },
+        { key: 'tradeName', label: 'Comercio' },
         { key: 'startDate', label: 'Inicio', kind: 'date' },
         { key: 'endDate', label: 'Fin', kind: 'date' },
-        { key: 'billingCycle', label: 'Ciclo' },
-        { key: 'settlementPolicy', label: 'Liquidación' },
+        { key: 'billingCycle', label: 'Ciclo pactado' },
+        { key: 'settlementPolicy', label: 'Liquidación pactada' },
         { key: 'signedAt', label: 'Firmado', kind: 'date' },
         { key: 'status', label: 'Estado', kind: 'status' },
       ]}
       filters={[
         { key: 'status', label: 'Estado' },
-        { key: 'billingCycle', label: 'Ciclo' },
+        { key: 'billingCycle', label: 'Ciclo pactado' },
       ]}
       notice={{
         tone: 'info',
         title: 'Un contrato comercial no se edita ni se borra',
-        body: 'Nace de una propuesta aceptada y su vigencia es la prueba de lo pactado. Para cambiarlo se genera uno nuevo desde otra propuesta; para dejar de aplicarlo se firma y se cierra su vigencia.',
+        body: 'Nace de una propuesta aceptada y es la prueba de lo pactado. Para cambiarlo se genera uno nuevo desde otra propuesta. Lo que el sistema cobra es la comisión por venta (MDR) de sus reglas, cerrada cada mes; el ciclo de facturación y la política de liquidación se guardan como condición pactada, pero hoy no cambian cómo se factura. No hay una operación para cerrar la vigencia de un contrato desde aquí.',
       }}
       create={{
         label: 'Generar contrato',
@@ -54,8 +57,8 @@ export default function CommercialContractsPage() {
           { name: 'contractNumber', label: 'Número de contrato', tooltip: 'Número del contrato; lo asigna el sistema al guardar.', assignedByBackend: true },
           { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date', required: true },
           { name: 'endDate', label: 'Fecha final', tooltip: 'Fecha en que termina; vacío = indefinido.', type: 'date', optional: true },
-          { name: 'billingCycle', label: 'Ciclo de facturación', tooltip: 'Cada cuánto se factura al comercio: mensual, trimestral, por transacción…', required: true, defaultValue: 'MONTHLY', optionsSource: 'domain:crm.contractBillingCycle' },
-          { name: 'settlementPolicy', label: 'Política de liquidación', tooltip: 'Cómo se liquida lo cobrado: por contrato, por sucursal o por cuenta.', required: true, defaultValue: 'PER_CONTRACT', optionsSource: 'domain:crm.contractSettlementPolicy' },
+          { name: 'billingCycle', label: 'Ciclo de facturación', tooltip: 'Ciclo de facturación pactado con el comercio. Es informativo: hoy el sistema factura la comisión en el cierre mensual, sea cual sea el ciclo.', required: true, defaultValue: 'MONTHLY', optionsSource: 'domain:crm.contractBillingCycle' },
+          { name: 'settlementPolicy', label: 'Política de liquidación', tooltip: 'Cómo se pactó agrupar la liquidación. Es informativo: hoy el cierre agrupa por cuenta y moneda.', required: true, defaultValue: 'PER_CONTRACT', optionsSource: 'domain:crm.contractSettlementPolicy' },
           /*
            * El documento se SUBE, no se enlaza. Antes era un campo «URL del documento» que pedía un
            * https:// a otro repositorio: el contrato firmado quedaba fuera de Atlas, sin hash y sin

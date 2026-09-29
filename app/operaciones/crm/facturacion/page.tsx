@@ -1,5 +1,6 @@
 'use client';
 
+import { tope } from '@/lib/topes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -8,6 +9,7 @@ import { b2bService } from '@/services/b2bService';
 import { useOptions } from '@/hooks/useOptions';
 import { toast } from '@/lib/toast';
 import { domainLoader } from '@/services/domains';
+import { describirModoFiscal } from '@/lib/modoFiscal';
 import { fiscalService } from '@/services/fiscalService';
 import { etiquetas, toneSiat } from '@/components/screens/facturacion-electronica/comun';
 import { descargarFactura, facturaDeComercio } from '@/lib/facturaPdf';
@@ -31,8 +33,11 @@ export default function B2BBillingPage() {
    * mano, y cada factura enseña su estado ante Impuestos. Si no se puede saber, se asume apagada.
    */
   const [fiscalActiva, setFiscalActiva] = useState(false);
+  const [modoFiscal, setModoFiscal] = useState(() => describirModoFiscal(null));
   useEffect(() => {
-    fiscalService.status().then((estado) => setFiscalActiva(estado.activo === true)).catch(() => setFiscalActiva(false));
+    fiscalService.status()
+      .then((estado) => { setFiscalActiva(estado.activo === true); setModoFiscal(describirModoFiscal(estado)); })
+      .catch(() => setFiscalActiva(false));
   }, []);
   const estadosSiat = useOptions(domainLoader('domain:accounting.siatStatus'));
   const etiquetasSiat = useMemo<Record<string, string>>(() => ({ ...etiquetas(estadosSiat), SIN_DOCUMENTO: 'Sin documento fiscal' }), [estadosSiat]);
@@ -70,9 +75,10 @@ export default function B2BBillingPage() {
     const factura = await b2bService.createBillingInvoice({ ...body, receivableIds });
     const fiscal = (factura as Record<string, unknown>).fiscalDocument as Record<string, unknown> | null | undefined;
     if (fiscal) {
+      /* El destino según el modo: con el emulador, decir «enviada a Impuestos» era falso. */
       toast.success(
-        'Factura enviada a Impuestos',
-        `N° fiscal ${String(fiscal.numeroFactura ?? '—')}: ${etiquetasSiat[String(fiscal.siatStatus ?? '')] ?? String(fiscal.siatStatus ?? '')}. Su validación se sigue en Contabilidad › Facturación electrónica.`,
+        `Factura enviada ${modoFiscal.destino}`,
+        `N° fiscal ${String(fiscal.numeroFactura ?? '—')}: ${etiquetasSiat[String(fiscal.siatStatus ?? '')] ?? String(fiscal.siatStatus ?? '')}.${modoFiscal.real ? '' : ' No tiene validez fiscal: no hay envío real a Impuestos.'} Su estado se sigue en Contabilidad › Facturación electrónica.`,
       );
     }
     recargar();
@@ -125,7 +131,8 @@ export default function B2BBillingPage() {
                 embedded
                 moduleLabel="CRM"
                 title="Facturas del comercio"
-                description="Todo lo facturado a comercios, con su importe y su estado de cobro. Cada fila se puede descargar como documento."
+                description="Lo facturado a comercios, de lo más reciente a lo más antiguo, con su importe y su estado de cobro. Cada fila se puede descargar como documento."
+                tope={tope('las 200 facturas más recientes')}
                 load={cargarFacturas}
                 labelKey="invoiceNumber"
                 searchPlaceholder="Buscar por número de factura o estado…"
@@ -208,6 +215,7 @@ export default function B2BBillingPage() {
                 embedded
                 moduleLabel="CRM"
                 title="Cuentas por cobrar"
+                tope={tope('los 200 cargos más recientes')}
                 description="Lo devengado que sigue abierto: es lo que se agrupa al emitir una factura y contra lo que se aplica un pago."
                 load={cargarCxc}
                 labelKey="sourceType"

@@ -342,7 +342,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
         <form onSubmit={submitBranch} className="space-y-4">
         <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
           <FormField tooltip="Nombre con el que identificas el local. Ej.: Sucursal Equipetrol." label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
-          <FormField tooltip="Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura." kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
+          <FormField tooltip="Ciudad donde está la sede principal; queda registrada en la ficha." kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
           <FormField tooltip="Dirección completa de la casa matriz. Pulsa el pin para verla en el mapa." label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
         </div>
           {branchMutation.error ? <InlineNotice tone="danger">{branchMutation.error}</InlineNotice> : null}
@@ -367,7 +367,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
               <FormField tooltip="Nombre con el que identificas el local. Ej.: Sucursal Equipetrol." label="Nombre de sucursal" name="name" required defaultValue={String(editando.name ?? '')} />
               {/* La ciudad guardada se conserva aunque no esté en el catálogo (texto libre de antes); y el
                   select se remonta cuando llegan las opciones, porque su defaultValue sólo se aplica al montar. */}
-              <FormField tooltip="Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura."
+              <FormField tooltip="Ciudad donde está la sede principal; queda registrada en la ficha."
                 key={`city:${ciudades.length}`}
                 kind="select"
                 label="Ciudad"

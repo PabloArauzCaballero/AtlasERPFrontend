@@ -70,6 +70,7 @@ export default function CampaignsPage() {
       title="Gestión de campañas"
       description="Portafolio de campañas con su presupuesto, aprobación y estado. Conjuntos, creatividades y anuncios se añaden desde la fila de su campaña."
       load={adsService.listCampaigns}
+      searchable={false}
       createLabel="Nueva campaña"
       create={{
         icon: 'campaign',
@@ -215,9 +216,9 @@ export default function CampaignsPage() {
       ]}
       metrics={[
         { label: 'Campañas', value: (_rows, total) => total, detail: 'Portafolio administrado', icon: 'campaign' },
-        { label: 'Activas', value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length, detail: 'En delivery', icon: 'play_circle', tone: 'teal' },
-        { label: 'En aprobación', value: (rows) => rows.filter((row) => String(row.approvalStatus).includes('PENDING')).length, detail: 'Requieren decisión', icon: 'approval', tone: 'amber' },
-        { label: 'Pausadas', value: (rows) => rows.filter((row) => row.status === 'PAUSED').length, detail: 'Intervención operativa', icon: 'pause_circle', tone: 'red' },
+        { label: 'Activas', value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length, soloPagina: true, icon: 'play_circle', tone: 'teal' },
+        { label: 'En aprobación', value: (rows) => rows.filter((row) => String(row.approvalStatus).includes('PENDING')).length, soloPagina: true, icon: 'approval', tone: 'amber' },
+        { label: 'Pausadas', value: (rows) => rows.filter((row) => row.status === 'PAUSED').length, soloPagina: true, icon: 'pause_circle', tone: 'red' },
       ]}
     />
   );

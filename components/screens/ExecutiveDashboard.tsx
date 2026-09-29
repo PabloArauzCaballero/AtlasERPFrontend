@@ -57,7 +57,7 @@ export function ExecutiveDashboard() {
     { label: 'Cuentas B2B', value: totalOf(data?.accounts ?? null), color: 'bg-[#006a61]' },
     { label: 'Business Partners', value: totalOf(data?.partners ?? null), color: 'bg-[#006a61]/70' },
     { label: 'Cuentas GL', value: totalOf(data?.glAccounts ?? null), color: 'bg-[#006a61]/55' },
-    { label: 'Business Actions', value: totalOf(data?.audit ?? null), color: 'bg-[#006a61]/40' },
+    { label: 'Registro de actividad', value: totalOf(data?.audit ?? null), color: 'bg-[#006a61]/40' },
   ];
   const maxCount = Math.max(1, ...counts.map((item) => item.value));
   const alerts = Array.isArray(data?.ads?.alerts) ? data.ads.alerts : [];
@@ -82,7 +82,7 @@ export function ExecutiveDashboard() {
         ]}
       />
       <div className={PUBLICIDAD_VISIBLE ? 'grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.6fr)_360px]' : 'grid gap-4 grid-cols-[minmax(0,1fr)]'}>
-        <Panel title="Huella operativa" description="Volumen real disponible por módulo; no representa una serie histórica." icon="bar_chart" action={resource.status === 'loading' ? <StatusPill tone="warning">ACTUALIZANDO</StatusPill> : <StatusPill tone="success">SINCRONIZADO</StatusPill>}>
+        <Panel title="Huella operativa" description="Volumen real disponible por módulo; no representa una serie histórica." icon="bar_chart" action={resource.status === 'loading' ? <StatusPill tone="warning">ACTUALIZANDO</StatusPill> : resource.error ? <StatusPill tone="danger">SIN DATOS</StatusPill> : data?.failures.length ? <StatusPill tone="warning">CARGA PARCIAL</StatusPill> : data ? <StatusPill tone="success">SINCRONIZADO</StatusPill> : null}>
           <div className="space-y-5 py-3">{counts.map((item) => <div key={item.label}><div className="mb-2 flex items-center justify-between text-xs"><span className="font-bold text-slate-700">{item.label}</span><span className="font-mono text-slate-500">{item.value}</span></div><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full transition-all duration-500 ${item.color}`} style={{ width: `${Math.max(item.value ? 4 : 0, item.value / maxCount * 100)}%` }} /></div></div>)}</div>
         </Panel>
         {!PUBLICIDAD_VISIBLE ? null : <Panel title="Control Snapshot" description="Excepciones activas reportadas por Ads." icon="notifications_active"><div className="space-y-3"><Snapshot label="Moderación pendiente" value={data?.ads ? numeric(data.ads, 'pendingReviews') : '—'} tone="warning" /><Snapshot label="Facturas vencidas" value={data?.ads ? numeric(data.ads, 'overdueInvoices') : '—'} tone="danger" /><Snapshot label="Eventos inválidos" value={data?.ads ? `${(numeric(data.ads, 'invalidEventRate') * 100).toFixed(2)}%` : '—'} tone="neutral" /></div>{alerts.length ? <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-900">{alerts.length} alerta(s) calculada(s) por el backend Ads.</div> : null}</Panel>}

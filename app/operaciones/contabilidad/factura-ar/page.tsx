@@ -6,6 +6,7 @@ import { accountingService } from '@/services/accountingService';
 import { descargarFactura, facturaAr } from '@/lib/facturaPdf';
 import { loadBillingEvents, loadBusinessPartners, loadContracts, loadGlAccounts, loadLegalEntities, withEmpty } from '@/services/optionLoaders';
 import type { ResourceRow } from '@/services/types';
+import { accionReversarAsiento, motivoParaNoBorrar } from '@/components/screens/altas/rastroContable';
 
 /**
  * Facturas por cobrar (AR): una sola tabla, con el alta arriba y las acciones en la fila.
@@ -121,7 +122,7 @@ export default function ArInvoicePage() {
            */
         ],
       }}
-      extraActions={[{ key: 'descargar', label: 'Descargar factura', description: 'Descarga la factura en PDF para enviarla o archivarla.', icon: 'download', run: descargar }]}
+      extraActions={[{ key: 'descargar', label: 'Descargar factura', description: 'Descarga la factura en PDF para enviarla o archivarla.', icon: 'download', silent: true, run: descargar }, accionReversarAsiento('factura')]}
       edit={{
         description: 'Ni el número ni los importes se editan: el correlativo es del sistema y una factura emitida se corrige con una nota de crédito, no reescribiéndola.',
         fields: [
@@ -133,7 +134,8 @@ export default function ArInvoicePage() {
       }}
       remove={{
         submit: (id) => accountingService.deleteArInvoice(id),
-        warning: 'Si la factura ya tiene recibos aplicados, esos cobros quedan sin destino.',
+        warning: 'Sólo se borra una factura en borrador, sin asiento, sin cobros y sin documento fiscal.',
+        blockedReason: (row) => motivoParaNoBorrar(row, 'factura'),
       }}
     />
   );

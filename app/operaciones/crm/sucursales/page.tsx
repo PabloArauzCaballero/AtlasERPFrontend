@@ -3,8 +3,10 @@
 import { useCallback, useState } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { b2bService } from '@/services/b2bService';
+import { asRows } from '@/lib/asRows';
+import { cargarTodo } from '@/lib/cargarTodo';
 import { loadB2BAccounts } from '@/services/optionLoaders';
-import type { JsonObject } from '@/services/types';
+import type { JsonObject, ResourceRow } from '@/services/types';
 
 /**
  * Sucursales de los comercios, desde el lado del ERP.
@@ -28,10 +30,29 @@ const ESTADOS = [
   { label: 'Inactiva', value: 'INACTIVE' },
 ];
 
+/**
+ * Las sucursales con el NOMBRE de su comercio.
+ *
+ * El listado del servidor sólo trae `accountId`, y la columna «Comercio» enseñaba ese uuid. El
+ * nombre sale del directorio de cuentas (entero, por páginas); si una cuenta no aparece —archivada,
+ * por ejemplo— se dice así en vez de pintar el identificador.
+ */
+async function sucursalesConComercio(): Promise<ResourceRow[]> {
+  const [sucursales, cuentas] = await Promise.all([
+    b2bService.listBranches(),
+    cargarTodo((query) => b2bService.listAccounts({ page: query.page ?? 1, limit: query.limit ?? 100 })).catch(() => ({ items: [] })),
+  ]);
+  const nombres = new Map(asRows(cuentas).map((cuenta) => [String(cuenta.id ?? ''), String(cuenta.tradeName || cuenta.legalName || '')]));
+  return asRows(sucursales).map((sucursal) => ({
+    ...sucursal,
+    comercio: nombres.get(String(sucursal.accountId ?? '')) || 'Comercio no encontrado en el directorio',
+  }));
+}
+
 export default function MerchantBranchesPage() {
   const [version, setVersion] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const load = useCallback(() => b2bService.listBranches(), [version]);
+  const load = useCallback(() => sucursalesConComercio(), [version]);
 
   return (
     <CrudDirectory
@@ -53,7 +74,7 @@ export default function MerchantBranchesPage() {
         { key: 'address', label: 'Dirección' },
         { key: 'status', label: 'Estado', kind: 'status' },
         { key: 'canOriginateBnpl', label: 'Vende a plazos', kind: 'bool' },
-        { key: 'accountId', label: 'Comercio', kind: 'mono' },
+        { key: 'comercio', label: 'Comercio' },
       ]}
       filters={[{ key: 'status', label: 'Estado', options: ESTADOS }]}
       create={{
@@ -63,7 +84,7 @@ export default function MerchantBranchesPage() {
         fields: [
           { name: 'accountId', label: 'Comercio', tooltip: 'Comercio al que pertenece la sucursal.', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts },
           { name: 'name', label: 'Nombre de la sucursal', tooltip: 'Nombre con el que el comercio identifica el local. Ej.: Sucursal Equipetrol.', required: true, span: 2 },
-          { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, optionsSource: 'catalog:city' },
+          { name: 'city', label: 'Ciudad', tooltip: 'Ciudad donde está la sucursal; queda registrada en su ficha.', optional: true, optionsSource: 'catalog:city' },
           { name: 'address', label: 'Dirección', tooltip: 'Dirección de la sucursal, con zona y referencia.', optional: true, span: 3 },
         ],
         submit: async (payload: JsonObject) => {
@@ -77,7 +98,7 @@ export default function MerchantBranchesPage() {
         fields: [
           { name: 'name', label: 'Nombre de la sucursal', tooltip: 'Nombre con el que el comercio identifica el local. Ej.: Sucursal Equipetrol.', required: true, span: 2 },
           // Una ciudad escrita a mano antes y fuera del catálogo se conserva como «valor anterior».
-          { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, optionsSource: 'catalog:city' },
+          { name: 'city', label: 'Ciudad', tooltip: 'Ciudad donde está la sucursal; queda registrada en su ficha.', optional: true, optionsSource: 'catalog:city' },
           { name: 'address', label: 'Dirección', tooltip: 'Dirección de la sucursal, con zona y referencia.', optional: true, span: 3 },
         ],
         submit: (id, payload) => b2bService.updateBranch(id, payload),

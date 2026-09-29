@@ -1,5 +1,6 @@
 'use client';
 
+import { tope } from '@/lib/topes';
 import { useCallback, useState } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { b2bService } from '@/services/b2bService';
@@ -43,6 +44,7 @@ export function ApprovalsDirectory({ embedded = false }: ApprovalsDirectoryProps
       embedded={embedded}
       moduleLabel="CRM"
       title="Excepciones comerciales"
+      tope={tope('las 200 solicitudes más recientes')}
       description="Solicitudes de excepción —MDR por debajo del mínimo y equivalentes— con su justificación, su decisión y quién la tomó."
       load={load}
       labelKey="approvalType"

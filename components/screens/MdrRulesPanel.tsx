@@ -1,5 +1,6 @@
 'use client';
 
+import { TOPE_LISTADO } from '@/lib/topes';
 import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
@@ -179,6 +180,7 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
       {cambiar.error ? <InlineNotice className="mt-3" tone="danger">{cambiar.error}</InlineNotice> : null}
 
       <div className="mt-4">
+        {!cargando && reglas.length >= TOPE_LISTADO ? <p data-testid="mdr-tope" className="pb-2 text-xs font-semibold text-amber-700">{`Se muestran las ${TOPE_LISTADO} reglas más recientes: el sistema no devuelve más.`}</p> : null}
         {cargando ? <p className="py-6 text-center text-xs text-slate-500">Cargando…</p>
           : reglas.length === 0 ? <p className="py-6 text-center text-xs text-slate-500">Sin reglas: se usará el término MDR del contrato.</p>
           : (

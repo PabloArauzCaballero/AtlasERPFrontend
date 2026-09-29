@@ -126,20 +126,20 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
 
           <Panel
             title="Términos comerciales"
-            description="Cada línea debe incluir porcentaje o monto fijo."
+            description="Cada línea debe incluir porcentaje o monto fijo. Sólo la comisión por venta (MDR) se cobra: los montos fijos, los mínimos y el momento de facturación se guardan como lo pactado."
             icon="table_chart"
             action={
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <ResumenTarjeta icon="fact_check" tone={proposalId ? 'amber' : 'slate'} label="Estado" value={proposalId ? 'Borrador' : 'Sin guardar'} />
                 <ResumenTarjeta icon="format_list_numbered" label="Términos" value={lines.length} />
-                <ResumenTarjeta icon="payments" label="Base estimada" value={formatBob(estimated)} />
+                <ResumenTarjeta icon="payments" label="Fijos y mínimos pactados" value={formatBob(estimated)} />
                 {/* Sólo el icono: la fila de tarjetas ya dice de qué va la cabecera, y el rótulo la parta en dos líneas. */}
                 <AtlasButton variant="secondary" icon="add" className="h-10 w-10 px-0" aria-label="Agregar término" title="Agregar término" onClick={() => setLines((current) => [...current, emptyLine(newUuid())])} />
               </div>
             }
           >
             <div className="table-scroll">
-              <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo</th><th className="px-2 py-2">Facturación</th><th className="px-2 py-2">Mínimo mensual</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
+              <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo (informativo)</th><th className="px-2 py-2">Facturación pactada</th><th className="px-2 py-2">Mínimo mensual (informativo)</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
                 <td className="p-2"><OptionSelect name={`termType-${line.id}`} ariaLabel="Tipo de término" compact value={line.termType} onChange={(value) => updateLine(line.id, 'termType', value)} options={lineOptions(tiposDeTermino, line.termType)} /></td>
                 <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" minLength={3} maxLength={240} title="Escriba al menos 3 caracteres." required /></td>
                 <td className="p-2"><input className="h-9 w-24 rounded border border-slate-300 px-2 text-right" type="number" min="0" max="100" step="0.01" title="Entre 0 y 100." value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>

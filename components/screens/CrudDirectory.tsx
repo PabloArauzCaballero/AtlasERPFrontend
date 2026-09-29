@@ -36,6 +36,13 @@ export interface CrudColumn {
   labels?: Record<string, string> | undefined;
   /** Color del estado por código, cuando la regla general de `statusTone` no lo acierta. */
   tone?: ((code: string) => StatusTone) | undefined;
+  /**
+   * La columna sólo se enseña si alguna fila trae el dato.
+   *
+   * Para campos que el sistema empezó a devolver después (el banco de una cuenta bancaria): con
+   * un servidor que todavía no lo manda, una columna siempre vacía se lee como «falta cargarlo».
+   */
+  hideWhenEmpty?: boolean | undefined;
 }
 
 export interface CrudFilter {
@@ -62,6 +69,12 @@ export interface CrudExtraAction {
   tone?: 'default' | 'danger' | 'success' | undefined;
   /** Acción que llama al backend y recarga la tabla. Excluyente con `href` y con `form`. */
   run?: ((row: ResourceRow) => Promise<unknown>) | undefined;
+  /**
+   * Qué se le dice a quien operó, a partir de lo que respondió el sistema. Sin esto el aviso es el
+   * genérico «Operación registrada»: sirve para decir lo que de verdad se comprobó (los controles de
+   * un cierre, por ejemplo) en vez de un éxito sin contenido.
+   */
+  resultMessage?: ((result: unknown, row: ResourceRow) => { title: string; body?: string | undefined }) | undefined;
   /**
    * `run` sólo abre algo (un modal propio de la pantalla) y no registra nada todavía: sin aviso de
    * «Operación registrada» ni recarga. Hasta el 2026-09-16 abrir el modal de evidencia ya
@@ -116,6 +129,8 @@ export interface CrudToolbarAction {
   fields: ActionField[];
   submit: (payload: JsonObject) => Promise<unknown>;
   submitLabel?: string | undefined;
+  /** Qué se le dice al terminar, a partir de lo que respondió el sistema (en vez del genérico). */
+  resultMessage?: ((result: unknown) => { title: string; body?: string | undefined }) | undefined;
 }
 
 interface CrudDirectoryProps {
@@ -163,8 +178,19 @@ interface CrudDirectoryProps {
     /** Texto extra en la confirmación: qué se lleva por delante el borrado. */
     warning?: string | undefined;
     enabled?: ((row: ResourceRow) => boolean) | undefined;
+    /**
+     * Motivo por el que ESTA fila no se puede eliminar. La papelera se queda, deshabilitada y con
+     * el motivo escrito, en vez de desaparecer: una papelera que está en unas filas y en otras no
+     * se lee como un fallo de la pantalla. `null` = se puede eliminar.
+     */
+    blockedReason?: ((row: ResourceRow) => string | null) | undefined;
   } | undefined;
   extraActions?: CrudExtraAction[] | undefined;
+  /**
+   * El servidor devuelve como mucho `max` filas, en un orden fijo. Cuando se llega al tope, el
+   * listado lo dice («se muestran las 200 más recientes») en vez de dejar creer que es todo.
+   */
+  tope?: { max: number; texto: string } | undefined;
   toolbarActions?: CrudToolbarAction[] | undefined;
   /**
    * Qué conviene saber de esta pantalla. `info` NO se pinta: vive tras el icono ⓘ de la barra.
@@ -280,6 +306,10 @@ export function CrudDirectory(props: CrudDirectoryProps) {
   /* El importador de Excel: mismos campos y mismo envío que el alta, fila por fila. */
 
   const filters = useMemo(() => props.filters ?? [], [props.filters]);
+  const columns = useMemo(
+    () => props.columns.filter((column) => !column.hideWhenEmpty || rows.some((row) => row[column.key] !== null && row[column.key] !== undefined && row[column.key] !== '')),
+    [props.columns, rows],
+  );
 
   /*
    * La búsqueda comparte la fila de etiqueta de los demás campos (`FieldLabel`), que es lo que la
@@ -323,9 +353,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
         } else if (!actual.includes(wanted)) return false;
       }
       if (!needle) return true;
-      return props.columns.some((column) => cellText(row, column).toLowerCase().includes(needle));
+      return columns.some((column) => cellText(row, column).toLowerCase().includes(needle));
     });
-  }, [rows, filters, filterValues, search, props.columns]);
+  }, [rows, filters, filterValues, search, columns]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -345,14 +375,14 @@ export function CrudDirectory(props: CrudDirectoryProps) {
     const slug = props.title.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     downloadCsv(
       `${slug || 'registros'}.csv`,
-      props.columns.map((column) => ({ key: column.key, label: column.label })),
+      columns.map((column) => ({ key: column.key, label: column.label })),
       filteredRows,
       (row, key) => {
-        const column = props.columns.find((item) => item.key === key);
+        const column = columns.find((item) => item.key === key);
         return column ? cellText(row as ResourceRow, column) : '';
       },
     );
-  }, [filteredRows, props.columns, props.title]);
+  }, [filteredRows, columns, props.title]);
 
   /*
    * El mismo listado, en PDF.
@@ -394,10 +424,10 @@ export function CrudDirectory(props: CrudDirectoryProps) {
               title: props.title,
               description: props.description,
               table: tablaPdf(
-                props.columns.map((column) => ({ key: column.key, label: column.label })),
+                columns.map((column) => ({ key: column.key, label: column.label })),
                 filteredRows,
                 (row, key) => {
-                  const column = props.columns.find((item) => item.key === key);
+                  const column = columns.find((item) => item.key === key);
                   return column ? cellText(row as ResourceRow, column) : '';
                 },
               ),
@@ -411,7 +441,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
     } finally {
       setGenerandoPdf(false);
     }
-  }, [filteredRows, rows.length, filtersActive, props.title, props.description, props.moduleLabel, props.columns]);
+  }, [filteredRows, rows.length, filtersActive, props.title, props.description, props.moduleLabel, columns]);
 
   async function runDelete() {
     if (!props.remove || !deletingRow) return;
@@ -437,9 +467,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
     setBusy(true);
     setActionError('');
     try {
-      await action.run!(row);
+      const resultado = await action.run!(row);
       setPendingExtra(null);
-      toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
+      avisarResultado(action, row, resultado);
       await resource.reload();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'No se pudo completar la operación.');
@@ -448,18 +478,24 @@ export function CrudDirectory(props: CrudDirectoryProps) {
     }
   }
 
+  function avisarResultado(action: CrudExtraAction, row: ResourceRow, resultado: unknown) {
+    const aviso = action.resultMessage?.(resultado, row);
+    if (aviso) toast.success(aviso.title, aviso.body);
+    else toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
+  }
+
   /** La fila cuyo cajón de acciones está abierto. */
   const [masAcciones, setMasAcciones] = useState<ResourceRow | null>(null);
 
   async function launchExtra(action: CrudExtraAction, row: ResourceRow) {
     if (action.form) { setActionError(''); setExtraForm({ action, row }); return; }
     if (!action.run) return;
-    if (action.confirm) { setPendingExtra({ action, row }); return; }
+    if (action.confirm) { setActionError(''); setPendingExtra({ action, row }); return; }
     setActionError('');
     try {
-      await action.run(row);
+      const resultado = await action.run(row);
       if (action.silent) return;
-      toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
+      avisarResultado(action, row, resultado);
       await resource.reload();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'No se pudo completar la operación.');
@@ -683,6 +719,11 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           {loading && !rows.length ? 'Cargando…' : filtersActive
             ? `${filteredRows.length.toLocaleString('es-BO')} de ${rows.length.toLocaleString('es-BO')} registros con estos filtros.`
             : `${rows.length.toLocaleString('es-BO')} registros.`}
+          {props.tope && rows.length >= props.tope.max ? (
+            <span data-testid="crud-tope" className="ml-1 font-semibold text-amber-700">
+              {`Se muestran ${props.tope.texto}: el sistema no devuelve más, así que puede haber registros anteriores que no aparecen.`}
+            </span>
+          ) : null}
         </p>
       </Panel>
 
@@ -691,7 +732,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           <table className="w-full min-w-[720px] border-collapse text-left text-xs">
             <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.08em] text-slate-500">
               <tr>
-                {props.columns.map((column) => (
+                {columns.map((column) => (
                   <th key={column.key} className={`border-b border-slate-200 px-3 py-2.5 font-bold ${column.align === 'right' ? 'text-right' : ''}`}>{column.label}</th>
                 ))}
                 {hasRowActions ? <th className="border-b border-slate-200 px-3 py-2.5 text-right font-bold">Acciones</th> : null}
@@ -702,7 +743,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                 const id = String(row[idKey] ?? index);
                 return (
                   <tr key={id} className="hover:bg-slate-50/80" data-testid={`fila-${id}`}>
-                    {props.columns.map((column) => (
+                    {columns.map((column) => (
                       <td key={column.key} className={`whitespace-nowrap px-3 py-2.5 text-slate-700 ${column.align === 'right' ? 'text-right tabular-nums' : ''}`}>
                         {renderCell(row, column)}
                       </td>
@@ -754,13 +795,24 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                               <Icon name="edit" className="text-[17px]" />
                             </button>
                           ) : null}
-                          {props.remove && (props.remove.enabled ? props.remove.enabled(row) : true) ? (
+                          {props.remove && (props.remove.enabled ? props.remove.enabled(row) : true) && props.remove.blockedReason?.(row) ? (
+                            <button
+                              type="button"
+                              disabled
+                              title={props.remove.blockedReason(row) ?? ''}
+                              aria-label={`No se puede eliminar ${labelFor(row)}: ${props.remove.blockedReason(row) ?? ''}`}
+                              data-testid={`eliminar-bloqueado-${id}`}
+                              className="grid h-8 w-8 cursor-not-allowed place-items-center rounded-md border border-slate-100 text-slate-300"
+                            >
+                              <Icon name="delete" className="text-[17px]" />
+                            </button>
+                          ) : props.remove && (props.remove.enabled ? props.remove.enabled(row) : true) ? (
                             <button
                               type="button"
                               title="Eliminar"
                               aria-label={`Eliminar ${labelFor(row)}`}
                               data-testid={`eliminar-${id}`}
-                              onClick={() => setDeletingRow(row)}
+                              onClick={() => { setActionError(''); setDeletingRow(row); }}
                               className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-red-50 hover:text-red-700"
                             >
                               <Icon name="delete" className="text-[17px]" />
@@ -775,7 +827,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
 
               {!visibleRows.length && !loading ? (
                 <tr>
-                  <td colSpan={props.columns.length + (hasRowActions ? 1 : 0)} className="px-6 py-12 text-center">
+                  <td colSpan={columns.length + (hasRowActions ? 1 : 0)} className="px-6 py-12 text-center">
                     <Icon name="inbox" className="text-[30px] text-slate-400" />
                     <p className="mt-2 font-bold text-slate-700">{filtersActive ? 'Ningún registro coincide con los filtros' : 'Todavía no hay registros'}</p>
                     <p className="mt-1 text-xs text-slate-500">
@@ -786,7 +838,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
               ) : null}
 
               {loading && !rows.length ? (
-                <tr><td colSpan={props.columns.length + (hasRowActions ? 1 : 0)} className="px-6 py-12 text-center text-xs text-slate-500">Cargando registros…</td></tr>
+                <tr><td colSpan={columns.length + (hasRowActions ? 1 : 0)} className="px-6 py-12 text-center text-xs text-slate-500">Cargando registros…</td></tr>
               ) : null}
             </tbody>
           </table>
@@ -883,9 +935,11 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           onClose={() => setToolbarForm(null)}
           onSubmit={async (payload) => {
             const action = toolbarForm;
-            await action.submit(payload);
+            const resultado = await action.submit(payload);
             setToolbarForm(null);
-            toast.success('Operación registrada', `${action.label} se completó correctamente.`);
+            const aviso = action.resultMessage?.(resultado);
+            if (aviso) toast.info(aviso.title, aviso.body);
+            else toast.success('Operación registrada', `${action.label} se completó correctamente.`);
             await resource.reload();
           }}
         />
@@ -943,11 +997,12 @@ export function CrudDirectory(props: CrudDirectoryProps) {
         open={Boolean(deletingRow)}
         tone="danger"
         title="Eliminar el registro"
-        message={`Se eliminará «${labelFor(deletingRow)}». ${props.remove?.warning ?? 'La operación no se puede deshacer y queda registrada en la auditoría.'}`}
+        message={`Se eliminará «${labelFor(deletingRow)}». ${props.remove?.warning ?? 'La operación no se puede deshacer.'}`}
         confirmLabel="Sí, eliminar"
         loading={busy}
+        error={deletingRow ? actionError : undefined}
         onConfirm={() => void runDelete()}
-        onCancel={() => setDeletingRow(null)}
+        onCancel={() => { setDeletingRow(null); setActionError(''); }}
       />
 
       <ConfirmDialog
@@ -957,8 +1012,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
         message={pendingExtra ? `${pendingExtra.action.confirm?.message ?? ''} (${labelFor(pendingExtra.row)})` : ''}
         confirmLabel={pendingExtra?.action.confirm?.confirmLabel ?? 'Confirmar'}
         loading={busy}
+        error={pendingExtra ? actionError : undefined}
         onConfirm={() => void runExtra()}
-        onCancel={() => setPendingExtra(null)}
+        onCancel={() => { setPendingExtra(null); setActionError(''); }}
       />
     </div>
   );

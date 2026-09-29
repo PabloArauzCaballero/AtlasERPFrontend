@@ -27,9 +27,8 @@ const statusTone: Record<string, 'success' | 'warning' | 'danger' | 'neutral'> =
 
 const nextStatus: Record<string, InternalUserStatus> = { active: 'suspended', suspended: 'active', locked: 'active' };
 
-function policyItems(): string[] {
-  return ['MFA obligatorio para roles privilegiados', 'Sesiones con expiración y revocación', 'Separación de funciones críticas', 'Auditoría de cambios de permisos'];
-}
+/** Lo que devuelve de una vez el directorio de personal: no pagina y corta en este número. */
+const TOPE_USUARIOS = 50;
 
 export function SecurityAdministrationScreen() {
   const { user: currentUser, hasPermission } = useAuth();
@@ -51,6 +50,14 @@ export function SecurityAdministrationScreen() {
   );
 
   const users = useMemo<InternalUserProfile[]>(() => usersResource.data?.items ?? [], [usersResource.data]);
+  /*
+   * Las cifras son de lo CARGADO. El directorio llega entero sólo si hay menos de 50 personas; con
+   * más, «Total Users» decía 50 aunque hubiera cien. Si el servidor manda `total`, se usa.
+   */
+  const totalServidor = (usersResource.data as { total?: unknown } | null)?.total;
+  const totalConocido = typeof totalServidor === 'number' ? totalServidor : null;
+  const recortado = totalConocido !== null ? totalConocido > users.length : users.length >= TOPE_USUARIOS;
+  const notaCarga = recortado ? `de las primeras ${users.length}` : undefined;
   const activeCount = users.filter((row) => row.status === 'active').length;
   const suspendedCount = users.filter((row) => row.status === 'suspended' || row.status === 'locked').length;
   const mfaCount = users.filter((row) => row.mfaEnabled).length;
@@ -83,7 +90,7 @@ export function SecurityAdministrationScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Administración' }, { label: 'Seguridad' }]}
         title="Usuarios internos"
-        description="Directorio real de usuarios internos, roles y estado de acceso (internal_users / internal_roles)."
+        description="El personal de Atlas con acceso al ERP: sus roles y el estado de su acceso."
         actions={
           <>
             <Link href="/operaciones/admin/roles"><AtlasButton variant="secondary" icon="admin_panel_settings">Roles & permisos</AtlasButton></Link>
@@ -94,15 +101,15 @@ export function SecurityAdministrationScreen() {
 
       <Resumen
         datos={[
-          { label: 'Total Users', value: users.length || '—' },
-          { label: 'Active Users', value: activeCount || '—' },
-          { label: 'Suspended / Locked', value: suspendedCount },
-          { label: 'MFA Enabled', value: mfaCount },
+          { label: 'Personas', value: totalConocido ?? (users.length || '—'), nota: recortado && totalConocido === null ? `se muestran las primeras ${TOPE_USUARIOS}` : undefined },
+          { label: 'Activas', value: activeCount || '—', nota: notaCarga },
+          { label: 'Suspendidas o bloqueadas', value: suspendedCount, nota: notaCarga },
+          { label: 'Con doble factor', value: mfaCount, nota: notaCarga },
         ]}
       />
 
-      <div className="grid gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.5fr)_360px]">
-        <Panel title="Personal de Atlas" description="Usuario, rol, estado y MFA — datos en vivo desde /internal/users." icon="manage_accounts">
+      <div className="grid gap-4 grid-cols-[minmax(0,1fr)]">
+        <Panel title="Personal de Atlas" description="Nombre, rol, estado del acceso y si usa doble factor." icon="manage_accounts">
           {usersResource.error && !users.length ? (
             <InlineNotice tone="danger" title="No se pudo cargar el directorio">{usersResource.error}</InlineNotice>
           ) : (
@@ -156,24 +163,8 @@ export function SecurityAdministrationScreen() {
             </div>
           )}
         </Panel>
-        <div className="space-y-4">
-          <Panel title="Seguridad global" icon="shield">
-            <div className="space-y-3">
-              {policyItems().map((item) => (
-                <div key={item} className="flex items-start gap-2 text-xs">
-                  <Icon name="check_circle" className="text-[17px] text-emerald-600" />
-                  <span className="leading-5 text-slate-600">{item}</span>
-                </div>
-              ))}
-            </div>
-          </Panel>
-          <Panel title="Estado del contrato" icon="api">
-            <StatusPill tone="success">CONECTADO</StatusPill>
-            <p className="mt-3 text-xs leading-5 text-slate-600">GET/PATCH /internal/users y /internal/users/:id/roles (AtlasBackend, módulo internal-users).</p>
-          </Panel>
-        </div>
       </div>
-      {!canManage ? <InlineNotice tone="info">Tu usuario no tiene el permiso internal.users.manage: puedes ver el directorio, pero no suspender/reactivar cuentas.</InlineNotice> : null}
+      {!canManage ? <InlineNotice tone="info">Tu usuario no tiene permiso para administrar personal: puedes ver el directorio, pero no suspender ni reactivar accesos.</InlineNotice> : null}
       {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
       {rolesChange ? (
         <ActionFormModal

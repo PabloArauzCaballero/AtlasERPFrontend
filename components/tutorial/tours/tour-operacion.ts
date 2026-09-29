@@ -143,7 +143,7 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
       },
       {
         id: 'presupuesto',
-        target: '[data-tutorial-id="directory-metrics"]',
+        target: '[data-tutorial-id="resource-table"]',
         title: 'El presupuesto la frena sola',
         content:
           'Al agotarse el total la campaña deja de entregar aunque siga activa. Es la protección que impide gastar más de lo comprometido, y es la segunda causa más común.',
@@ -204,14 +204,14 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="resource-table"]',
         title: 'Cada fila es una acción que alguien hizo',
         content:
-          'Quién, qué, cuándo y sobre qué registro. Aprobaciones, activaciones, cierres: todo lo relevante deja rastro aquí.',
+          'Quién, qué, cuándo y sobre qué registro. Cierres, facturas, recibos, aprobaciones, contratos: lo que el ERP registra deja rastro aquí. No todo lo registra: la ayuda «¿Qué es esto?» dice qué queda fuera.',
       },
       {
         id: 'buscar',
-        target: '[data-tutorial-id="directory-search"]',
+        target: '[data-tutorial-id="directory-filter-aggregateId"]',
         title: 'Parte del registro, no de la persona',
         content:
-          'Lo útil es buscar por el identificador del registro afectado y leer en orden todo lo que le pasó. Buscar por persona responde otra pregunta, y casi nunca es la que tienes.',
+          'Lo útil es pegar aquí el identificador del registro afectado y leer en orden todo lo que le pasó. Filtrar por persona responde otra pregunta, y casi nunca es la que tienes.',
         requiredAction: 'input',
       },
       {

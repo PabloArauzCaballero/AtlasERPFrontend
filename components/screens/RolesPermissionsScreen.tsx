@@ -38,7 +38,6 @@ export function RolesPermissionsScreen() {
         breadcrumbs={[{ label: 'Administración' }, { label: 'Seguridad' }, { label: 'Roles' }]}
         title="Roles y permisos"
         description="Catálogo real de roles y permisos del sistema."
-        actions={<StatusPill tone="success">CONECTADO</StatusPill>}
       />
 
       {error && !roles.length ? <InlineNotice tone="danger" title="No se pudo cargar el catálogo">{error}</InlineNotice> : null}

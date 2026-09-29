@@ -37,7 +37,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
       embedded
       moduleLabel="Contabilidad"
       title="Documentos fiscales"
-      description="Cada factura enviada a Impuestos Nacionales, con su número fiscal y lo que respondió."
+      description="El documento fiscal de cada factura del ERP, con su número fiscal y lo que respondió el servicio fiscal de este entorno (el modo está arriba)."
       load={load}
       labelKey="numeroFactura"
       searchPlaceholder="Buscar por número, cliente o NIT…"
@@ -60,7 +60,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'reintentar',
           label: 'Reintentar envío',
-          description: 'Vuelve a enviar a Impuestos una factura que falló, con el mismo número y código de autorización.',
+          description: 'Vuelve a enviar al servicio fiscal una factura que falló, con el mismo número y código de autorización.',
           icon: 'send',
           primary: true,
           enabled: (row) => row.siatStatus === 'ERROR',
@@ -111,7 +111,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'xml',
           label: 'Descargar XML',
-          description: 'Descarga el archivo XML firmado que se envió a Impuestos, el que tiene validez legal.',
+          description: 'Descarga el XML del documento fiscal tal como lo generó el ERP. Sólo tiene validez legal si el modo de arriba dice que hay envío real a Impuestos.',
           icon: 'code',
           primary: true,
           silent: true,
@@ -122,7 +122,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
       notice={{
         tone: 'info',
         title: 'Qué es un documento fiscal',
-        body: 'Es la factura tal como la registró Impuestos Nacionales: número fiscal, código de autorización (CUF) y respuesta del SIN. Se crea sola al emitir la factura en el ERP; un documento no se edita: se anula ante Impuestos y se emite otro.',
+        body: 'Es la factura tal como la registró el servicio fiscal de este entorno: número fiscal, código de autorización (CUF) y su respuesta. Se crea sola al emitir la factura en el ERP; un documento no se edita: se anula y se emite otro. Mientras no haya envío real a Impuestos (ver el aviso de arriba), esos datos son de prueba.',
       }}
     />
   );

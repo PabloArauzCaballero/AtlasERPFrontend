@@ -16,6 +16,10 @@ export interface EstadoFiscal {
   /** `disabled` cuando el entorno no emite ante Impuestos. */
   mode: string;
   activo: boolean;
+  /** Desde el 2026-09-29: si alguna factura llega de verdad a Impuestos. Ausente = no se sabe. */
+  transporteReal?: boolean | undefined;
+  /** Desde el 2026-09-29: qué significa el modo, dicho por el servidor. */
+  nota?: string | undefined;
 }
 
 export interface EstadoEmisor {

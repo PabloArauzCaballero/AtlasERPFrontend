@@ -53,7 +53,7 @@ export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
     title: 'Persona de contacto', icon: 'contact_page', description: 'Con quién se coordina en la empresa.', fields: [
       { name: 'primaryContact.fullName', label: 'Nombre completo', tooltip: 'Nombre y apellidos completos de la persona, como en su documento de identidad.', required: true, placeholder: 'Nombre y apellido', span: 2 },
       { name: 'primaryContact.roleTitle', label: 'Cargo', tooltip: 'Cargo que ocupa en la empresa; ayuda a saber a quién dirigirse en cada tema.', type: 'select', optional: true, optionsSource: 'domain:crm.contactRoleTitle', emptyOption: SIN_ESPECIFICAR, hint: 'Qué puesto ocupa en la empresa.' },
-      { name: 'primaryContact.email', label: 'Correo', tooltip: 'Correo de la persona; recibe avisos y sirve para identificarla. Ej.: nombre@empresa.bo.', type: 'email', optional: true, placeholder: 'contacto@empresa.com' },
+      { name: 'primaryContact.email', label: 'Correo', tooltip: 'Correo de la persona, para contactarla e identificarla. El sistema no le envía avisos automáticos. Ej.: nombre@empresa.bo.', type: 'email', optional: true, placeholder: 'contacto@empresa.com' },
       { name: 'primaryContact.phone', label: 'Teléfono', tooltip: 'Teléfono con código de país, sin espacios. Ej.: +59170012345.', optional: true, placeholder: '+591 7...' },
       { name: 'primaryContact.decisionRole', label: 'Peso en la decisión', tooltip: 'Cuánto pesa esta persona en la decisión de compra; orienta a quién hay que convencer.', type: 'select', optional: true, optionsSource: 'domain:crm.decisionRole', emptyOption: SIN_ESPECIFICAR, hint: 'Si decide la compra o solo influye. Ayuda a saber a quién convencer.' },
     ],

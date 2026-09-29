@@ -11,6 +11,8 @@ import { EmisoresPanel } from '@/components/screens/facturacion-electronica/Emis
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { fiscalService } from '@/services/fiscalService';
+import { StatusPill } from '@/components/atlas/StatusPill';
+import { describirModoFiscal } from '@/lib/modoFiscal';
 
 /**
  * Facturación electrónica: las facturas del ERP ante Impuestos Nacionales.
@@ -27,20 +29,25 @@ export default function FacturacionElectronicaPage() {
   const estado = useAsyncResource(cargar);
   const activo = estado.data?.activo === true;
   const listo = Boolean(estado.data) || Boolean(estado.error);
+  const modo = estado.data ? describirModoFiscal(estado.data) : null;
 
   return (
     <div className="space-y-5">
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Contabilidad' }, { label: 'Facturación electrónica' }]}
         title="Facturación electrónica"
-        description="Las facturas del ERP ante Impuestos Nacionales: su validación, el emisor, los catálogos del SIN y las contingencias."
+        description="El documento fiscal de cada factura del ERP y lo que respondió el servicio fiscal de este entorno: su validación, el emisor, los catálogos del SIN y las contingencias."
       />
       {estado.error ? (
         <InlineNotice tone="danger" title="No se pudo saber si la facturación electrónica está encendida">{estado.error}</InlineNotice>
       ) : null}
-      {estado.data && !activo ? (
-        <InlineNotice tone="warning" title="La facturación electrónica está apagada en este entorno">
-          Las facturas se emiten como representación interna, sin validez fiscal: no se envían a Impuestos Nacionales. Aquí se consulta lo ya emitido y se prepara el emisor.
+      {modo ? (
+        <InlineNotice
+          tone={modo.real ? 'info' : 'warning'}
+          title={modo.apagada ? 'La facturación electrónica está apagada en este entorno' : modo.real ? `Modo: ${modo.etiqueta}` : `Modo: ${modo.etiqueta} · sin envío real a Impuestos`}
+        >
+          <span data-testid="modo-fiscal">{modo.aviso}</span>{' '}
+          <StatusPill tone={modo.real ? 'success' : 'warning'}>{modo.etiqueta}</StatusPill>
         </InlineNotice>
       ) : null}
       {listo ? (

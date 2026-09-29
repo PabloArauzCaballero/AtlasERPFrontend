@@ -12,6 +12,14 @@ export interface ConfirmDialogProps {
   cancelLabel?: string | undefined;
   tone?: 'danger' | 'primary' | undefined;
   loading?: boolean | undefined;
+  /**
+   * Por qué el sistema rechazó la operación, DENTRO del diálogo.
+   *
+   * Sin esto el motivo (un 409 «una factura contabilizada no se borra…») se pintaba arriba de la
+   * pantalla, detrás del fondo oscuro del diálogo, y quien pulsaba «Sí, eliminar» sólo veía que
+   * no pasaba nada.
+   */
+  error?: string | undefined;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -40,6 +48,9 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-slate-800">{props.title}</h2>
             <p className="mt-1 text-xs leading-5 text-slate-600">{props.message}</p>
+            {props.error ? (
+              <p role="alert" data-testid="confirm-error" className="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-xs leading-5 text-red-700">{props.error}</p>
+            ) : null}
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">

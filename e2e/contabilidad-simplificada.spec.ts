@@ -261,10 +261,13 @@ test('caso válido: cerrar un período se hace desde su fila y la empresa la pon
   const dialogo = page.getByRole('dialog');
   await expect(dialogo).toContainText('Cerrar el período');
   await expect(dialogo.getByLabel('Entidad legal')).toHaveCount(0);
-  /* El select trae su valor del catálogo y llega después del primer pintado: sin esperarlo, el
-     `required` del navegador bloquea el envío y no sale ninguna petición. */
-  await expect(dialogo.getByLabel('Qué se cierra')).toContainText(/mensual/i);
-  await dialogo.getByRole('button', { name: 'Cerrar período' }).click();
+  /*
+   * Ni «Qué se cierra»: mensual y anual congelan igual, y «anual» prometía liquidar el IUE. La
+   * confirmación dice lo que se comprueba y lo que NO (conciliación y extractos: sin datos).
+   */
+  await expect(dialogo.getByLabel('Qué se cierra')).toHaveCount(0);
+  await expect(dialogo).toContainText(/NO se comprueban/);
+  await dialogo.getByRole('button', { name: 'Sí, cerrar' }).click();
   await expect(dialogo).toBeHidden();
 
   const cuerpo = ultimoEnvio('/accounting/closings/periods/close');
