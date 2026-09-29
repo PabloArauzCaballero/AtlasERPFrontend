@@ -1,5 +1,6 @@
 'use client';
 
+import { tope } from '@/lib/topes';
 import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { camposLineaPropuesta, camposPropuesta, propuestaDesdeExcel } from '@/components/screens/altas/propuesta';
@@ -44,6 +45,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
       embedded={embedded}
       moduleLabel="CRM"
       title="Propuestas comerciales"
+      tope={tope('las 200 propuestas más recientes')}
       description="Cartera de propuestas con su vigencia, su ingreso estimado y el punto del ciclo en el que está cada una."
       load={load}
       labelKey="proposalNumber"

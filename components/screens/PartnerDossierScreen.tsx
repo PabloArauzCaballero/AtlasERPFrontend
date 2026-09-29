@@ -304,7 +304,7 @@ export function PartnerDossierScreen() {
                 <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={abrirExpediente}>
                   <FormField tooltip="Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos." label="Razón social" name="legalName" required data-testid="campo-legalName" />
                   <FormField tooltip="Nombre con el que el negocio se presenta al público, si es distinto del legal. Ej.: «Tienda Doña Rosa»." label="Nombre comercial" name="tradeName" />
-                  <FormField tooltip="NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón." label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
+                  <FormField tooltip="NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. No se consulta el padrón de Impuestos: cópialo tal cual figura en el documento." label="NIT" name="taxId" required hint="Sólo dígitos." data-testid="campo-taxId" />
                   <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente." label="Matrícula de comercio" name="commercialRegistry" />
                   <FormField tooltip="Rubro principal del negocio; agrupa la cartera y decide las reglas de comisión que le aplican."
                     kind="select"

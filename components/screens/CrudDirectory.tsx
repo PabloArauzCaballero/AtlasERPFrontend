@@ -129,6 +129,8 @@ export interface CrudToolbarAction {
   fields: ActionField[];
   submit: (payload: JsonObject) => Promise<unknown>;
   submitLabel?: string | undefined;
+  /** Qué se le dice al terminar, a partir de lo que respondió el sistema (en vez del genérico). */
+  resultMessage?: ((result: unknown) => { title: string; body?: string | undefined }) | undefined;
 }
 
 interface CrudDirectoryProps {
@@ -184,6 +186,11 @@ interface CrudDirectoryProps {
     blockedReason?: ((row: ResourceRow) => string | null) | undefined;
   } | undefined;
   extraActions?: CrudExtraAction[] | undefined;
+  /**
+   * El servidor devuelve como mucho `max` filas, en un orden fijo. Cuando se llega al tope, el
+   * listado lo dice («se muestran las 200 más recientes») en vez de dejar creer que es todo.
+   */
+  tope?: { max: number; texto: string } | undefined;
   toolbarActions?: CrudToolbarAction[] | undefined;
   /**
    * Qué conviene saber de esta pantalla. `info` NO se pinta: vive tras el icono ⓘ de la barra.
@@ -712,6 +719,11 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           {loading && !rows.length ? 'Cargando…' : filtersActive
             ? `${filteredRows.length.toLocaleString('es-BO')} de ${rows.length.toLocaleString('es-BO')} registros con estos filtros.`
             : `${rows.length.toLocaleString('es-BO')} registros.`}
+          {props.tope && rows.length >= props.tope.max ? (
+            <span data-testid="crud-tope" className="ml-1 font-semibold text-amber-700">
+              {`Se muestran ${props.tope.texto}: el sistema no devuelve más, así que puede haber registros anteriores que no aparecen.`}
+            </span>
+          ) : null}
         </p>
       </Panel>
 
@@ -923,9 +935,11 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           onClose={() => setToolbarForm(null)}
           onSubmit={async (payload) => {
             const action = toolbarForm;
-            await action.submit(payload);
+            const resultado = await action.submit(payload);
             setToolbarForm(null);
-            toast.success('Operación registrada', `${action.label} se completó correctamente.`);
+            const aviso = action.resultMessage?.(resultado);
+            if (aviso) toast.info(aviso.title, aviso.body);
+            else toast.success('Operación registrada', `${action.label} se completó correctamente.`);
             await resource.reload();
           }}
         />

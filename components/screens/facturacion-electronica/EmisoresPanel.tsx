@@ -145,12 +145,12 @@ export function EmisoresPanel({ activo }: Readonly<{ activo: boolean }>) {
           {
             key: 'cufd',
             label: 'Pedir código diario (CUFD)',
-            description: 'Pide a Impuestos el código del día. Se renueva solo; úsalo si el de hoy no llegó.',
+            description: 'Pide el código del día. El sistema lo pide cuando hace falta para emitir; úsalo si el de hoy no llegó.',
             icon: 'event_available',
             enabled: () => activo,
             confirm: {
               title: 'Pedir un CUFD nuevo',
-              message: 'El sistema lo renueva solo cada día. Pedirlo a mano sirve si el del día no llegó; las facturas nuevas usarán el nuevo.',
+              message: 'El sistema lo pide cuando hace falta para emitir, no con una tarea diaria. Pedirlo a mano sirve si el del día no llegó; las facturas nuevas usarán el nuevo.',
               confirmLabel: 'Pedir CUFD',
             },
             run: (row) => fiscalService.requestCufd(String(row.id ?? '')),
@@ -159,7 +159,7 @@ export function EmisoresPanel({ activo }: Readonly<{ activo: boolean }>) {
         notice={{
           tone: 'info',
           title: 'El emisor ante Impuestos',
-          body: 'Cada empresa factura con su NIT desde una sucursal y un punto de venta registrados en Impuestos. El sistema pide los códigos de autorización (CUIS y CUFD) y los renueva solo; aquí se ven sus vigencias y se piden a mano si hace falta.',
+          body: 'Cada empresa factura con su NIT desde una sucursal y un punto de venta registrados en Impuestos. El sistema pide los códigos de autorización (CUIS y CUFD) cuando hacen falta para emitir; aquí se ven sus vigencias y se piden a mano si hace falta.',
         }}
       />
       {viendo ? (

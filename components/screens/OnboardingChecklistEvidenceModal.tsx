@@ -39,6 +39,20 @@ function etiquetaDeEstado(item: Requisito): string {
   return estado;
 }
 
+function requisitosDe(caso: ResourceRow | null | undefined): Requisito[] {
+  return (Array.isArray(caso?.checklistItems) ? caso!.checklistItems : []) as Requisito[];
+}
+
+/** El requisito trae si tiene archivo y si lo exige: sin eso no se puede avisar de un reemplazo. */
+function sabeSiTieneArchivo(item: Requisito): boolean {
+  return typeof item.hasEvidence === 'boolean' && typeof item.requiresEvidence === 'boolean';
+}
+
+/** El primero documental sin archivo, o el primero. */
+function preseleccion(items: Requisito[]): string {
+  return items.find((item) => item.requiresEvidence && !item.hasEvidence)?.id ?? items[0]?.id ?? '';
+}
+
 function fechaLegible(valor: string | null | undefined): string | null {
   if (!valor) return null;
   const fecha = new Date(valor);
@@ -76,30 +90,62 @@ export function OnboardingChecklistEvidenceModal({
   onClose,
   onDone,
 }: Readonly<{ caso: ResourceRow | null; onClose: () => void; onDone: () => void }>) {
-  /* El caso tal como lo devolvió el último registro; `null` = el de la fila, todavía sin tocar. */
+  /* El caso tal como lo devolvió el servidor (detalle o último registro); `null` = el de la fila. */
   const [casoActual, setCasoActual] = useState<ResourceRow | null>(null);
   const vigente = casoActual ?? caso;
-  const requisitos = (Array.isArray(vigente?.checklistItems) ? vigente!.checklistItems : []) as Requisito[];
+  const requisitos = requisitosDe(vigente);
   const [itemId, setItemId] = useState<string>('');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [fase, setFase] = useState<Fase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hecho, setHecho] = useState<string | null>(null);
   const [viendoActual, setViendoActual] = useState(false);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
 
+  /*
+   * La cola de onboarding de un servidor anterior al 2026-09-29 no dice si cada requisito ya tiene
+   * archivo. Con esa fila el modal preseleccionaba el primero y dejaba «Adjuntar» un segundo archivo
+   * que pisaba al primero sin aviso. Si falta el dato, se pide el caso completo antes de elegir.
+   */
   useEffect(() => {
-    setItemId(requisitos.find((item) => item.requiresEvidence && !item.hasEvidence)?.id ?? requisitos[0]?.id ?? '');
     setArchivo(null);
     setFase(null);
     setError(null);
     setHecho(null);
     setViendoActual(false);
     setCasoActual(null);
-  }, [caso?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    const items = requisitosDe(caso);
+    if (!caso?.id || items.every(sabeSiTieneArchivo)) {
+      setCargandoDetalle(false);
+      setItemId(preseleccion(items));
+      return;
+    }
+    let vigenteAun = true;
+    setItemId('');
+    setCargandoDetalle(true);
+    b2bService
+      .getOnboardingCase(String(caso.id))
+      .then((detalle) => {
+        if (!vigenteAun) return;
+        setCasoActual(detalle);
+        setItemId(preseleccion(requisitosDe(detalle)));
+      })
+      .catch((err: unknown) => {
+        if (vigenteAun) setError(err instanceof Error ? `No se pudo saber qué requisitos ya tienen archivo: ${err.message}` : 'No se pudo saber qué requisitos ya tienen archivo.');
+      })
+      .finally(() => {
+        if (vigenteAun) setCargandoDetalle(false);
+      });
+    return () => {
+      vigenteAun = false;
+    };
+  }, [caso]);
 
   const elegido = requisitos.find((item) => item.id === itemId) ?? null;
   const ocupado = fase !== null;
   const reemplaza = Boolean(elegido?.hasEvidence);
+  /* Sin saber si ya hay archivo no se adjunta: podría reemplazar uno sin avisar. */
+  const archivoConocido = Boolean(elegido && sabeSiTieneArchivo(elegido));
 
   function elegirArchivo(file: File | null) {
     setError(null);
@@ -112,7 +158,7 @@ export function OnboardingChecklistEvidenceModal({
 
   async function subir(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!caso?.id || !itemId || !archivo || ocupado) return;
+    if (!caso?.id || !itemId || !archivo || ocupado || !archivoConocido) return;
     const contentType = contentTypeDeArchivo(archivo);
     if (!contentType) return;
     setError(null);
@@ -179,12 +225,15 @@ export function OnboardingChecklistEvidenceModal({
             <li><span className="font-bold text-slate-800">3.</span> Marque el requisito completado en la fila</li>
           </ol>
                   </div>
+        {cargandoDetalle ? (
+          <p role="status" className="text-[11px] text-slate-600" data-testid="evidencia-cargando">Consultando qué requisitos ya tienen archivo…</p>
+        ) : null}
         <FormField tooltip="Requisito del checklist de alta sobre el que se actúa."
           kind="select"
           label="Requisito"
           name="checklistItemId"
           required
-          disabled={ocupado}
+          disabled={ocupado || cargandoDetalle}
           value={itemId}
           onChange={(event) => { setItemId(event.target.value); setHecho(null); setViendoActual(false); }}
           options={requisitos.map((item) => ({ value: item.id, label: `${item.description} (${item.itemType}) · ${etiquetaDeEstado(item)}` }))}
@@ -234,7 +283,7 @@ export function OnboardingChecklistEvidenceModal({
               {viendoActual ? 'Ocultar archivo actual' : 'Ver archivo actual'}
             </AtlasButton>
           ) : null}
-          <AtlasButton type="submit" icon={reemplaza ? 'swap_horiz' : 'upload'} loading={ocupado} disabled={!itemId || !archivo} data-testid="btn-adjuntar-evidencia">
+          <AtlasButton type="submit" icon={reemplaza ? 'swap_horiz' : 'upload'} loading={ocupado} disabled={!itemId || !archivo || cargandoDetalle || !archivoConocido} data-testid="btn-adjuntar-evidencia">
             {ocupado ? (reemplaza ? 'Reemplazando…' : 'Adjuntando…') : reemplaza ? 'Reemplazar archivo' : 'Adjuntar archivo'}
           </AtlasButton>
         </div>

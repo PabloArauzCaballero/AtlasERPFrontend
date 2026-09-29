@@ -90,7 +90,7 @@ export default function FinancialStructurePage() {
                   fields: [
                     { name: 'code', label: 'Código interno', tooltip: 'Código interno de la entidad legal; aparece en la numeración de documentos. Ej.: ATL.', required: true, placeholder: 'ATLAS-BO' },
                     { name: 'legalName', label: 'Razón social', tooltip: 'Nombre legal tal como figura en el NIT o en el registro de comercio; es el que va en facturas y contratos.', required: true, placeholder: 'Razón social registrada', span: 2 },
-                    { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón.', optional: true, placeholder: 'NIT oficial' },
+                    { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. No se consulta el padrón de Impuestos: cópialo tal cual figura en el documento.', optional: true, placeholder: 'NIT oficial' },
                     { name: 'countryCode', label: 'País', tooltip: 'País de residencia fiscal del socio; decide qué documento tributario se le exige.', required: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
                     { name: 'baseCurrency', label: 'Moneda base', tooltip: 'Moneda en la que lleva la contabilidad la entidad; todo se convierte a ella.', required: true, defaultValue: 'BOB', optionsSource: 'catalog:currency' },
                     { name: 'timezone', label: 'Zona horaria', tooltip: 'Zona horaria de la entidad; decide a qué día pertenece cada asiento.', required: true, defaultValue: 'America/La_Paz', optionsSource: 'catalog:timezone', span: 2 },
@@ -128,7 +128,7 @@ export default function FinancialStructurePage() {
                     { name: 'legalEntityId', label: 'Empresa', tooltip: 'Empresa del grupo de la que depende la sucursal.', type: 'select', required: true, span: 2, optionsLoader: loadLegalEntities },
                     { name: 'code', label: 'Código', tooltip: 'Código corto y único para citar la sucursal sin usar su identificador interno.', required: true, placeholder: 'SCZ-CENTRAL' },
                     { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica la sucursal en listados e informes.', required: true, placeholder: 'Oficina central' },
-                    { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede; sirve para asignar ejecutivo y zona de cobertura.', optional: true, span: 2, optionsSource: 'catalog:city' },
+                    { name: 'city', label: 'Ciudad', tooltip: 'Ciudad donde está la sede; queda registrada en la ficha.', optional: true, span: 2, optionsSource: 'catalog:city' },
                   ],
                   submit: async (payload) => { const created = await accountingService.createBranch(payload); bump(); return created; },
                 }}
@@ -195,8 +195,14 @@ export default function FinancialStructurePage() {
                 labelKey="accountName"
                 columns={[
                   { key: 'accountName', label: 'Cuenta' },
-                  { key: 'bankName', label: 'Banco' },
-                  { key: 'accountNumber', label: 'Número', kind: 'pii' },
+                  /*
+                   * Banco y número sólo si llegan. Antes se pintaban siempre y salían vacíos: la
+                   * cuenta guarda el banco como socio y el número sólo como huella, así que no
+                   * había nada que enseñar. `bankName` lo manda el servidor desde el 2026-09-29;
+                   * el número enmascarado, sólo si algún día lo manda.
+                   */
+                  { key: 'bankName', label: 'Banco', hideWhenEmpty: true },
+                  { key: 'accountNumberMasked', label: 'Número', kind: 'mono', hideWhenEmpty: true },
                   { key: 'currencyCode', label: 'Moneda' },
                   { key: 'status', label: 'Estado', kind: 'status' },
                 ]}

@@ -82,7 +82,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           <Link href="/operaciones" className="shrink-0 text-base font-black tracking-tight text-[#006a61] sm:text-lg">ATLAS ERP</Link>
           <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-[#006a61] focus-within:bg-white md:flex lg:w-72">
             <Icon name="search" className="text-[19px] text-slate-500" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder="Buscar pantalla u operación..." />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder="Buscar una pantalla..." />
             <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-slate-500 lg:inline">↵</kbd>
           </form>
         </div>
@@ -157,7 +157,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-            placeholder="Buscar pantalla u operación..."
+            placeholder="Buscar una pantalla..."
           />
           <button type="submit" className="rounded-md bg-[#006a61] px-3 py-2 text-xs font-bold text-white">Buscar</button>
         </form>

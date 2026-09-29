@@ -1,13 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { Panel } from '@/components/atlas/Panel';
 import { ScreenExplainer } from '@/components/atlas/ScreenExplainer';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
-import { atlasViewLinks, moduleOfView, viewsByModule } from '@/lib/viewRegistry';
+import { moduleOfView, viewsByModule, visibleViewLinks } from '@/lib/viewRegistry';
+
+const PANTALLAS = visibleViewLinks();
 
 /*
  * El buscador enseña pantallas, no el estado de la obra.
@@ -19,13 +22,19 @@ import { atlasViewLinks, moduleOfView, viewsByModule } from '@/lib/viewRegistry'
  */
 
 export function CommandCenterScreen() {
-  const [query, setQuery] = useState('');
+  /*
+   * El texto llega de la barra superior en `?q=`. Antes se ignoraba: se escribía «factura», se
+   * pulsaba Enter y la pantalla abría con la caja vacía.
+   */
+  const q = useSearchParams()?.get('q') ?? '';
+  const [query, setQuery] = useState(q);
+  useEffect(() => { setQuery(q); }, [q]);
   const normalized = query.trim().toLowerCase();
   const results = useMemo(() => {
-    if (!normalized) return atlasViewLinks.slice(0, 8);
-    return atlasViewLinks.filter((item) => `${item.title} ${item.phase} ${moduleOfView(item).name}`.toLowerCase().includes(normalized)).slice(0, 20);
+    if (!normalized) return PANTALLAS.slice(0, 8);
+    return PANTALLAS.filter((item) => `${item.title} ${item.phase} ${moduleOfView(item).name}`.toLowerCase().includes(normalized)).slice(0, 20);
   }, [normalized]);
-  const modules = useMemo(() => viewsByModule(), []);
+  const modules = useMemo(() => viewsByModule(PANTALLAS), []);
 
   return <div className="space-y-5"><WorkspaceHeader breadcrumbs={[{ label: 'Buscar una pantalla' }]} title="Buscar una pantalla" description="Escribe lo que necesitas hacer y te lleva a la pantalla donde se hace." />
     <ScreenExplainer

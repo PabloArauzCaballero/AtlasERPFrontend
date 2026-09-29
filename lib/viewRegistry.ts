@@ -1,3 +1,5 @@
+import { NOTIFICACIONES_MASIVAS_VISIBLE, PUBLICIDAD_VISIBLE } from '@/lib/modulos';
+
 export type ViewArea = 'Panel operaciones' | 'Portal comercio';
 export type ViewStatus = 'integrada' | 'solo-accion' | 'brecha-backend';
 
@@ -100,4 +102,21 @@ export function viewsByModule(views: readonly AtlasViewLink[] = atlasViewLinks):
   return [...viewModules, OTHER_VIEWS]
     .map((module) => ({ module, views: views.filter((view) => moduleOfView(view) === module) }))
     .filter((group) => group.views.length > 0);
+}
+
+/**
+ * Las pantallas que el buscador puede ofrecer: las del registro menos las de módulos ocultos.
+ *
+ * El buscador listaba Publicidad y Notificaciones masivas aunque el menú las esconda (`modulos.ts`):
+ * quien buscaba «campaña» llegaba a una pantalla que oficialmente no existe.
+ */
+export function visibleViewLinks(
+  views: readonly AtlasViewLink[] = atlasViewLinks,
+  flags: { publicidad: boolean; notificaciones: boolean } = { publicidad: PUBLICIDAD_VISIBLE, notificaciones: NOTIFICACIONES_MASIVAS_VISIBLE },
+): AtlasViewLink[] {
+  return views.filter((view) => {
+    if (!flags.publicidad && view.phase === 'Ads') return false;
+    if (!flags.notificaciones && view.href.startsWith('/operaciones/admin/notificaciones')) return false;
+    return true;
+  });
 }

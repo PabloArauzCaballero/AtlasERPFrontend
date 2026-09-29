@@ -144,7 +144,7 @@ export default function CrmSegmentsPage() {
         fields: [
           {
             name: 'subject',
-            label: 'Agrupa a', tooltip: 'A quién agrupa el segmento: comercios, sucursales o usuarios.',
+            label: 'Agrupa a', tooltip: 'A quién agrupa el segmento: clientes que pidieron crédito, o comercios y aliados del CRM.',
             type: 'select',
             required: true,
             span: 2,

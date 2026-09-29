@@ -111,7 +111,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'xml',
           label: 'Descargar XML',
-          description: 'Descarga el archivo XML firmado que se envió a Impuestos, el que tiene validez legal.',
+          description: 'Descarga el XML del documento fiscal tal como lo generó el ERP. Sólo tiene validez legal si el modo de arriba dice que hay envío real a Impuestos.',
           icon: 'code',
           primary: true,
           silent: true,
@@ -122,7 +122,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
       notice={{
         tone: 'info',
         title: 'Qué es un documento fiscal',
-        body: 'Es la factura tal como la registró Impuestos Nacionales: número fiscal, código de autorización (CUF) y respuesta del SIN. Se crea sola al emitir la factura en el ERP; un documento no se edita: se anula ante Impuestos y se emite otro.',
+        body: 'Es la factura tal como la registró el servicio fiscal de este entorno: número fiscal, código de autorización (CUF) y su respuesta. Se crea sola al emitir la factura en el ERP; un documento no se edita: se anula y se emite otro. Mientras no haya envío real a Impuestos (ver el aviso de arriba), esos datos son de prueba.',
       }}
     />
   );

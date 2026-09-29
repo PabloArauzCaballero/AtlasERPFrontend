@@ -21,16 +21,16 @@ export default function B2BAccountsPage() {
        * no tenía de dónde sacar la plantilla. Ahora sale del mismo módulo que el formulario.
        */
       importar={{ entidad: 'empresas', fields: camposDeSecciones(seccionesAltaCuentaB2b), submit: b2bService.createAccount }}
-      searchPlaceholder="Buscar por nombre comercial, razón social o NIT..."
+      searchPlaceholder="Buscar por nombre, razón social, NIT, categoría, rubro o ciudad..."
       statusOptions={[
         { label: 'Lead', value: 'LEAD' }, { label: 'Calificada', value: 'QUALIFIED' },
         { label: 'Cliente', value: 'CUSTOMER' }, { label: 'Suspendida', value: 'SUSPENDED' },
         { label: 'Descalificada', value: 'DISQUALIFIED' },
       ]}
       filters={[
-        { key: 'category', label: 'Categoría', kind: 'text', placeholder: 'Filtrar categoría' },
-        { key: 'businessLine', label: 'Rubro', kind: 'text', placeholder: 'Filtrar rubro' },
-        { key: 'tag', label: 'Tag', kind: 'text', placeholder: 'Filtrar tag' },
+        { key: 'category', label: 'Categoría', kind: 'text', placeholder: 'Categoría contiene…', tooltip: 'Muestra las cuentas cuya categoría contiene lo que escribas, sin distinguir mayúsculas. Ej.: «restaur» encuentra «Restaurantes».' },
+        { key: 'businessLine', label: 'Rubro', kind: 'text', placeholder: 'Rubro contiene…', tooltip: 'Muestra las cuentas cuyo rubro contiene lo que escribas, sin distinguir mayúsculas.' },
+        { key: 'tag', label: 'Tag', kind: 'text', placeholder: 'Tag contiene…', tooltip: 'Muestra las cuentas con alguna etiqueta que contenga lo que escribas, sin distinguir mayúsculas.' },
         { key: 'includeArchived', label: 'Archivadas', kind: 'select', allLabel: 'Sin archivadas', options: [{ label: 'Con archivadas', value: 'true' }] },
       ]}
       columns={[
@@ -47,9 +47,11 @@ export default function B2BAccountsPage() {
       ]}
       metrics={[
         { label: 'Total cuentas', value: (_rows, total) => total.toLocaleString('es-BO'), detail: 'Directorio institucional', icon: 'groups' },
-        { label: 'Clientes activos', value: (rows) => rows.filter((row) => row.lifecycleStatus === 'CUSTOMER').length, detail: 'En la página actual', icon: 'storefront', tone: 'teal' },
-        { label: 'En calificación', value: (rows) => rows.filter((row) => row.lifecycleStatus === 'QUALIFIED' || row.lifecycleStatus === 'LEAD').length, detail: 'Requieren seguimiento', icon: 'fact_check', tone: 'amber' },
-        { label: 'Riesgo observado', value: (rows) => rows.filter((row) => String(row.riskTier ?? '').toUpperCase().includes('HIGH')).length, detail: 'Revisión manual', icon: 'shield', tone: 'red' },
+        // Las tres de abajo cuentan la PÁGINA cargada: el servidor no devuelve esos totales.
+        { label: 'Clientes activos', value: (rows) => rows.filter((row) => row.lifecycleStatus === 'CUSTOMER').length, soloPagina: true, icon: 'storefront', tone: 'teal' },
+        { label: 'En calificación', value: (rows) => rows.filter((row) => row.lifecycleStatus === 'QUALIFIED' || row.lifecycleStatus === 'LEAD').length, soloPagina: true, icon: 'fact_check', tone: 'amber' },
+        // Alto y crítico: con sólo `HIGH` un comercio CRITICAL no contaba como riesgo observado.
+        { label: 'Riesgo observado', value: (rows) => rows.filter((row) => /HIGH|CRITICAL/.test(String(row.riskTier ?? '').toUpperCase())).length, soloPagina: true, icon: 'shield', tone: 'red' },
       ]}
       detailHref={(row) => row.id ? `/operaciones/crm/cuentas/detalle?id=${String(row.id)}` : undefined}
       rowActions={(row) => {

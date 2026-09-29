@@ -64,12 +64,13 @@ export default function GlAccountsPage() {
         submit: async (payload) => { const created = await accountingService.createGlAccount(payload); setVersion((value) => value + 1); return created; },
       }}
       edit={{
-        description: 'El número de cuenta y su plan no se cambian: son la referencia de los asientos ya contabilizados.',
+        description: 'El número de cuenta, su plan, el tipo y la naturaleza no se cambian: son la referencia de los asientos ya contabilizados. Aquí se cambian el nombre y las exigencias de la cuenta.',
+        /*
+         * Sin Tipo ni Naturaleza: el formulario los ofrecía y el sistema los descartaba al guardar
+         * (no están entre los campos que admite la edición), así que «Cambios guardados» mentía.
+         */
         fields: [
           { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, span: 2 },
-          // `required` para que el select no ofrezca «— Sin definir —»: la cuenta siempre tiene tipo y naturaleza.
-          { name: 'accountType', label: 'Tipo', tooltip: 'Clase de cuenta (activo, pasivo, ingreso…); decide en qué estado financiero se presenta.', required: true, optionsSource: 'domain:accounting.glAccountType' },
-          { name: 'normalBalance', label: 'Naturaleza', tooltip: 'Saldo natural de la cuenta: deudor (activos, gastos) o acreedor (pasivos, ingresos).', required: true, optionsSource: 'domain:accounting.normalBalance' },
           ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, options: siNo })),
         ],
         submit: (id, payload) => accountingService.updateGlAccount(id, payload),

@@ -1,5 +1,6 @@
 'use client';
 
+import { tope } from '@/lib/topes';
 import { useCallback, useRef, useState } from 'react';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
@@ -19,6 +20,7 @@ import {
   importeLegible,
   motivoDeRevision,
 } from '@/lib/coberturaBnpl';
+import { DESCRIPCION_CONCILIACION, resumenDeConciliacion } from '@/lib/conciliacionB2b';
 import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
 import { loadB2BAccounts, loadMerchantBranches } from '@/services/optionLoaders';
@@ -131,17 +133,18 @@ export default function CoverageReconciliationPage() {
     key: 'conciliacion',
     label: 'Ejecutar conciliación',
     icon: 'sync_alt',
-    title: 'Ejecutar conciliación del período',
-    description: 'Cuadra lo cubierto, lo pagado y lo recuperado entre dos fechas.',
+    title: 'Buscar inconsistencias del período',
+    description: DESCRIPCION_CONCILIACION,
     submitLabel: 'Ejecutar',
     submit: async (payload: JsonObject) => {
       const resultado = await b2bService.createReconciliationRun(payload);
       recargar();
       return resultado;
     },
+    resultMessage: resumenDeConciliacion,
     fields: [
-      { name: 'periodStart', label: 'Desde', tooltip: 'Inicio del período de consumo que se factura.', type: 'date' as const, required: true },
-      { name: 'periodEnd', label: 'Hasta', tooltip: 'Fin del período de consumo que se factura, inclusive.', type: 'date' as const, required: true },
+      { name: 'periodStart', label: 'Desde', tooltip: 'Primer día del período revisado: compras confirmadas y coberturas pagadas desde esta fecha.', type: 'date' as const, required: true },
+      { name: 'periodEnd', label: 'Hasta', tooltip: 'Último día del período revisado, inclusive; los vencimientos se miran hasta esta fecha.', type: 'date' as const, required: true },
     ],
   };
 
@@ -228,6 +231,7 @@ export default function CoverageReconciliationPage() {
                 embedded
                 moduleLabel="CRM"
                 title="Coberturas programadas"
+                tope={tope('las 200 coberturas registradas más recientes')}
                 description="Lo que Atlas se ha comprometido a pagar al comercio por cuotas incumplidas."
                 load={cargarPayables}
                 labelKey="status"
@@ -261,6 +265,7 @@ export default function CoverageReconciliationPage() {
                 embedded
                 moduleLabel="CRM"
                 title="Cuotas de compras a plazo"
+                tope={tope('las 200 primeras: primero las pendientes, por vencimiento')}
                 description="El calendario del que salen las moras: es lo que decide si hay que cubrir."
                 load={cargarCuotas}
                 toolbarActions={[registrarCompra]}
@@ -315,6 +320,7 @@ export default function CoverageReconciliationPage() {
                 embedded
                 moduleLabel="CRM"
                 title="Cuotas en revisión"
+                tope={tope('las 200 más antiguas')}
                 description="Lo que el sistema no cubre solo: avisos de pago del cliente sin verificar a tiempo y coberturas que necesitan una persona."
                 load={cargarRevision}
                 labelKey="motivo"
@@ -346,6 +352,7 @@ export default function CoverageReconciliationPage() {
                 embedded
                 moduleLabel="CRM"
                 title="Recuperaciones abiertas"
+                tope={tope('las 200 recuperaciones más recientes')}
                 description="Lo cubierto por Atlas que todavía hay que recuperar del consumidor."
                 load={cargarRecuperaciones}
                 labelKey="recoveryStatus"

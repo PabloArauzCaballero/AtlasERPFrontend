@@ -55,6 +55,7 @@ export default function AdSegmentsPage() {
       title="Segmentos de audiencia"
       description="A quién alcanza cada conjunto de anuncios. Un conjunto sin segmento entrega a toda la audiencia."
       load={adsService.listSegments}
+      searchable={false}
       createLabel="Nuevo segmento"
       create={{
         icon: 'group_add',
@@ -126,14 +127,14 @@ export default function AdSegmentsPage() {
         {
           label: 'Activos',
           value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length,
-          detail: 'Aplicables en entrega',
+          soloPagina: true,
           icon: 'check_circle',
           tone: 'teal',
         },
         {
           label: 'Con lista de clientes',
           value: (rows) => rows.filter((row) => row.privacyLevel === 'HASHED_ALLOWLIST').length,
-          detail: 'Privacidad reforzada',
+          soloPagina: true,
           icon: 'lock',
           tone: 'amber',
         },

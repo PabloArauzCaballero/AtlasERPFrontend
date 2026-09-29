@@ -46,6 +46,7 @@ export default function AdsInventoryPage() {
                 title="Espacios publicitarios"
                 description="Cada espacio es un sitio donde se puede servir un anuncio. El código es lo que manda el ad server al pedirlo."
                 load={adsService.listInventory}
+      searchable={false}
                 createLabel="Nuevo espacio"
                 create={{
                   title: 'Nuevo espacio publicitario',
@@ -81,8 +82,8 @@ export default function AdsInventoryPage() {
                 ]}
                 metrics={[
                   { label: 'Espacios', value: (_rows, total) => total, detail: 'Sitios donde se puede servir', icon: 'space_dashboard' },
-                  { label: 'Activos', value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length, detail: 'Elegibles en la entrega', icon: 'check_circle', tone: 'teal' },
-                  { label: 'Por clic', value: (rows) => rows.filter((row) => row.billingModel === 'CPC').length, detail: 'El resto cobra por alcance', icon: 'ads_click', tone: 'purple' },
+                  { label: 'Activos', value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length, soloPagina: true, icon: 'check_circle', tone: 'teal' },
+                  { label: 'Por clic', value: (rows) => rows.filter((row) => row.billingModel === 'CPC').length, soloPagina: true, icon: 'ads_click', tone: 'purple' },
                 ]}
               />
             ),
@@ -98,6 +99,7 @@ export default function AdsInventoryPage() {
                 title="Políticas de contenido"
                 description="Qué se rechaza solo, qué obliga a revisión manual y qué corta la entrega."
                 load={adsService.listPolicies}
+      searchable={false}
                 createLabel="Nueva política"
                 create={{
                   title: 'Nueva política de contenido',
@@ -123,8 +125,8 @@ export default function AdsInventoryPage() {
                 ]}
                 metrics={[
                   { label: 'Políticas', value: (_rows, total) => total, detail: 'Reglas del catálogo', icon: 'policy' },
-                  { label: 'Rechazo automático', value: (rows) => rows.filter((row) => row.ruleType === 'AUTO_REJECT').length, detail: 'No pasan por revisión', icon: 'block', tone: 'red' },
-                  { label: 'Revisión manual', value: (rows) => rows.filter((row) => row.ruleType === 'MANUAL_REVIEW_REQUIRED').length, detail: 'Alimentan la cola de moderación', icon: 'rate_review', tone: 'amber' },
+                  { label: 'Rechazo automático', value: (rows) => rows.filter((row) => row.ruleType === 'AUTO_REJECT').length, soloPagina: true, icon: 'block', tone: 'red' },
+                  { label: 'Revisión manual', value: (rows) => rows.filter((row) => row.ruleType === 'MANUAL_REVIEW_REQUIRED').length, soloPagina: true, icon: 'rate_review', tone: 'amber' },
                 ]}
               />
             ),
@@ -140,6 +142,7 @@ export default function AdsInventoryPage() {
                 title="Auditoría del módulo"
                 description="Quién hizo qué: aprobaciones, cambios de estado, decisiones de moderación y cierres."
                 load={adsService.listAudit}
+      searchable={false}
                 columns={[
                   /* `created_at` y `actorUserId` tal y como los sirve el backend: con `createdAt`
                    * o `actorId` la columna sale vacía y la tabla parece rota teniendo datos. */
@@ -153,7 +156,7 @@ export default function AdsInventoryPage() {
                 ]}
                 metrics={[
                   { label: 'Eventos', value: (_rows, total) => total, detail: 'Rastro del módulo', icon: 'history' },
-                  { label: 'Críticos', value: (rows) => rows.filter((row) => row.severity === 'CRITICAL').length, detail: 'Página actual', icon: 'priority_high', tone: 'red' },
+                  { label: 'Críticos', value: (rows) => rows.filter((row) => row.severity === 'CRITICAL').length, soloPagina: true, icon: 'priority_high', tone: 'red' },
                 ]}
               />
             ),

@@ -19,10 +19,10 @@ export const seccionesAltaAnunciante: FormSectionDefinition[] = [
        * Categoría, país, ciudad, modalidad y moneda salen de su dominio o catálogo: la categoría era
        * texto libre y el backend rechaza con 400 lo que no esté en `crm.merchantCategory`.
        */
-      { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón.', required: true },
+      { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. No se consulta el padrón de Impuestos: cópialo tal cual figura en el documento.', required: true },
       { name: 'businessCategory', label: 'Categoría de negocio', tooltip: 'Rubro principal del negocio; agrupa la cartera y decide las reglas de comisión que le aplican.', optional: true, optionsSource: 'domain:crm.merchantCategory' },
       { name: 'country', label: 'País', tooltip: 'País donde opera y tributa el negocio; decide moneda, impuestos y formatos de documento.', required: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
-      { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, optionsSource: 'catalog:city' },
+      { name: 'city', label: 'Ciudad', tooltip: 'Ciudad donde está la sede principal; queda registrada en la ficha.', optional: true, optionsSource: 'catalog:city' },
       { name: 'websiteUrl', label: 'Sitio web', tooltip: 'Dirección web pública del anunciante, con https://. Sirve para verificar la marca antes de aprobar creatividades.', type: 'url', optional: true, span: 2 },
     ],
   },

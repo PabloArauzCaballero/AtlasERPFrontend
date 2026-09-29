@@ -42,9 +42,9 @@ export default function AdvertisersPage() {
       ]}
       metrics={[
         { label: 'Anunciantes', value: (_rows, total) => total, detail: 'Directorio consolidado', icon: 'business' },
-        { label: 'Activos', value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length, detail: 'Página actual', icon: 'verified', tone: 'teal' },
-        { label: 'Riesgo pendiente', value: (rows) => rows.filter((row) => String(row.riskStatus).includes('PENDING')).length, detail: 'Revisión requerida', icon: 'shield', tone: 'amber' },
-        { label: 'Postpago', value: (rows) => rows.filter((row) => row.billingMode === 'POSTPAID').length, detail: 'Exposición comercial', icon: 'receipt_long', tone: 'purple' },
+        { label: 'Activos', value: (rows) => rows.filter((row) => row.status === 'ACTIVE').length, soloPagina: true, icon: 'verified', tone: 'teal' },
+        { label: 'Riesgo pendiente', value: (rows) => rows.filter((row) => String(row.riskStatus).includes('PENDING')).length, soloPagina: true, icon: 'shield', tone: 'amber' },
+        { label: 'Postpago', value: (rows) => rows.filter((row) => row.billingMode === 'POSTPAID').length, soloPagina: true, icon: 'receipt_long', tone: 'purple' },
       ]}
       /*
        * Las dos operaciones que el backend ofrecía sobre un anunciante y ninguna pantalla llamaba:
@@ -81,12 +81,12 @@ export default function AdvertisersPage() {
             description: 'Los datos con los que se le emite la factura. Un anunciante puede tener varios perfiles; el marcado por defecto es el que se usa.',
             fields: [
               { name: 'fiscalName', label: 'Razón social fiscal', tooltip: 'Razón social exacta para la factura fiscal; un error aquí invalida la factura ante Impuestos.', required: true, span: 2 },
-              { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. Se valida contra el padrón.', required: true },
+              { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones. Ej.: 1023456019. No se consulta el padrón de Impuestos: cópialo tal cual figura en el documento.', required: true },
               { name: 'billingEmail', label: 'Correo de facturación', tooltip: 'Correo al que se envían las facturas y avisos de cobro. Ej.: pagos@empresa.bo.', type: 'email', required: true, span: 2 },
               // El régimen es un dominio cerrado (sus códigos llevan espacios: «REGIMEN GENERAL»); como texto libre, el backend lo rechazaba.
               { name: 'taxRegime', label: 'Régimen tributario', tooltip: 'Régimen tributario del anunciante; decide si la factura lleva IVA y qué retenciones aplican.', optional: true, optionsSource: 'domain:ads.taxRegime' },
               { name: 'addressLine', label: 'Dirección', tooltip: 'Calle, número y zona de la dirección fiscal. Ej.: Av. Banzer 1500, Equipetrol.', optional: true, span: 2 },
-              { name: 'city', label: 'Ciudad', tooltip: 'Ciudad de la sede principal; sirve para asignar ejecutivo y zona de cobertura.', optional: true, optionsSource: 'catalog:city' },
+              { name: 'city', label: 'Ciudad', tooltip: 'Ciudad donde está la sede principal; queda registrada en la ficha.', optional: true, optionsSource: 'catalog:city' },
               { name: 'country', label: 'País', tooltip: 'País donde opera y tributa el negocio; decide moneda, impuestos y formatos de documento.', optional: true, defaultValue: 'BO', optionsSource: 'catalog:country' },
               // Lo asigna el SIN, fuera de Atlas: se copia tal cual y no hay dominio que ofrecer.
               { name: 'sinCustomerCode', label: 'Código de cliente SIN', tooltip: 'Código de cliente que asigna el Servicio de Impuestos Nacionales; va impreso en la factura.', optional: true },

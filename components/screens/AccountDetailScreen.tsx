@@ -136,7 +136,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
                 </div>
               </Panel>
               <Panel title="Historial de acciones" icon="history_edu">
-                <div className="space-y-4 text-xs"><Timeline label="Consulta de expediente" detail="La información visible es la que hay registrada ahora mismo." /><Timeline label="Trazabilidad protegida" detail="Cada cambio queda anotado en el registro de actividad." /><Timeline label="PII enmascarada" detail="NIT, teléfono y correo se presentan parcialmente." /></div>
+                <div className="space-y-4 text-xs"><Timeline label="Consulta de expediente" detail="La información visible es la que hay registrada ahora mismo." /><Timeline label="Trazabilidad" detail="Quedan anotados el alta, la edición, el archivo, la restauración y la calificación de la cuenta. Los contactos, etiquetas y actividades no se anotan." /><Timeline label="PII enmascarada" detail="NIT, teléfono y correo se presentan parcialmente." /></div>
               </Panel>
             </aside>
           </div>
@@ -175,7 +175,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
             /* Cargo y rol en la decisión son vocabularios cerrados (los mismos del alta de la cuenta):
                como texto libre, la cartera no se podía agrupar por interlocutor. */
             { name: 'roleTitle', label: 'Cargo', tooltip: 'Cargo que ocupa en la empresa; ayuda a saber a quién dirigirse en cada tema.', optional: true, optionsSource: 'domain:crm.contactRoleTitle' },
-            { name: 'email', label: 'Correo', tooltip: 'Correo de la persona; recibe avisos y sirve para identificarla. Ej.: nombre@empresa.bo.', type: 'email', optional: true, span: 2 },
+            { name: 'email', label: 'Correo', tooltip: 'Correo de la persona, para contactarla e identificarla. El sistema no le envía avisos automáticos. Ej.: nombre@empresa.bo.', type: 'email', optional: true, span: 2 },
             { name: 'phone', label: 'Teléfono', tooltip: 'Teléfono con código de país, sin espacios. Ej.: +59170012345.', optional: true },
             { name: 'decisionRole', label: 'Rol en la decisión', tooltip: 'Cuánto pesa esta persona en la decisión de compra; orienta a quién hay que convencer.', optional: true, optionsSource: 'domain:crm.decisionRole' },
             {

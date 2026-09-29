@@ -13,6 +13,7 @@ import { InlineActionForm } from '@/components/screens/InlineActionForm';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useOptions } from '@/hooks/useOptions';
 import { formatDate, statusTone } from '@/lib/formatters';
+import { etiquetaEstadoCorreo } from '@/lib/estadoCorreo';
 import { adsService } from '@/services/adsService';
 import { domainLoader } from '@/services/domains';
 import { loadCampaigns } from '@/services/optionLoaders';
@@ -162,7 +163,7 @@ export function AdsEmailScreen() {
                           datos={[
                             { label: 'Mensajes', value: n(seguimiento.total) },
                             ...Object.entries(porEstado).map(([estado, cantidad]) => ({
-                              label: estado.replaceAll('_', ' '),
+                              label: etiquetaEstadoCorreo(estado),
                               value: cantidad,
                               alerta: estado === 'FAILED',
                             })),
@@ -176,7 +177,7 @@ export function AdsEmailScreen() {
                             {mensajes.map((row) => (
                               <div key={s(row.id)} className="grid grid-cols-[1.4fr_1fr_0.6fr_1fr_1.4fr] items-center px-4 py-2 text-xs">
                                 <span className="truncate font-mono text-[11px] text-slate-600">{s(row.recipientReference) || '—'}</span>
-                                <span><StatusPill tone={statusTone(row.status)}>{s(row.status)}</StatusPill></span>
+                                <span><StatusPill tone={s(row.status) === 'SIMULATED' ? 'warning' : statusTone(row.status)}>{etiquetaEstadoCorreo(s(row.status))}</StatusPill></span>
                                 <span className="text-right tabular-nums text-slate-600">{n(row.attempts)}</span>
                                 <span className="text-slate-600">{row.sentAt ? formatDate(s(row.sentAt)) : '—'}</span>
                                 <span className="truncate text-slate-500">{s(row.error) || '—'}</span>

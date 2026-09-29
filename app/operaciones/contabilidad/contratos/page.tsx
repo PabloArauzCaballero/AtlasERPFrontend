@@ -85,8 +85,9 @@ export default function AccountingContractsPage() {
         },
       }}
       edit={{
-        description: 'Con quién se firma y qué empresa firma no se cambian: eso movería el contrato de libro contable.',
+        description: 'La empresa que firma no se cambia: eso movería el contrato de libro contable. La contraparte sí se puede corregir si se registró la equivocada.',
         fields: [
+          { name: 'counterpartyBpId', label: 'Con quién se firma', tooltip: 'La otra parte del contrato. Corrígela sólo si se registró la equivocada: el contrato sigue en el mismo libro.', type: 'select', required: true, span: 2, optionsLoader: loadBusinessPartners },
           { name: 'contractNo', label: 'Número de contrato', tooltip: 'Número del contrato tal como figura en el documento firmado.', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
           { name: 'contractType', label: 'Tipo', tooltip: 'Naturaleza del contrato (servicio, licencia, arrendamiento…); decide términos y cuentas.', required: true, optionsSource: 'domain:accounting.contractType' },
           { name: 'startDate', label: 'Fecha inicial', tooltip: 'Fecha en que entra en vigor.', type: 'date', required: true },

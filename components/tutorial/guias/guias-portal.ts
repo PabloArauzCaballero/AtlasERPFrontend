@@ -113,7 +113,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
       {
         title: 'Qué puedes corregir y qué no',
         body: 'El nombre comercial, el rubro y el teléfono los cambias cuando quieras, incluso con el negocio ya aprobado: son datos que se mueven con el negocio vivo. La razón social, el NIT y la matrícula no, porque son contra lo que Atlas verificó que tu empresa es tu empresa.',
-        tip: 'El rubro no es decorativo: agrupa tu cartera y entra en el cálculo de tu comisión.',
+        tip: 'El rubro describe tu negocio en tu ficha; tenlo al día para que Atlas sepa a qué te dedicas.',
       },
       {
         title: 'El QR de cada caja está en la tabla, sin abrir nada',
@@ -129,8 +129,8 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
         body: 'Dentro del cuadro no va el nombre de tu negocio: va el código de esa caja, y el nombre lo pone Atlas cuando el teléfono lo consulta. Es lo que impide que alguien imprima un QR con tu nombre y cobre por ti.',
       },
       {
-        title: 'Un terminal suspendido deja de cobrar en el acto',
-        body: 'Si pierdes un equipo o cierras una caja, cámbiale el estado: desde ese momento el teléfono del cliente rechaza ese código, aunque el cartel siga pegado en la pared.',
+        title: 'Un terminal suspendido ya no sirve para pedir compras',
+        body: 'Si pierdes un equipo o cierras una caja, cámbiale el estado: desde ese momento el cliente ya no puede pedir una compra con el QR de esa caja, aunque el cartel siga pegado en la pared.',
       },
       {
         title: 'De la sucursal cuelga todo lo demás',

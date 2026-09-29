@@ -182,7 +182,7 @@ function LoginForm() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <FormField tooltip="Correo de la persona; recibe avisos y sirve para identificarla. Ej.: nombre@empresa.bo."
+                <FormField tooltip="El correo con el que te dieron de alta; es tu usuario para entrar. Ej.: nombre@empresa.bo."
                   label={copy.emailLabel}
                   name="email"
                   type="email"

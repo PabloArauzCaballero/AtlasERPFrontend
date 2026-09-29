@@ -17,12 +17,12 @@ export const camposPropuesta: ActionField[] = [
 
 /** Una condición de la propuesta: una fila de la hoja por condición. */
 export const camposLineaPropuesta: ActionField[] = [
-  { name: 'termType', label: 'Tipo de condición', tooltip: 'Qué se cobra: comisión por transacción (MDR), cuota fija, alquiler de terminal…', type: 'select', required: true, defaultValue: 'MDR', optionsSource: 'domain:crm.termType' },
+  { name: 'termType', label: 'Tipo de condición', tooltip: 'Qué se pacta. Sólo la comisión por venta (MDR) genera cobros; las demás (cuota fija, cargos, mínimo) se guardan como condición pactada y no se cobran solas.', type: 'select', required: true, defaultValue: 'MDR', optionsSource: 'domain:crm.termType' },
   { name: 'description', label: 'Descripción', tooltip: 'Cómo se le explica la condición al comercio.', required: true },
   { name: 'ratePercent', label: 'Porcentaje', tooltip: 'Porcentaje de la condición, si se cobra como comisión. Una condición lleva porcentaje o importe fijo.', type: 'number', valueKind: 'number', optional: true },
-  { name: 'fixedAmount', label: 'Importe fijo', tooltip: 'Importe fijo de la condición, si no se cobra como porcentaje.', type: 'number', valueKind: 'number', optional: true },
-  { name: 'billingTiming', label: 'Cuándo se cobra', tooltip: 'En qué momento se cobra la condición: por transacción, mensual…', type: 'select', required: true, defaultValue: 'PER_TRANSACTION', optionsSource: 'domain:crm.billingTiming' },
-  { name: 'minimumMonthlyAmount', label: 'Mínimo mensual', tooltip: 'Importe mínimo que se factura al mes por esta condición, aunque no se alcance con el volumen.', type: 'number', valueKind: 'number', optional: true },
+  { name: 'fixedAmount', label: 'Importe fijo', tooltip: 'Importe fijo pactado, si la condición no es un porcentaje. Informativo: el sistema no lo cobra solo.', type: 'number', valueKind: 'number', optional: true },
+  { name: 'billingTiming', label: 'Cuándo se cobra', tooltip: 'Cuándo se pactó cobrar la condición. Informativo: hoy la comisión se devenga en cada venta y se factura en el cierre mensual.', type: 'select', required: true, defaultValue: 'PER_TRANSACTION', optionsSource: 'domain:crm.billingTiming' },
+  { name: 'minimumMonthlyAmount', label: 'Mínimo mensual', tooltip: 'Piso mensual pactado. Informativo: hoy el cierre no completa la comisión hasta ese mínimo.', type: 'number', valueKind: 'number', optional: true },
 ];
 
 /** La moneda de las líneas la pone la pantalla de alta y no se pide: todas las propuestas van en BOB. */
