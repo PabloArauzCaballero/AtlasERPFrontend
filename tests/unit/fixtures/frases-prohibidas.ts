@@ -32,6 +32,7 @@ export const FRASES_PROHIBIDAS: ReadonlyArray<{ frase: string; motivo: string }>
   { frase: 'valen igual', motivo: 'Una factura fuera de línea sin envío real no tiene validez fiscal.' },
   { frase: 'lo renueva solo cada día', motivo: 'El CUFD se pide cuando hace falta para emitir, sin tarea diaria.' },
   { frase: 'Cuadra lo cubierto, lo pagado y lo recuperado', motivo: 'La conciliación busca inconsistencias internas; no cuadra contra el dinero recibido.' },
+  { frase: 'Cada factura enviada a Impuestos Nacionales', motivo: 'Con el emulador o apagada ninguna factura llega a Impuestos Nacionales.' },
   { frase: 'Todo lo facturado a comercios', motivo: 'El listado se corta en las 200 facturas más recientes.' },
   { frase: 'MFA obligatorio para roles privilegiados', motivo: 'Panel de tildes fijas que no leía ninguna configuración.' },
   { frase: 'queda registrada en la auditoría', motivo: 'Un borrado genérico no deja fila en ningún registro de auditoría.' },

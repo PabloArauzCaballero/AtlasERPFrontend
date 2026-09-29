@@ -37,7 +37,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
       embedded
       moduleLabel="Contabilidad"
       title="Documentos fiscales"
-      description="Cada factura enviada a Impuestos Nacionales, con su número fiscal y lo que respondió."
+      description="El documento fiscal de cada factura del ERP, con su número fiscal y lo que respondió el servicio fiscal de este entorno (el modo está arriba)."
       load={load}
       labelKey="numeroFactura"
       searchPlaceholder="Buscar por número, cliente o NIT…"
@@ -60,7 +60,7 @@ export function DocumentosFiscalesPanel({ activo }: Readonly<{ activo: boolean }
         {
           key: 'reintentar',
           label: 'Reintentar envío',
-          description: 'Vuelve a enviar a Impuestos una factura que falló, con el mismo número y código de autorización.',
+          description: 'Vuelve a enviar al servicio fiscal una factura que falló, con el mismo número y código de autorización.',
           icon: 'send',
           primary: true,
           enabled: (row) => row.siatStatus === 'ERROR',

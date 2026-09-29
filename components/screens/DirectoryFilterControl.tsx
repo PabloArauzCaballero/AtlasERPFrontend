@@ -65,6 +65,8 @@ export function DirectoryFilterControl({
   );
   return (
     <div className="flex items-center" data-tutorial-id={`directory-filter-${filter.key}`}>
+      {/* Un campo de fecha sólo enseña «dd/mm/aaaa»: sin su nombre, «Desde» y «Hasta» no se distinguen. */}
+      {filter.kind === 'date' ? <span className="mr-1.5 text-[11px] font-bold text-slate-600" aria-hidden="true">{filter.label}</span> : null}
       {control}
       {filter.tooltip ? <FieldTooltip text={filter.tooltip} label={filter.label} describedById={ayudaId} /> : null}
     </div>
