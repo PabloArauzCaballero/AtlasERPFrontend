@@ -75,10 +75,10 @@ export const TOURS_INTRODUCCION: readonly InteractiveTutorial[] = [
       {
         id: 'metricas',
         route: '/operaciones/crm/cuentas',
-        target: '[data-tutorial-id="directory-metrics"]',
+        target: '[data-tutorial-id="resumen"]',
         title: 'Primero, el resumen',
         content:
-          'Los indicadores de arriba cuentan lo que hay en el listado. Sirven para saber si el filtro que vas a aplicar tiene sentido antes de aplicarlo.',
+          'Los números de arriba resumen el listado. Fíjate en lo que dice bajo cada uno: los que ponen «en esta página» sólo cuentan las filas que estás viendo, no todo el listado.',
       },
       {
         id: 'buscar',

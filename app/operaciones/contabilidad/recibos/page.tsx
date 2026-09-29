@@ -6,6 +6,7 @@ import { useOptions } from '@/hooks/useOptions';
 import { camposAsignacionRecibo, camposRecibo } from '@/components/screens/altas/recibo';
 import { accountingService } from '@/services/accountingService';
 import { domainLoader } from '@/services/domains';
+import { accionReversarAsiento, motivoParaNoBorrar } from '@/components/screens/altas/rastroContable';
 
 /**
  * Recibos: el listado es la pantalla, y el alta —con sus asignaciones a facturas— va a su propia
@@ -52,7 +53,7 @@ export default function ReceiptsPage() {
         },
       }}
       edit={{
-        description: 'El monto y las asignaciones no se editan aquí: eso descuadraría el asiento ya contabilizado.',
+        description: 'Aquí se cambian la fecha y el estado del recibo. El monto y las facturas a las que se aplicó no se editan: eso descuadraría el asiento ya contabilizado.',
         fields: [
           // El número es el correlativo del sistema (REC-…, por entidad legal): se enseña, no se edita.
           { name: 'receiptNo', label: 'Número de recibo', tooltip: 'Número del recibo; lo asigna el sistema al guardar.', assignedByBackend: true, hint: 'Asignado por el sistema; no se cambia.' },
@@ -62,9 +63,11 @@ export default function ReceiptsPage() {
         ],
         submit: (id, payload) => accountingService.updateReceipt(id, payload),
       }}
+      extraActions={[accionReversarAsiento('recibo')]}
       remove={{
         submit: (id) => accountingService.deleteReceipt(id),
-        warning: 'Si el recibo ya estaba aplicado, las facturas vuelven a quedar abiertas.',
+        warning: 'Sólo se borra un recibo en borrador, sin asiento ni facturas aplicadas.',
+        blockedReason: (row) => motivoParaNoBorrar(row, 'recibo'),
       }}
     />
   );

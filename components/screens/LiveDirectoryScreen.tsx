@@ -26,6 +26,7 @@ import { useExcelImport, type ExcelImportSpec } from './useExcelImport';
 import type { ActionField } from './StructuredActionForm';
 import type { JsonObject } from '@/services/types';
 import { ScreenState } from '@/components/ui/ScreenState';
+import { DirectoryFilterControl, type DirectoryFilter } from './DirectoryFilterControl';
 
 export interface DirectoryColumn {
   key: string;
@@ -49,25 +50,17 @@ interface MetricDefinition {
    * no se pintan; declararlos en uno nuevo es trabajo que no llega a la pantalla.
    */
   detail?: string;
+  /**
+   * El número se calcula con las filas de la PÁGINA cargada, no con el total. Se rotula «en esta
+   * página» bajo el número: sin eso, «Fallaron: 0» se leía como que no había fallado nada, y sólo
+   * se habían mirado veinticinco filas.
+   */
+  soloPagina?: boolean;
   icon?: string;
   tone?: 'navy' | 'teal' | 'amber' | 'red' | 'purple';
 }
 
-export interface DirectoryFilter {
-  key: string;
-  label: string;
-  kind?: 'select' | 'text';
-  placeholder?: string;
-  options?: Array<{ label: string; value: string }>;
-  /**
-   * Qué dice la opción de «sin filtrar» cuando «Todo: <etiqueta>» no se lee bien.
-   *
-   * La plantilla genérica sirve para un criterio con valores («Todo: Categoría»), pero no para uno
-   * que es un sí/no: el filtro de archivadas anunciaba «Todos: Archivadas» —que suena a que las está
-   * mostrando— justo cuando las está ocultando.
-   */
-  allLabel?: string;
-}
+export type { DirectoryFilter } from './DirectoryFilterControl';
 
 export interface RowAction {
   key: string;
@@ -138,6 +131,11 @@ interface LiveDirectoryScreenProps {
    */
   embedded?: boolean | undefined;
   searchPlaceholder?: string;
+  /**
+   * `false` quita la caja de búsqueda: para los listados cuyo servidor no busca por texto. Una caja
+   * que no filtra nada es peor que ninguna (el registro de actividad la tenía y se descartaba).
+   */
+  searchable?: boolean;
   /** Filtro simple por estado. Se combina con `filters` (equivale a un filtro de key `status`). */
   statusOptions?: Array<{ label: string; value: string }>;
   /** Filtros dinámicos adicionales (accountType, partnerType, kybStatus, etc.). */
@@ -400,17 +398,19 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         />
       )}
 
-      <Resumen datos={props.metrics.slice(0, 4).map((metric) => ({ label: metric.label, value: metric.value(rows, total) }))} />
+      <Resumen datos={props.metrics.slice(0, 4).map((metric) => ({ label: metric.label, value: metric.value(rows, total), ...(metric.soloPagina ? { nota: 'en esta página' } : {}) }))} />
 
       <Panel compact>
         <div data-tutorial-id="directory-filters" className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 sm:basis-56 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-primary/15">
-              <Icon name="search" className="text-[18px] text-slate-500" />
-              <input data-tutorial-id="directory-search" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
-            </label>
+            {props.searchable === false ? null : (
+              <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 sm:basis-56 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-primary/15">
+                <Icon name="search" className="text-[18px] text-slate-500" />
+                <input data-tutorial-id="directory-search" data-testid="directorio-buscar" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
+              </label>
+            )}
             {effectiveFilters.map((filter) => (
-              filter.kind === 'text' ? <input key={filter.key} aria-label={filter.label} placeholder={filter.placeholder ?? filter.label} className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700" value={filterValues[filter.key] ?? ''} onChange={(event) => setFilterValues((current) => ({ ...current, [filter.key]: event.target.value }))} /> : <OptionSelect key={filter.key} name={`filtro-${filter.key}`} ariaLabel={filter.label} compact className="min-w-44" value={filterValues[filter.key] ?? ''} onChange={(value) => setFilterValues((current) => ({ ...current, [filter.key]: value }))} options={[{ value: '', label: filter.allLabel ?? `Todo: ${filter.label}`, description: 'Sin filtrar por este criterio.' }, ...(filter.options ?? [])]} />
+              <DirectoryFilterControl key={filter.key} filter={filter} value={filterValues[filter.key] ?? ''} onChange={(value) => setFilterValues((current) => ({ ...current, [filter.key]: value }))} />
             ))}
           </div>
           <div className="flex shrink-0 items-center gap-2">

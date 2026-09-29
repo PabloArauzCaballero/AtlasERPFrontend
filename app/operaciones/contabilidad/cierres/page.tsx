@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { accountingService } from '@/services/accountingService';
 import type { ResourceRow } from '@/services/types';
+import { resumenDelCierre, TEXTO_CONFIRMAR_CIERRE } from '@/lib/cierreContable';
 
 /** El backend deja cerrar sólo un período abierto, y reabrir sólo uno que no lo esté. */
 const abierto = (row: ResourceRow) => row.isOpen === true && String(row.closeStatus ?? '') === 'OPEN';
@@ -52,38 +53,41 @@ export default function PeriodClosingPage() {
       notice={{
         tone: 'info',
         title: 'El cierre no es un borrado',
-        body: 'Cerrar un período no elimina nada: bloquea nuevas contabilizaciones con esa fecha. Por eso aquí no hay papelera, sino el candado de cada fila: cerrar si está abierto, reabrir si no.',
+        body: 'Cerrar un período no elimina nada: bloquea nuevas contabilizaciones con esa fecha, después de comprobar que no quedan documentos del período en borrador. No liquida impuestos ni traslada el resultado. Por eso aquí no hay papelera, sino el candado de cada fila: cerrar si está abierto, reabrir si no.',
       }}
       extraActions={[
         {
           key: 'cerrar',
           label: 'Cerrar período',
-          description: 'Cierra el mes o el ejercicio: desde ahí nadie puede registrar asientos con fecha de ese período.',
+          description: 'Congela el período: desde ahí nadie puede registrar asientos con fecha de ese período.',
           icon: 'lock',
           enabled: abierto,
-          form: {
-            title: (row) => `Cerrar el período ${String(row.periodNo ?? '')}`,
-            description: 'Bloquea nuevas contabilizaciones en el período. Antes de cerrarlo se comprueban los controles de cierre.',
-            fields: [
-              { name: 'closeType', label: 'Qué se cierra', tooltip: 'El mes, o el ejercicio entero. Cerrar el año es lo que se hace una vez, al terminar el ejercicio.', required: true, span: 2, defaultValue: 'MONTHLY', optionsSource: 'domain:accounting.periodCloseType' },
-            ],
-            submit: async (row, payload) =>
-              accountingService.closePeriod({ legalEntityId: await entidadLegalDe(row), periodId: String(row.id ?? ''), closeType: String(payload.closeType ?? 'MONTHLY') }),
-            submitLabel: 'Cerrar período',
+          /*
+           * Sin «Qué se cierra» (mensual / anual). El cierre anual prometía liquidar el IUE y trasladar
+           * el resultado, y el sistema no hace ninguna de las dos cosas: los dos tipos congelan el
+           * período igual. Pedir una elección que no cambia nada invita a creer que sí.
+           */
+          confirm: {
+            title: 'Cerrar el período',
+            message: TEXTO_CONFIRMAR_CIERRE,
+            confirmLabel: 'Sí, cerrar',
           },
+          run: async (row) =>
+            accountingService.closePeriod({ legalEntityId: await entidadLegalDe(row), periodId: String(row.id ?? ''), closeType: 'MONTHLY' }),
+          resultMessage: (resultado, row) => ({ title: `Período ${String(row.periodNo ?? '')} cerrado`, body: resumenDelCierre(resultado) }),
         },
         {
           key: 'reabrir',
           label: 'Reabrir período',
-          description: 'Vuelve a abrir un período cerrado para corregir algo. Exige un motivo y queda en la auditoría.',
+          description: 'Vuelve a abrir un período cerrado para corregir algo. Exige un motivo, que queda en el registro de actividad con quién lo reabrió.',
           icon: 'lock_open',
           tone: 'danger',
           enabled: (row) => !abierto(row),
           form: {
             title: (row) => `Reabrir el período ${String(row.periodNo ?? '')}`,
-            description: 'Rehabilita temporalmente un período cerrado. Exige motivo documentado y queda en auditoría.',
+            description: 'Rehabilita un período cerrado hasta que se vuelva a cerrar. Lo autoriza una sola persona con el rol adecuado; el motivo y quién reabrió quedan en el registro de actividad.',
             fields: [
-              { name: 'reason', label: 'Motivo documentado', tooltip: 'Por qué se cierra o reabre el período; lo exige auditoría.', type: 'textarea', required: true, span: 3, placeholder: 'Mínimo 5 caracteres: qué hay que corregir y quién lo autorizó.' },
+              { name: 'reason', label: 'Motivo documentado', tooltip: 'Por qué se reabre el período y quién lo autorizó; queda escrito en el registro de actividad.', type: 'textarea', required: true, span: 3, placeholder: 'Mínimo 5 caracteres: qué hay que corregir y quién lo autorizó.' },
             ],
             submit: (row, payload) => accountingService.reopenPeriod({ periodId: String(row.id ?? ''), reason: String(payload.reason ?? '') }),
             submitLabel: 'Reabrir período',

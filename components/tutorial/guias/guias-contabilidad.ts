@@ -192,11 +192,11 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/contabilidad/contratos': {
     eyebrow: 'Contabilidad',
     title: 'Contratos contables',
-    intro: 'Registra cabeceras de contrato y sus términos versionados para facturación recurrente.',
+    intro: 'Registra cabeceras de contrato y sus términos versionados, como referencia de lo pactado.',
     sections: [
       {
         title: 'Para qué sirve un contrato contable',
-        body: 'Es la base de lo que se factura periódicamente sin volver a teclearlo: alquileres, servicios, préstamos, intercompany.',
+        body: 'Deja constancia de lo pactado (alquileres, servicios, préstamos, intercompany) y de él cuelgan los eventos facturables. El sistema no emite facturas periódicas solo: cada factura se emite a mano desde «Factura por cobrar».',
       },
       {
         title: 'Los términos se versionan',
@@ -237,15 +237,15 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/contabilidad/factura-ar': {
     eyebrow: 'Contabilidad',
     title: 'Factura por cobrar (AR)',
-    intro: 'Emite una factura a un cliente y genera su asiento de cliente, ingresos e impuestos.',
+    intro: 'Emite una factura a un cliente y contabiliza su asiento de cliente, ingresos e impuestos.',
     sections: [
       {
         title: 'Una factura es un asiento con formato',
-        body: 'Al emitirla se propone el asiento correspondiente: cliente al debe, ingreso e impuesto al haber. Revisar esa propuesta antes de confirmar es el control principal de esta pantalla.',
+        body: 'Al emitirla el sistema contabiliza directamente su asiento: cliente al debe, ingreso e impuesto al haber. No hay un paso de revisión previo, así que el control está en revisar los importes y la cuenta de ingreso antes de pulsar «Emitir factura».',
       },
       {
-        title: 'El impuesto sale del código tributario',
-        body: 'No se teclea el importe: se elige el código y el sistema calcula con la tasa vigente en la fecha de la factura.',
+        title: 'El impuesto se teclea',
+        body: 'El importe del impuesto se escribe en el formulario junto al neto; el sistema no lo calcula. Comprueba que corresponde a la tasa vigente en la fecha de la factura.',
       },
       {
         title: 'Emitida no es cobrada',
@@ -257,23 +257,24 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/contabilidad/facturacion-electronica': {
     eyebrow: 'Contabilidad',
     title: 'Facturación electrónica',
-    intro: 'Cada factura del ERP tal como la ve Impuestos Nacionales: si la validó, con qué número fiscal y qué respondió.',
+    intro: 'El documento fiscal de cada factura del ERP y lo que respondió el servicio de Impuestos con el que está conectado este entorno.',
     sections: [
       {
-        title: 'La factura se envía sola',
-        body: 'Al emitir una factura en el ERP nace su documento fiscal y el sistema lo envía a Impuestos en segundos. Aquí no se emite nada: se vigila. «Validada por Impuestos» es la única que respalda crédito fiscal.',
+        title: 'Mira primero el modo, arriba',
+        body: 'Hoy ningún entorno envía facturas a Impuestos Nacionales: o la facturación electrónica está apagada, o trabaja contra un emulador de pruebas. El aviso de arriba dice cuál. Con el emulador, «Validada» y el código de autorización son simulados y no tienen validez fiscal.',
       },
       {
         title: 'Si algo falla, se ve en la fila',
-        body: 'Un «Error de envío» se reintenta solo; «Reintentar envío» sólo lo adelanta. Una factura validada u observada se anula ante Impuestos desde su fila, con el motivo de su catálogo, hasta el día 9 del mes siguiente y si no tiene cobros.',
+        body: 'Un «Error de envío» se reintenta solo en la siguiente pasada del sistema; «Reintentar envío» sólo lo adelanta. La anulación se pide desde la fila, con el motivo de su catálogo, hasta el día 9 del mes siguiente y si no tiene cobros.'+
+          ' Con el emulador también la anulación es simulada.',
       },
       {
         title: 'El emisor y sus códigos',
-        body: 'Cada empresa factura con su NIT, sucursal y punto de venta. El sistema pide y renueva los códigos de autorización (CUIS y CUFD); en «Emisor y credenciales» se ve su vigencia y se piden a mano si hace falta.',
+        body: 'Cada empresa factura con su NIT, sucursal y punto de venta. El código diario (CUFD) se pide cuando hace falta para emitir, no con una tarea programada; en «Emisor y credenciales» se ve su vigencia y se pide a mano si hace falta.',
       },
       {
-        title: 'Sin conexión también se factura',
-        body: 'Si Impuestos no responde, las facturas se emiten fuera de línea y valen igual. Al volver la conexión viajan en paquetes: eso es «Contingencias».',
+        title: 'Contingencias',
+        body: 'Si el servicio de Impuestos no responde, el sistema abre una contingencia y las facturas quedan pendientes de enviarse en paquete cuando vuelva. Mientras no haya envío real a Impuestos, esto también ocurre sólo contra el emulador.',
       },
     ],
   },
@@ -293,7 +294,7 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Cada fila del listado es un cobro real',
-        body: 'El historial de abajo es de consulta: los recibos, como los asientos, no se editan.',
+        body: 'Del recibo sólo se cambian la fecha y el estado; el monto y las facturas aplicadas no se editan. Uno contabilizado no se borra: se reversa su asiento desde su fila, y las facturas que saldó se ajustan aparte.',
       },
     ],
   },
@@ -301,19 +302,19 @@ export const GUIAS_CONTABILIDAD: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/contabilidad/cierres': {
     eyebrow: 'Contabilidad',
     title: 'Cierre de períodos',
-    intro: 'Cierra o reabre un mes contable por entidad legal y tipo de cierre.',
+    intro: 'Cierra o reabre un período contable de una empresa.',
     sections: [
       {
         title: 'Cerrar es congelar',
         body: 'Un período cerrado deja de admitir asientos. Es lo que permite afirmar que un balance publicado no va a cambiar por debajo.',
       },
       {
-        title: 'Se cierra por partes',
-        body: 'El cierre puede ser por área antes de ser definitivo. Eso permite bloquear lo que ya está revisado sin frenar lo que sigue en curso.',
+        title: 'Qué comprueba y qué no',
+        body: 'Antes de cerrar sólo se comprueba que no queden documentos contables del período en borrador. La conciliación contable y los extractos bancarios no se comprueban, y el cierre no liquida impuestos ni traslada el resultado: esos asientos se registran aparte.',
       },
       {
         title: 'Reabrir es excepcional y queda registrado',
-        body: 'Existe porque a veces hace falta, no porque sea normal. Quién reabrió qué período y cuándo es exactamente lo que mira una auditoría.',
+        body: 'Existe porque a veces hace falta, no porque sea normal. Lo autoriza una sola persona con el rol adecuado, y quién reabrió qué período, cuándo y por qué queda en el «Registro de actividad».',
       },
     ],
   },

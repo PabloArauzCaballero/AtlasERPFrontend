@@ -37,8 +37,8 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
     intro: 'Quién hizo qué, cuándo y sobre qué.',
     sections: [
       {
-        title: 'Es la memoria del sistema',
-        body: 'Cada operación relevante —una aprobación, una activación, un cierre— deja una fila aquí. Es lo que se consulta cuando hay que reconstruir qué pasó.',
+        title: 'Qué deja fila aquí',
+        body: 'Cierre y reapertura de períodos; emitir o borrar una factura por cobrar; registrar o borrar un recibo; asientos creados en el ERP; mover una oportunidad, decidir una aprobación, firmar y activar un contrato, liquidar coberturas; alta y archivo de cuentas B2B y pasos del onboarding; planes y sucursales del portal. NO se registran los contactos, etiquetas y actividades de una cuenta, los cobros de recuperación ni la anulación de facturas ante Impuestos.',
       },
       {
         title: 'No se edita ni se borra',
@@ -46,7 +46,7 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Buscar por registro, no por persona',
-        body: 'Lo habitual es partir del registro afectado —una cuenta, un documento— y ver todo lo que le pasó, en orden.',
+        body: 'Lo habitual es partir del registro afectado —un período, una factura, una cuenta—: pega su identificador en «Registro afectado» y verás todo lo que le pasó, en orden. También se filtra por módulo, por persona y por fechas.',
       },
     ],
     tutorialId: 'control-auditoria',
