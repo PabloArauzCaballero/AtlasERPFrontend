@@ -118,3 +118,24 @@ export async function conReintentoEnCurso<T>(
     }
   }
 }
+
+/** La fecha de una conversación en español de persona: «hace 5 min», «ayer», «12 sep». */
+export function fechaRelativa(iso: string, ahora: Date = new Date()): string {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return '';
+  const minutos = Math.floor((ahora.getTime() - fecha.getTime()) / 60_000);
+  if (minutos < 1) return 'ahora';
+  if (minutos < 60) return `hace ${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `hace ${horas} h`;
+  const dias = Math.floor(horas / 24);
+  if (dias === 1) return 'ayer';
+  if (dias < 7) return `hace ${dias} días`;
+  return fecha.toLocaleDateString('es-BO', { day: 'numeric', month: 'short' }).replace('.', '');
+}
+
+/** Cada turno son dos mensajes: la pregunta y la respuesta. */
+export function contarMensajes(turnos: number): string {
+  const total = turnos * 2;
+  return total === 1 ? '1 mensaje' : `${total} mensajes`;
+}
