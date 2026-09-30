@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/apiClient';
 import {
   MENSAJE_APAGADO,
+  contarMensajes,
+  fechaRelativa,
   conReintentoEnCurso,
   describirErrorDelAsistente,
   pantallaDelAsistente,
@@ -131,5 +133,41 @@ describe('assistService', () => {
     ) as typeof fetch;
     await expect(assistService.conversacion()).resolves.toEqual({ conversationId: 'c1', turns: [] });
     expect(String(vi.mocked(globalThis.fetch).mock.calls[0]?.[0])).toMatch(/\/api\/v1\/internal\/assist\/conversation$/);
+  });
+
+  it('lista, abre y borra conversaciones del historial', async () => {
+    const llamadas: Array<[string, string]> = [];
+    globalThis.fetch = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      llamadas.push([init?.method ?? 'GET', String(url)]);
+      if (String(url).endsWith('/conversations')) {
+        return json(200, { success: true, data: { conversations: [{ conversationId: 'c1', title: 'T', updatedAt: '2026-09-29T10:00:00Z', turnCount: 2 }] } });
+      }
+      return json(200, { success: true, data: init?.method === 'DELETE' ? { deleted: 1 } : { conversationId: 'c1', title: 'T', turns: [] } });
+    }) as typeof fetch;
+    await expect(assistService.conversaciones()).resolves.toHaveLength(1);
+    await expect(assistService.abrir('c1')).resolves.toMatchObject({ conversationId: 'c1' });
+    await expect(assistService.borrar('c1')).resolves.toEqual({ deleted: 1 });
+    expect(llamadas.map(([metodo, url]) => `${metodo} ${url.replace(/^.*\/internal/, '')}`)).toEqual([
+      'GET /assist/conversations',
+      'GET /assist/conversations/c1',
+      'DELETE /assist/conversations/c1',
+    ]);
+  });
+});
+
+describe('fechaRelativa y contarMensajes', () => {
+  const ahora = new Date('2026-09-29T12:00:00.000Z');
+  it.each([
+    ['2026-09-29T11:59:40.000Z', 'ahora'],
+    ['2026-09-29T11:55:00.000Z', 'hace 5 min'],
+    ['2026-09-29T09:00:00.000Z', 'hace 3 h'],
+    ['2026-09-28T09:00:00.000Z', 'ayer'],
+    ['2026-09-25T12:00:00.000Z', 'hace 4 días'],
+    ['fecha-rota', ''],
+  ])('%s -> %s', (iso, esperado) => {
+    expect(fechaRelativa(iso, ahora)).toBe(esperado);
+  });
+  it('cada turno son dos mensajes', () => {
+    expect(contarMensajes(3)).toBe('6 mensajes');
   });
 });

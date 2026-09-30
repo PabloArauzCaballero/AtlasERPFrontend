@@ -31,6 +31,14 @@ export interface ConversacionDelAsistente {
   turns: TurnoDelAsistente[];
 }
 
+/** Una conversación de la lista del historial (Core devuelve las 30 más recientes, la última primero). */
+export interface ResumenDeConversacion {
+  conversationId: string;
+  title: string | null;
+  updatedAt: string;
+  turnCount: number;
+}
+
 export interface PreguntaAlAsistente {
   prompt: string;
   /** UUID v4. La MISMA en cada reintento: es lo que evita generar dos respuestas. */
@@ -45,6 +53,21 @@ const PLAZO_DE_RESPUESTA_MS = 45_000;
 export const assistService = {
   conversacion() {
     return apiRequest<ConversacionDelAsistente | null>('internal/assist/conversation');
+  },
+  /** Las conversaciones de esta persona. La superficie la fija la pasarela por el tipo de sesión. */
+  async conversaciones(): Promise<ResumenDeConversacion[]> {
+    const lista = await apiRequest<{ conversations?: ResumenDeConversacion[] } | null>('internal/assist/conversations');
+    return lista?.conversations ?? [];
+  },
+  /** Una conversación con todos sus turnos, para abrirla y seguirla. */
+  abrir(conversationId: string) {
+    return apiRequest<ConversacionDelAsistente>(`internal/assist/conversations/${encodeURIComponent(conversationId)}`);
+  },
+  /** Borra una conversación del historial. */
+  borrar(conversationId: string) {
+    return apiRequest<{ deleted: number }>(`internal/assist/conversations/${encodeURIComponent(conversationId)}`, {
+      method: 'DELETE',
+    });
   },
   preguntar(pregunta: PreguntaAlAsistente, opciones: { dormir?: (ms: number) => Promise<void> } = {}) {
     return conReintentoEnCurso(

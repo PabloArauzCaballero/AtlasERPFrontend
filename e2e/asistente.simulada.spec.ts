@@ -15,7 +15,7 @@ function responder(route: Route, status: number, data: unknown) {
   });
 }
 
-async function instalar(page: Page, kind: 'internal' | 'merchant', opciones: { apagado?: boolean } = {}) {
+async function instalar(page: Page, kind: 'internal' | 'merchant', opciones: { apagado?: boolean; hilo?: boolean } = {}) {
   const preguntas: Array<Record<string, unknown>> = [];
   await page.addInitScript((sessionKind) => {
     window.localStorage.setItem('atlas_session_kind', sessionKind);
@@ -31,7 +31,30 @@ async function instalar(page: Page, kind: 'internal' | 'merchant', opciones: { a
     if (path.endsWith('/auth/merchant/me')) {
       return responder(route, 200, { user: { id: 'm1', email: 'caja@comercio.test', fullName: 'Comercio QA', role: 'merchant', status: 'active', mustChangePassword: false } });
     }
+    if (path.endsWith('/internal/assist/conversations')) {
+      return responder(route, 200, {
+        conversations: [
+          { conversationId: 'c1', title: '¿Dónde cierro el mes?', updatedAt: new Date(Date.now() - 300_000).toISOString(), turnCount: 1 },
+          { conversationId: 'c2', title: 'Cómo emito una factura', updatedAt: new Date(Date.now() - 93_600_000).toISOString(), turnCount: 3 },
+        ],
+      });
+    }
+    if (/\/internal\/assist\/conversations\/c2$/.test(path)) {
+      return route.request().method() === 'DELETE'
+        ? responder(route, 200, { deleted: 1 })
+        : responder(route, 200, {
+            conversationId: 'c2',
+            title: 'Cómo emito una factura',
+            turns: [{ turnId: 'o1', prompt: '¿Cómo emito una factura?', reply: 'Abre «Facturación».', suggestHandoff: false, createdAt: new Date().toISOString() }],
+          });
+    }
     if (path.endsWith('/internal/assist/conversation')) {
+      if (opciones.hilo) {
+        return responder(route, 200, {
+          conversationId: 'c1',
+          turns: [{ turnId: 't0', prompt: '¿Dónde cierro el mes?', reply: 'En «Contabilidad» › «Cierres».', suggestHandoff: false, createdAt: new Date().toISOString() }],
+        });
+      }
       return opciones.apagado
         ? responder(route, 404, { code: 'ASSIST_DISABLED', message: 'Apagado' })
         : responder(route, 200, { conversationId: null, turns: [] });
@@ -99,4 +122,32 @@ test('el inicio de sesión no tiene asistente', async ({ page }) => {
   await page.goto('/login');
   await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Asistente de Atlas' })).toHaveCount(0);
+});
+
+test('nueva conversación e historial: abrir, continuar y borrar con confirmación en la fila', async ({ page }) => {
+  const preguntas = await instalar(page, 'internal', { hilo: true });
+  page.on('dialog', () => {
+    throw new Error('el asistente no debe usar cuadros del navegador');
+  });
+  await page.goto('/operaciones/contabilidad/cierres');
+  await page.getByRole('button', { name: 'Asistente de Atlas' }).click();
+  const panel = page.getByRole('dialog', { name: 'Asistente de Atlas' });
+  await expect(panel.getByText('En «Contabilidad» › «Cierres».')).toBeVisible();
+
+  await panel.getByRole('button', { name: 'Historial' }).click();
+  await expect(panel.getByText('hace 5 min · 2 mensajes')).toBeVisible();
+  await panel.getByRole('button', { name: /^Cómo emito una factura/ }).click();
+  await expect(panel.getByText('Abre «Facturación».')).toBeVisible();
+
+  await panel.getByLabel('Tu pregunta').fill('¿Y la nota de crédito?');
+  await panel.getByLabel('Tu pregunta').press('Enter');
+  await expect(panel.getByText('Los cierres están en «Contabilidad» › «Cierres».')).toBeVisible();
+  expect(preguntas[0]).toMatchObject({ conversationId: 'c2' });
+
+  await panel.getByRole('button', { name: 'Nueva conversación' }).click();
+  await expect(panel.getByText('Abre «Facturación».')).toHaveCount(0);
+  await panel.getByRole('button', { name: 'Historial' }).click();
+  await panel.getByRole('button', { name: 'Borrar la conversación «Cómo emito una factura»' }).click();
+  await panel.getByRole('button', { name: 'Sí, borrar' }).click();
+  await expect(panel.getByRole('listitem')).toHaveCount(1);
 });
