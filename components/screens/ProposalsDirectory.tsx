@@ -6,6 +6,7 @@ import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { camposLineaPropuesta, camposPropuesta, propuestaDesdeExcel } from '@/components/screens/altas/propuesta';
 import { b2bService } from '@/services/b2bService';
 import type { ResourceRow } from '@/services/types';
+import { avisoDeEnvio } from '@/lib/avisoEnvioPropuesta';
 
 /** Estados en los que la propuesta todavía es un borrador y admite correcciones. */
 const EDITABLES = new Set(['DRAFT', 'PENDING_APPROVAL']);
@@ -15,6 +16,9 @@ const BORRABLES = new Set(['DRAFT', 'PENDING_APPROVAL', 'REJECTED']);
 const RECHAZABLES = new Set(['DRAFT', 'PENDING_APPROVAL', 'SENT']);
 
 const estado = (row: ResourceRow) => String(row.status ?? '').toUpperCase();
+/** Se envía (o reenvía) mientras no esté aceptada ni rechazada. */
+const ENVIABLES = new Set(['DRAFT', 'SENT']);
+
 
 interface ProposalsDirectoryProps {
   /** Dentro de una pestaña: sin cabecera de pantalla, sólo el rótulo de la sección. */
@@ -83,16 +87,61 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
       }}
       extraActions={[
         {
+          /*
+           * Enviar es mandar un CORREO a personas concretas del comercio. Antes sólo cambiaba el
+           * estado y no preguntaba a quién: el comercio nunca recibía nada.
+           */
           key: 'enviar',
           label: 'Enviar al cliente',
-          description: 'Marca la propuesta como enviada al cliente, con la fecha de envío. No sale si tiene aprobaciones pendientes.',
+          description: 'Envía la propuesta por correo a los contactos del comercio que elijas. No sale si tiene aprobaciones pendientes.',
           icon: 'send',
-          run: (row) => b2bService.sendProposal(String(row.id ?? '')),
-          confirm: {
-            title: 'Enviar la propuesta',
-            message: 'Quedará marcada como enviada y con fecha de envío. Si tiene aprobaciones pendientes, no saldrá hasta resolverlas.',
-            confirmLabel: 'Enviar',
+          enabled: (row) => ENVIABLES.has(estado(row)),
+          form: {
+            title: (row) => `Enviar ${String(row.proposalNumber ?? 'la propuesta')}`,
+            description: 'Elige a quién del comercio le llega la propuesta. Si la persona no está en la lista, agrégala como contacto del comercio o escribe su correo abajo.',
+            fields: (row) => [
+              {
+                name: 'contactIds',
+                label: 'Contactos del comercio',
+                tooltip: 'Personas del comercio con correo registrado. La propuesta les llega por correo.',
+                type: 'multiselect',
+                optional: true,
+                span: 3,
+                optionsLoader: async () =>
+                  (await b2bService.listProposalRecipients(String(row.id ?? ''))).map((c) => ({
+                    value: String(c.id),
+                    label: `${String(c.fullName)} · ${String(c.email)}${c.roleTitle ? ` (${String(c.roleTitle)})` : ''}${c.isPrimary ? ' — principal' : ''}`,
+                  })),
+              },
+              {
+                name: 'extraEmails',
+                label: 'Otros correos',
+                tooltip: 'Correos que no están como contacto del comercio. Escribe uno y pulsa Enter.',
+                type: 'chips',
+                valueKind: 'stringList',
+                optional: true,
+                span: 3,
+                placeholder: 'gerencia@comercio.bo',
+              },
+              {
+                name: 'message',
+                label: 'Mensaje',
+                tooltip: 'Texto opcional que va al principio del correo, antes de las condiciones.',
+                type: 'textarea',
+                optional: true,
+                span: 3,
+                placeholder: 'Como conversamos, les compartimos la propuesta…',
+              },
+            ],
+            submit: (row, payload) =>
+              b2bService.sendProposal(String(row.id ?? ''), {
+                contactIds: Array.isArray(payload.contactIds) ? payload.contactIds.map(String) : [],
+                extraEmails: Array.isArray(payload.extraEmails) ? payload.extraEmails.map(String) : [],
+                message: typeof payload.message === 'string' && payload.message.trim() ? payload.message : undefined,
+              }),
+            submitLabel: 'Enviar propuesta',
           },
+          resultMessage: (resultado) => avisoDeEnvio(resultado),
         },
         {
           key: 'aceptar',
