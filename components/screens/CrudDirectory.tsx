@@ -74,7 +74,9 @@ export interface CrudExtraAction {
    * genérico «Operación registrada»: sirve para decir lo que de verdad se comprobó (los controles de
    * un cierre, por ejemplo) en vez de un éxito sin contenido.
    */
-  resultMessage?: ((result: unknown, row: ResourceRow) => { title: string; body?: string | undefined }) | undefined;
+  resultMessage?:
+    | ((result: unknown, row: ResourceRow) => { title: string; body?: string | undefined; tone?: 'success' | 'warning' | undefined })
+    | undefined;
   /**
    * `run` sólo abre algo (un modal propio de la pantalla) y no registra nada todavía: sin aviso de
    * «Operación registrada» ni recarga. Hasta el 2026-09-16 abrir el modal de evidencia ya
@@ -480,7 +482,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
 
   function avisarResultado(action: CrudExtraAction, row: ResourceRow, resultado: unknown) {
     const aviso = action.resultMessage?.(resultado, row);
-    if (aviso) toast.success(aviso.title, aviso.body);
+    if (aviso) (aviso.tone === 'warning' ? toast.warning : toast.success)(aviso.title, aviso.body);
     else toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
   }
 
@@ -916,9 +918,9 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           onClose={() => setExtraForm(null)}
           onSubmit={async (payload) => {
             const { action, row } = extraForm;
-            await action.form!.submit(row, payload);
+            const resultado = await action.form!.submit(row, payload);
             setExtraForm(null);
-            toast.success('Operación registrada', `${action.label}: ${labelFor(row)}.`);
+            avisarResultado(action, row, resultado);
             await resource.reload();
           }}
         />

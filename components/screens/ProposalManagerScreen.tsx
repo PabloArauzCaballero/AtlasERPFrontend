@@ -59,7 +59,6 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
   /* El correlativo se asigna al guardar; aquí sólo se enseña, y sólo cuando ya existe. */
   const [proposalNumber, setProposalNumber] = useState('');
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createProposal(payload), []));
-  const sendMutation = useAtlasMutation(useCallback((id: string) => b2bService.sendProposal(id), []));
   const estimated = useMemo(() => lines.reduce((sum, line) => sum + Number(line.fixedAmount || 0) + Number(line.minimumMonthlyAmount || 0), 0), [lines]);
 
   function updateLine(id: string, key: keyof ProposalLine, value: string) {
@@ -91,27 +90,26 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
     } catch { /* controlled */ }
   }
 
-  async function sendProposal() {
+  /*
+   * Enviar es mandar un correo a personas concretas del comercio, y elegirlas se hace en la fila de
+   * la cartera (que carga sus contactos). Aquí antes se «enviaba» a ciegas: sólo cambiaba el estado.
+   */
+  function sendProposal() {
     if (!proposalId) return;
-    try {
-      await sendMutation.execute(proposalId);
-      await onDone?.();
-      // Enviada ya no se toca: lo siguiente se hace desde su fila en la cartera.
-      toast.success('Propuesta enviada', 'Queda en la cartera; cuando el cliente acepte, márcala desde su fila.');
-      router.push('/operaciones/crm/propuestas');
-    } catch { /* controlled */ }
+    toast.info('Elige a quién enviarla', `En la fila de ${proposalNumber || 'la propuesta'}, pulsa «Enviar al cliente» y marca los contactos del comercio.`);
+    router.push('/operaciones/crm/propuestas');
   }
 
   // El contexto ya no ocupa un panel fijo: es una consulta puntual, y vive donde el resto de la ayuda.
   const contexto = <AtlasButton variant="secondary" icon="info" className="w-9 px-0" aria-label="Contexto del cliente" title="Contexto del cliente" onClick={() => setContextoAbierto(true)} />;
   const guardar = <AtlasButton type="submit" icon="save" loading={createMutation.isLoading} disabled={Boolean(proposalId)}>{proposalId ? 'Guardada' : 'Guardar propuesta'}</AtlasButton>;
   // «Enviar» sólo se enciende con la propuesta guardada; sin el título, el botón gris no decía por qué.
-  const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} loading={sendMutation.isLoading} onClick={sendProposal} title={proposalId ? undefined : 'Primero guarda la propuesta'}>Enviar al cliente</AtlasButton>;
+  const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} onClick={sendProposal} title={proposalId ? undefined : 'Primero guarda la propuesta'}>Enviar al cliente</AtlasButton>;
 
   return (
     <form className="space-y-5" onSubmit={submit}>
       <WorkspaceHeader breadcrumbs={[{ label: 'CRM' }, { label: 'Propuestas', href: '/operaciones/crm/propuestas' }, { label: 'Nueva propuesta' }]} title="Nueva propuesta comercial" description="Estructure términos comerciales, excepciones de pricing y evidencia de aprobación antes del envío al cliente." actions={<>{contexto}{guardar}{enviar}</>} />
-      {createMutation.error || sendMutation.error ? <InlineNotice tone="danger">{createMutation.error ?? sendMutation.error}</InlineNotice> : null}
+      {createMutation.error ? <InlineNotice tone="danger">{createMutation.error}</InlineNotice> : null}
       {createMutation.status === 'success' ? <InlineNotice tone="success" title="Propuesta creada">Ya está en la cartera de propuestas como borrador. El siguiente paso es «Enviar al cliente».</InlineNotice> : null}
 
       <div className="space-y-4">

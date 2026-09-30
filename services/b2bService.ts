@@ -230,9 +230,18 @@ export const b2bService = {
   createProposal(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/proposals', { method: 'POST', body });
   },
-  sendProposal(proposalId: string) {
+  /* Contactos del comercio con correo: los candidatos a recibir la propuesta. */
+  listProposalRecipients(proposalId: string) {
     const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
-    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/send`, { method: 'PATCH' });
+    return apiRequest<ResourceRow[]>(`/b2b/proposals/${safeProposalId}/recipients`);
+  },
+  /*
+   * Envía la propuesta POR CORREO a los contactos elegidos y/o correos sueltos. Antes iba sin cuerpo
+   * y el backend sólo cambiaba el estado: el comercio no recibía nada.
+   */
+  sendProposal(proposalId: string, body: { contactIds: string[]; extraEmails: string[]; message?: string | undefined }) {
+    const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
+    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/send`, { method: 'PATCH', body: body as JsonObject });
   },
   acceptProposal(proposalId: string) {
     const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
