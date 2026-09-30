@@ -10,8 +10,15 @@ describe('aviso al enviar una propuesta', () => {
   });
 
   it('enviada de verdad: dice a quién', () => {
-    const aviso = avisoDeEnvio({ deliveries: [{ email: 'ana@multicenter.bo', status: 'SENT' }] });
-    expect(aviso).toEqual({ title: 'Propuesta enviada', body: 'Enviada a ana@multicenter.bo.', tone: 'success' });
+    const aviso = avisoDeEnvio({
+      deliveries: [{ email: 'ana@multicenter.bo', status: 'SENT' }],
+      pdf: { attached: true, error: null },
+    });
+    expect(aviso).toEqual({
+      title: 'Propuesta enviada',
+      body: 'Enviada a ana@multicenter.bo, con la propuesta en PDF adjunta.',
+      tone: 'success',
+    });
   });
 
   it('si a alguno no le llegó, lo nombra', () => {
@@ -23,5 +30,14 @@ describe('aviso al enviar una propuesta', () => {
     });
     expect(aviso.tone).toBe('warning');
     expect(aviso.body).toContain('No se pudo enviar a mal@multicenter.bo');
+  });
+
+  it('si el PDF no se generó, lo avisa aunque el correo haya salido', () => {
+    const aviso = avisoDeEnvio({
+      deliveries: [{ email: 'ana@multicenter.bo', status: 'SENT' }],
+      pdf: { attached: false, error: 'PDF_WORKER_NOT_CONFIGURED' },
+    });
+    expect(aviso.tone).toBe('warning');
+    expect(aviso.body).toContain('El PDF no se pudo generar');
   });
 });
