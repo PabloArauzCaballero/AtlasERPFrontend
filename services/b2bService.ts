@@ -1,5 +1,6 @@
 import { requireUuidPathParam } from '@/lib/apiPath';
-import { apiBlobUrl, apiRequest } from '@/lib/apiClient';
+import { apiBlobUrl, apiFileDownload, apiRequest } from '@/lib/apiClient';
+import { guardarArchivo } from '@/lib/pdf';
 import type { UploadTicket } from '@/services/filesService';
 import { buildBackendQuery } from './query';
 import type { JsonObject, PageQuery, PaginatedResult, ResourceRow } from './types';
@@ -229,6 +230,12 @@ export const b2bService = {
   },
   createProposal(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/proposals', { method: 'POST', body });
+  },
+  /* La propuesta en PDF con membrete de ATLAS: lo mismo que va adjunto al correo. */
+  async downloadProposalPdf(proposalId: string, proposalNumber: string) {
+    const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
+    const archivo = await apiFileDownload(`/b2b/proposals/${safeProposalId}/pdf`, `propuesta-${proposalNumber || proposalId}.pdf`);
+    guardarArchivo(archivo.blob, archivo.fileName);
   },
   /* Contactos del comercio con correo: los candidatos a recibir la propuesta. */
   listProposalRecipients(proposalId: string) {

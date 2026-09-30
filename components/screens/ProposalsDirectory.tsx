@@ -93,7 +93,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
            */
           key: 'enviar',
           label: 'Enviar al cliente',
-          description: 'Envía la propuesta por correo a los contactos del comercio que elijas. No sale si tiene aprobaciones pendientes.',
+          description: 'Envía por correo la propuesta en PDF, con membrete de ATLAS, a los contactos del comercio que elijas. No sale si tiene aprobaciones pendientes.',
           icon: 'send',
           enabled: (row) => ENVIABLES.has(estado(row)),
           form: {
@@ -126,7 +126,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
               {
                 name: 'message',
                 label: 'Mensaje',
-                tooltip: 'Texto opcional que va al principio del correo, antes de las condiciones.',
+                tooltip: 'Texto opcional para el comercio: va en el correo y como «Mensaje de su ejecutivo comercial» dentro del PDF.',
                 type: 'textarea',
                 optional: true,
                 span: 3,
@@ -142,6 +142,17 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
             submitLabel: 'Enviar propuesta',
           },
           resultMessage: (resultado) => avisoDeEnvio(resultado),
+        },
+        {
+          key: 'pdf',
+          label: 'Ver PDF',
+          description: 'Descarga la propuesta en PDF con el membrete de ATLAS: es el mismo documento que recibe el comercio.',
+          icon: 'picture_as_pdf',
+          run: async (row) => {
+            await b2bService.downloadProposalPdf(String(row.id ?? ''), String(row.proposalNumber ?? ''));
+            return { descargado: true };
+          },
+          resultMessage: (_resultado, row) => ({ title: 'PDF descargado', body: `Propuesta ${String(row.proposalNumber ?? '')}.` }),
         },
         {
           key: 'aceptar',
