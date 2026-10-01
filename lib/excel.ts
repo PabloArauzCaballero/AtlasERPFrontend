@@ -170,6 +170,15 @@ export function fechaDeSerieExcel(serie: number): string {
 
 /* ───────────────────────── Escritura (la plantilla) ───────────────────────── */
 
+/**
+ * Una hoja de ayuda que acompaña a la de datos: «Instrucciones», «Valores permitidos».
+ * Va DESPUÉS de la hoja de datos, porque `leerTabla` sólo lee la primera.
+ */
+export interface HojaExtra {
+  nombre: string;
+  filas: string[][];
+}
+
 const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 const escaparXml = (texto: string) => texto.replace(/[&<>"']/g, (caracter) => ESCAPES[caracter] ?? caracter);
 
@@ -201,16 +210,23 @@ function filaXml(valores: string[], numero: number): string {
  * compresor, el navegador no tiene API de deflate síncrona y Excel abre igual el archivo. Una
  * plantilla de dos filas no gana nada comprimiéndose.
  */
-export function descargarPlantillaExcel(nombreArchivo: string, cabeceras: string[], ejemplos: string[][] = []): void {
+export function descargarPlantillaExcel(
+  nombreArchivo: string,
+  cabeceras: string[],
+  ejemplos: string[][] = [],
+  hojasExtra: HojaExtra[] = [],
+): void {
   /*
    * Varias filas de ejemplo y no una: un registro con líneas (un asiento, un recibo) se escribe
    * con UNA FILA POR LÍNEA repitiendo la clave, y eso no se entiende leyendo una sola fila.
    */
   const filas = [filaXml(cabeceras, 1), ...ejemplos.map((fila, indice) => filaXml(fila, indice + 2))].join('');
-  const hoja =
+  const hojaXml = (contenido: string) =>
     '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-    `<sheetData>${filas}</sheetData></worksheet>`;
+    `<sheetData>${contenido}</sheetData></worksheet>`;
+  const hoja = hojaXml(filas);
+  const extras = hojasExtra.map((extra) => hojaXml(extra.filas.map((fila, indice) => filaXml(fila, indice + 1)).join('')));
 
   const archivos: Array<[string, string]> = [
     [
@@ -221,6 +237,9 @@ export function descargarPlantillaExcel(nombreArchivo: string, cabeceras: string
         '<Default Extension="xml" ContentType="application/xml"/>' +
         '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
         '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        extras
+          .map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 2}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`)
+          .join('') +
         '</Types>',
     ],
     [
@@ -235,16 +254,24 @@ export function descargarPlantillaExcel(nombreArchivo: string, cabeceras: string
       '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
         'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
-        '<sheets><sheet name="Plantilla" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        '<sheets><sheet name="Plantilla" sheetId="1" r:id="rId1"/>' +
+        hojasExtra
+          .map((extra, i) => `<sheet name="${escaparXml(extra.nombre.slice(0, 31))}" sheetId="${i + 2}" r:id="rId${i + 1 + 1}"/>`)
+          .join('') +
+        '</sheets></workbook>',
     ],
     [
       'xl/_rels/workbook.xml.rels',
       '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        extras
+          .map((_, i) => `<Relationship Id="rId${i + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 2}.xml"/>`)
+          .join('') +
         '</Relationships>',
     ],
     ['xl/worksheets/sheet1.xml', hoja],
+    ...extras.map((xml, i): [string, string] => [`xl/worksheets/sheet${i + 2}.xml`, xml]),
   ];
 
   descargar(nombreArchivo, construirZip(archivos));

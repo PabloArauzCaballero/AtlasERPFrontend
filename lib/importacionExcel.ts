@@ -298,3 +298,113 @@ export function agrupar(
 
   return [...registros, ...sinClave].sort((a, b) => a.numero - b.numero);
 }
+
+/* ───────────────── La plantilla que una persona entiende ───────────────── */
+
+/**
+ * Una columna de la plantilla: cómo se llama por dentro (`legalName`), cómo se lee en la hoja
+ * («Razón social *») y qué hay que poner en ella.
+ *
+ * La plantilla traía el nombre técnico como cabecera. Quien la abría en Excel veía `legalName`,
+ * `primaryContact.decisionRole`, `riskTier`: sin saber cuáles eran obligatorias ni qué valores
+ * admitía cada una. La cabecera ahora es la etiqueta del formulario; el nombre técnico se sigue
+ * aceptando al LEER, así que las plantillas viejas y los CSV que ya existen siguen cargando.
+ */
+export interface ColumnaPlantilla {
+  nombre: string;
+  /** Lo que se escribe en la fila 1 de la hoja. Lleva « *» si es obligatoria. */
+  cabecera: string;
+  etiqueta: string;
+  obligatoria: boolean;
+  ayuda: string;
+  campo?: ActionField | undefined;
+}
+
+export function columnasPlantilla(
+  campos: ActionField[],
+  camposLinea: ActionField[] = [],
+  lineas?: Pick<LineasSpec, 'clave' | 'claveLabel'> | undefined,
+): ColumnaPlantilla[] {
+  const base: Array<Omit<ColumnaPlantilla, 'cabecera'>> = [];
+  if (lineas) {
+    base.push({
+      nombre: lineas.clave,
+      etiqueta: lineas.claveLabel,
+      obligatoria: true,
+      ayuda: 'Las filas que repiten este valor son el mismo registro.',
+    });
+  }
+  for (const campo of [...campos, ...camposLinea]) {
+    base.push({
+      nombre: campo.name,
+      etiqueta: campo.label,
+      obligatoria: Boolean(campo.required && !campo.optional),
+      ayuda: campo.tooltip ?? campo.hint ?? '',
+      campo,
+    });
+  }
+  // Dos campos con la misma etiqueta («Nombre» en la cabecera y en la línea) no pueden compartir columna.
+  const usadas = new Map<string, number>();
+  for (const columna of base) usadas.set(plano(columna.etiqueta), (usadas.get(plano(columna.etiqueta)) ?? 0) + 1);
+  return base.map((columna) => {
+    const repetida = (usadas.get(plano(columna.etiqueta)) ?? 0) > 1;
+    const texto = repetida ? `${columna.etiqueta} (${columna.nombre})` : columna.etiqueta;
+    return { ...columna, cabecera: columna.obligatoria ? `${texto} *` : texto };
+  });
+}
+
+/** Cómo se llama en el archivo cada columna que conocemos: por cabecera nueva, etiqueta o nombre técnico. */
+function sinMarca(texto: string): string {
+  return plano(texto.replace(/\*/g, ''));
+}
+
+/**
+ * Devuelve las filas con las claves técnicas, sea cual sea el nombre con que vino cada columna.
+ * Las columnas que no se reconocen se dejan como llegaron: el aviso de «faltan columnas» las nombra.
+ */
+export function aClavesTecnicas(
+  tabla: { cabeceras: string[]; filas: Array<Record<string, string>> },
+  columnas: ColumnaPlantilla[],
+): { cabeceras: string[]; filas: Array<Record<string, string>> } {
+  const indice = new Map<string, string>();
+  for (const columna of columnas) {
+    for (const alias of [columna.cabecera, columna.etiqueta, columna.nombre]) indice.set(sinMarca(alias), columna.nombre);
+  }
+  const traducir = (cabecera: string) => indice.get(sinMarca(cabecera)) ?? cabecera;
+  return {
+    cabeceras: tabla.cabeceras.map(traducir),
+    filas: tabla.filas.map((fila) => Object.fromEntries(Object.entries(fila).map(([clave, valor]) => [traducir(clave), valor]))),
+  };
+}
+
+/** Las dos hojas que acompañan a los datos: qué poner en cada columna y qué valores admite cada lista. */
+export function hojasDeAyuda(columnas: ColumnaPlantilla[], ejemplo: (campo: ActionField) => string = ejemploDe) {
+  const instrucciones: string[][] = [
+    ['Cómo llenar la hoja «Plantilla»'],
+    ['1. Cada fila de la hoja «Plantilla» es un registro. No cambies los títulos de la primera fila.'],
+    ['2. Las columnas con asterisco (*) son obligatorias; sin ellas la fila no se crea.'],
+    ['3. En las columnas con lista, escribe el nombre tal como aparece en «Valores permitidos».'],
+    ['4. Fechas: año-mes-día (2026-01-31). Decimales: con punto o con coma. Varios valores: separados por coma.'],
+    ['5. Borra la fila de ejemplo antes de subir el archivo. Antes de crear nada verás qué filas están completas.'],
+    [],
+    ['Columna', 'Obligatoria', 'Qué poner', 'Ejemplo'],
+    ...columnas.map((c) => [
+      c.cabecera.replace(/ \*$/, ''),
+      c.obligatoria ? 'Sí' : 'No',
+      c.ayuda,
+      c.campo ? ejemplo(c.campo) : '',
+    ]),
+  ];
+  const conLista = columnas.filter((c) => c.campo?.options?.length);
+  const alto = Math.max(0, ...conLista.map((c) => c.campo?.options?.length ?? 0));
+  const valores: string[][] = conLista.length
+    ? [
+        conLista.map((c) => c.cabecera.replace(/ \*$/, '')),
+        ...Array.from({ length: alto }, (_, fila) => conLista.map((c) => c.campo?.options?.[fila]?.label ?? '')),
+      ]
+    : [['Esta plantilla no tiene columnas con lista de valores.']];
+  return [
+    { nombre: 'Instrucciones', filas: instrucciones },
+    { nombre: 'Valores permitidos', filas: valores },
+  ];
+}
