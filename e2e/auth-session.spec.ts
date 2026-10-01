@@ -30,8 +30,10 @@ test('el reload recupera la sesión interna sin guardar ni reutilizar el bearer'
   await page.reload();
   await expect(page).toHaveURL(/\/operaciones/);
   await expect.poll(() => refreshes).toBe(2);
-  expect(meHeaders).toContain('Bearer nuevo-1');
-  expect(meHeaders).toContain('Bearer nuevo-2');
+  // `/auth/me` se pide DESPUÉS de cada refresh: leer `meHeaders` justo al contar el segundo refresh
+  // era una carrera (fallaba de forma intermitente en CI). Se espera al efecto, no se asume.
+  await expect.poll(() => meHeaders).toContain('Bearer nuevo-1');
+  await expect.poll(() => meHeaders).toContain('Bearer nuevo-2');
   expect(await page.evaluate(() => window.localStorage.getItem('atlas_access_token'))).toBeNull();
 });
 
