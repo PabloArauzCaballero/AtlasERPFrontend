@@ -15,6 +15,19 @@ import type { ResourceRow } from '@/services/types';
  * de secciones. Un asiento lleva líneas y columna de control, así que va a su propia página; el
  * botón está en la cabecera, y contabilizar o reversar siguen en la fila.
  */
+/** Un borrador que espera que OTRA persona lo apruebe o lo rechace. */
+const esperaDecision = (row: ResourceRow) =>
+  String(row.status ?? '').toUpperCase() === 'DRAFT' && String(row.approvalStatus ?? '').toUpperCase() === 'PENDING';
+
+/**
+ * Sólo se ofrece contabilizar lo que el servidor ya autorizó (sin aprobación requerida, o aprobado).
+ * Es una comodidad: el backend lo vuelve a exigir, y también rechaza un NOT_REQUIRED anterior a la
+ * política (sin referencia), cuyo error se muestra tal cual.
+ */
+const puedeContabilizarse = (row: ResourceRow) =>
+  String(row.status ?? '').toUpperCase() === 'DRAFT' &&
+  ['NOT_REQUIRED', 'APPROVED'].includes(String(row.approvalStatus ?? '').toUpperCase());
+
 export default function AccountingDocumentsPage() {
   const load = useCallback(() => accountingService.listDocuments(), []);
   /** El asiento cuyo comprobante de respaldo se está viendo. `null` cierra el diálogo. */
@@ -36,8 +49,9 @@ export default function AccountingDocumentsPage() {
         { key: 'postingDate', label: 'Contabilización', kind: 'date' },
         { key: 'currencyCode', label: 'Moneda' },
         { key: 'status', label: 'Estado', kind: 'status' },
+        { key: 'approvalStatus', label: 'Aprobación', kind: 'status' },
       ]}
-      filters={[{ key: 'documentType', label: 'Tipo' }, { key: 'status', label: 'Estado' }]}
+      filters={[{ key: 'documentType', label: 'Tipo' }, { key: 'status', label: 'Estado' }, { key: 'approvalStatus', label: 'Aprobación' }]}
       notice={{
         tone: 'info',
         title: 'Sin lápiz ni papelera, y es a propósito',
@@ -109,10 +123,45 @@ export default function AccountingDocumentsPage() {
           },
         },
         {
+          /*
+           * ATL-03: la necesidad de aprobar la decide el SERVIDOR (política), no quien crea el asiento.
+           * Aprobar y rechazar los ve quien puede decidir; el backend exige además que no sea el
+           * creador y que el rol sea CFO o administrador (un 403 se muestra tal cual).
+           */
+          key: 'aprobar',
+          label: 'Aprobar',
+          description: 'Autoriza que este borrador se contabilice. No puede aprobarlo quien lo creó.',
+          icon: 'approval',
+          enabled: esperaDecision,
+          confirm: {
+            title: 'Aprobar el documento',
+            message: 'Autorizas que este asiento se contabilice. Queda registrado que lo aprobaste tú; quien lo creó no puede aprobarlo.',
+            confirmLabel: 'Sí, aprobar',
+          },
+          run: (row) => accountingService.approveDocument(String(row.id ?? '')),
+        },
+        {
+          key: 'rechazar',
+          label: 'Rechazar',
+          description: 'Niega la autorización: el borrador no se podrá contabilizar.',
+          icon: 'block',
+          enabled: esperaDecision,
+          form: {
+            title: (row) => `Rechazar ${String(row.documentNo ?? '')}`,
+            description: 'El rechazo es definitivo para este borrador: no se contabiliza. Si el asiento era válido, se crea otro.',
+            fields: [
+              { name: 'reason', label: 'Motivo', tooltip: 'Por qué se rechaza; queda en la bitácora del documento.', required: true, span: 3, placeholder: 'Falta el comprobante de respaldo' },
+            ],
+            submit: (row, payload) => accountingService.rejectDocument(String(row.id ?? ''), payload),
+            submitLabel: 'Rechazar',
+          },
+        },
+        {
           key: 'contabilizar',
           label: 'Contabilizar',
-          description: 'Pasa el asiento a firme: impacta en los saldos y ya no se puede editar, sólo reversar.',
+          description: 'Pasa el asiento a firme: impacta en los saldos y ya no se puede editar, sólo reversar. Si exige aprobación, antes tiene que aprobarlo otra persona.',
           icon: 'task_alt',
+          enabled: puedeContabilizarse,
           run: (row) => accountingService.postDocument(String(row.id ?? '')),
           confirm: {
             title: 'Contabilizar el documento',
