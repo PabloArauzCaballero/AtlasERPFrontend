@@ -9,8 +9,11 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { descargarPlantillaExcel, leerTabla } from '@/lib/excel';
 import {
   agrupar,
+  aClavesTecnicas,
   camposImportables,
+  columnasPlantilla,
   ejemploDe,
+  hojasDeAyuda,
   prepararPlana,
   type LineasSpec,
   type RegistroPreparado,
@@ -91,10 +94,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     [camposLinea],
   );
   /** Las columnas de la plantilla, en orden: la clave del registro, su cabecera y sus líneas. */
-  const columnas = useMemo(
-    () => (lineas ? [lineas.clave, ...campos.map((c) => c.name), ...camposLinea.map((c) => c.name)] : campos.map((c) => c.name)),
-    [lineas, campos, camposLinea],
-  );
+  const columnas = useMemo(() => columnasPlantilla(campos, camposLinea, lineas), [lineas, campos, camposLinea]);
   const validas = filas.filter((fila) => fila.errores.length === 0);
   const creadas = filas.filter((fila) => fila.estado === 'creada').length;
   const fallidas = filas.filter((fila) => fila.estado === 'fallida');
@@ -112,8 +112,11 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
 
   function descargarPlantilla() {
     const nombre = `plantilla-${props.entidad.replace(/\s+/g, '-').toLowerCase()}.xlsx`;
+    // La fila 1 es lo que se lee en Excel: etiquetas, no nombres técnicos. Las hojas extra explican el resto.
+    const cabeceras = columnas.map((c) => c.cabecera);
+    const ayuda = hojasDeAyuda(columnas);
     if (!lineas) {
-      descargarPlantillaExcel(nombre, columnas, [campos.map(ejemploDe)]);
+      descargarPlantillaExcel(nombre, cabeceras, [campos.map(ejemploDe)], ayuda);
       return;
     }
     /*
@@ -124,10 +127,10 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     const clave = lineas.ejemploClave ?? 'DOC-001';
     const cabecera = campos.map(ejemploDe);
     const vacia = campos.map(() => '');
-    descargarPlantillaExcel(nombre, columnas, [
+    descargarPlantillaExcel(nombre, cabeceras, [
       [clave, ...cabecera, ...camposLinea.map(ejemploDe)],
       [clave, ...vacia, ...camposLinea.map(ejemploDe)],
-    ]);
+    ], ayuda);
   }
 
   async function cargar(file?: File) {
@@ -136,14 +139,17 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     setTerminado(false);
     setArchivo(file);
     try {
-      const tabla = await leerTabla(file);
+      // Admite la cabecera nueva («Razón social *»), la etiqueta y el nombre técnico de las plantillas viejas.
+      const tabla = aClavesTecnicas(await leerTabla(file), columnas);
       if (!tabla.filas.length) {
         setFilas([]);
         setErrorArchivo('El archivo no trae ninguna fila con datos debajo de las cabeceras.');
         return;
       }
       const exigidas = [...(lineas ? [lineas.clave] : []), ...obligatorios.map((campo) => campo.name), ...obligatoriosLinea.map((campo) => campo.name)];
-      const faltantes = exigidas.filter((nombre) => !tabla.cabeceras.includes(nombre));
+      const faltantes = exigidas
+        .filter((nombre) => !tabla.cabeceras.includes(nombre))
+        .map((nombre) => columnas.find((c) => c.nombre === nombre)?.etiqueta ?? nombre);
       if (faltantes.length) {
         setFilas([]);
         setErrorArchivo(`Al archivo le faltan columnas obligatorias: ${faltantes.join(', ')}. Descarga la plantilla y vuelve a intentarlo.`);
