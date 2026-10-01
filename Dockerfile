@@ -43,6 +43,11 @@ COPY . .
 # una después no tiene ningún efecto. Por eso el desplegador copia el `.env.local` de la máquina
 # dentro del contexto de construcción — sin él, el portal se construiría contra los valores por
 # defecto y el tester llamaría a un origen que no es el suyo.
+# PLAT-03: la identidad del artefacto se escribe AQUÍ, dentro de la imagen, y `/version` la lee de este
+# archivo. `SOURCE_COMMIT` (build-arg de Coolify) manda; si llega vacío se lee `.git/HEAD` del contexto
+# (el .dockerignore lo deja pasar). Sin ninguno queda `commit: null`: no se inventa, y el smoke lo rechaza.
+ARG SOURCE_COMMIT=""
+RUN SOURCE_COMMIT="$SOURCE_COMMIT" node scripts/write-build-info.mjs build-info.json
 RUN yarn build
 # Este front no tiene `public/`. La copia de más abajo es incondicional —Docker no sabe copiar «si
 # existe»— así que se garantiza el directorio aquí; si algún día se añaden recursos estáticos, la
@@ -61,6 +66,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/build-info.json ./build-info.json
 # `public/` no viaja dentro de `standalone`: Next lo deja fuera y su documentación pide copiarlo
 # aparte, igual que `.next/static`. Sin esta línea la imagen no serviría ningún recurso estático.
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
