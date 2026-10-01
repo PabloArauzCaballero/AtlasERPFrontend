@@ -13,11 +13,13 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useAtlasMutation } from '@/hooks/useAtlasMutation';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
-import { loadB2BAccounts, loadInternalUsers } from '@/services/optionLoaders';
+import { loadAccountsReadyForOnboarding, loadInternalUsers } from '@/services/optionLoaders';
 import type { JsonObject } from '@/services/types';
 import { newUuid } from '@/lib/uuid';
+import { subirEvidenciaDeRequisito } from '@/services/onboardingEvidence';
+import { RequisitoArchivoCampo } from '@/components/screens/RequisitoArchivoCampo';
 
-interface ChecklistDraft { id: string; itemType: string; description: string; fijo?: boolean }
+interface ChecklistDraft { id: string; itemType: string; description: string; fijo?: boolean; archivo?: File | null; errorArchivo?: string | null }
 const newChecklistItem = (id: string): ChecklistDraft => ({ id, itemType: 'LEGAL', description: '' });
 /**
  * El NIT va siempre y no se quita ni se reescribe: sin NIT vigente ningún comercio se activa, y
@@ -45,14 +47,55 @@ interface OnboardingCaseScreenProps {
  */
 export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {}) {
   const [items, setItems] = useState<ChecklistDraft[]>(requisitosIniciales);
-  const accounts = useOptions(loadB2BAccounts);
+  const accounts = useOptions(loadAccountsReadyForOnboarding);
   const owners = useOptions(loadInternalUsers);
   /* Tipos de requisito del backend: la lista copiada aquí no tenía COMPLIANCE. */
   const tiposDeRequisito = useOptions(domainLoader('domain:crm.checklistItemType'));
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createOnboardingCase(payload), []));
 
+  const [subiendo, setSubiendo] = useState(false);
+
   function updateItem(id: string, key: 'itemType' | 'description', value: string) {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, [key]: value } : item)));
+  }
+
+  function elegirArchivo(id: string, archivo: File | null, errorArchivo: string | null) {
+    setItems((current) => current.map((item) => (item.id === id ? { ...item, archivo, errorArchivo } : item)));
+  }
+
+  /**
+   * Sube el archivo de cada requisito que lo trae, ya con el caso creado. Si uno falla NO se
+   * revierte nada —el caso vale—, se dice cuál y que se reintenta desde la fila.
+   */
+  async function subirArchivos(caso: JsonObject, borradores: ChecklistDraft[]) {
+    const creados = (Array.isArray(caso.checklistItems) ? caso.checklistItems : []) as Array<{ id?: string; itemType?: string; description?: string }>;
+    const sinUsar = [...creados];
+    const fallidos: string[] = [];
+    for (const borrador of borradores) {
+      const posicion = sinUsar.findIndex((c) => c.itemType === borrador.itemType && c.description === borrador.description);
+      const creado = posicion >= 0 ? sinUsar.splice(posicion, 1)[0] : undefined;
+      if (!borrador.archivo) continue;
+      try {
+        if (!creado?.id) throw new Error('El requisito no quedó registrado.');
+        await subirEvidenciaDeRequisito(String(caso.id), creado.id, borrador.archivo);
+      } catch {
+        fallidos.push(borrador.description);
+      }
+    }
+    if (fallidos.length) toast.warning('El caso se abrió, pero faltan archivos', `No se pudo subir: ${fallidos.join(', ')}. Súbalos desde la fila del caso, con «Adjuntar archivo de un requisito».`);
+  }
+
+  /**
+   * El contrato del alta es el que ya firmó la oportunidad ganada: no se pacta aquí. Se cuelga
+   * solo el vigente de la cuenta para que la comisión (MDR) tenga de dónde colgar. Si no hay,
+   * o falla, el caso sigue: la activación vuelve a buscar el vigente por su cuenta.
+   */
+  async function colgarContratoVigente(caso: JsonObject) {
+    try {
+      const versiones = await b2bService.listCaseContractOptions(String(caso.id));
+      const vigente = versiones.find((version) => version.vigente);
+      if (vigente) await b2bService.assignCaseContract(String(caso.id), { contractVersionId: String(vigente.id) });
+    } catch { /* la activación lo resuelve */ }
   }
 
   async function createCase(event: React.FormEvent<HTMLFormElement>) {
@@ -66,10 +109,15 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
         checklistItems: items.map(({ itemType, description }) => ({ itemType, description })),
       });
       avisarCarpetaDelComercio(creado.carpetaDelComercio);
+      setSubiendo(true);
+      await colgarContratoVigente(creado);
+      await subirArchivos(creado, items);
       form.reset();
       setItems(requisitosIniciales());
       await onDone?.();
-    } catch { /* controlled */ }
+    } catch { /* controlled */ } finally {
+      setSubiendo(false);
+    }
   }
 
   return (
@@ -80,13 +128,13 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
       <form id="create-onboarding-form" onSubmit={createCase} className="space-y-4">
         <Panel data-tutorial-id="onboarding-checklist" title="El comercio y su responsable" icon="domain">
           <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            <FormField tooltip="Cuenta B2B del comercio sobre la que se trabaja." kind="select" label="Comercio" name="accountId" required options={[{ label: '— Elija el comercio —', value: '' }, ...accounts]} hint="Cuentas B2B registradas en el directorio." />
+            <FormField tooltip="Cuenta B2B del comercio sobre la que se trabaja." kind="select" label="Comercio" name="accountId" required options={[{ label: '— Elija el comercio —', value: '' }, ...accounts]} hint="Sólo comercios con una oportunidad ganada y sin caso abierto: el resto aún tiene pasos previos por cerrar." />
             <FormField tooltip="Ejecutivo comercial que responde por esta cuenta; recibe las tareas y los avisos." kind="select" label="Ejecutivo responsable" name="ownerUserId" required options={[{ label: '— Elija responsable —', value: '' }, ...owners]} hint="Quien responde por el alta ante Legal y Operaciones." />
           </div>
         </Panel>
         <Panel
           title="Requisitos del expediente"
-          description="El NIT vigente va siempre. Agregue lo demás que haga falta cerrar (poderes, matrícula, visita técnica…). Mientras quede uno pendiente, el comercio no se activa."
+          description="El NIT vigente va siempre. Agregue lo demás que haga falta cerrar (poderes, matrícula, visita técnica…) y adjunte aquí mismo el archivo de cada uno. Mientras quede uno pendiente, el comercio no se activa."
           icon="fact_check"
           action={<AtlasButton variant="secondary" icon="add" onClick={() => setItems((current) => [...current, newChecklistItem(newUuid())])}>Agregar requisito adicional</AtlasButton>}
         >
@@ -96,10 +144,13 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
                 <Icon name="verified" className="text-[18px] text-emerald-700" />
                 <span className="text-xs font-bold text-slate-800">{item.description}</span>
                 <span className="rounded bg-white px-2 py-0.5 text-[11px] text-slate-600">Legal · obligatorio</span>
-                <span className="text-[11px] text-slate-600">Se cierra adjuntando el documento del NIT desde la fila del caso.</span>
+                <div className="basis-full">
+                  <RequisitoArchivoCampo label="Archivo del NIT vigente" archivo={item.archivo ?? null} error={item.errorArchivo ?? null} disabled={subiendo} onChange={(file, error) => elegirArchivo(item.id, file, error)} />
+                </div>
               </div>
             ) : (
-              <div key={item.id} className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 grid-cols-1 md:grid-cols-[160px_minmax(0,1fr)_36px]">
+              <div key={item.id} className="space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+              <div className="grid gap-2 grid-cols-1 md:grid-cols-[160px_minmax(0,1fr)_36px]">
                 {/* Mientras el dominio no llega, el valor de la línea se sigue ofreciendo: sin él el
                     select se vería vacío aunque el requisito ya lleve LEGAL. */}
                 <OptionSelect
@@ -115,11 +166,13 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
                   <Icon name="delete" className="text-[18px]" />
                 </button>
               </div>
+              <RequisitoArchivoCampo label={`Archivo del requisito adicional ${index}`} archivo={item.archivo ?? null} error={item.errorArchivo ?? null} disabled={subiendo} onChange={(file, error) => elegirArchivo(item.id, file, error)} />
+              </div>
             ))}
           </div>
         </Panel>
         <div className="flex justify-end">
-          <AtlasButton icon="send" type="submit" loading={createMutation.isLoading}>Abrir caso de onboarding</AtlasButton>
+          <AtlasButton icon="send" type="submit" loading={createMutation.isLoading || subiendo}>{subiendo ? 'Subiendo archivos…' : 'Abrir caso de onboarding'}</AtlasButton>
         </div>
       </form>
     </div>

@@ -98,6 +98,22 @@ export const loadMerchantBranches = async (): Promise<Option[]> =>
 export const loadB2BAccounts = async (): Promise<Option[]> =>
   toOptions(rowsOf(await b2bService.listAccounts({ page: 1, limit: 100 })), (r) => `${s(r.tradeName || r.legalName)}`);
 
+/**
+ * Comercios a los que se puede abrir un caso de onboarding: los que ganaron una oportunidad
+ * (contrato firmado) y todavía no tienen caso, ni abierto ni ya activado. Abrirlo antes saltaría
+ * la calificación, la oportunidad y la contratación que lo preceden.
+ */
+export const loadAccountsReadyForOnboarding = async (): Promise<Option[]> => {
+  const [ganadas, casos, cuentas] = await Promise.all([
+    b2bService.listOpportunities({ stage: 'CLOSED_WON' }),
+    b2bService.listOnboardingCases({ scope: 'todos', limit: 200 }),
+    b2bService.listAccounts({ page: 1, limit: 100 }),
+  ]);
+  const conGanada = new Set(ganadas.map((row) => s(row.accountId)));
+  const conCaso = new Set((casos.items ?? []).map((row) => s(row.accountId)));
+  return toOptions(rowsOf(cuentas).filter((row) => conGanada.has(s(row.id)) && !conCaso.has(s(row.id))), (r) => s(r.tradeName || r.legalName));
+};
+
 export const loadB2BContracts = async (): Promise<Option[]> =>
   toOptions(await b2bService.listB2BContracts(), (r) => `${s(r.contractNumber)} — ${s(r.status)}`);
 

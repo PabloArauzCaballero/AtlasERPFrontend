@@ -265,37 +265,6 @@ export default function OnboardingPage() {
               },
             },
             {
-              key: 'contrato',
-              label: 'Pactar contrato',
-              description: 'Elige cuál versión de contrato de este comercio rige el alta. Para activarlo, esa versión tiene que estar activa y vigente.',
-              icon: 'draw',
-              enabled: abierto,
-              form: {
-                title: (row) => `Contrato del alta de ${String(row.tradeName ?? 'este comercio')}`,
-                description: 'Sólo versiones de contratos de este mismo comercio. La activación exige que la pactada esté activa y vigente.',
-                fields: (row) => [
-                  {
-                    name: 'contractVersionId',
-                    label: 'Versión de contrato', tooltip: 'Versión del contrato de la que cuelga la regla de comisión.',
-                    type: 'select',
-                    required: true,
-                    span: 2,
-                    defaultValue: String(row.contractVersionId ?? ''),
-                    optionsLoader: async () => {
-                      const versions = await b2bService.listCaseContractOptions(String(row.id ?? ''));
-                      if (!versions.length) return [{ label: '— Este comercio no tiene contratos: genera uno en CRM › Contratos —', value: '' }];
-                      return versions.map((version) => ({
-                        value: String(version.id),
-                        label: `${String(version.contractNumber ?? 'Contrato')} · v${String(version.versionNumber ?? '?')} · ${String(version.status)}${version.vigente ? ' · vigente' : ' · NO activable'}`,
-                      }));
-                    },
-                  },
-                ],
-                submit: (row, payload: JsonObject) => b2bService.assignCaseContract(String(row.id ?? ''), payload),
-                submitLabel: 'Pactar contrato',
-              },
-            },
-            {
               key: 'comision',
               label: 'Pactar comisión (MDR)',
               description: 'Define cuánto cobra Atlas por cada venta del comercio (MDR), con piso y techo opcionales, sobre el contrato pactado.',

@@ -92,12 +92,12 @@ test('la fila no amontona iconos: tres acciones y el resto con su nombre', async
   expect(await fila.locator('td:last-child button, td:last-child a').count(), 'demasiados botones en el carril').toBeLessThanOrEqual(4);
 
   /*
-   * Y el cajón las enseña CON SU NOMBRE. «Pactar contrato» y «Pedir verificación al Motor» se hacen
+   * Y el cajón las enseña CON SU NOMBRE. «Pedir verificación al Motor» se hace
    * UNA vez por caso: no merecen sitio en el carril, pero tienen que encontrarse sin adivinar iconos.
    */
   await fila.getByTestId(`mas-acciones-${caso}`).click();
   const cajon = page.getByRole('dialog');
-  await expect(cajon.getByText(/pactar contrato/i)).toBeVisible();
+  await expect(cajon.getByText(/pactar contrato/i)).toHaveCount(0);
   await expect(cajon.getByText(/pedir verificación al motor/i)).toBeVisible();
   await page.screenshot({ path: `${EVIDENCIA}/fila-mas-acciones.png`, fullPage: true });
 });

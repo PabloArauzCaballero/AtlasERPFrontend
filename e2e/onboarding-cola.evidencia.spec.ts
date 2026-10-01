@@ -79,12 +79,13 @@ test('la cola arranca en «Por atender» y los activados sólo salen en el histo
   await page.screenshot({ path: 'docs/visual-evidence/operaciones/onboarding-02-activados.png', fullPage: true });
 });
 
-test('todo se hace desde la fila: requisito, contrato, credenciales, activar', async ({ page }) => {
+test('todo se hace desde la fila: requisito, credenciales, activar', async ({ page }) => {
   await page.goto('/operaciones/crm/onboarding');
   const fila = page.locator('[data-tutorial-id="crud-tabla"] tbody tr', { hasText: comercio });
   await expect(fila).toBeVisible({ timeout: 120_000 });
   await expect(fila.getByTitle(/mover un requisito/i)).toBeVisible();
-  await expect(fila.getByTitle(/pactar contrato/i)).toBeVisible();
+  /* El contrato ya lo firmó la oportunidad ganada: no se pacta en el onboarding. */
+  await expect(fila.getByTitle(/pactar contrato/i)).toHaveCount(0);
   /*
    * «Dar acceso a una persona» (antes «Pedir credenciales»). Se renombró el 2026-09-18 al dejar de
    * retirarse cuando ya había un acceso concedido: un comercio tiene más de una persona, y el
