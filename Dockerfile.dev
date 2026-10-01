@@ -73,6 +73,12 @@ ENV ERP_API_ORIGIN=$ERP_API_ORIGIN \
     NEXT_PUBLIC_ATLAS_API_BASE_URL=
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
+# PLAT-03: la identidad del artefacto se escribe AQUÍ, dentro de la imagen, y `/version` la lee de este
+# archivo. `SOURCE_COMMIT` llega como build-arg desde el compose de Coolify; si llega vacío se lee
+# `.git/HEAD` del contexto (el .dockerignore lo deja pasar). Sin ninguno queda `commit: null`: no se
+# inventa, y el smoke de release lo rechaza. (Coolify construye con ESTE archivo, no con `Dockerfile`.)
+ARG SOURCE_COMMIT=""
+RUN SOURCE_COMMIT="$SOURCE_COMMIT" node scripts/write-build-info.mjs build-info.json
 RUN yarn build
 # Este front no tiene `public/`. La copia de más abajo es incondicional —Docker no sabe copiar «si
 # existe»— así que se garantiza el directorio aquí.
@@ -90,6 +96,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/build-info.json ./build-info.json
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
