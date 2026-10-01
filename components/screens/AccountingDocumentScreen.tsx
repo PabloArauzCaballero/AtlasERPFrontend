@@ -62,6 +62,8 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
   const [documentId, setDocumentId] = useState('');
   /* El número del documento lo asigna el backend (DOC-…); tras guardar se enseña el que asignó. */
   const [numeroAsignado, setNumeroAsignado] = useState('');
+  /** Lo que decidió el SERVIDOR al guardar: si el asiento exige que otra persona lo apruebe antes de contabilizar. */
+  const [aprobacion, setAprobacion] = useState('');
 
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => accountingService.createDocument(payload), []));
   const postMutation = useAtlasMutation(useCallback((id: string) => accountingService.postDocument(id), []));
@@ -114,6 +116,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
       const created = await createMutation.execute(payload);
       if (created.id) setDocumentId(String(created.id));
       setNumeroAsignado(created.documentNo ? String(created.documentNo) : '');
+      setAprobacion(created.approvalStatus ? String(created.approvalStatus) : '');
       // El comprobante elegido antes de guardar se sube ahora que el asiento existe: es su dueño.
       await adjuntarAlCrear('ACCOUNTING_DOCUMENT', created.id, form.get('respaldo'), 'El asiento');
       await onDone?.();
@@ -145,6 +148,11 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
       />
 
       {createMutation.error || postMutation.error ? <InlineNotice tone="danger" title="No se pudo completar la operación">{createMutation.error ?? postMutation.error}</InlineNotice> : null}
+      {documentId && aprobacion === 'PENDING' ? (
+        <InlineNotice tone="info" title="Queda pendiente de aprobación">
+          Este asiento exige que lo apruebe otra persona (un CFO o un administrador distinto de quien lo creó). Búscalo en el listado de documentos para que lo decidan; no podrás contabilizarlo tú.
+        </InlineNotice>
+      ) : null}
       {postMutation.status === 'success' ? <InlineNotice tone="success" title="Documento contabilizado">El asiento quedó en firme. A partir de aquí sólo se corrige con una reversión.</InlineNotice> : null}
 
       <div className="grid items-start gap-4 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_310px]">
@@ -241,8 +249,8 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
               <Control label="Tiene al menos dos líneas" ok={lines.length >= 2} />
               <Control label="El borrador está guardado" ok={Boolean(documentId)} />
             </div>
-            <AtlasButton className="mt-4 w-full" variant="success" icon="verified" data-testid="documento-contabilizar" disabled={!documentId || !balanced} loading={postMutation.isLoading} onClick={postDocument}>Contabilizar</AtlasButton>
-            <p className="mt-2 text-[11px] text-slate-500">Se contabiliza el borrador que acabas de guardar. Para contabilizar otro, búscalo en el listado de documentos.</p>
+            <AtlasButton className="mt-4 w-full" variant="success" icon="verified" data-testid="documento-contabilizar" disabled={!documentId || !balanced || aprobacion === 'PENDING' || aprobacion === 'REJECTED'} loading={postMutation.isLoading} onClick={postDocument}>Contabilizar</AtlasButton>
+            <p className="mt-2 text-[11px] text-slate-500">Se contabiliza el borrador que acabas de guardar, si no exige aprobación. Para contabilizar otro, búscalo en el listado de documentos.</p>
           </Panel>
           <InlineNotice tone="warning">Contabilizar deja el asiento en firme. Lo que venga después se corrige con una reversión, no editando.</InlineNotice>
         </aside>

@@ -207,6 +207,18 @@ export const accountingService = {
     const documentId = requireUuidPathParam(id, 'el UUID del documento contable');
     return apiRequest<ResourceRow>(`/accounting/documents/${documentId}/post`, { method: 'PATCH' });
   },
+  /**
+   * Aprobar / rechazar un borrador que espera decisión (ATL-03). Lo decide otra persona con rol de
+   * CFO o administrador: el backend es quien lo exige; la pantalla sólo ofrece el botón.
+   */
+  approveDocument(id: string, body: JsonObject = {}) {
+    const documentId = requireUuidPathParam(id, 'el UUID del documento contable');
+    return apiRequest<ResourceRow>(`/accounting/documents/${documentId}/approve`, { method: 'PATCH', body });
+  },
+  rejectDocument(id: string, body: JsonObject = {}) {
+    const documentId = requireUuidPathParam(id, 'el UUID del documento contable');
+    return apiRequest<ResourceRow>(`/accounting/documents/${documentId}/reject`, { method: 'PATCH', body });
+  },
   reverseDocument(id: string, body: JsonObject) {
     const documentId = requireUuidPathParam(id, 'el UUID del documento contable');
     return apiRequest<ResourceRow>(`/accounting/documents/${documentId}/reverse`, {
