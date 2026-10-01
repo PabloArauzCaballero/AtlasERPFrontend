@@ -143,6 +143,9 @@ test.describe('el lector de Excel de los listados', () => {
         globalThis.excel.descargarPlantillaExcel('p.xlsx', ['asiento', 'legalName', 'monto'], [
           ['ASIENTO-1', 'Comercial Uno SRL', '1500'],
           ['ASIENTO-1', '', '1500'],
+        ], [
+          { nombre: 'Instrucciones', filas: [['Cómo llenar'], ['Columna', 'Obligatoria']] },
+          { nombre: 'Valores permitidos', filas: [['Moneda'], ['BOB']] },
         ]);
       } finally {
         URL.createObjectURL = original;
@@ -217,7 +220,7 @@ test.describe('el lector de Excel de los listados', () => {
 declare global {
   var excel: {
     leerTabla: (file: File) => Promise<{ cabeceras: string[]; filas: Record<string, string>[] }>;
-    descargarPlantillaExcel: (nombre: string, cabeceras: string[], ejemplos?: string[][]) => void;
+    descargarPlantillaExcel: (nombre: string, cabeceras: string[], ejemplos?: string[][], hojasExtra?: Array<{ nombre: string; filas: string[][] }>) => void;
     fechaDeSerieExcel: (serie: number) => string;
   };
 }

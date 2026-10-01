@@ -28,7 +28,7 @@ function moduloEnUnGuion(): string {
     .replace(/^export (async )?function/gm, '$1function')
     .replace(/^export function/gm, 'function')
     .replace(/^export const/gm, 'const')
-    .concat('\nglobalThis.imp = { camposImportables, ejemploDe, valorDeOpcion, normalizar, payloadDeFila, erroresDeFila, prepararPlana, agrupar };');
+    .concat('\nglobalThis.imp = { camposImportables, ejemploDe, valorDeOpcion, normalizar, payloadDeFila, erroresDeFila, prepararPlana, agrupar, columnasPlantilla, aClavesTecnicas, hojasDeAyuda };');
 }
 
 async function conElModulo(page: Page): Promise<void> {
@@ -54,6 +54,34 @@ const CAMPOS_LINEA = [
 const LINEAS = { name: 'lines', clave: 'asiento', claveLabel: 'Referencia del asiento', nombreLinea: 'línea', fields: CAMPOS_LINEA };
 
 test.describe('la carga masiva de los listados', () => {
+  test('la plantilla se lee en español, marca las obligatorias y se acepta por etiqueta o por nombre técnico', async ({ page }) => {
+    await conElModulo(page);
+    const r = await page.evaluate(({ campos, campoLinea, lineas }) => {
+      const columnas = globalThis.imp.columnasPlantilla(campos, campoLinea, lineas);
+      const tabla = {
+        cabeceras: ['Referencia del asiento *', 'Fecha', 'currencyCode', 'Columna rara'],
+        filas: [{ 'Referencia del asiento *': 'A1', Fecha: '2026-01-31', currencyCode: 'BOB', 'Columna rara': 'x' }],
+      };
+      const ayuda = globalThis.imp.hojasDeAyuda(columnas);
+      return {
+        cabeceras: columnas.map((c: { cabecera: string }) => c.cabecera),
+        leida: globalThis.imp.aClavesTecnicas(tabla, columnas),
+        hojas: ayuda.map((h: { nombre: string }) => h.nombre),
+        valores: ayuda[1]?.filas ?? [],
+      };
+    }, { campos: CAMPOS_ASIENTO, campoLinea: CAMPOS_LINEA, lineas: LINEAS });
+
+    expect(r.cabeceras).toEqual([
+      'Referencia del asiento *', 'Empresa *', 'Fecha *', 'Moneda *', 'Cuenta contable *', 'Debe', 'Haber',
+    ]);
+    expect(r.leida.cabeceras).toEqual(['asiento', 'documentDate', 'currencyCode', 'Columna rara']);
+    expect(r.leida.filas[0]).toMatchObject({ asiento: 'A1', documentDate: '2026-01-31', currencyCode: 'BOB' });
+    expect(r.hojas).toEqual(['Instrucciones', 'Valores permitidos']);
+    // Cada lista aparece con SUS nombres, no con códigos.
+    expect(r.valores[0]).toEqual(['Empresa', 'Moneda', 'Cuenta contable']);
+    expect(r.valores[2]).toEqual(['', '', '4101 — Ventas']);
+  });
+
   test('un campo que pide dos controles se desdobla en dos columnas, y el que abre un mapa se queda fuera', async ({ page }) => {
     await conElModulo(page);
     const nombres = await page.evaluate(() =>
@@ -193,6 +221,9 @@ declare global {
     payloadDeFila: (crudo: Record<string, string>, campos: unknown[]) => Record<string, never>;
     erroresDeFila: (crudo: Record<string, string>, campos: unknown[], obligatorios: unknown[], prefijo?: string) => string[];
     prepararPlana: (crudo: Record<string, string>, numero: number, campos: unknown[], obligatorios: unknown[]) => Record<string, never>;
+    columnasPlantilla: (campos: unknown[], camposLinea?: unknown[], lineas?: unknown) => Array<{ cabecera: string }>;
+    aClavesTecnicas: (tabla: { cabeceras: string[]; filas: Array<Record<string, string>> }, columnas: unknown[]) => { cabeceras: string[]; filas: Array<Record<string, string>> };
+    hojasDeAyuda: (columnas: unknown[]) => Array<{ nombre: string; filas: string[][] }>;
     agrupar: (
       filas: Array<Record<string, string>>,
       lineas: unknown,
