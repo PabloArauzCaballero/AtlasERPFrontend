@@ -9,6 +9,7 @@ import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
 import { Modal } from '@/components/atlas/Modal';
+import { ImportarSucursalesModal } from './ImportarSucursalesModal';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
@@ -19,28 +20,10 @@ import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
 import { withEmpty } from '@/services/optionLoaders';
 import { formDataToPayload } from '@/lib/formPayload';
+import { codigoDeExpediente } from '@/lib/codigoDeSucursal';
 import { portalService } from '@/services/portalService';
 import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
 import type { JsonObject, ResourceRow } from '@/services/types';
-
-/**
- * El código con el que el expediente nombra a una sucursal del ERP.
- *
- * Se DERIVA del identificador de la sucursal en vez de pedírselo a nadie: es único por
- * construcción —el identificador ya lo es—, así que declarar dos veces el mismo local no puede
- * producir dos entradas, y volver a intentarlo después de un fallo de red produce el mismo código
- * y choca con un 409 en vez de duplicar. Pedirlo en un formulario era, además, la mitad del
- * trámite que sobraba: el comercio ya había escrito el nombre del local en «Sucursales».
- *
- * Se usa el identificador ENTERO y no un prefijo. Los de este ERP se emiten en serie
- * —`d9000000-…-9001`, `d9000000-…-9002`— y sólo se diferencian en la cola: cortando por delante,
- * dos locales distintos del mismo comercio recibían el MISMO código y el segundo se rechazaba con
- * `BRANCH_CODE_ALREADY_REGISTERED`, o sea que el comercio no podía abrir su segunda tienda.
- * Un UUID sin guiones son 32 caracteres y el contrato admite 40.
- */
-function codigoDeExpediente(erpBranchId: string): string {
-  return `SUC-${erpBranchId.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(-36)}`;
-}
 
 /**
  * Las sucursales del comercio: el ÚNICO sitio donde un local se da de alta y se administra.
@@ -170,6 +153,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
 
   /* El alta vive en un modal: un formulario siempre abierto empujaba la lista fuera de la pantalla. */
   const [creando, setCreando] = useState(false);
+  const [importando, setImportando] = useState(false);
   const [editando, setEditando] = useState<ResourceRow | null>(null);
   const editMutation = useAtlasMutation(useCallback(
     ({ id, body }: { id: string; body: JsonObject }) => portalService.updateBranch(id, body),
@@ -287,6 +271,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
               ],
             })}
           />
+          <AtlasButton variant="secondary" icon="upload_file" data-testid="btn-importar-sucursales" disabled={!ready} onClick={() => setImportando(true)}>Importar desde Excel</AtlasButton>
           <AtlasButton icon="add_location" data-testid="btn-agregar-sucursal" disabled={!ready} onClick={() => setCreando(true)}>Agregar sucursal</AtlasButton>
           </>
   );
@@ -330,6 +315,18 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
           <InlineNotice tone={feedback.tone} title={feedback.tone === 'danger' ? 'No se pudo completar' : 'Listo'}>{feedback.text}</InlineNotice>
         </div>
       ) : null}
+
+      <ImportarSucursalesModal
+        open={importando}
+        accountId={queryAccountId}
+        partnerId={partnerId}
+        onClose={() => setImportando(false)}
+        onImported={() => {
+          void branches.reload();
+          void recargarExpediente();
+          onDone?.();
+        }}
+      />
 
       <Modal
         open={creando}

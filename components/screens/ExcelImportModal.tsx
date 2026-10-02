@@ -32,6 +32,10 @@ interface ExcelImportModalProps {
   submit: (payload: JsonObject) => Promise<unknown>;
   /** Si el registro lleva líneas, cómo se agrupan las filas de la hoja. */
   lineas?: LineasSpec | undefined;
+  /** Sustituye la explicación de arriba cuando el registro necesita decir algo más (qué se genera al crearlo). */
+  descripcion?: string | undefined;
+  /** Sustituye el aviso de éxito del final. */
+  mensajeExito?: string | undefined;
   onClose: () => void;
   /** Se llama al cerrar si se creó al menos un registro, para recargar la tabla. */
   onImported: () => void;
@@ -202,7 +206,9 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
     >
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
-          {lineas
+          {props.descripcion
+            ? props.descripcion
+            : lineas
             ? `Se crean los mismos registros que con el formulario de alta. Va una fila por ${lineas.nombreLinea}: las filas que repiten «${lineas.claveLabel}» son el mismo registro, y la cabecera se lee de la primera de ellas.`
             : 'Se crean los mismos registros que con el formulario de alta, uno por fila. Descarga la plantilla, rellénala en Excel y súbela: antes de crear nada verás qué filas están completas y cuáles no.'}
         </p>
@@ -279,7 +285,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
           <InlineNotice tone={fallidas.length ? 'warning' : 'success'} title={`${creadas} de ${total} registros creados`}>
             {fallidas.length
               ? 'Las filas rechazadas siguen en la tabla con el motivo. Corrígelas en el Excel y vuelve a subirlo: las que ya se crearon no se repiten porque no vuelven a enviarse.'
-              : 'Todas las filas del archivo entraron por el mismo camino que un alta hecha a mano.'}
+              : (props.mensajeExito ?? 'Todas las filas del archivo entraron por el mismo camino que un alta hecha a mano.')}
           </InlineNotice>
         ) : null}
 
