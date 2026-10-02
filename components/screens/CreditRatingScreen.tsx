@@ -141,7 +141,7 @@ export function CreditRatingScreen() {
       {summary.error ? (
         <InlineNotice tone="danger" title="No se pudo leer la cartera calificada">
           {summary.error.includes('RATING_POLICY_NOT_ACTIVE')
-            ? 'No hay una política de calificación activa. Se siembra con «yarn db:seed:crm» (matriz ASFI).'
+            ? 'No hay una política de calificación activa, así que la cartera no se puede calificar. Pide a soporte técnico que active la matriz ASFI.'
             : summary.error}
         </InlineNotice>
       ) : null}
