@@ -8,7 +8,7 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { StructuredActionForm, type FormSectionDefinition } from '@/components/screens/StructuredActionForm';
 import { seccionDatosDelExpediente } from '@/components/screens/altas/cuentaB2b';
 import { b2bService } from '@/services/b2bService';
-import { adjuntarArchivosDelExpediente, describirFaltantesDelExpediente } from '@/services/expedienteDeCuenta';
+import { adjuntarArchivosDelExpediente, avisarEntregaAlExpediente, describirFaltantesDelExpediente } from '@/services/expedienteDeCuenta';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 interface DatosExpedienteCuentaPanelProps {
@@ -40,6 +40,8 @@ export function DatosExpedienteCuentaPanel({ account, onSaved }: DatosExpediente
     let actualizada: ResourceRow = account;
     if (dossier && Object.keys(dossier).length) actualizada = await b2bService.setAccountDossier(accountId, dossier);
     await adjuntarArchivosDelExpediente(accountId, { poderNotarial, qrBancario });
+    // Si el comercio ya tiene expediente en Atlas, el servidor se lo entregó en el acto: se dice qué quedó.
+    avisarEntregaAlExpediente(actualizada.carpetaDelComercio);
     return actualizada;
   }
 
