@@ -25,7 +25,13 @@ services:
     environment:
       APP_COMMIT_SHA: '${SOURCE_COMMIT:-}'
       APP_VERSION: '0.1.0'
-    networks: ['default', 'coolify']
+    # `erp-web`: alias ESTABLE por el que Traefik sondea y sirve este portal en TEST, con failover a
+    # la instancia de respaldo (_herramientas/respaldo-erp/atlas-erp-failover.yaml). El nombre del
+    # contenedor cambia en cada despliegue; el alias no. Sin él, la sonda falla y sirve el respaldo.
+    networks:
+      default: {}
+      coolify:
+        aliases: ['erp-web']
     restart: unless-stopped
     logging:
       driver: json-file
