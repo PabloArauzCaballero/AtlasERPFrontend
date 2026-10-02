@@ -21,6 +21,7 @@ import { domainLoader } from '@/services/domains';
 import { withEmpty } from '@/services/optionLoaders';
 import { formDataToPayload } from '@/lib/formPayload';
 import { codigoDeExpediente } from '@/lib/codigoDeSucursal';
+import { crearCajas, MAX_CAJAS_POR_VEZ, type ResultadoCajas } from '@/lib/cajasDeSucursal';
 import { portalService } from '@/services/portalService';
 import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
 import type { JsonObject, ResourceRow } from '@/services/types';
@@ -208,9 +209,11 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
     event.preventDefault();
     const form = event.currentTarget;
     setFeedback(null);
+    const datos = new FormData(form);
+    const cantidadCajas = cantidadDe(datos.get('cantidadCajas'));
     try {
       const creada = await branchMutation.execute(
-        formDataToPayload(new FormData(form), [{ name: 'name' }, { name: 'city', optional: true }, { name: 'address', optional: true }]),
+        formDataToPayload(datos, [{ name: 'name' }, { name: 'city', optional: true }, { name: 'address', optional: true }]),
       );
       form.reset();
       setCreando(false);
@@ -228,7 +231,19 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
        */
       if (partnerId && creada?.id) {
         try {
-          await declarar(creada);
+          const local = await declarar(creada);
+          /* La cantidad de cajas que se pidió al crearla: «Caja 1», «Caja 2»…, ya activas y con su QR. */
+          if (cantidadCajas > 0 && local?.branchId) {
+            const resultado = await crearCajas({
+              partnerId,
+              branchId: String(local.branchId),
+              erpBranchId: String(creada.id),
+              nombreSucursal: String(creada.name ?? 'Sucursal'),
+              cantidad: cantidadCajas,
+              existentes: [],
+            });
+            setFeedback({ tone: 'success', text: textoDeCajas('Sucursal registrada', resultado) });
+          }
           await recargarExpediente();
         } catch (error) {
           setFeedback({
@@ -341,6 +356,17 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
           <FormField tooltip="Nombre con el que identificas el local. Ej.: Sucursal Equipetrol." label="Nombre de sucursal" name="name" required placeholder="Sucursal Norte" />
           <FormField tooltip="Ciudad donde está la sede principal; queda registrada en la ficha." kind="select" label="Ciudad" name="city" options={withEmpty(ciudades, '— Sin definir —')} />
           <FormField tooltip="Dirección completa de la casa matriz. Pulsa el pin para verla en el mapa." label="Dirección" name="address" className="md:col-span-2" placeholder="Av. principal, zona y referencia" />
+          <FormField
+            tooltip="Cuántas cajas o mostradores cobran en este local. Cada una recibe su QR y se llama Caja 1, Caja 2…"
+            label="Cantidad de cajas"
+            name="cantidadCajas"
+            type="number"
+            min={0}
+            max={MAX_CAJAS_POR_VEZ}
+            defaultValue={1}
+            hint="Se crean como Caja 1, Caja 2… ya activas, cada una con su QR. Puedes agregar más después."
+            data-testid="campo-cantidad-cajas"
+          />
         </div>
           {branchMutation.error ? <InlineNotice tone="danger">{branchMutation.error}</InlineNotice> : null}
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
@@ -400,7 +426,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
       {nuevaCaja ? (
         <Modal
           open
-          title={`Registrar caja en ${nuevaCaja.nombre}`}
+          title={`Agregar cajas en ${nuevaCaja.nombre}`}
           description="Cada caja tiene su propio QR: es lo que permite saber en qué mostrador se hizo cada venta."
           icon="point_of_sale"
           width="md"
@@ -412,35 +438,48 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
               event.preventDefault();
               const form = event.currentTarget;
               const datos = new FormData(form);
-              const serial = String(datos.get('terminalSerial') ?? '').trim();
-              const alias = String(datos.get('terminalAlias') ?? '').trim();
+              const cantidad = cantidadDe(datos.get('cantidadCajas'));
+              const serialPropio = String(datos.get('terminalSerial') ?? '').trim();
               const destino = nuevaCaja;
               setNuevaCaja(null);
-              void enExpediente('Caja', `alta-pos-${destino.erpBranchId}`, () =>
-                partnerOnboardingService.registerPosTerminal(partnerId, destino.branchId, {
-                  terminalSerial: serial,
-                  ...(alias ? { terminalAlias: alias } : {}),
-                }),
+              void enExpediente(
+                cantidad === 1 ? 'Caja' : `${cantidad} cajas`,
+                `alta-pos-${destino.erpBranchId}`,
+                () =>
+                  crearCajas({
+                    partnerId,
+                    branchId: destino.branchId,
+                    erpBranchId: destino.erpBranchId,
+                    nombreSucursal: destino.nombre,
+                    cantidad,
+                    existentes: (datosExpediente?.posTerminals ?? []).filter((pos) => pos.branchId === destino.branchId),
+                    ...(serialPropio ? { serialPropio } : {}),
+                  }),
               );
             }}
           >
             <FormField
-              tooltip="Número de serie impreso en la caja o terminal. Ej.: SN-00042."
-              label="Serial de la caja"
-              name="terminalSerial"
+              tooltip="Cuántas cajas o mostradores nuevos agregar. Se numeran a continuación de las que ya tiene: Caja 3, Caja 4…"
+              label="Cantidad de cajas a agregar"
+              name="cantidadCajas"
+              type="number"
+              min={1}
+              max={MAX_CAJAS_POR_VEZ}
+              defaultValue={1}
               required
-              data-testid={`campo-pos-serial-${nuevaCaja.erpBranchId}`}
+              data-testid={`campo-cantidad-cajas-${nuevaCaja.erpBranchId}`}
             />
             <FormField
-              tooltip="Nombre corto para reconocer la caja en la lista. Ej.: Caja 1."
-              label="Alias"
-              name="terminalAlias"
-              hint="Caja 1, Mostrador…"
+              tooltip="Sólo si tu terminal ya trae un número de serie y quieres que el QR lo use. Si lo dejas vacío, Atlas lo genera."
+              label="Serial propio (opcional, sólo para una caja)"
+              name="terminalSerial"
+              hint="Déjalo vacío para que Atlas lo genere: NOMBRE-DE-LA-SUCURSAL-…-CAJA-N."
+              data-testid={`campo-pos-serial-${nuevaCaja.erpBranchId}`}
             />
             <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
               <AtlasButton variant="secondary" type="button" onClick={() => setNuevaCaja(null)}>Cancelar</AtlasButton>
               <AtlasButton type="submit" icon="add" data-testid={`btn-registrar-pos-${nuevaCaja.erpBranchId}`}>
-                Registrar caja
+                Agregar cajas
               </AtlasButton>
             </div>
           </form>
@@ -603,7 +642,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                               loading={ocupada === `alta-pos-${id}`}
                               onClick={() => setNuevaCaja({ erpBranchId: id, branchId: local.branchId, nombre: String(branch.name ?? 'esta sucursal') })}
                             >
-                              Registrar caja
+                              Agregar cajas
                             </AtlasButton>
                           </div>
                         )}
@@ -628,4 +667,17 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
       </Panel>
     </div>
   );
+}
+
+/** La cantidad escrita, dentro de los límites; vacío o basura = 1 (lo normal). */
+function cantidadDe(valor: FormDataEntryValue | null): number {
+  const numero = Number(String(valor ?? '').trim() || '1');
+  return Number.isFinite(numero) ? Math.max(0, Math.min(MAX_CAJAS_POR_VEZ, Math.trunc(numero))) : 1;
+}
+
+function textoDeCajas(prefijo: string, resultado: ResultadoCajas): string {
+  const cajas = resultado.creadas === 1 ? '1 caja' : `${resultado.creadas} cajas`;
+  return resultado.sinActivar
+    ? `${prefijo} con ${cajas}. ${resultado.sinActivar} quedaron sin activar: pulsa «Reactivar» en cada una para que su QR funcione.`
+    : `${prefijo} con ${cajas}, ya activas y con su QR.`;
 }
