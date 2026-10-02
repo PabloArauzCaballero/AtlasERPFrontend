@@ -90,7 +90,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
         <Panel
           title="Matrícula de comercio"
           icon="badge"
-          description="El número con el que tu empresa está inscrita en el registro de comercio. Es lo único del alta que se puede completar después."
+          description="El número con el que tu empresa está inscrita en el registro de comercio. Si tu ejecutivo de Atlas lo cargó en el alta, ya no aparece aquí."
         >
           <form className="grid gap-3 grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" onSubmit={guardarMatricula}>
             <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente."

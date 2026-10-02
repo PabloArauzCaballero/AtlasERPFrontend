@@ -40,9 +40,10 @@ function motivoSinSubida(estadoExpediente: string): string | null {
 
 /** Lo que significa cada estado del QR para el comercio, sin la clave interna. */
 const ESTADO_QR: Record<string, { tono: 'success' | 'warning' | 'danger' | 'neutral'; texto: string }> = {
-  active: { tono: 'success', texto: 'Aprobado · sus clientes ya lo ven' },
-  pending_review: { tono: 'warning', texto: 'Esperando revisión de Atlas · sus clientes aún no lo ven' },
-  rejected: { tono: 'danger', texto: 'Rechazado' },
+  active: { tono: 'success', texto: 'Activo · sus clientes ya lo ven' },
+  /* Desde el 2026-10-02 el QR queda activo al confirmarlo el comercio; este estado sólo lo tienen los subidos antes. */
+  pending_review: { tono: 'warning', texto: 'Pendiente de activar · sus clientes aún no lo ven' },
+  rejected: { tono: 'danger', texto: 'Revocado por Atlas' },
   replaced: { tono: 'neutral', texto: 'Archivado' },
 };
 
@@ -375,7 +376,7 @@ export function MerchantPaymentQrScreen({
           title={aprobado ? 'Lo que ve su cliente' : 'QR bancario del comercio'}
           description={aprobado
             ? 'Esta es la imagen exacta que aparece en la app cuando su cliente pulsa «pagar».'
-            : 'Vista previa del QR enviado. La app solo lo mostrará después de la aprobación de Atlas.'}
+            : 'Vista previa del QR. En cuanto lo confirmes, es el que ven tus clientes al pagar; Atlas no lo revisa antes.'}
           icon="smartphone"
           action={embedded ? acciones : undefined}
         >
