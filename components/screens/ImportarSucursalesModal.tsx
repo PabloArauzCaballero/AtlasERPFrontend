@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { codigoDeExpediente } from '@/lib/codigoDeSucursal';
+import { crearCajas } from '@/lib/cajasDeSucursal';
 import { domainLoader } from '@/services/domains';
 import { partnerOnboardingService } from '@/services/partnerOnboardingService';
 import { portalService } from '@/services/portalService';
@@ -20,6 +21,12 @@ const CAMPOS: ActionField[] = [
     tooltip: 'Ciudad del local. Se elige de la lista de «Valores permitidos»: escrita a mano, «Sta. Cruz» y «Santa Cruz» serían dos plazas.',
   },
   { name: 'address', label: 'Dirección', optional: true, tooltip: 'Dirección del local: calle, zona y referencia.', placeholder: 'Av. Principal #100, Equipetrol' },
+  /*
+   * Lo normal (Pablo, 2026-10-02): cuántas cajas tiene el local, y Atlas las crea como Caja 1,
+   * Caja 2… con su QR. Las columnas «Caja» y «Serial de la caja» quedan para quien quiera usar los
+   * seriales de sus propias terminales.
+   */
+  { name: 'cantidadCajas', label: 'Cantidad de cajas', type: 'number', valueKind: 'number', optional: true, tooltip: 'Cuántas cajas o mostradores cobran en el local. Si lo dejas vacío se crea una. Se llaman Caja 1, Caja 2…', placeholder: '2' },
 ];
 
 /**
@@ -45,8 +52,8 @@ const LINEAS: LineasSpec = {
     {
       name: 'terminalSerial',
       label: 'Serial de la caja',
-      required: true,
-      tooltip: 'Número de serie impreso en la caja o terminal. Es único: de él nace el QR de esa caja. Ej.: SN-00042.',
+      optional: true,
+      tooltip: 'Opcional: el número de serie de tu terminal, si quieres que el QR lo use. Vacío = Atlas usa «Cantidad de cajas».',
       placeholder: 'SN-00042',
     },
   ],
@@ -108,6 +115,19 @@ export function ImportarSucursalesModal({ open, accountId, partnerId, onClose, o
           ...(payload.city ? { city: String(payload.city) } : {}),
           ...(payload.address ? { addressLine: String(payload.address) } : {}),
         });
+      }
+
+      /*
+       * Sin seriales en el archivo, manda «Cantidad de cajas» (1 si está vacía): se crean las que
+       * falten para llegar a esa cantidad, así subir el archivo dos veces no duplica cajas.
+       */
+      if (cajas.length === 0) {
+        const cajasDelLocal = estado.posTerminals.filter((pos) => pos.branchId === local?.branchId);
+        const deseadas = Number.isFinite(Number(payload.cantidadCajas)) && String(payload.cantidadCajas ?? '') !== '' ? Number(payload.cantidadCajas) : 1;
+        const faltan = Math.max(0, deseadas - cajasDelLocal.length);
+        if (faltan > 0) {
+          await crearCajas({ partnerId, branchId: local.branchId, erpBranchId, nombreSucursal: nombre, cantidad: faltan, existentes: cajasDelLocal });
+        }
       }
 
       const yaRegistradas = new Set(estado.posTerminals.map((pos) => plano(pos.terminalSerial)));

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FileDropField } from '@/components/atlas/FileDropField';
 import { FormField } from '@/components/atlas/FormField';
@@ -30,6 +30,8 @@ interface PartnerRequirementsPanelProps {
  */
 export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }: PartnerRequirementsPanelProps) {
   const poder = useRef<HTMLInputElement>(null);
+  /* El formulario del representante se abre con «Editar»: lo normal es que lo cargue Atlas desde el ERP. */
+  const [editandoRepresentante, setEditandoRepresentante] = useState(false);
 
   const faltaMatricula = pendientes.includes('commercial_registry');
   const faltaRepresentante = pendientes.includes('legal_representative');
@@ -108,15 +110,26 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
       ) : null}
 
       {faltaRepresentante || faltaPoder ? (
+        /*
+         * El representante legal y su poder los carga Atlas desde el ERP (Pablo, 2026-10-02): lo
+         * verifica el ejecutivo que firmó el contrato. El comercio puede corregirlo con «Editar».
+         */
         <Panel
           title="Representante legal"
           icon="person"
-          description={
-            faltaRepresentante
-              ? 'Quién firma en nombre de la empresa. Puedes guardarlo ahora y adjuntar el poder cuando lo tengas escaneado.'
-              : 'Ya declaraste al representante, pero falta el poder que lo acredita: declararlo no es acreditarlo.'
+          description="Lo carga tu ejecutivo de Atlas desde el ERP, con el poder notarial que acredita quién firma por la empresa."
+          action={
+            <AtlasButton variant="secondary" icon={editandoRepresentante ? 'close' : 'edit'} onClick={() => setEditandoRepresentante((v) => !v)} data-testid="btn-editar-representante">
+              {editandoRepresentante ? 'Cerrar' : 'Editar'}
+            </AtlasButton>
           }
         >
+          <p className="mb-3 text-sm text-slate-700" data-testid="aviso-representante-desde-erp">
+            {faltaRepresentante
+              ? 'Todavía no está cargado. Envía a tu ejecutivo de Atlas el nombre y el documento del representante y el poder notarial escaneado, o cárgalo tú con «Editar».'
+              : 'El representante ya está declarado, pero falta el poder notarial que lo acredita. Envíaselo a tu ejecutivo de Atlas o adjúntalo con «Editar».'}
+          </p>
+          {editandoRepresentante ? (
           <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={guardarRepresentante}>
             <FormField tooltip="Nombre y apellidos completos de la persona, como en su documento de identidad."
               label="Nombre completo"
@@ -161,6 +174,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
               </AtlasButton>
             </div>
           </form>
+          ) : null}
         </Panel>
       ) : null}
     </div>
