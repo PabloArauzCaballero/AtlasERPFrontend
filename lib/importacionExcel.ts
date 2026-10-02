@@ -31,6 +31,11 @@ export interface LineasSpec {
   fields: ActionField[];
   /** Ejemplos de la plantilla: dos líneas del mismo registro, para que se vea que la clave se repite. */
   ejemploClave?: string | undefined;
+  /**
+   * Cuando la clave que agrupa es TAMBIÉN un dato del registro (el nombre de la sucursal), con qué
+   * nombre viaja en el envío. Sin esto la clave sólo sirve para agrupar y no llega al `submit`.
+   */
+  claveEnPayload?: string | undefined;
 }
 
 export interface RegistroPreparado {
@@ -290,7 +295,11 @@ export function agrupar(
       filasHoja: miembros.map((miembro) => miembro.numero),
       etiqueta: clave,
       crudo: primera.crudo,
-      payload: { ...payloadDeFila(primera.crudo, campos), [lineas.name]: cuerpo },
+      payload: {
+        ...payloadDeFila(primera.crudo, campos),
+        ...(lineas.claveEnPayload ? { [lineas.claveEnPayload]: clave } : {}),
+        [lineas.name]: cuerpo,
+      },
       errores,
       estado: 'pendiente' as const,
     };
