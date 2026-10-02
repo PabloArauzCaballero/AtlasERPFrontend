@@ -37,14 +37,36 @@ async function conExpediente(page: import('@playwright/test').Page) {
   await expect(page.getByTestId('tab-sucursales')).toBeVisible({ timeout: 30_000 });
 }
 
-test('el menú son cinco entradas y ninguna de las retiradas', async ({ page }) => {
+test('el menú son dos entradas; Mi empresa va en el avatar y Soporte sobre el asistente', async ({ page }) => {
   await page.goto('/portal-comercio/gestion-pos');
   const menu = page.getByRole('navigation').first();
-  await expect(menu.getByRole('link')).toHaveCount(5);
-  for (const fuera of [/planes y suscripci/i, /^campañas$/i, /formularios en papel/i, /centro de tutoriales/i]) {
+  // Cartera y facturación comparten UNA entrada; la ficha del negocio y el soporte salieron del menú.
+  await expect(menu.getByRole('link')).toHaveCount(2);
+  await expect(menu.getByRole('link', { name: /cartera y facturación/i })).toBeVisible();
+  for (const fuera of [/planes y suscripci/i, /^campañas$/i, /formularios en papel/i, /centro de tutoriales/i, /mi empresa/i, /soporte y tutoriales/i, /canal merchant seguro/i]) {
     await expect(menu.getByText(fuera), `sigue en el menú: ${String(fuera)}`).toHaveCount(0);
   }
-  await page.screenshot({ path: `${EVIDENCIA}/menu-cinco-entradas.png`, fullPage: true });
+  await expect(page.getByText(/canal merchant seguro/i)).toHaveCount(0);
+
+  // Mi empresa: el avatar de la cabecera es el enlace a la cuenta de la empresa.
+  await expect(page.getByRole('link', { name: /^mi empresa/i })).toHaveAttribute('href', '/portal-comercio/expediente');
+  // Soporte y tutoriales: botón flotante, encima del botón del asistente.
+  const soporte = page.getByRole('link', { name: /soporte y tutoriales/i });
+  await expect(soporte).toHaveAttribute('href', '/portal-comercio/soporte');
+  const [cajaSoporte, cajaAsistente] = await Promise.all([soporte.boundingBox(), page.getByTestId('asistente-boton').boundingBox().catch(() => null)]);
+  if (cajaSoporte && cajaAsistente) expect(cajaSoporte.y + cajaSoporte.height).toBeLessThanOrEqual(cajaAsistente.y);
+  await page.screenshot({ path: `${EVIDENCIA}/menu-dos-entradas.png`, fullPage: true });
+});
+
+test('Cartera y facturación: una entrada, dos vistas con selector', async ({ page }) => {
+  await page.goto('/portal-comercio/cartera');
+  const entrada = page.getByRole('navigation').first().getByRole('link', { name: /cartera y facturación/i });
+  await expect(page.getByRole('tab', { name: /^mi cartera$/i })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: /consumo y facturación/i }).click();
+  await expect(page).toHaveURL(/\/portal-comercio\/facturacion/);
+  await expect(page.getByRole('tab', { name: /consumo y facturación/i })).toHaveAttribute('aria-selected', 'true');
+  // La entrada del menú sigue activa en la vista hermana.
+  await expect(entrada).toHaveClass(/bg-\[#006a61\]/);
 });
 
 test('Gestión POS abre la pestaña que dice la URL', async ({ page }) => {

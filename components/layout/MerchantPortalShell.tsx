@@ -10,13 +10,13 @@ import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
 import { NavDrawer } from './NavDrawer';
-import { isActivePath, PORTAL_COMERCIO_NAV } from './navigation';
+import { isActivePath, PORTAL_COMERCIO_MENU } from './navigation';
 
 function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNavigate?: () => void }) {
   return (
     <nav data-tutorial-id="portal-nav" className="space-y-1">
-      {PORTAL_COMERCIO_NAV.map((item) => {
-        const active = isActivePath(pathname, item.href);
+      {PORTAL_COMERCIO_MENU.map((item) => {
+        const active = [item.href, ...(item.alsoHrefs ?? [])].some((href) => isActivePath(pathname, href));
         return (
           <Link
             key={item.href}
@@ -74,11 +74,13 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           {/* El nombre del comercio se retira en pantallas muy estrechas: con la
               barra a 320 px empujaba los botones fuera del borde derecho. La
               identidad sigue visible en la ficha del menú lateral. */}
-          <div className="hidden max-w-40 text-right sm:block">
-            <p className="truncate text-xs font-bold">{displayName}</p>
-            <p className="truncate text-[10px] text-slate-500">{displayRole}</p>
-          </div>
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-200 text-xs font-bold">{initials}</div>
+          <Link href="/portal-comercio/expediente" title="Mi empresa" aria-label={`Mi empresa: ${displayName}`} className="flex items-center gap-2 rounded-full py-1 pl-2 pr-1 transition hover:bg-slate-100 sm:gap-3">
+            <div className="hidden max-w-40 text-right sm:block">
+              <p className="truncate text-xs font-bold">{displayName}</p>
+              <p className="truncate text-[10px] text-slate-500">{displayRole}</p>
+            </div>
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-200 text-xs font-bold">{initials}</div>
+          </Link>
           <button type="button" onClick={() => void logout()} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="Cerrar sesión"><Icon name="logout" className="text-[19px]" /></button>
         </div>
       </header>
@@ -98,12 +100,23 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         <aside className="hidden border-r border-slate-200/80 bg-white/70 p-4 backdrop-blur-xl lg:block">
           <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-500">Operación</p>
           <PortalNav pathname={pathname} />
-          <div className="mt-8 rounded-lg bg-[#006a61] p-4 text-white"><Icon name="verified_user" className="text-[22px] text-cyan-300" /><p className="mt-3 text-xs font-bold">Canal merchant seguro</p><p className="mt-1 text-[10px] leading-4 text-slate-300">Las acciones se registran con trazabilidad y permisos separados del panel operativo.</p></div>
         </aside>
         {/* `pb-24`: deja sitio al botón flotante del asistente para que no tape la última fila. */}
-        <main className="min-w-0 p-3 pb-24 sm:p-4 sm:pb-24 md:p-6 md:pb-24 xl:p-8 xl:pb-24">{children}</main>
+        <main className="min-w-0 p-3 pb-36 sm:p-4 sm:pb-36 md:p-6 md:pb-36 xl:p-8 xl:pb-36">{children}</main>
       </div>
 
+      {/* Justo encima del botón del asistente (h-14 en la esquina inferior derecha). */}
+      <Link
+        href="/portal-comercio/soporte"
+        data-tutorial-id="portal-soporte"
+        className={cn(
+          'fixed bottom-[5.5rem] right-4 z-[45] flex h-11 items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-lg transition sm:bottom-[6.5rem] sm:right-6',
+          isActivePath(pathname, '/portal-comercio/soporte') ? 'bg-[#006a61] text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:text-[#006a61]',
+        )}
+      >
+        <Icon name="support_agent" className="text-[18px]" />
+        <span>Soporte y tutoriales</span>
+      </Link>
       <AtlasAssist surface="merchant-portal" />
     </div>
     </TutorialProvider>

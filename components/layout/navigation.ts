@@ -4,6 +4,8 @@ export interface NavItem {
   label: string;
   href: string;
   icon: string;
+  /** Otras rutas que también dejan este ítem activo (vistas hermanas bajo una misma entrada). */
+  alsoHrefs?: string[];
 }
 
 export interface NavSubGroup {
@@ -166,6 +168,20 @@ export const PORTAL_COMERCIO_NAV: NavItem[] = [
    * termina siendo un WhatsApp personal a alguien de Atlas, donde nada queda registrado ni medido.
    */
   { href: '/portal-comercio/soporte', label: 'Soporte y tutoriales', icon: 'support_agent' },
+];
+
+/**
+ * Lo que el portal del comercio PINTA en su menú. Es más corto que `PORTAL_COMERCIO_NAV` a propósito:
+ * esa lista sigue entera porque el asistente la lee para nombrar la pantalla en que está quien
+ * pregunta; ésta es sólo lo que cabe en el menú.
+ *
+ * Cartera y facturación van JUNTAS: hablan de lo mismo —lo que se cobra, lo que queda por cobrar y lo
+ * que Atlas factura por ello—. «Mi empresa» vive en el avatar de la cabecera (es la cuenta) y
+ * «Soporte y tutoriales» en un botón flotante sobre el asistente.
+ */
+export const PORTAL_COMERCIO_MENU: NavItem[] = [
+  { href: '/portal-comercio/gestion-pos', label: 'Gestión POS', icon: 'point_of_sale' },
+  { href: '/portal-comercio/cartera', alsoHrefs: ['/portal-comercio/facturacion'], label: 'Cartera y facturación', icon: 'account_balance_wallet' },
 ];
 
 /** `true` si la ruta actual es ese ítem o cuelga de él. */
