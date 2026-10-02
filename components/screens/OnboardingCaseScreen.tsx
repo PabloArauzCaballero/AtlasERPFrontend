@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
@@ -18,6 +19,7 @@ import type { JsonObject } from '@/services/types';
 import { newUuid } from '@/lib/uuid';
 import { subirEvidenciaDeRequisito } from '@/services/onboardingEvidence';
 import { RequisitoArchivoCampo } from '@/components/screens/RequisitoArchivoCampo';
+import { describirFaltantesDelExpediente } from '@/services/expedienteDeCuenta';
 
 interface ChecklistDraft { id: string; itemType: string; description: string; fijo?: boolean; archivo?: File | null; errorArchivo?: string | null }
 const newChecklistItem = (id: string): ChecklistDraft => ({ id, itemType: 'LEGAL', description: '' });
@@ -54,6 +56,21 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
   const createMutation = useAtlasMutation(useCallback((payload: JsonObject) => b2bService.createOnboardingCase(payload), []));
 
   const [subiendo, setSubiendo] = useState(false);
+  /*
+   * Lo que al comercio elegido le falta del expediente, ANTES de intentar abrir el caso. El servidor
+   * lo rechaza igual (422 con la lista), pero verlo al elegir evita llenar los requisitos para nada
+   * y lleva derecho al detalle de la cuenta, donde se completa.
+   */
+  const [cuentaElegida, setCuentaElegida] = useState('');
+  const [faltaDelExpediente, setFaltaDelExpediente] = useState<string[]>([]);
+  useEffect(() => {
+    if (!cuentaElegida) { setFaltaDelExpediente([]); return; }
+    let vigente = true;
+    b2bService.getAccount(cuentaElegida)
+      .then((cuenta) => { if (vigente) setFaltaDelExpediente(Array.isArray(cuenta.dossierMissing) ? cuenta.dossierMissing.map(String) : []); })
+      .catch(() => { if (vigente) setFaltaDelExpediente([]); });
+    return () => { vigente = false; };
+  }, [cuentaElegida]);
 
   function updateItem(id: string, key: 'itemType' | 'description', value: string) {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, [key]: value } : item)));
@@ -128,9 +145,18 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
       <form id="create-onboarding-form" onSubmit={createCase} className="space-y-4">
         <Panel data-tutorial-id="onboarding-checklist" title="El comercio y su responsable" icon="domain">
           <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            <FormField tooltip="Cuenta B2B del comercio sobre la que se trabaja." kind="select" label="Comercio" name="accountId" required options={[{ label: '— Elija el comercio —', value: '' }, ...accounts]} hint="Sólo comercios con una oportunidad ganada y sin caso abierto: el resto aún tiene pasos previos por cerrar." />
+            <FormField tooltip="Cuenta B2B del comercio sobre la que se trabaja." kind="select" label="Comercio" name="accountId" required options={[{ label: '— Elija el comercio —', value: '' }, ...accounts]} hint="Sólo comercios con una oportunidad ganada y sin caso abierto: el resto aún tiene pasos previos por cerrar." onChange={(event) => setCuentaElegida(event.target.value)} />
             <FormField tooltip="Ejecutivo comercial que responde por esta cuenta; recibe las tareas y los avisos." kind="select" label="Ejecutivo responsable" name="ownerUserId" required options={[{ label: '— Elija responsable —', value: '' }, ...owners]} hint="Quien responde por el alta ante Legal y Operaciones." />
           </div>
+          {faltaDelExpediente.length ? (
+            <div className="mt-3" data-testid="aviso-expediente-incompleto">
+              <InlineNotice tone="warning" title="A este comercio le falta parte del expediente">
+                {`Falta ${describirFaltantesDelExpediente(faltaDelExpediente)}. El caso no se abrirá hasta completarlo: `}
+                <Link className="font-bold underline" href={`/operaciones/crm/cuentas/detalle?id=${encodeURIComponent(cuentaElegida)}`}>complétalo en el detalle de la cuenta</Link>
+                {' (sección «Datos del expediente») y vuelve aquí.'}
+              </InlineNotice>
+            </div>
+          ) : null}
         </Panel>
         <Panel
           title="Requisitos del expediente"
@@ -188,17 +214,28 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
  */
 const MOTIVO_SIN_CARPETA: Record<string, string> = {
   SIN_CORREO_DE_CONTACTO: 'La cuenta no tiene ningún contacto con correo. Añade uno en la ficha de la cuenta.',
-  DATOS_DE_LA_CUENTA_INVALIDOS: 'A la cuenta le falta el NIT (7 a 15 dígitos) o la razón social. Complétalos en la ficha de la cuenta.',
+  DATOS_DE_LA_CUENTA_INVALIDOS: 'A la cuenta le falta el NIT (7 a 15 dígitos) o la razón social, o su matrícula o rubro no tienen la forma que exige el expediente. Complétalos en la ficha de la cuenta.',
   CUENTA_ENLAZADA_A_OTRA_FICHA: 'El NIT de esta cuenta ya pertenece a la ficha de otra cuenta del ERP. Revisa si la cuenta está duplicada.',
   ATLAS_NO_RESPONDIO: 'Atlas no respondió. Se volverá a intentar al subir el primer documento del contrato.',
   CUENTA_NO_ENCONTRADA: 'No se encontró la cuenta.',
 };
 
 function avisarCarpetaDelComercio(carpeta: unknown): void {
-  const resultado = (carpeta ?? null) as { expedienteId?: string | null; created?: boolean; reason?: string | null } | null;
+  const resultado = (carpeta ?? null) as { expedienteId?: string | null; created?: boolean; reason?: string | null; gaps?: unknown[]; onboardingStatus?: string | null } | null;
   if (!resultado) return;
   if (resultado.expedienteId) {
-    toast.success('Carpeta del comercio lista', resultado.created ? 'Se abrió su ficha y su carpeta en Archivos, con «documentos».' : 'Su carpeta en Archivos ya existía y queda enlazada.');
+    /*
+     * Desde el 2026-10-02 el ERP entrega el expediente completo (matrícula, representante con poder,
+     * casa matriz, QR) y, sin huecos, lo envía a revisión: el comercio entra a su portal y lo ve hecho.
+     */
+    const huecos = Array.isArray(resultado.gaps) ? resultado.gaps : [];
+    if (resultado.onboardingStatus === 'under_review') {
+      toast.success('Expediente completo y enviado a revisión', 'Atlas ya tiene matrícula, representante, sucursal y QR. Puedes pedir la verificación al Motor desde la fila.');
+    } else if (huecos.length) {
+      toast.warning('Expediente abierto, pero incompleto', `Atlas todavía reclama ${describirFaltantesDelExpediente(huecos)}. Complétalo desde el detalle de la cuenta y vuelve a abrir el caso, o el comercio lo hará desde su portal.`);
+    } else {
+      toast.success('Carpeta del comercio lista', resultado.created ? 'Se abrió su ficha y su carpeta en Archivos, con «documentos».' : 'Su carpeta en Archivos ya existía y queda enlazada.');
+    }
     return;
   }
   toast.warning('El caso se abrió, pero el comercio no tiene carpeta en Archivos', MOTIVO_SIN_CARPETA[resultado.reason ?? ''] ?? 'No se pudo crear la carpeta del comercio.');

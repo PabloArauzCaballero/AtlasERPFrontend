@@ -16,6 +16,7 @@ import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { AccountActivitiesPanel } from '@/components/screens/AccountActivitiesPanel';
 import { ActionFormModal } from '@/components/screens/ActionFormModal';
 import { FileAttachmentsPanel } from '@/components/screens/FileAttachmentsPanel';
+import { DatosExpedienteCuentaPanel } from '@/components/screens/DatosExpedienteCuentaPanel';
 import { formatBob, maskPii } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 import { useOptions } from '@/hooks/useOptions';
@@ -118,6 +119,8 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
                   <Detail label="Territorio" value={account.territoryId} mono />
                 </dl>
               </Panel>
+              {/* Lo que el expediente exige y el onboarding comprueba (Pablo, 2026-10-02): se completa aquí si no vino en el alta. */}
+              <DatosExpedienteCuentaPanel account={account} onSaved={() => resource.reload()} />
               <Panel
                 title="Contactos"
                 description="Con quién se habla en esta cuenta. El principal es el interlocutor por defecto."

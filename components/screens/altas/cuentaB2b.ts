@@ -1,5 +1,6 @@
 import type { FormSectionDefinition } from '@/components/screens/StructuredActionForm';
 import { loadInternalUsers } from '@/services/optionLoaders';
+import { TAMANO_MAXIMO_EVIDENCIA } from '@/services/filesService';
 
 /** Etiqueta de la opción vacía de los selects opcionales de esta alta. */
 export const SIN_ESPECIFICAR = '— Sin especificar —';
@@ -21,6 +22,30 @@ const optionalSelect = <T extends { label: string; value: string }>(options: T[]
  * el primero se desdobla en dos columnas (país y ciudad) y el segundo se queda fuera, porque
  * compone la dirección con un mapa. Eso lo resuelve `ExcelImportModal`, no esta lista.
  */
+/**
+ * Los datos del expediente del comercio, pedidos UNA vez.
+ *
+ * Hasta el 2026-10-02 el ERP registraba la empresa, abría su onboarding y el expediente nacía en
+ * Atlas con «Falta 4 requisitos»: matrícula, representante legal con poder, una sucursal y el QR de
+ * cobro. El comercio tenía que volver a entregarlos en su portal. Pablo: «el usuario te lo pasa una
+ * vez y esto debe estar listo y cargado». Aquí son opcionales —un prospecto no tiene QR— y se exigen
+ * al abrir el onboarding; la casa matriz ya se pide arriba y es la primera sucursal. Los archivos
+ * (`poderNotarial`, `qrBancario`) no van en el JSON: la pantalla los sube al almacén como documentos
+ * de la cuenta y manda sus ids. Lo usa también el detalle de la cuenta para completar lo que falte.
+ */
+export const seccionDatosDelExpediente: FormSectionDefinition = {
+  title: 'Datos del expediente', icon: 'fact_check', description: 'Lo que el expediente del comercio exige para activarse. Se pide una sola vez: se puede dejar para después, pero sin esto no se abre el onboarding.', fields: [
+    { name: 'dossier.commercialRegistry', label: 'Matrícula de comercio', tooltip: 'Número de matrícula en el registro de comercio (Fundempresa/SEPREC); acredita que la empresa existe legalmente.', optional: true, placeholder: 'Número tal como figura en el certificado', hint: 'Figura en el certificado de matrícula de comercio.' },
+    { name: 'dossier.legalRepFullName', label: 'Representante legal', tooltip: 'Nombre y apellidos completos de quien firma por la empresa, como en su documento de identidad.', optional: true, placeholder: 'Nombre y apellidos', span: 2 },
+    { name: 'dossier.legalRepDocumentType', label: 'Documento del representante', tooltip: 'Tipo de documento de identidad del representante legal; decide el formato del número.', type: 'select', optional: true, optionsSource: 'domain:crm.legalRepDocumentType', emptyOption: SIN_ESPECIFICAR },
+    { name: 'dossier.legalRepDocumentNumber', label: 'Número de documento', tooltip: 'Número del documento del representante tal como aparece impreso, sin puntos.', optional: true, placeholder: 'Sólo el número, sin puntos' },
+    { name: 'poderNotarial', label: 'Poder notarial', tooltip: 'El poder notarial escaneado que acredita que el representante firma por la empresa. Va a la carpeta «documentos» del comercio.', type: 'file', accept: 'application/pdf,image/jpeg,image/png', maxBytes: TAMANO_MAXIMO_EVIDENCIA, optional: true, hint: 'PDF o imagen hasta 15 MB. Sin él el expediente no se puede enviar a revisión.', span: 2 },
+    { name: 'dossier.bankInstitutionCode', label: 'Entidad del QR de cobro', tooltip: 'Banco o entidad financiera (sigla ASFI) de la cuenta a la que cobra el comercio.', type: 'select', optional: true, optionsSource: 'domain:portal.bankInstitution', emptyOption: SIN_ESPECIFICAR },
+    { name: 'dossier.bankAccountMasked', label: 'Cuenta del QR (enmascarada)', tooltip: 'Últimos dígitos de la cuenta bancaria del QR; el expediente prueba de quién es, no la opera.', optional: true, placeholder: 'Terminación de la cuenta', hint: 'Sólo los últimos dígitos, p. ej. los cuatro finales.' },
+    { name: 'qrBancario', label: 'QR bancario de cobro', tooltip: 'Imagen del QR bancario con el que el comercio cobra. Lo confirma el propio comercio y sus clientes lo ven al activarse.', type: 'file', accept: 'image/jpeg,image/png', maxBytes: 5 * 1024 * 1024, optional: true, hint: 'PNG o JPG hasta 5 MB, el código tal como lo entrega el banco: ni foto del local ni captura de pantalla.', span: 2 },
+  ],
+};
+
 export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
   {
     title: 'Datos de la empresa', icon: 'domain', description: 'Quién es la empresa y a qué se dedica.', fields: [
@@ -58,4 +83,5 @@ export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
       { name: 'primaryContact.decisionRole', label: 'Peso en la decisión', tooltip: 'Cuánto pesa esta persona en la decisión de compra; orienta a quién hay que convencer.', type: 'select', optional: true, optionsSource: 'domain:crm.decisionRole', emptyOption: SIN_ESPECIFICAR, hint: 'Si decide la compra o solo influye. Ayuda a saber a quién convencer.' },
     ],
   },
+  seccionDatosDelExpediente,
 ];

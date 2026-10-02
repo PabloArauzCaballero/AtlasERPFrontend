@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { StructuredActionForm } from '@/components/screens/StructuredActionForm';
 import { seccionesAltaCuentaB2b } from '@/components/screens/altas/cuentaB2b';
 import { b2bService } from '@/services/b2bService';
+import { adjuntarArchivosDelExpediente } from '@/services/expedienteDeCuenta';
 
 /** Los campos viven en `altas/cuentaB2b.ts`: el directorio los reusa para su carga masiva. */
 export default function CreateB2BAccountPage() {
@@ -16,7 +17,10 @@ export default function CreateB2BAccountPage() {
       submitLabel="Crear empresa"
       submitIcon="domain_add"
       onSubmit={async (payload) => {
-        const creada = await b2bService.createAccount(payload);
+        // Los archivos del expediente no viajan en el JSON: se suben con la cuenta ya creada (son suyos).
+        const { poderNotarial, qrBancario, ...datos } = payload as typeof payload & { poderNotarial?: unknown; qrBancario?: unknown };
+        const creada = await b2bService.createAccount(datos);
+        if (creada?.id) await adjuntarArchivosDelExpediente(String(creada.id), { poderNotarial, qrBancario });
         // Al guardar se abre la ficha: es donde se califica y se abre la oportunidad (el paso siguiente).
         if (creada?.id) router.push(`/operaciones/crm/cuentas/detalle?id=${encodeURIComponent(String(creada.id))}`);
         return creada;

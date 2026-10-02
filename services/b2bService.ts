@@ -92,6 +92,11 @@ export const b2bService = {
     const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
     return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/tax-id`, { method: 'PATCH', body });
   },
+  /** Datos del expediente del comercio (matrícula, representante, poder, QR) que no se capturaron al registrar la empresa. */
+  setAccountDossier(accountId: string, body: JsonObject) {
+    const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
+    return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/dossier`, { method: 'PATCH', body });
+  },
   archiveAccount(accountId: string) {
     const safeAccountId = requireUuidPathParam(accountId, 'el UUID de la cuenta B2B');
     return apiRequest<ResourceRow>(`/b2b/accounts/${safeAccountId}/archive`, { method: 'PATCH' });
