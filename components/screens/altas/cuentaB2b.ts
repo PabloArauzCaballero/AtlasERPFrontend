@@ -34,7 +34,7 @@ const optionalSelect = <T extends { label: string; value: string }>(options: T[]
  * de la cuenta y manda sus ids. Lo usa también el detalle de la cuenta para completar lo que falte.
  */
 export const seccionDatosDelExpediente: FormSectionDefinition = {
-  title: 'Datos del expediente', icon: 'fact_check', description: 'Lo que el expediente del comercio exige para activarse. Se pide una sola vez: se puede dejar para después, pero sin esto no se abre el onboarding.', fields: [
+  title: 'Datos del expediente', icon: 'fact_check', description: 'Lo que el expediente del comercio exige para activarse. Se pide una sola vez, aquí, y llega hecho a su portal.', fields: [
     { name: 'dossier.commercialRegistry', label: 'Matrícula de comercio', tooltip: 'Número de matrícula en el registro de comercio (Fundempresa/SEPREC); acredita que la empresa existe legalmente.', optional: true, placeholder: 'Número tal como figura en el certificado', hint: 'Figura en el certificado de matrícula de comercio.' },
     { name: 'dossier.legalRepFullName', label: 'Representante legal', tooltip: 'Nombre y apellidos completos de quien firma por la empresa, como en su documento de identidad.', optional: true, placeholder: 'Nombre y apellidos', span: 2 },
     { name: 'dossier.legalRepDocumentType', label: 'Documento del representante', tooltip: 'Tipo de documento de identidad del representante legal; decide el formato del número.', type: 'select', optional: true, optionsSource: 'domain:crm.legalRepDocumentType', emptyOption: SIN_ESPECIFICAR },
@@ -44,6 +44,16 @@ export const seccionDatosDelExpediente: FormSectionDefinition = {
     { name: 'dossier.bankAccountMasked', label: 'Cuenta del QR (enmascarada)', tooltip: 'Últimos dígitos de la cuenta bancaria del QR; el expediente prueba de quién es, no la opera.', optional: true, placeholder: 'Terminación de la cuenta', hint: 'Sólo los últimos dígitos, p. ej. los cuatro finales.' },
     { name: 'qrBancario', label: 'QR bancario de cobro', tooltip: 'Imagen del QR bancario con el que el comercio cobra. Lo confirma el propio comercio y sus clientes lo ven al activarse.', type: 'file', accept: 'image/jpeg,image/png', maxBytes: 5 * 1024 * 1024, optional: true, hint: 'PNG o JPG hasta 5 MB, el código tal como lo entrega el banco: ni foto del local ni captura de pantalla.', span: 2 },
   ],
+};
+
+/**
+ * En el ALTA los datos del expediente son obligatorios por defecto (Pablo, 2026-10-02: «que pida
+ * todos estos datos como requisitos obligatorios por defecto»). En el detalle de la cuenta se usa la
+ * misma sección opcional, para completar sólo lo que falte en cuentas anteriores o importadas.
+ */
+const seccionDatosDelExpedienteObligatoria: FormSectionDefinition = {
+  ...seccionDatosDelExpediente,
+  fields: seccionDatosDelExpediente.fields.map((field) => ({ ...field, optional: false, required: true })),
 };
 
 export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
@@ -63,7 +73,7 @@ export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
       { name: 'websiteUrl', label: 'Sitio web', tooltip: 'Dirección web pública del anunciante, con https://. Sirve para verificar la marca antes de aprobar creatividades.', type: 'url', optional: true, placeholder: 'https://empresa.com' },
       /* País y ciudad en un árbol con banderas: elegir la ciudad fija el país, y nunca quedan incoherentes. */
       { name: 'countryCode', label: 'País y ciudad', tooltip: 'País de residencia fiscal del socio; decide qué documento tributario se le exige.', type: 'countryCity', cityFieldName: 'city', required: true, defaultValue: 'BO', hint: 'Elige la ciudad dentro de su país. Si no está, escríbela en «Otra ciudad».' },
-      { name: 'address', label: 'Casa matriz', tooltip: 'Dirección completa de la casa matriz. Pulsa el pin para verla en el mapa.', type: 'address', cityFieldName: 'city', countryFieldName: 'countryCode', optional: true, span: 2, placeholder: 'Calle, número, zona...', hint: 'Pulsa el pin (o Enter) para verla en Google Maps.' },
+      { name: 'address', label: 'Casa matriz', tooltip: 'Dirección completa de la casa matriz; es la primera sucursal del comercio. Pulsa el pin para verla en el mapa.', type: 'address', cityFieldName: 'city', countryFieldName: 'countryCode', required: true, span: 2, placeholder: 'Calle, número, zona...', hint: 'Pulsa el pin (o Enter) para verla en Google Maps.' },
       { name: 'employeeCount', label: 'Cantidad de empleados', tooltip: 'Número aproximado de empleados; dimensiona el negocio.', type: 'number', valueKind: 'number', optional: true },
       { name: 'foundedYear', label: 'Año de fundación', tooltip: 'Año de fundación en cuatro cifras. Ej.: 2015.', type: 'number', valueKind: 'number', optional: true },
       { name: 'annualRevenue', label: 'Facturación anual (BOB)', tooltip: 'Facturación anual estimada en bolivianos.', type: 'number', valueKind: 'number', optional: true },
@@ -83,5 +93,5 @@ export const seccionesAltaCuentaB2b: FormSectionDefinition[] = [
       { name: 'primaryContact.decisionRole', label: 'Peso en la decisión', tooltip: 'Cuánto pesa esta persona en la decisión de compra; orienta a quién hay que convencer.', type: 'select', optional: true, optionsSource: 'domain:crm.decisionRole', emptyOption: SIN_ESPECIFICAR, hint: 'Si decide la compra o solo influye. Ayuda a saber a quién convencer.' },
     ],
   },
-  seccionDatosDelExpediente,
+  seccionDatosDelExpedienteObligatoria,
 ];

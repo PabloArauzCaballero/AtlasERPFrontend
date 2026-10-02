@@ -13,7 +13,7 @@ export default function CreateB2BAccountPage() {
     <StructuredActionForm
       moduleLabel="CRM"
       title="Registrar una empresa nueva"
-      description="Da de alta una empresa en el directorio comercial. Con los datos marcados con asterisco basta para crearla; el resto se puede completar después. La empresa entra como «lead» (posible cliente) y avanza desde su ficha."
+      description="Da de alta una empresa en el directorio comercial con todo lo que su expediente exige —matrícula, representante legal con su poder, casa matriz y QR de cobro—, una sola vez: llega hecho a su portal. Los campos con asterisco son obligatorios. La empresa entra como «lead» (posible cliente) y avanza desde su ficha."
       submitLabel="Crear empresa"
       submitIcon="domain_add"
       onSubmit={async (payload) => {
@@ -29,7 +29,7 @@ export default function CreateB2BAccountPage() {
       summaryTitle="Qué pasa al crearla"
       summaryItems={[
         { label: 'Entra como', value: 'Posible cliente', tone: 'warning' },
-        { label: 'Verificación legal', value: 'Queda pendiente', tone: 'neutral' },
+        { label: 'Expediente', value: 'Completo desde el alta', tone: 'success' },
         { label: 'Moneda', value: 'Bolivianos (BOB)', tone: 'success' },
       ]}
     />
