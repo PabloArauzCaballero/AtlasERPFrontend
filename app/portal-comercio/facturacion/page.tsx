@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { CarteraFacturacionSwitch } from '@/components/layout/CarteraFacturacionSwitch';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { MerchantBillingScreen } from '@/components/screens/MerchantBillingScreen';
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = { title: 'Consumo y facturación' };
 export default function MerchantBillingPage() {
   return (
     <Suspense fallback={<PageSkeleton />}>
+      <CarteraFacturacionSwitch actual="/portal-comercio/facturacion" />
       <MerchantBillingScreen />
     </Suspense>
   );
