@@ -194,6 +194,8 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
 
   /** La sucursal en cuyo modal se está dando de alta una caja. `null` = ninguno abierto. */
   const [nuevaCaja, setNuevaCaja] = useState<{ erpBranchId: string; branchId: string; nombre: string } | null>(null);
+  /** La caja cuyo QR se está viendo en grande, para imprimirlo. */
+  const [qrAmpliado, setQrAmpliado] = useState<{ terminalSerial: string; terminalAlias: string | null } | null>(null);
   /*
    * Cuál de los locales YA declarados es esta sucursal, cuando hay alguno sin enlazar.
    *
@@ -486,6 +488,23 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
         </Modal>
       ) : null}
 
+      {qrAmpliado ? (
+        <Modal
+          open
+          title={`QR de ${qrAmpliado.terminalAlias ?? qrAmpliado.terminalSerial}`}
+          description="El código que escanean tus clientes en este mostrador. Imprímelo y pégalo junto a la caja."
+          icon="qr_code_2"
+          width="md"
+          onClose={() => setQrAmpliado(null)}
+        >
+          <div className="space-y-2 text-center" data-testid="qr-ampliado">
+            <QrCanvas value={qrAmpliado.terminalSerial} size={280} className="mx-auto" />
+            <p className="text-base font-bold text-slate-800">{qrAmpliado.terminalAlias ?? qrAmpliado.terminalSerial}</p>
+            <p className="font-mono text-xs text-slate-600">{qrAmpliado.terminalSerial}</p>
+          </div>
+        </Modal>
+      ) : null}
+
       <Panel
         title="Sucursales registradas"
         description="Cada fila enseña sus cajas y el QR que se imprime para ese mostrador."
@@ -594,16 +613,30 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                             {terminales.length === 0 ? (
                               <p className="max-w-xs text-slate-600">Sin cajas dadas de alta: no hay ningún QR que imprimir para este mostrador.</p>
                             ) : (
-                              <div className="flex flex-wrap gap-3">
+                              /*
+                               * Las cajas en una rejilla COMPACTA (2026-10-02, Pablo): con el QR a 192 px y una
+                               * caja debajo de otra, una sucursal con tres cajas ocupaba una pantalla entera y la
+                               * lista de un comercio con siete locales no se podía recorrer. Aquí el QR va pequeño
+                               * para reconocer la caja; «Ver QR» lo abre grande para imprimirlo.
+                               */
+                              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4" data-testid={`rejilla-cajas-${id}`}>
                                 {terminales.map((pos) => (
-                                  <div key={pos.terminalId} className="w-48 space-y-1 text-center">
-                                    <QrCanvas value={pos.terminalSerial} size={192} className="mx-auto" />
+                                  <div key={pos.terminalId} className="min-w-0 space-y-1 rounded-md border border-slate-200 p-2 text-center">
+                                    <button
+                                      type="button"
+                                      className="mx-auto block rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                                      onClick={() => setQrAmpliado(pos)}
+                                      aria-label={`Ver en grande el QR de ${pos.terminalAlias ?? pos.terminalSerial}`}
+                                      data-testid={`btn-ver-qr-${pos.terminalSerial}`}
+                                    >
+                                      <QrCanvas value={pos.terminalSerial} size={88} className="mx-auto" />
+                                    </button>
                                     <p className="truncate font-bold text-slate-800" title={pos.terminalAlias ?? pos.terminalSerial}>
                                       {pos.terminalAlias ?? pos.terminalSerial}
                                     </p>
                                     {/* El serial sólo si el alias no es él mismo: repetirlo no dice nada. */}
                                     {pos.terminalAlias ? (
-                                      <p className="truncate font-mono text-[10px] text-slate-600" title={pos.terminalSerial}>{pos.terminalSerial}</p>
+                                      <p className="truncate font-mono text-[9px] text-slate-500" title={pos.terminalSerial}>{pos.terminalSerial}</p>
                                     ) : null}
                                     <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
                                     {pos.status !== 'active' ? (

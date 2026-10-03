@@ -112,7 +112,17 @@ test.describe('expediente del negocio', () => {
     const celda = page.getByTestId(`cajas-de-${vieja}`);
     await expect(celda).toContainText('SN-00042');
     await expect(celda.getByTestId('qr-terminal').first()).toHaveAttribute('data-qr-value', 'SN-00042');
-    await expect(celda.getByTestId('qr-terminal').first()).toHaveCSS('width', '192px');
+    /*
+     * En la tabla el QR va COMPACTO (88 px, 2026-10-02): una sucursal con varias cajas ya no ocupa
+     * la pantalla. «Ver QR» lo abre en grande para imprimirlo, con el mismo contenido.
+     */
+    await expect(celda.getByTestId('qr-terminal').first()).toHaveCSS('width', '88px');
+    await celda.getByTestId('btn-ver-qr-SN-00042').click();
+    const ampliado = page.getByTestId('qr-ampliado');
+    await expect(ampliado.getByTestId('qr-terminal')).toHaveAttribute('data-qr-value', 'SN-00042');
+    await expect(ampliado.getByTestId('qr-terminal')).toHaveCSS('width', '280px');
+    await page.keyboard.press('Escape');
+    await expect(ampliado).toHaveCount(0);
 
     // El terminal cuelga de la sucursal desde la que se dio de alta: sin esto, un cobro no se
     // puede situar en un local.
