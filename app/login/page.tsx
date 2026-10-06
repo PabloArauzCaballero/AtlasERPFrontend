@@ -1,12 +1,14 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Icon } from '@/components/atlas/Icon';
 import { useAuth } from '@/lib/authContext';
+import { rememberRecoveryEmail, takeRecoveryEmail } from '@/lib/recoveryEmail';
 
 function LoginForm() {
   const router = useRouter();
@@ -16,6 +18,12 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Al volver de la recuperación, el correo que se usó allí ya está escrito.
+  useEffect(() => {
+    const remembered = takeRecoveryEmail();
+    if (remembered) setEmail(remembered);
+  }, []);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -68,6 +76,18 @@ function LoginForm() {
             onChange={(event) => setPassword(event.target.value)}
             placeholder="••••••••"
           />
+          <div className="-mt-2 text-right">
+            <Link
+              href="/login/recuperar"
+              onClick={() => rememberRecoveryEmail(email.trim())}
+              className="text-xs font-bold text-[#031636] hover:underline focus-visible:underline focus-visible:outline-none"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+          {searchParams.get('recuperada') ? (
+            <InlineNotice tone="success">Tu contraseña se actualizó y se cerraron tus sesiones abiertas. Inicia sesión con la nueva.</InlineNotice>
+          ) : null}
           {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
           <AtlasButton type="submit" className="w-full" loading={submitting}>Iniciar sesión</AtlasButton>
         </form>

@@ -25,6 +25,26 @@ export const authService = {
       skipAuthRetry: true,
     });
   },
+  /**
+   * «Olvidé mi contraseña», sin sesión. La respuesta es la misma exista o no la cuenta: el código
+   * llega al correo sólo si existe. Tiempo amplio: enviar el correo es lo lento, y cortar antes
+   * daría por fallido un código que ya salió.
+   */
+  requestPasswordReset(email: string) {
+    return apiRequest<{ requested: boolean }>('auth/password-reset/request', {
+      method: 'POST',
+      body: { email },
+      skipAuthRetry: true,
+      timeoutMs: 20_000,
+    });
+  },
+  confirmPasswordReset(body: { email: string; code: string; newPassword: string }) {
+    return apiRequest<{ passwordChanged: boolean }>('auth/password-reset/confirm', {
+      method: 'POST',
+      body,
+      skipAuthRetry: true,
+    });
+  },
   me() {
     return apiRequest<{ user: InternalUserProfile }>('auth/me');
   },
