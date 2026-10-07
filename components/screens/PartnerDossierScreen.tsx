@@ -248,6 +248,7 @@ export function PartnerDossierScreen() {
                     table: tablaPdf(
                       [
                         { key: 'terminalSerial', label: 'Serial' },
+                        { key: 'manualCode', label: 'Código a mano' },
                         { key: 'terminalAlias', label: 'Alias' },
                         { key: 'status', label: 'Estado' },
                       ],

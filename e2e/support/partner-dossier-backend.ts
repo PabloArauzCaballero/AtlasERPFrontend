@@ -40,6 +40,7 @@ interface PosTerminal {
   terminalId: string;
   branchId: string;
   terminalSerial: string;
+  manualCode: string | null;
   terminalAlias: string | null;
   provider: string | null;
   model: string | null;
@@ -379,6 +380,8 @@ export async function installPartnerDossierBackend(page: Page) {
         terminalId: next(),
         branchId,
         terminalSerial: body.terminalSerial ?? '',
+        // Como el servidor: 8 caracteres del alfabeto sin confusiones, en dos mitades.
+        manualCode: `K7M${state.posTerminals.length + 2}-9QXD`,
         terminalAlias: body.terminalAlias ?? null,
         provider: null,
         model: null,

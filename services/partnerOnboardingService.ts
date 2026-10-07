@@ -82,6 +82,11 @@ export interface PartnerPosTerminal {
   terminalId: string;
   branchId: string;
   terminalSerial: string;
+  /**
+   * Lo que se teclea en la app cuando la cámara no lee el QR (`K7M2-9QXD`). Null sólo en una caja
+   * anterior a que existiera el campo y aún sin código: no se puede imprimir su cartel.
+   */
+  manualCode: string | null;
   terminalAlias: string | null;
   provider: string | null;
   model: string | null;

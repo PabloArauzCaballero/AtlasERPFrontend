@@ -21,6 +21,7 @@ import { domainLoader } from '@/services/domains';
 import { withEmpty } from '@/services/optionLoaders';
 import { formDataToPayload } from '@/lib/formPayload';
 import { codigoDeExpediente } from '@/lib/codigoDeSucursal';
+import { descargarCartel } from '@/lib/cartelQr';
 import { crearCajas, MAX_CAJAS_POR_VEZ, type ResultadoCajas } from '@/lib/cajasDeSucursal';
 import { portalService } from '@/services/portalService';
 import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
@@ -638,9 +639,21 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                     {pos.terminalAlias ? (
                                       <p className="truncate font-mono text-[9px] text-slate-500" title={pos.terminalSerial}>{pos.terminalSerial}</p>
                                     ) : null}
+                                    {/*
+                                      * El código que se teclea en la app cuando la cámara no lee el QR.
+                                      * Es de ESTA caja: dictarlo identifica el mostrador exacto, igual que el QR.
+                                      */}
+                                    {pos.manualCode ? (
+                                      <p className="text-[11px] text-slate-600">
+                                        Código a mano:{' '}
+                                        <span className="font-mono text-sm font-extrabold tracking-widest text-slate-900" data-testid={`codigo-manual-${pos.terminalSerial}`}>
+                                          {pos.manualCode}
+                                        </span>
+                                      </p>
+                                    ) : null}
                                     <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
                                     {pos.status !== 'active' ? (
-                                      <p className="text-[10px] leading-tight text-slate-500">El teléfono del cliente rechaza este código.</p>
+                                      <p className="text-[10px] leading-tight text-slate-500">El teléfono del cliente rechaza este código hasta que la caja esté activa.</p>
                                     ) : null}
                                     {/*
                                       * Suspender se hace DESDE el terminal y no desde una tabla aparte.
@@ -649,6 +662,30 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                       * que no debe— y quien la toma está mirando ese mostrador, no una
                                       * lista de seriales donde hay que acertar la fila.
                                       */}
+                                    <button
+                                      type="button"
+                                      className="w-full rounded bg-teal-700 px-2 py-1 text-[11px] font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                                      disabled={!pos.manualCode || ocupada === `qr-${pos.terminalId}`}
+                                      title={pos.manualCode ? 'Descarga el cartel con el diseño de Atlas, listo para imprimir' : 'Esta caja aún no tiene código manual'}
+                                      data-testid={`btn-descargar-qr-${pos.terminalSerial}`}
+                                      onClick={() => {
+                                        setOcupada(`qr-${pos.terminalId}`);
+                                        setFeedback(null);
+                                        void descargarCartel({
+                                          serial: pos.terminalSerial,
+                                          codigoManual: pos.manualCode ?? '',
+                                          comercio: datosExpediente?.profile.tradeName ?? datosExpediente?.profile.legalName ?? 'Mi comercio',
+                                          sucursal: String(branch.name ?? 'Sucursal'),
+                                          caja: pos.terminalAlias ?? pos.terminalSerial,
+                                        })
+                                          .catch((error: unknown) =>
+                                            setFeedback({ tone: 'danger', text: error instanceof Error ? error.message : 'No se pudo descargar el QR.' }),
+                                          )
+                                          .finally(() => setOcupada(null));
+                                      }}
+                                    >
+                                      Descargar QR
+                                    </button>
                                     <button
                                       type="button"
                                       className="w-full rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
@@ -662,7 +699,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                         )
                                       }
                                     >
-                                      {pos.status === 'active' ? 'Suspender' : 'Reactivar'}
+                                      {pos.status === 'active' ? 'Suspender' : pos.status === 'registered' ? 'Activar' : 'Reactivar'}
                                     </button>
                                   </div>
                                 ))}
