@@ -100,6 +100,7 @@ export const NAVIGATION: NavGroup[] = [
         label: 'Configuración comercial', icon: 'tune', items: [
           { label: 'Conciliación', href: '/operaciones/crm/conciliacion-cobertura', icon: 'account_balance' },
           { label: 'Sucursales', href: '/operaciones/crm/sucursales', icon: 'store' },
+          { label: 'Productos de crédito', href: '/operaciones/crm/productos-credito', icon: 'request_quote' },
           { label: 'Segmentos comerciales', href: '/operaciones/crm/segmentos', icon: 'group_work' },
           { label: 'Tags de clasificación', href: '/operaciones/crm/tags', icon: 'label' },
         ],
