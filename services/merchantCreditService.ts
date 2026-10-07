@@ -18,6 +18,22 @@ export interface SolicitudDeCompra {
   terminalSerial: string | null;
 }
 
+/** El pago inicial de una compra, avisado por el cliente con su comprobante. */
+export interface PagoInicial {
+  applicationId: string;
+  applicationCode: string;
+  downPaymentStatus: 'submitted' | 'confirmed' | 'rejected' | string | null;
+  downPaymentAmount: string | number | null;
+  currencyCode: string;
+  payerReference: string | null;
+  hasProof: boolean;
+  branchName: string | null;
+  terminalAlias: string | null;
+  submittedAt: string | null;
+  decidedAt: string | null;
+  rejectionReason: string | null;
+}
+
 export interface ExpedientePropio {
   partnerId: string;
   legalName: string | null;
@@ -142,6 +158,33 @@ export const merchantCreditService = {
     return apiRequest<{ partnerProfileId: string; claims: ComprobanteDePago[] }>(
       `/merchant-credit/${encodeURIComponent(partnerId)}/payment-claims`,
       { query: { onlyPending: soloPendientes ? 'true' : 'false' } },
+    );
+  },
+
+  /**
+   * Los pagos INICIALES de mis compras: el 60 % que el cliente me pagó directo al comprar.
+   *
+   * Antes el comprobante se quedaba en el teléfono del cliente y yo nunca lo veía. Por defecto sólo los que esperan mi palabra.
+   */
+  listarPagosIniciales(partnerId: string, soloPendientes = true) {
+    return apiRequest<{ partnerProfileId: string; downPayments: PagoInicial[] }>(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/down-payments`,
+      { query: { onlyPending: soloPendientes ? 'true' : 'false' } },
+    );
+  },
+
+  /** La imagen del comprobante del pago inicial, como URL de blob. Quien la pida tiene que revocarla al desmontar. */
+  pagoInicialImagen(partnerId: string, applicationId: string) {
+    return apiBlobUrl(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/down-payments/${encodeURIComponent(applicationId)}/proof`,
+    );
+  },
+
+  /** Confirmar da por recibido el dinero. Rechazar exige motivo y el cliente lo lee en su app. */
+  verificarPagoInicial(partnerId: string, applicationId: string, body: JsonObject) {
+    return apiRequest<JsonObject>(
+      `/merchant-credit/${encodeURIComponent(partnerId)}/down-payments/${encodeURIComponent(applicationId)}/verification`,
+      { method: 'POST', body },
     );
   },
 
