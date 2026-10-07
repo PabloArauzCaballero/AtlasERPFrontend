@@ -21,6 +21,7 @@ import { domainLoader } from '@/services/domains';
 import { withEmpty } from '@/services/optionLoaders';
 import { formDataToPayload } from '@/lib/formPayload';
 import { codigoDeExpediente } from '@/lib/codigoDeSucursal';
+import { estadoBnplSucursal } from '@/lib/estadoBnplSucursal';
 import { descargarCartel } from '@/lib/cartelQr';
 import { crearCajas, MAX_CAJAS_POR_VEZ, type ResultadoCajas } from '@/lib/cajasDeSucursal';
 import { portalService } from '@/services/portalService';
@@ -291,7 +292,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                       { key: 'bnpl', label: 'BNPL' },
                       { key: 'status', label: 'Estado' },
                     ],
-                    branchRows.map((fila) => ({ ...fila, bnpl: fila.canOriginateBnpl ? 'Sí' : 'No' })),
+                    branchRows.map((fila) => ({ ...fila, bnpl: estadoBnplSucursal(fila).texto })),
                   ),
                 },
               ],
@@ -582,7 +583,9 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                           {branch.address ? ` · ${String(branch.address)}` : ''}
                         </p>
                       </td>
-                      <td className="p-2.5">{branch.canOriginateBnpl ? <StatusPill tone="success" dot={false}>Sí</StatusPill> : <StatusPill tone="neutral" dot={false}>No</StatusPill>}</td>
+                      <td className="p-2.5" title={estadoBnplSucursal(branch).explicacion}>
+                        <StatusPill tone={estadoBnplSucursal(branch).tono} dot={false}>{estadoBnplSucursal(branch).texto}</StatusPill>
+                      </td>
                       <td className="p-2.5"><StatusPill tone={String(branch.status) === 'ACTIVE' ? 'success' : 'warning'}>{String(branch.status ?? '—')}</StatusPill></td>
                       <td className="p-2.5" data-testid={`cajas-de-${id}`}>
                         {expediente.status === 'loading' && !datosExpediente ? (
