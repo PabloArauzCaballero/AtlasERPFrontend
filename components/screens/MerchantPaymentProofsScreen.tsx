@@ -14,6 +14,7 @@ import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import type { ComprobanteDePago } from '@/services/merchantCreditService';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
+import { MerchantDownPaymentsPanel } from './MerchantDownPaymentsPanel';
 
 const MOTIVOS = [
   { label: '— Elija el motivo —', value: '' },
@@ -37,7 +38,14 @@ const MOTIVOS = [
  * portal vive en memoria, no en cookie— y se vería como una imagen rota, que es exactamente el fallo
  * que se lee como «el cliente no subió nada».
  */
-function ComprobanteImagen({ partnerId, claimId }: Readonly<{ partnerId: string; claimId: string }>) {
+/* A nivel de módulo a propósito: un valor por defecto escrito en el parámetro sería una función NUEVA en cada render y el efecto volvería a pedir la imagen sin parar. */
+const imagenDeCuota = (socio: string, id: string) => merchantCreditService.comprobanteImagen(socio, id);
+
+export function ComprobanteImagen({
+  partnerId,
+  claimId,
+  cargar = imagenDeCuota,
+}: Readonly<{ partnerId: string; claimId: string; /** De dónde sale la imagen: por defecto el aviso de una cuota; el pago inicial pasa la suya. */ cargar?: (partnerId: string, id: string) => Promise<string> }>) {
   const [url, setUrl] = useState<string | null>(null);
   const [fallo, setFallo] = useState<string | null>(null);
   const [ampliado, setAmpliado] = useState(false);
@@ -48,8 +56,7 @@ function ComprobanteImagen({ partnerId, claimId }: Readonly<{ partnerId: string;
     let cancelado = false;
     setUrl(null);
     setFallo(null);
-    merchantCreditService
-      .comprobanteImagen(partnerId, claimId)
+    cargar(partnerId, claimId)
       .then((blobUrl) => {
         if (cancelado) {
           URL.revokeObjectURL(blobUrl);
@@ -68,7 +75,7 @@ function ComprobanteImagen({ partnerId, claimId }: Readonly<{ partnerId: string;
         vigente.current = null;
       }
     };
-  }, [partnerId, claimId]);
+  }, [partnerId, claimId, cargar]);
 
   if (fallo) {
     return (
@@ -267,6 +274,8 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
 
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       {aviso ? <InlineNotice tone={aviso.tono}>{aviso.texto}</InlineNotice> : null}
+
+      {partnerId ? <MerchantDownPaymentsPanel partnerId={partnerId} /> : null}
 
       <Panel
         data-tutorial-id="comprobantes-cola"
