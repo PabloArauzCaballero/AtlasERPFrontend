@@ -1,10 +1,11 @@
 'use client';
 
-import { useId, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { useId, type FocusEvent, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 import { FieldLabel } from '@/components/atlas/FieldLabel';
 import { useFieldHelp } from '@/components/atlas/FieldTooltip';
 import { OptionSelect, type SelectOption } from '@/components/atlas/OptionSelect';
+import { PasswordControl, PinControl } from '@/components/atlas/SecretControls';
 
 interface BaseFieldProps {
   label: string;
@@ -118,19 +119,27 @@ export function FormField(props: FormFieldProps) {
   }
 
   const { label: _l, name, hint: _h, tooltip: _t, required: nativeRequired, softRequired: _sr, className, kind: _kind, onFocus, onBlur, ...inputProps } = props;
+  const control = {
+    ...inputProps,
+    id,
+    name,
+    required: nativeRequired,
+    'aria-describedby': help.describedById,
+    onFocus: (event: FocusEvent<HTMLInputElement>) => { help.onFocus(); onFocus?.(event); },
+    onBlur: (event: FocusEvent<HTMLInputElement>) => { help.onBlur(); onBlur?.(event); },
+  };
   return (
     <div className={cn('block min-w-0', className)}>
       {labelRow}
-      <input
-        {...inputProps}
-        id={id}
-        name={name}
-        required={nativeRequired}
-        aria-describedby={help.describedById}
-        onFocus={(event) => { help.onFocus(); onFocus?.(event); }}
-        onBlur={(event) => { help.onBlur(); onBlur?.(event); }}
-        className={controlClass}
-      />
+      {/* Un campo se reconoce por lo que declara, no por una prop nueva: así todas las pantallas
+          que ya piden una contraseña o un código de un solo uso ganan el ojito y las seis casillas. */}
+      {inputProps.type === 'password' ? (
+        <PasswordControl {...control} className={controlClass} />
+      ) : inputProps.autoComplete === 'one-time-code' ? (
+        <PinControl {...control} className={controlClass} />
+      ) : (
+        <input {...control} className={controlClass} />
+      )}
       {hintRow}
     </div>
   );
