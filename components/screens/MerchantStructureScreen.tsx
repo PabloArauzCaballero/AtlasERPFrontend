@@ -27,6 +27,14 @@ import { portalService } from '@/services/portalService';
 import { partnerOnboardingService, type PartnerOnboardingState } from '@/services/partnerOnboardingService';
 import type { JsonObject, ResourceRow } from '@/services/types';
 
+const ESTADO_EXPEDIENTE: Record<string, string> = {
+  draft: 'borrador',
+  contact_verified: 'contacto verificado',
+  documents_submitted: 'documentos enviados',
+  under_review: 'en revisión',
+  rejected: 'rechazado',
+};
+
 /**
  * Las sucursales del comercio: el ÚNICO sitio donde un local se da de alta y se administra.
  *
@@ -328,6 +336,22 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
       ) : null}
 
       {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu negocio">{scope.error}</InlineNotice> : null}
+      {/*
+        * El teléfono del cliente sólo reconoce las cajas de un comercio con el expediente APROBADO.
+        * Con cualquier otro estado, `merchant-qr/resolve` responde «no reconocido» a TODOS los QR y a
+        * todos los códigos a mano aunque la caja esté activa, y la persona que prueba cree que el QR o
+        * la app están rotos. El servidor no detalla el motivo al cliente a propósito; aquí, ante el
+        * propio comercio, sí se dice.
+        */}
+      {datosExpediente && datosExpediente.profile.onboardingStatus !== 'approved' ? (
+        <div data-testid="aviso-expediente-no-aprobado">
+          <InlineNotice tone="warning" title="Tu expediente todavía no está aprobado">
+            Está en «{ESTADO_EXPEDIENTE[datosExpediente.profile.onboardingStatus] ?? datosExpediente.profile.onboardingStatus}». Mientras no esté
+            aprobado, la app de tus clientes no reconoce ningún QR ni código de tus cajas —aunque la caja esté activa— y responde «Este QR no es de
+            Atlas». Los carteles ya se pueden descargar, pero empezarán a funcionar al aprobarse el expediente.
+          </InlineNotice>
+        </div>
+      ) : null}
       {feedback ? (
         <div data-testid="sucursales-feedback">
           <InlineNotice tone={feedback.tone} title={feedback.tone === 'danger' ? 'No se pudo completar' : 'Listo'}>{feedback.text}</InlineNotice>
