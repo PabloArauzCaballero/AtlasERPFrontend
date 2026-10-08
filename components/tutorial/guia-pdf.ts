@@ -16,6 +16,12 @@ export interface GuiaPdf {
 }
 
 export const GUIAS_PDF: Readonly<Partial<Record<'internal' | 'merchant', GuiaPdf>>> = {
+  internal: {
+    href: '/guias/ATLAS-Guia-del-ERP.pdf',
+    archivo: 'ATLAS-Guia-del-ERP.pdf',
+    titulo: 'Guía del ERP, paso a paso',
+    detalle: 'Registrar un negocio hasta que opera, dar de alta a sus usuarios y llevar la contabilidad: cada proceso con la pantalla, el sitio donde hacer clic y sus reglas.',
+  },
   merchant: {
     href: '/guias/ATLAS-Guia-del-portal-del-comercio.pdf',
     archivo: 'ATLAS-Guia-del-portal-del-comercio.pdf',
