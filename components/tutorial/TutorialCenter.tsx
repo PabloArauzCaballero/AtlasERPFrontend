@@ -7,6 +7,7 @@ import { Panel } from '@/components/atlas/Panel';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { cn } from '@/lib/cn';
 import { guideCount } from './guias';
+import { guiaPdfDe } from './guia-pdf';
 import {
   EMPTY_FILTERS,
   filterListings,
@@ -71,6 +72,7 @@ export function TutorialCenter({ audience, embedded = false }: { audience: 'inte
   const summary = useMemo(() => summarize(listings, stateOf), [listings, stateOf]);
   const visible = useMemo(() => filterListings(listings, stateOf, filters), [listings, stateOf, filters]);
 
+  const guiaPdf = guiaPdfDe(audience);
   const categories = useMemo(
     () => Array.from(new Set(listings.map((listing) => listing.category))),
     [listings],
@@ -87,6 +89,35 @@ export function TutorialCenter({ audience, embedded = false }: { audience: 'inte
           hideHelp
         />
       )}
+
+      {guiaPdf ? (
+        /*
+          La guía completa, para llevársela. Los recorridos de abajo enseñan sobre la pantalla; la
+          guía es lo mismo en papel: se imprime, se deja junto a la caja o se le pasa a quien empieza.
+        */
+        <section
+          data-tutorial-id="guia-pdf"
+          className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary-wash text-primary">
+              <Icon name="picture_as_pdf" className="text-[22px]" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-slate-900">{guiaPdf.titulo}</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-600">{guiaPdf.detalle}</p>
+            </div>
+          </div>
+          <a
+            href={guiaPdf.href}
+            download={guiaPdf.archivo}
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-[#006a61] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#00544d]"
+          >
+            <Icon name="download" className="text-[16px]" />
+            Descargar la guía en PDF
+          </a>
+        </section>
+      ) : null}
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryTile label="Tu avance" value={`${summary.percent}%`} detail={`${summary.completed} de ${summary.total} completados`} icon="school" />
