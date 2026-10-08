@@ -11,8 +11,8 @@ describe('guía en PDF', () => {
     }
   });
 
-  it('el comercio tiene guía; una población sin guía no recibe botón', () => {
+  it('cada población recibe SU guía, no la de la otra', () => {
     expect(guiaPdfDe('merchant')?.href).toBe('/guias/ATLAS-Guia-del-portal-del-comercio.pdf');
-    expect(guiaPdfDe('internal')).toBeNull();
+    expect(guiaPdfDe('internal')?.href).toBe('/guias/ATLAS-Guia-del-ERP.pdf');
   });
 });
