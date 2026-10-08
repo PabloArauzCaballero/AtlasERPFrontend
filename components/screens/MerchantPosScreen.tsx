@@ -8,9 +8,10 @@ import { useMerchantPartner } from '@/hooks/useMerchantPartner';
 import { useTabParam } from '@/hooks/useTabParam';
 import { MerchantPartnerPicker } from './MerchantPartnerPicker';
 import { MerchantPaymentProofsScreen } from './MerchantPaymentProofsScreen';
+import { MerchantPosHistoryScreen } from './MerchantPosHistoryScreen';
 import { MerchantRequestsScreen } from './MerchantRequestsScreen';
 
-const PESTANAS = ['solicitudes', 'comprobantes'] as const;
+const PESTANAS = ['solicitudes', 'comprobantes', 'historial'] as const;
 
 /**
  * Gestión POS: lo que pasa en la caja, en una sola pantalla.
@@ -91,6 +92,13 @@ export function MerchantPosScreen() {
                 onCount={contarComprobantes}
               />
             ),
+          },
+          {
+            // Lo ya respondido y todos los pagos, iniciales y de cuota (Pablo, 2026-10-08).
+            id: 'historial',
+            label: 'Historial',
+            icon: 'history',
+            content: <MerchantPosHistoryScreen partnerId={partner.partnerId} />,
           },
         ]}
       />
