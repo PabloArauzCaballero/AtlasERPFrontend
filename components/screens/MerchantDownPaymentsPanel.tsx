@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
+import { OrigenDeCaja } from '@/components/atlas/OrigenDeCaja';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -112,8 +113,8 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
                     </div>
                     <p className="mt-1 text-[11px] text-slate-500">
                       {pago.submittedAt ? `Avisado el ${new Date(pago.submittedAt).toLocaleString('es-BO')}` : 'Sin fecha'}
-                      {pago.branchName ? ` · ${pago.branchName}${pago.terminalAlias ? ` · ${pago.terminalAlias}` : ''}` : ''}
                     </p>
+                    <OrigenDeCaja origen={pago} />
                     <p className="mt-1 text-[11px] text-slate-600">
                       Referencia del banco: <b>{pago.payerReference ?? 'sin referencia'}</b>
                     </p>

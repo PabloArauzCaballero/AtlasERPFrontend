@@ -1,55 +1,48 @@
 import { describe, expect, it } from 'vitest';
-import { movimientosDePago, solicitudesDecididas } from '@/components/screens/MerchantPosHistoryScreen';
-import type { ComprobanteDePago, PagoInicial, SolicitudDeCompra } from '@/services/merchantCreditService';
+import { nombreDeCaja, textoDeOrigen } from '@/components/atlas/OrigenDeCaja';
+import { aplicarFiltro, cajasDeSucursal, estadoDe, tipoDe } from '@/components/screens/MerchantPosHistoryScreen';
+import type { HistorialDePos, MovimientoDePos } from '@/services/merchantCreditService';
 
-/** Pablo (2026-10-08): el comercio no veía lo ya confirmado ni si un pago era el inicial o una cuota. */
+/**
+ * Pablo (2026-10-08): historial con filtros de sucursal, caja y fechas, paginado, y cada fila con su sucursal y caja
+ * («pueden haber dos montos iguales pero de cajas distintas»).
+ */
 describe('historial de Gestión POS', () => {
-  const inicial = {
-    applicationId: '4',
-    applicationCode: 'CRA-4',
-    downPaymentStatus: 'confirmed',
-    downPaymentAmount: '720.00',
-    currencyCode: 'BOB',
-    payerReference: 'OP-1',
-    hasProof: true,
-    branchName: null,
-    terminalAlias: null,
-    submittedAt: '2026-10-08T12:01:38Z',
-    decidedAt: '2026-10-08T12:01:52Z',
-    rejectionReason: null,
-  } as PagoInicial;
-  const cuota = {
-    claimId: '9',
-    claimCode: 'PC-9',
-    installmentId: '1',
-    claimedAmount: '245.50',
-    currencyCode: 'BOB',
-    payerReference: null,
-    proofEvidenceId: '1',
-    status: 'rejected',
-    submittedAt: '2026-10-09T10:00:00Z',
-    decidedAt: '2026-10-09T11:00:00Z',
-  } as ComprobanteDePago;
+  const filtros: HistorialDePos['filters'] = {
+    branches: [
+      { branchId: '1', branchName: 'Equipetrol', branchCode: 'EQ' },
+      { branchId: '2', branchName: 'Centro', branchCode: 'CE' },
+    ],
+    terminals: [
+      { terminalId: '5', branchId: '1', branchName: 'Equipetrol', terminalAlias: 'Caja 1', terminalSerial: 'SN-5' },
+      { terminalId: '6', branchId: '2', branchName: 'Centro', terminalAlias: null, terminalSerial: 'SN-6' },
+    ],
+  };
 
-  it('junta iniciales y cuotas con su tipo y su estado en castellano, más recientes primero', () => {
-    const filas = movimientosDePago([inicial], [cuota]);
-    expect(filas.map((f) => [f.tipo, f.codigo, f.importe, f.estado])).toEqual([
-      ['Cuota', 'PC-9', 245.5, 'Rechazado'],
-      ['Pago inicial', 'CRA-4', 720, 'Confirmado'],
-    ]);
+  it('la caja se nombra siempre: alias, o la serie si no tiene alias', () => {
+    expect(nombreDeCaja({ terminalAlias: 'Caja 1' })).toBe('Caja 1');
+    expect(nombreDeCaja({ terminalAlias: null, terminalSerial: 'SN-6' })).toBe('Caja SN-6');
+    expect(textoDeOrigen({ branchName: 'Centro', terminalSerial: 'SN-6' })).toBe('Centro · Caja SN-6');
+    expect(textoDeOrigen({})).toBe('Sin caja registrada');
   });
 
-  it('una compra sin pago inicial avisado no aparece como pago', () => {
-    expect(movimientosDePago([{ ...inicial, downPaymentStatus: null }], [])).toEqual([]);
+  it('el filtro de caja ofrece sólo las cajas de la sucursal elegida', () => {
+    expect(cajasDeSucursal(filtros, '2').map((t) => t.terminalId)).toEqual(['6']);
+    expect(cajasDeSucursal(filtros, undefined).map((t) => t.terminalId)).toEqual(['5', '6']);
   });
 
-  it('sólo las solicitudes respondidas, no las que esperan', () => {
-    const base = { applicationCode: 'X', status: 'approved', requestedAmount: '1', requestedTermMonths: 1, currencyCode: 'BOB', submittedAt: '2026-10-08T00:00:00Z' };
-    const lista = [
-      { ...base, applicationId: '1', businessAcceptance: 'accepted' },
-      { ...base, applicationId: '2', businessAcceptance: 'pending' },
-      { ...base, applicationId: '3', businessAcceptance: 'declined' },
-    ] as SolicitudDeCompra[];
-    expect(solicitudesDecididas(lista).map((s) => s.applicationId).sort()).toEqual(['1', '3']);
+  it('cambiar de sucursal suelta una caja de otra sucursal, y cualquier cambio vuelve a la página 1', () => {
+    const actual = { branchId: '1', terminalId: '5', page: 3, pageSize: 20 };
+    expect(aplicarFiltro(actual, { branchId: '2' }, filtros)).toEqual({ branchId: '2', page: 1, pageSize: 20 });
+    expect(aplicarFiltro(actual, { from: '2026-10-01' }, filtros)).toEqual({ ...actual, from: '2026-10-01', page: 1 });
+    expect(aplicarFiltro(actual, { page: 4 }, filtros).page).toBe(4);
+  });
+
+  it('nombra el tipo y el estado de cada fila', () => {
+    const m = { kind: 'installment_payment', status: 'verified' } as MovimientoDePos;
+    expect(tipoDe(m).texto).toBe('Cuota');
+    expect(estadoDe(m)).toEqual({ texto: 'Confirmado', tono: 'success' });
+    expect(tipoDe({ ...m, kind: 'purchase_request' }).texto).toBe('Solicitud de compra');
+    expect(estadoDe({ ...m, status: 'declined' }).texto).toBe('Rechazada');
   });
 });

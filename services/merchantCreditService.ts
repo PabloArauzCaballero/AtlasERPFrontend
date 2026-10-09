@@ -29,6 +29,7 @@ export interface PagoInicial {
   hasProof: boolean;
   branchName: string | null;
   terminalAlias: string | null;
+  terminalSerial?: string | null;
   submittedAt: string | null;
   decidedAt: string | null;
   rejectionReason: string | null;
@@ -60,6 +61,12 @@ export interface ComprobanteDePago {
   status: string;
   submittedAt: string;
   decidedAt: string | null;
+  /* La sucursal y la caja de la compra que dio el crédito de esta cuota. Null si no vino de un QR físico. */
+  branchId?: string | null;
+  branchName?: string | null;
+  terminalId?: string | null;
+  terminalAlias?: string | null;
+  terminalSerial?: string | null;
 }
 
 export interface CuotaDeCartera {
@@ -84,7 +91,54 @@ export interface CreditoDeCartera {
   /* Lo cobrado de este crédito y la comisión de Atlas devengada sobre ello. */
   collected: string;
   commissionAccrued: string;
+  /* De qué sucursal y caja salió la compra, y cuándo (Facturación agrupa por crédito con su origen). */
+  branchName?: string | null;
+  terminalAlias?: string | null;
+  terminalSerial?: string | null;
+  applicationCode?: string | null;
+  originatedAt?: string | null;
   installments: CuotaDeCartera[];
+}
+
+/** Una fila del historial del POS: solicitud respondida, pago inicial o cuota ya verificados, con su caja. */
+export interface MovimientoDePos {
+  kind: 'purchase_request' | 'down_payment' | 'installment_payment';
+  id: string;
+  code: string;
+  amount: number;
+  currencyCode: string;
+  status: string;
+  reference: string | null;
+  termMonths: number | null;
+  happenedAt: string;
+  branchId: string | null;
+  branchName: string | null;
+  terminalId: string | null;
+  terminalAlias: string | null;
+  terminalSerial: string | null;
+}
+
+export interface FiltroDeHistorial {
+  branchId?: string | undefined;
+  terminalId?: string | undefined;
+  from?: string | undefined;
+  to?: string | undefined;
+  page?: number | undefined;
+  pageSize?: number | undefined;
+}
+
+export interface HistorialDePos {
+  items: MovimientoDePos[];
+  page: number;
+  pageSize: number;
+  total: number;
+  pages: number;
+  /* El total del FILTRO entero (no de la página): lo que se compara con la caja al cerrar. */
+  totals: { count: number; amount: string };
+  filters: {
+    branches: { branchId: string; branchName: string; branchCode: string }[];
+    terminals: { terminalId: string; branchId: string; branchName: string; terminalAlias: string | null; terminalSerial: string }[];
+  };
 }
 
 /**
@@ -186,6 +240,13 @@ export const merchantCreditService = {
       `/merchant-credit/${encodeURIComponent(partnerId)}/down-payments/${encodeURIComponent(applicationId)}/verification`,
       { method: 'POST', body },
     );
+  },
+
+  /** El historial del POS: filtrado por sucursal, caja y fechas, más reciente primero y en páginas. */
+  historialPos(partnerId: string, filtro: FiltroDeHistorial) {
+    const query: Record<string, string> = {};
+    for (const [clave, valor] of Object.entries(filtro)) if (valor !== undefined && valor !== '') query[clave] = String(valor);
+    return apiRequest<HistorialDePos>(`/merchant-credit/${encodeURIComponent(partnerId)}/pos-history`, { query });
   },
 
   /** Qué me deben, quién y cuándo. Una sola lectura para créditos, calendario y panel. */
