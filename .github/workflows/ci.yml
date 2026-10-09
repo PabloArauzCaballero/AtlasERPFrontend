@@ -136,17 +136,24 @@ jobs:
             servidor.log
           retention-days: 7
 
-  # Escaneo de secretos del árbol (auditoría a producción, 2026-09-13). Este repositorio es
-  # PÚBLICO: lo que entra en un commit queda indexado aunque se borre después. Corre antes de
-  # instalar dependencias, así que sólo mira código de Atlas. Alcance: el árbol (`dir`), no el
-  # historial; impide secretos NUEVOS. Las excepciones viven en la propia línea
+  # Escaneo de secretos (auditoría a producción, 2026-09-13). Este repositorio es PÚBLICO: lo que
+  # entra en un commit queda indexado aunque se borre después. Corre antes de instalar
+  # dependencias, así que sólo mira código de Atlas. Las excepciones viven en la propia línea
   # (`// gitleaks:allow`) y .gitleaks.toml explica por qué no hay excepciones por ruta.
+  #
+  # Alcance: el árbol (`dir`) Y el HISTORIAL COMPLETO (`git`, desde el 2026-10-09, ERP-01). Mirar
+  # sólo el árbol dejaba pasar un secreto que se commiteó y se borró en el commit siguiente: el
+  # árbol final sale limpio y el valor sigue publicado. Por eso `fetch-depth: 0`. Los hallazgos ya
+  # conocidos del historial están en `.gitleaksignore` (credenciales pendientes de rotar); cualquier
+  # otro pone esto en rojo.
   secret-scan:
     name: Escaneo de secretos (gitleaks)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Instalar gitleaks 8.30.1 (versión y checksum fijados)
         run: |
           curl -sSfL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"
@@ -154,6 +161,8 @@ jobs:
           tar -xzf gitleaks.tar.gz gitleaks && sudo install gitleaks /usr/local/bin/gitleaks && rm gitleaks gitleaks.tar.gz
       - name: Escanear el árbol
         run: gitleaks dir . --config .gitleaks.toml --redact --exit-code 1
+      - name: Escanear el historial completo
+        run: gitleaks git . --config .gitleaks.toml --redact --log-opts="--all" --exit-code 1
 
   # ÚNICO trabajo que se exige como check requerido en dev/test/main. Corre siempre y sólo es verde
   # si TODOS los trabajos obligatorios lo son: `skipped` o `cancelled` en cualquiera es rojo aquí.
