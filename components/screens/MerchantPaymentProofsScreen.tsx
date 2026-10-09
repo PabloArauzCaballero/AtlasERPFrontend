@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
+import { OrigenDeCaja } from '@/components/atlas/OrigenDeCaja';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
 import { StatusPill } from '@/components/atlas/StatusPill';
@@ -305,6 +306,8 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
                     <p className="mt-1 text-[11px] text-slate-500">
                       Avisado el {new Date(comprobante.submittedAt).toLocaleString('es-BO')}
                     </p>
+                    {/* La caja de la compra de este crédito: dos cuotas iguales pueden ser de cajas distintas. */}
+                    <OrigenDeCaja origen={comprobante} />
                     <p className="mt-1 text-[11px] text-slate-600">
                       Referencia del banco: <b>{comprobante.payerReference ?? 'sin referencia'}</b>
                     </p>

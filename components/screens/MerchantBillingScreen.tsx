@@ -19,7 +19,8 @@ import { tablaPdf } from '@/lib/pdf';
 import { descargarFactura, facturaDeComercio } from '@/lib/facturaPdf';
 import { formatBob, formatDate } from '@/lib/formatters';
 import { toast } from '@/lib/toast';
-import type { Cartera, ExpedientePropio, PagoDeCartera } from '@/services/merchantCreditService';
+import type { Cartera, CreditoDeCartera, CuotaDeCartera, ExpedientePropio, PagoDeCartera } from '@/services/merchantCreditService';
+import { OrigenDeCaja, textoDeOrigen } from '@/components/atlas/OrigenDeCaja';
 import type { ResourceRow } from '@/services/types';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
@@ -51,6 +52,44 @@ const ESTADOS: Record<Estado, { etiqueta: string; tone: 'danger' | 'warning' | '
   pendiente: { etiqueta: 'Pendiente', tone: 'warning', icono: 'schedule' },
   pagado: { etiqueta: 'Pagado', tone: 'success', icono: 'task_alt' },
 };
+
+export function estadoDeCuota(cuota: CuotaDeCartera): Estado {
+  return Number(cuota.amountOutstanding) === 0 ? 'pagado' : cuota.overdue ? 'mora' : 'pendiente';
+}
+
+/**
+ * Los créditos con sus cuotas en el estado elegido, del más reciente al más antiguo (por fecha de origen), y cada uno con
+ * sus cuotas por vencimiento. `saldado` es «el cliente ya terminó de pagar»: recién ahí se factura.
+ */
+export function creditosConCuotas(creditos: CreditoDeCartera[], filtro: Estado | 'todas') {
+  return creditos
+    .map((credito) => ({
+      credito,
+      saldado: credito.installments.length > 0 && credito.installments.every((c) => Number(c.amountOutstanding) === 0),
+      cuotas: credito.installments
+        .map((cuota) => ({ ...cuota, estado: estadoDeCuota(cuota) }))
+        .filter((cuota) => filtro === 'todas' || cuota.estado === filtro)
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
+    }))
+    .filter((grupo) => grupo.cuotas.length > 0)
+    .sort((a, b) => (b.credito.originatedAt ?? '').localeCompare(a.credito.originatedAt ?? ''));
+}
+
+/** «LOAN-31c2c5b9-…-c1f88afa4eb4» → «LOAN-31c2c5b9»: el código entero sigue en el `title`. */
+export function codigoCorto(codigo: string): string {
+  const m = /^([A-Z]+-[0-9a-f]{8})-[0-9a-f-]{27}$/iu.exec(codigo);
+  return m ? m[1]! : codigo;
+}
+
+/** Cuándo se factura. Pablo (2026-10-08): «que se aclare que sólo se factura cuando el cliente termina de pagar sus cuotas». */
+function AvisoDeFacturacion() {
+  return (
+    <InlineNotice tone="info" title="Se factura cuando el cliente termina de pagar">
+      Atlas factura un crédito sólo cuando el cliente terminó de pagar TODAS sus cuotas. Mientras queden cuotas pendientes o en
+      mora no se emite factura por esa venta.
+    </InlineNotice>
+  );
+}
 
 /**
  * El estado de un cargo del ERP traducido a las mismas tres cestas.
@@ -170,10 +209,9 @@ export function MerchantBillingScreen() {
   const pagos = useMemo(() => cartera?.payments ?? [], [cartera]);
 
   /*
-   * Las cuotas de todos los créditos en una sola lista, con el crédito al que pertenecen.
-   *
-   * El comercio pregunta «qué me falta cobrar», no «qué le falta al crédito 3»: agrupado por
-   * crédito había que abrir uno a uno para encontrar las tres cuotas en mora.
+   * Las cuotas, AGRUPADAS POR CRÉDITO, con el origen de cada uno (Pablo, 2026-10-08: «esto sí vale la pena agruparlo por
+   * loan id; debe tener sucursal, caja origen y fecha de origen»). El filtro de estado sigue mandando: un crédito sólo
+   * aparece si tiene alguna cuota en el estado elegido, y sólo con esas cuotas.
    */
   const cuotas = useMemo(
     () =>
@@ -181,15 +219,13 @@ export function MerchantBillingScreen() {
         credito.installments.map((cuota) => ({
           ...cuota,
           loanCode: credito.loanCode,
-          estado: (Number(cuota.amountOutstanding) === 0 ? 'pagado' : cuota.overdue ? 'mora' : 'pendiente') as Estado,
+          origen: textoDeOrigen(credito),
+          estado: estadoDeCuota(cuota),
         })),
       ),
     [cartera],
   );
-  const cuotasVisibles = useMemo(
-    () => (filtro === 'todas' ? cuotas : cuotas.filter((cuota) => cuota.estado === filtro)).sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
-    [cuotas, filtro],
-  );
+  const creditosVisibles = useMemo(() => creditosConCuotas(cartera?.credits ?? [], filtro), [cartera, filtro]);
 
   /*
    * Lo que suma la tabla de cobros, y lo que falta para llegar al total.
@@ -252,6 +288,7 @@ export function MerchantBillingScreen() {
                   table: tablaPdf(
                     [
                       { key: 'loanCode', label: 'Crédito' },
+                      { key: 'origen', label: 'Sucursal · Caja' },
                       { key: 'installmentNumber', label: 'Cuota' },
                       { key: 'dueDate', label: 'Vence' },
                       { key: 'amountOutstanding', label: 'Falta' },
@@ -290,6 +327,9 @@ export function MerchantBillingScreen() {
           />
         }
       />
+
+      {/* Cuándo se factura, a la vista desde cualquier pestaña. */}
+      <AvisoDeFacturacion />
 
       {/*
         El negocio es el que inició sesión: aquí no se elige comercio.
@@ -430,42 +470,64 @@ export function MerchantBillingScreen() {
               >
                 {cargandoCartera ? (
                   <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-                ) : cuotasVisibles.length === 0 ? (
+                ) : creditosVisibles.length === 0 ? (
                   <p className="py-6 text-center text-xs text-slate-500">
                     {cuotas.length === 0 ? 'No hay créditos originados en su comercio.' : 'Ninguna cuota en ese estado.'}
                   </p>
                 ) : (
-                  <div className="table-scroll rounded-lg border border-slate-200">
-                    <table className="w-full min-w-[760px] text-left text-xs">
-                      <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
-                        <tr>
-                          <th className="p-2.5">Crédito</th>
-                          <th className="p-2.5">Cuota</th>
-                          <th className="p-2.5">Vence</th>
-                          <th className="p-2.5 text-right">Importe</th>
-                          <th className="p-2.5 text-right">Pagado</th>
-                          <th className="p-2.5 text-right">Falta</th>
-                          <th className="p-2.5">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {cuotasVisibles.map((cuota) => (
-                          <tr key={cuota.installmentId}>
-                            <td className="p-2.5 font-mono text-[11px]">{cuota.loanCode}</td>
-                            <td className="p-2.5 font-semibold">{cuota.installmentNumber}</td>
-                            <td className="p-2.5">{formatDate(cuota.dueDate)}</td>
-                            <td className="p-2.5 text-right">{formatBob(Number(cuota.amountDue))}</td>
-                            <td className="p-2.5 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
-                            <td className="p-2.5 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
-                            <td className="p-2.5">
-                              <StatusPill tone={ESTADOS[cuota.estado].tone}>
-                                {cuota.estado === 'mora' && cuota.daysPastDue > 0 ? `En mora ${cuota.daysPastDue} d` : ESTADOS[cuota.estado].etiqueta}
-                              </StatusPill>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-4">
+                    {creditosVisibles.map(({ credito, cuotas: delCredito, saldado }) => (
+                      <section key={credito.loanId} className="overflow-hidden rounded-lg border border-slate-200" data-testid={`credito-${credito.loanId}`}>
+                        <header className="flex flex-wrap items-start justify-between gap-3 bg-slate-50 px-3 py-2.5">
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900">
+                              Compra {credito.applicationCode ?? '—'}
+                              <span className="ml-2 font-mono text-[10px] font-normal text-slate-500" title={credito.loanCode}>
+                                {codigoCorto(credito.loanCode)}
+                              </span>
+                            </p>
+                            <OrigenDeCaja origen={credito} />
+                            <p className="mt-0.5 text-[11px] text-slate-500">
+                              Fecha de origen: <b className="text-slate-700">{credito.originatedAt ? formatDate(credito.originatedAt) : '—'}</b>
+                            </p>
+                          </div>
+                          <div className="text-right text-[11px]">
+                            <p className="text-slate-500">
+                              Falta <b className="text-slate-900">{formatBob(Number(credito.outstanding))}</b> de {formatBob(Number(credito.principalAmount))}
+                            </p>
+                            <StatusPill tone={saldado ? 'success' : 'neutral'}>{saldado ? 'Pagado: listo para facturar' : 'Se factura al terminar de pagar'}</StatusPill>
+                          </div>
+                        </header>
+                        <table className="w-full text-left text-xs">
+                          <thead className="text-[10px] uppercase text-slate-500">
+                            <tr>
+                              <th className="p-2.5">Cuota</th>
+                              <th className="p-2.5">Vence</th>
+                              <th className="p-2.5 text-right">Importe</th>
+                              <th className="p-2.5 text-right">Pagado</th>
+                              <th className="p-2.5 text-right">Falta</th>
+                              <th className="p-2.5">Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {delCredito.map((cuota) => (
+                              <tr key={cuota.installmentId}>
+                                <td className="p-2.5 font-semibold">{cuota.installmentNumber}</td>
+                                <td className="p-2.5">{formatDate(cuota.dueDate)}</td>
+                                <td className="p-2.5 text-right">{formatBob(Number(cuota.amountDue))}</td>
+                                <td className="p-2.5 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
+                                <td className="p-2.5 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
+                                <td className="p-2.5">
+                                  <StatusPill tone={ESTADOS[cuota.estado].tone}>
+                                    {cuota.estado === 'mora' && cuota.daysPastDue > 0 ? `En mora ${cuota.daysPastDue} d` : ESTADOS[cuota.estado].etiqueta}
+                                  </StatusPill>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </section>
+                    ))}
                   </div>
                 )}
               </Panel>
