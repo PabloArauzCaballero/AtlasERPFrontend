@@ -1,6 +1,7 @@
 import { apiFileDownload, apiRequest } from '@/lib/apiClient';
 import { requireUuidPathParam } from '@/lib/apiPath';
 import { cargarTodo } from '@/lib/cargarTodo';
+import { maskCedula } from '@/lib/formatters';
 import { guardarArchivo } from '@/lib/pdf';
 import type { Option } from './optionLoaders';
 import type { JsonObject, PageQuery, PaginatedResult, ResourceRow } from './types';
@@ -40,6 +41,9 @@ const id = (valor: string, campo: string) => requireUuidPathParam(valor, campo);
 /** Una sola lectura del modo por sesión de pantalla: no cambia sin redesplegar. */
 let estadoEnCurso: Promise<EstadoFiscal> | null = null;
 
+/** codigoTipoDocumentoIdentidad del SIN que son una cédula: 1 CI, 2 CEX (cédula de extranjero). */
+const TIPOS_DOCUMENTO_CEDULA = new Set([1, 2]);
+
 /**
  * La fila del listado, aplanada para la tabla: el cliente y su NIT viven dentro de
  * `receptorSnapshot` (la foto del receptor al emitir, que es lo que vio Impuestos).
@@ -48,10 +52,14 @@ function aplanarDocumento(row: ResourceRow): ResourceRow {
   const receptor = (row.receptorSnapshot ?? {}) as Record<string, unknown>;
   const numero = receptor.numeroDocumento ? String(receptor.numeroDocumento) : '';
   const complemento = receptor.complemento ? `-${String(receptor.complemento)}` : '';
+  const documento = numero ? `${numero}${complemento}` : '';
+  /* Un comprador persona natural factura con su CI (o cédula de extranjero) y complemento: en la
+     tabla se enmascara como el resto de cédulas del ERP (ERP-11). Un NIT sale tal cual. */
+  const esCedula = TIPOS_DOCUMENTO_CEDULA.has(Number(receptor.codigoTipoDocumentoIdentidad));
   return {
     ...row,
     cliente: receptor.nombreRazonSocial ? String(receptor.nombreRazonSocial) : '',
-    nit: numero ? `${numero}${complemento}` : '',
+    nit: esCedula && documento ? maskCedula(documento) : documento,
   };
 }
 
