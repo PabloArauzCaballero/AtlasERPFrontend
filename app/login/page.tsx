@@ -9,6 +9,8 @@ import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { AuthPortada } from '@/components/atlas/AuthPortada';
 import { useAuth } from '@/lib/authContext';
+import { rutaInternaSegura } from '@/lib/rutaInterna';
+import { TRASPASO, dejarParaLaSiguientePantalla, recogerDeLaPantallaAnterior } from '@/lib/traspasoEfimero';
 import { isPinChallenge } from '@/services/authTypes';
 import type { PinChallenge } from '@/services/authTypes';
 
@@ -67,16 +69,26 @@ function LoginForm() {
   const [pin, setPin] = useState('');
 
   const copy = AUDIENCE_COPY[audience];
+  /*
+   * El `next` se valida UNA vez y todos los caminos usan el mismo resultado: antes había tres
+   * lecturas sueltas de `searchParams.get('next')` y bastaba con olvidar una para dejar abierta la
+   * redirección (ver `lib/rutaInterna.ts`).
+   */
+  const destinoPedido = rutaInternaSegura(searchParams.get('next'));
+  // Por qué se cerró la sesión anterior, si la cerró el reloj de inactividad. Se lee una vez y se borra.
+  const [cierrePorInactividad, setCierrePorInactividad] = useState(false);
+  useEffect(() => {
+    if (recogerDeLaPantallaAnterior(TRASPASO.cierrePorInactividad)) setCierrePorInactividad(true);
+  }, []);
 
   useEffect(() => {
     if (status === 'authenticated') {
       // El destino lo manda la sesión REAL, no la pestaña elegida: si alguien llega con sesión de
       // comercio y `next=/operaciones`, mandarlo allí sólo produciría un rebote del guard.
       const home = AUDIENCE_COPY[isMerchant ? 'merchant' : 'internal'].home;
-      const next = searchParams.get('next');
-      router.replace(next && !isMerchant ? next : home);
+      router.replace(destinoPedido && !isMerchant ? destinoPedido : home);
     }
-  }, [status, isMerchant, router, searchParams]);
+  }, [status, isMerchant, router, destinoPedido]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,7 +104,7 @@ function LoginForm() {
           setChallenge(outcome);
           return;
         }
-        router.replace(searchParams.get('next') ?? copy.home);
+        router.replace(destinoPedido ?? copy.home);
       }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'No fue posible iniciar sesión.');
@@ -108,7 +120,7 @@ function LoginForm() {
     setSubmitting(true);
     try {
       await verifyLoginPin({ challengeToken: challenge.challengeToken, pin });
-      router.replace(searchParams.get('next') ?? AUDIENCE_COPY.internal.home);
+      router.replace(destinoPedido ?? AUDIENCE_COPY.internal.home);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'No fue posible verificar el código.');
     } finally {
@@ -145,6 +157,11 @@ function LoginForm() {
             />
           ) : (
             <>
+              {cierrePorInactividad ? (
+                <InlineNotice tone="info" title="Cerramos tu sesión" className="mb-5">
+                  Pasaron 15 minutos sin actividad. Vuelve a entrar para seguir.
+                </InlineNotice>
+              ) : null}
               <header className="mb-6">
                 <p className="text-xs font-bold tracking-[0.02em] text-primary">Acceso corporativo</p>
                 <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
@@ -212,12 +229,16 @@ function LoginForm() {
                   * cada población tiene su propia ruta en el backend y la pantalla de recuperación
                   * necesita saber a cuál llamar. Así el enlace también sirve pegado en un correo
                   * de soporte, que es como se usa la mitad de las veces.
+                  *
+                  * El CORREO, en cambio, ya no va en la dirección (`&correo=` hasta 2026-10-09): una
+                  * URL queda en el historial del navegador y en los registros de acceso del proxy, y
+                  * un correo es un dato personal. Pasa por `sessionStorage` y la pantalla siguiente
+                  * lo borra al leerlo (`lib/traspasoEfimero.ts`).
                   */}
                 <p className="text-center text-xs text-slate-500">
                   <Link
-                    href={`/recuperar-acceso?canal=${audience === 'merchant' ? 'comercio' : 'interno'}${
-                      email.trim() ? `&correo=${encodeURIComponent(email.trim())}` : ''
-                    }`}
+                    href={`/recuperar-acceso?canal=${audience === 'merchant' ? 'comercio' : 'interno'}`}
+                    onClick={() => dejarParaLaSiguientePantalla(TRASPASO.correoARecuperar, email.trim())}
                     className="font-semibold text-primary transition hover:underline"
                   >
                     ¿Olvidaste tu contraseña?

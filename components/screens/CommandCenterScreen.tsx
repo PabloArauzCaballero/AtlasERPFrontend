@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
 import { Panel } from '@/components/atlas/Panel';
 import { ScreenExplainer } from '@/components/atlas/ScreenExplainer';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import { alPedirBusquedaGlobal, busquedaPendiente } from '@/lib/busquedaGlobal';
 import { moduleOfView, viewsByModule, visibleViewLinks } from '@/lib/viewRegistry';
 
 const PANTALLAS = visibleViewLinks();
@@ -23,12 +23,17 @@ const PANTALLAS = visibleViewLinks();
 
 export function CommandCenterScreen() {
   /*
-   * El texto llega de la barra superior en `?q=`. Antes se ignoraba: se escribía «factura», se
-   * pulsaba Enter y la pantalla abría con la caja vacía.
+   * El texto llega de la barra superior. Antes se ignoraba: se escribía «factura», se pulsaba
+   * Enter y la pantalla abría con la caja vacía. Ya no viaja en `?q=` sino por `sessionStorage`
+   * (ver `lib/busquedaGlobal.ts`): lo tecleado puede ser un CI o un NIT, y en la URL quedaba en el
+   * historial y en los registros del proxy.
    */
-  const q = useSearchParams()?.get('q') ?? '';
-  const [query, setQuery] = useState(q);
-  useEffect(() => { setQuery(q); }, [q]);
+  const [query, setQuery] = useState('');
+  useEffect(() => {
+    const pendiente = busquedaPendiente();
+    if (pendiente) setQuery(pendiente);
+    return alPedirBusquedaGlobal(setQuery);
+  }, []);
   const normalized = query.trim().toLowerCase();
   const results = useMemo(() => {
     if (!normalized) return PANTALLAS.slice(0, 8);

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/atlas/Icon';
 import { useAuth } from '@/lib/authContext';
 import { NOTIFICACIONES_MASIVAS_VISIBLE } from '@/lib/modulos';
+import { RUTA_BUSQUEDA_GLOBAL, pedirBusquedaGlobal } from '@/lib/busquedaGlobal';
 
 function initialsFrom(name: string | undefined): string {
   if (!name) return '??';
@@ -54,11 +55,19 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
     if (searchOpen) searchInput.current?.focus();
   }, [searchOpen]);
 
+  /*
+   * El texto NO viaja en la dirección (`?q=` hasta 2026-10-09). La búsqueda es del cliente —filtra
+   * el índice de pantallas en el navegador, no pregunta al servidor—, así que ponerla en la URL
+   * sólo servía para dejarla en el historial, en los registros del proxy y en la petición RSC de
+   * la navegación. Y la gente teclea ahí un CI o un NIT aunque el buscador no encuentre registros.
+   * Pasa por `sessionStorage` y, si ya se está en la pantalla, por un evento.
+   */
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const value = search.trim();
     setSearchOpen(false);
-    router.push(value ? `/operaciones/admin/busqueda-global?q=${encodeURIComponent(value)}` : '/operaciones/admin/busqueda-global');
+    pedirBusquedaGlobal(value);
+    router.push(RUTA_BUSQUEDA_GLOBAL);
   }
 
   async function handleLogout() {

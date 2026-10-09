@@ -9,6 +9,7 @@ import { StoredFilePreview, iconoDeArchivo, tipoDeVista } from '@/components/atl
 import { Icon } from '@/components/atlas/Icon';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Panel } from '@/components/atlas/Panel';
+import { abrirODescargar } from '@/lib/archivoSeguro';
 import type { ResourceRow } from '@/services/types';
 
 interface FileAttachmentsPanelProps {
@@ -64,13 +65,19 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
     await resource.reload();
   }
 
-  /** Abre el archivo desde un blob con sesión: los adjuntos ya no tienen URL pública. */
-  async function abrir(id: unknown) {
-    if (!id) return;
+  /**
+   * Abre el archivo desde un blob con sesión: los adjuntos ya no tienen URL pública.
+   *
+   * Sólo PDF e imágenes se abren en otra pestaña; lo demás se descarga con su nombre. Un `blob:`
+   * es del MISMO origen que el ERP, y abrir así un HTML o un SVG lo pintaría como una página más
+   * del ERP (ver `lib/archivoSeguro.ts`).
+   */
+  async function abrir(file: ResourceRow) {
+    if (!file.id) return;
     setError(null);
     try {
-      const url = await filesService.contentUrl(String(id));
-      window.open(url, '_blank', 'noopener');
+      const url = await filesService.contentUrl(String(file.id));
+      abrirODescargar(url, file.mimeType ? String(file.mimeType) : null, String(file.fileName ?? 'archivo'));
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo abrir el archivo.');
@@ -121,7 +128,7 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
               <div className="flex items-center gap-3 px-3 py-2">
                 <Icon name={iconoDeArchivo(String(file.mimeType ?? ''), String(file.fileName ?? ''))} className="text-[18px] text-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <button type="button" onClick={() => abrir(file.id)} className="block max-w-full truncate text-left text-xs font-semibold text-[#006a61] hover:underline">
+                  <button type="button" onClick={() => abrir(file)} className="block max-w-full truncate text-left text-xs font-semibold text-[#006a61] hover:underline">
                     {String(file.fileName ?? 'archivo')}
                   </button>
                   <span className="text-[10px] text-slate-500">{String(file.mimeType ?? '—')} · {formatBytes(file.byteSize)}</span>

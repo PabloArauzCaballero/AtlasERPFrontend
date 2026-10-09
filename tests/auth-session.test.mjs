@@ -33,6 +33,7 @@ function session(fetchImpl, stored = {}) {
       repeticionDe: () => 'segura',
     },
     './mensajesValidacion': { describirIncidencia: () => '' },
+    './archivoSeguro': { blobInofensivo: (blob) => blob },
   };
   new Function('require', 'module', 'exports', compiled)((name) => dependencies[name], compiledModule, compiledModule.exports);
   return { api: compiledModule.exports, values, events };

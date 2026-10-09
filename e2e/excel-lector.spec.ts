@@ -31,7 +31,8 @@ function moduloEnUnGuion(): string {
     .replace(/^import .*$/gm, '')
     .replace(/^export (async )?function/gm, '$1function')
     .replace(/^export function/gm, 'function')
-    .concat('\nglobalThis.excel = { leerTabla, descargarPlantillaExcel, fechaDeSerieExcel };');
+    .replace(/^export const/gm, 'const')
+    .concat('\nglobalThis.excel = { leerTabla, descargarPlantillaExcel, fechaDeSerieExcel, LIMITES_DE_LECTURA };');
 }
 
 /* CRC-32, el mismo que exige el ZIP. Duplicarlo aquí es a propósito: si la prueba usara el del
@@ -81,12 +82,16 @@ function xlsxComoLoGuardaExcel(): Buffer {
     ],
   ];
 
+  return empaquetar(archivos.map(([nombre, contenido]) => [nombre, Buffer.from(contenido, 'utf8')]));
+}
+
+/** Un ZIP con deflate, con el índice central y el fin de directorio que exige el formato. */
+function empaquetar(archivos: Array<[string, Buffer]>): Buffer {
   const partes: Buffer[] = [];
   const central: Buffer[] = [];
   let desplazamiento = 0;
-  for (const [nombre, contenido] of archivos) {
+  for (const [nombre, datos] of archivos) {
     const nombreBytes = Buffer.from(nombre, 'utf8');
-    const datos = Buffer.from(contenido, 'utf8');
     const comprimido = deflateRawSync(datos);
     const crc = crc32(datos);
 
@@ -206,6 +211,25 @@ test.describe('el lector de Excel de los listados', () => {
     expect(mensaje).toContain('no es un Excel válido');
   });
 
+  /*
+   * ERP-15: una bomba de descompresión (60 MB de ceros que comprimidos ocupan ~60 KB) se corta en
+   * el navegador de verdad, con su `DecompressionStream`, antes de llenar la memoria de la pestaña.
+   */
+  test('una bomba de descompresión se rechaza en vez de colgar la pestaña', async ({ page }) => {
+    await conElModulo(page);
+    const bomba = empaquetar([['xl/worksheets/sheet1.xml', Buffer.alloc(60 * 1024 * 1024)]]);
+    expect(bomba.length).toBeLessThan(1024 * 1024);
+    const mensaje = await page.evaluate(async (crudo) => {
+      try {
+        await globalThis.excel.leerTabla(new File([new Uint8Array(crudo)], 'bomba.xlsx'));
+        return '';
+      } catch (error) {
+        return error instanceof Error ? error.message : '';
+      }
+    }, [...bomba]);
+    expect(mensaje).toContain('descomprimido pasa de 50 MB');
+  });
+
   test('también acepta el CSV, que es lo que exporta cualquier otro sistema', async ({ page }) => {
     await conElModulo(page);
     const leido = await page.evaluate(async () => {
@@ -222,5 +246,6 @@ declare global {
     leerTabla: (file: File) => Promise<{ cabeceras: string[]; filas: Record<string, string>[] }>;
     descargarPlantillaExcel: (nombre: string, cabeceras: string[], ejemplos?: string[][], hojasExtra?: Array<{ nombre: string; filas: string[][] }>) => void;
     fechaDeSerieExcel: (serie: number) => string;
+    LIMITES_DE_LECTURA: { bytesArchivo: number; entradasZip: number; bytesDescomprimidos: number };
   };
 }

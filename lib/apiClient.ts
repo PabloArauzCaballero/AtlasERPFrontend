@@ -1,6 +1,7 @@
 import { newCorrelationId } from './correlationId';
 import { conReintentos, esMutacion, esRespuestaDePasarela, repeticionDe, type Repeticion } from './reintentos';
 import { describirIncidencia } from './mensajesValidacion';
+import { blobInofensivo } from './archivoSeguro';
 
 export interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -600,5 +601,7 @@ export async function apiBlobUrl(path: string, options: ApiRequestOptions = {}):
     throw new ApiError(extractErrorMessage(response, payload), response.status, false, false, extractErrorCode(payload));
   }
 
-  return URL.createObjectURL(await response.blob());
+  // El tipo lo dice el servidor; sólo PDF e imágenes rasterizadas conservan el suyo. Lo demás
+  // (HTML, SVG, XML…) se abriría como página del MISMO origen: pasa a descarga (`lib/archivoSeguro.ts`).
+  return URL.createObjectURL(blobInofensivo(await response.blob()));
 }
