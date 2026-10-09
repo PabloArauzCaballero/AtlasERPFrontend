@@ -60,10 +60,55 @@ export function formatDateTime(value: string | Date | null | undefined): string 
   return Number.isNaN(date.getTime()) ? '—' : dateTimeFormatter.format(date);
 }
 
+/**
+ * Cédula de identidad (CI) a la vista (ERP-11): el número se tapa como un teléfono —sólo quedan los
+ * tres últimos dígitos— y el complemento y la extensión (`-1A`, `SC`) se tapan enteros, porque con
+ * ellos y la terminación el carnet vuelve a ser casi único. Los separadores se conservan para que
+ * la forma siga leyéndose como un carnet: `7654321-1A SC` → `****321-** **`.
+ *
+ * Es enmascarado de PANTALLA, igual que el de teléfonos y NIT: el dato viaja completo desde el
+ * backend. En los formularios donde alguien escribe la cédula no se usa.
+ */
+export function maskCedula(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  const text = String(value).trim();
+  if (!text) return '';
+  const partes = /^(\d+)(.*)$/s.exec(text);
+  if (!partes) {
+    /* Sin número al principio (cédula extranjera, pasaporte): quedan los tres últimos caracteres. */
+    return text.replace(/[\p{L}\d](?=(?:[^\p{L}\d]*[\p{L}\d]){3})/gu, '*');
+  }
+  const [, numero = '', resto = ''] = partes;
+  return numero.replace(/\d(?=\d{3})/g, '*') + maskComplementoCedula(resto);
+}
+
+/** Complemento o extensión de la cédula, solos: se tapan enteros (conservando separadores). */
+export function maskComplementoCedula(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  return String(value).replace(/[\p{L}\d]/gu, '*');
+}
+
+/** Columnas que guardan el número de una cédula. Por nombre exacto o por sufijo inequívoco. */
+function esCampoCedula(normalized: string): boolean {
+  return (
+    /^(ci|cedula|carnet|cinumber|cinumero|nationalid|identitynumber|identitydocument|identitydocumentnumber|numerodocumento)$/.test(normalized) ||
+    normalized.endsWith('documentnumber')
+  );
+}
+
+/** Columnas con el complemento o la extensión de una cédula (`taxIdComplement`, `ciExtension`...). */
+function esCampoComplementoCedula(normalized: string): boolean {
+  return /(complement|complemento|documentextension|ciextension|ciexpedido)$/.test(normalized);
+}
+
 export function maskPii(value: unknown, fieldName: string): string {
   if (value === null || value === undefined) return '—';
   const text = String(value);
   const normalized = fieldName.toLowerCase();
+
+  /* Antes que el NIT: `taxIdComplement` lleva «tax» y es el complemento de una CI. */
+  if (esCampoComplementoCedula(normalized)) return maskComplementoCedula(text);
+  if (esCampoCedula(normalized)) return maskCedula(text);
 
   if (normalized.includes('email')) {
     const [name, domain] = text.split('@');
