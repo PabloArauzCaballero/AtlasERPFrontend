@@ -8,10 +8,9 @@
 # Es un `build.arg`, así que su valor queda dentro del bundle: cambiarlo en Environment Variables
 # y reiniciar **no hace nada**, hay que RECONSTRUIR.
 #
-# Y NO puede seguir siendo `http://erp:3007`. Ese era un alias de la red compartida `atlas_vps`
-# del VPS operado a mano; en Coolify cada aplicación tiene su propia red, así que el nombre no
-# resuelve y el fallo —`EAI_AGAIN erp`— se lee igual que «el ERP está caído». Va la IP de
-# Tailscale del host, que es una dirección real y alcanzable desde otro contenedor.
+# Vale `http://erp:3007`: `erp` es el ALIAS estable del backend del ERP en la red compartida
+# `coolify` (ver `networks` al final). Sólo resuelve si esta aplicación tiene activado «Connect To
+# Predefined Network»; si no, el fallo —`EAI_AGAIN erp`— se lee igual que «el ERP está caído».
 #
 # ## Lo que este archivo NO trae
 #
@@ -25,6 +24,12 @@ services:
     environment:
       APP_COMMIT_SHA: '${SOURCE_COMMIT:-}'
       APP_VERSION: '0.1.0'
+      # Destinos EXACTOS (`host` o `host:puerto`) a los que `/almacen/subida` reenvía las subidas
+      # firmadas (app/almacen/subida/route.ts). Sin ella la ruta responde 503. Por defecto, el almacén
+      # público de TEST (Contabo, `STORAGE_S3_PUBLIC_ENDPOINT` de AtlasBackend) y el de DEV (H310 por
+      # Tailscale), porque este mismo compose sirve los dos. Un entorno con otro almacén la define en
+      # Coolify: el valor de allí sustituye a éste entero.
+      ALMACEN_HOSTS_PERMITIDOS: '${ALMACEN_HOSTS_PERMITIDOS:-minio.161.97.85.216.sslip.io,pablo-h310.taila8f993.ts.net}'
     # `erp-web`: alias ESTABLE por el que Traefik sondea y sirve este portal en TEST, con failover a
     # la instancia de respaldo (_herramientas/respaldo-erp/atlas-erp-failover.yaml). El nombre del
     # contenedor cambia en cada despliegue; el alias no. Sin él, la sonda falla y sirve el respaldo.
@@ -66,7 +71,7 @@ services:
         # PLAT-03: el commit compilado. Sin este build-arg `/version` sale con commit `unknown` y el smoke de
         # TEST lo rechaza. Coolify rellena SOURCE_COMMIT al construir; si no, se lee `.git/HEAD`.
         SOURCE_COMMIT: '${SOURCE_COMMIT:-}'
-        # El backend del ERP, por la IP de Tailscale. Ver la nota de arriba.
+        # El backend del ERP, por su alias en la red `coolify`. Ver la nota de arriba.
         ERP_API_ORIGIN: 'http://erp:3007'
     # `init: true` reparte SIGTERM al proceso de Node, sin depender de instalar un binario.
     init: true

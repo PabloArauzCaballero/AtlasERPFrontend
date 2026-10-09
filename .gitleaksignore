@@ -1,0 +1,13 @@
+# Hallazgos YA CONOCIDOS del historial de git (gitleaks 8.30.1, modo `git`, 2026-10-09).
+#
+# Son credenciales REALES filtradas en commits del 2026-08-25 (contraseñas de cuentas de prueba
+# escritas a mano en baterías e2e `*-real`). Este repositorio es público: borrarlas del árbol no
+# las borra del historial. Están PENDIENTES DE ROTAR POR PABLO (anotado el 2026-10-09); rotarlas
+# es lo único que las neutraliza.
+#
+# Este archivo NO las da por buenas: existe para que el escaneo del historial en CI pueda estar en
+# verde y así detecte las fugas NUEVAS. Cada línea es la huella `commit:ruta:regla:línea` de UN
+# hallazgo; no contiene el valor. No añadas huellas nuevas aquí: un secreto nuevo se retira del
+# commit (o se rota) y, si es un ejemplo verificado, se marca en su línea con `gitleaks:allow`.
+2a1b53c3f282ec9c276392ce47fd10667e458b88:e2e/mi-empresa-real.spec.ts:atlas-credencial-en-codigo:17
+7ee4cad9d8da46920b71daa700c0854c4a75dc82:e2e/portal-comercio-real.spec.ts:atlas-credencial-en-codigo:13
