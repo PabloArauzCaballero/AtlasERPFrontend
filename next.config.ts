@@ -7,6 +7,15 @@ function securityHeaders() {
     { key: 'X-Content-Type-Options', value: 'nosniff' },
     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
     { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+    /*
+     * HSTS: una vez visto por https, el navegador no vuelve a pedir este host por http durante un
+     * año, y así no hay primera petición en claro que un intermediario pueda desviar (SSL
+     * stripping). Por http plano la cabecera se IGNORA —lo dice la RFC 6797 §8.1—, así que no
+     * rompe los accesos de TEST por IP (`http://161.97.85.216:3010`); empieza a proteger donde ya
+     * hay https. Sin `preload` a propósito: entrar en la lista de los navegadores no tiene vuelta
+     * atrás rápida y exige que TODOS los subdominios sirvan https.
+     */
+    { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
   ];
 }
 

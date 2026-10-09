@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FileDropField } from '@/components/atlas/FileDropField';
 import { FormField } from '@/components/atlas/FormField';
+import { leerCuentaEnmascarada } from '@/lib/cuentaEnmascarada';
 import { Icon } from '@/components/atlas/Icon';
 import { OptionSelect } from '@/components/atlas/OptionSelect';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
@@ -202,6 +203,12 @@ export function MerchantPaymentQrScreen({
       setAviso({ tono: 'info', texto: 'Elija la entidad de su banco: su sigla es lo que permite cruzarlo con ASFI.' });
       return;
     }
+    // Nunca sale el número completo: si se escribió entero, se envían sólo los 4 últimos.
+    const cuentaLeida = leerCuentaEnmascarada(cuenta);
+    if (!cuentaLeida.ok) {
+      setAviso({ tono: 'danger', texto: cuentaLeida.motivo });
+      return;
+    }
 
     setSubiendo(true);
     setAviso(null);
@@ -226,7 +233,7 @@ export function MerchantPaymentQrScreen({
         qrKind: 'bank',
         storageKey: ticket.storageKey,
         bankInstitutionCode: entidad.trim().toUpperCase(),
-        ...(cuenta.trim() ? { accountNumberMasked: cuenta.trim() } : {}),
+        ...(cuentaLeida.valor ? { accountNumberMasked: cuentaLeida.valor } : {}),
       });
       setAviso({
         tono: 'success',
@@ -443,7 +450,15 @@ export function MerchantPaymentQrScreen({
                 name="accountNumberMasked"
                 value={cuenta}
                 onChange={(evento) => setCuenta(evento.target.value)}
-                hint="****7890"
+                /* Al salir del campo se enmascara a la vista: el número completo no se queda en pantalla. */
+                onBlur={() => {
+                  const leida = leerCuentaEnmascarada(cuenta);
+                  if (leida.ok) setCuenta(leida.valor);
+                }}
+                autoComplete="off"
+                inputMode="numeric"
+                maxLength={34}
+                hint="Sólo los 4 últimos dígitos, p. ej. ****7890. Si escribes el número entero, lo enmascaramos."
                 data-testid="campo-cuenta"
               />
             </div>

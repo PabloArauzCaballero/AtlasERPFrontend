@@ -53,3 +53,10 @@ it('permite sólo los orígenes HTTPS de carga configurados', () => {
   expect(connect).not.toContain('insecure.test');
   vi.unstubAllEnvs();
 });
+
+it('pide HSTS de un año con subdominios, sin entrar en la lista de precarga', async () => {
+  const staticHeaders = await nextConfig.headers?.();
+  const hsts = staticHeaders?.[0]?.headers.find((header) => header.key === 'Strict-Transport-Security')?.value;
+  expect(hsts).toBe('max-age=31536000; includeSubDomains');
+  expect(hsts).not.toContain('preload');
+});

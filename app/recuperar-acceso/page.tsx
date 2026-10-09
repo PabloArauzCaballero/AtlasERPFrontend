@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
@@ -9,6 +9,7 @@ import { AuthPortada } from '@/components/atlas/AuthPortada';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { authService } from '@/services/authService';
+import { TRASPASO, recogerDeLaPantallaAnterior } from '@/lib/traspasoEfimero';
 
 /**
  * Recuperar el acceso, para las dos poblaciones que entran por esta aplicación: el comercio
@@ -72,7 +73,15 @@ function RecuperarAcceso() {
   const copy = CANAL_COPY[canal];
   // El correo llega prellenado desde el login para no teclearlo dos veces, pero sigue siendo
   // editable: quien se equivocó de cuenta al entrar se equivocaría igual aquí.
-  const [email, setEmail] = useState(searchParams.get('correo') ?? '');
+  //
+  // Llega por `sessionStorage`, no por `?correo=`: un dato personal en la dirección se queda en el
+  // historial y en los registros del proxy (ver `lib/traspasoEfimero.ts`). Se lee tras montar
+  // porque en el servidor no hay almacenamiento, y sólo si el campo sigue vacío.
+  const [email, setEmail] = useState('');
+  useEffect(() => {
+    const recibido = recogerDeLaPantallaAnterior(TRASPASO.correoARecuperar);
+    if (recibido) setEmail((actual) => actual || recibido);
+  }, []);
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

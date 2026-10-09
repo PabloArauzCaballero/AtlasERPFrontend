@@ -13,6 +13,29 @@
  */
 import { parseCsv } from '@/lib/csv';
 
+/**
+ * Topes de lo que se acepta leer (ASVS 12.1.1 y 12.1.2).
+ *
+ * Un `.xlsx` es un ZIP, y un ZIP de unos KB puede inflarse a gigas («bomba de descompresión») o
+ * traer decenas de miles de entradas. Sin topes, lo único que hace falta para colgar la pestaña es
+ * elegir ese archivo. Las cifras sobran para el uso real: una plantilla de importación con miles
+ * de filas pesa unos cientos de KB comprimida y pocos MB descomprimida.
+ *
+ * - `bytesArchivo`: 10 MB, comprobado ANTES de leerlo en memoria (vale también para el CSV).
+ * - `entradasZip`: 1000 entradas en el índice del ZIP; un Excel normal trae una o dos decenas.
+ * - `bytesDescomprimidos`: 50 MB en total, contados MIENTRAS se descomprime: el tamaño que declara
+ *   el propio ZIP lo escribe quien fabrica el archivo y no prueba nada.
+ */
+export const LIMITES_DE_LECTURA = {
+  bytesArchivo: 10 * 1024 * 1024,
+  entradasZip: 1000,
+  bytesDescomprimidos: 50 * 1024 * 1024,
+} as const;
+
+function megas(bytes: number): string {
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
+}
+
 export interface TablaLeida {
   /** Cabeceras en el orden del archivo, ya recortadas. */
   cabeceras: string[];
@@ -31,6 +54,10 @@ export interface TablaLeida {
  * empieza por `PK`.
  */
 export async function leerTabla(file: File): Promise<TablaLeida> {
+  // El tope va ANTES de `arrayBuffer()`: después ya se ha cargado entero en memoria.
+  if (file.size > LIMITES_DE_LECTURA.bytesArchivo) {
+    throw new Error(`El archivo pesa demasiado: el máximo es ${megas(LIMITES_DE_LECTURA.bytesArchivo)}. Divídelo en varios.`);
+  }
   const bytes = new Uint8Array(await file.arrayBuffer());
   const esZip = bytes[0] === 0x50 && bytes[1] === 0x4b;
   if (!esZip) return desdeCsv(new TextDecoder().decode(bytes));
@@ -379,9 +406,14 @@ async function abrirZip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
   if (fin === -1) throw new Error('El archivo no es un Excel válido (falta el índice del ZIP).');
 
   const cuantas = vista.getUint16(fin + 10, true);
+  if (cuantas > LIMITES_DE_LECTURA.entradasZip) {
+    throw new Error(`El archivo trae ${cuantas} piezas internas; un Excel válido no pasa de ${LIMITES_DE_LECTURA.entradasZip}.`);
+  }
   let puntero = vista.getUint32(fin + 16, true);
   const decodificador = new TextDecoder();
   const entradas = new Map<string, Uint8Array>();
+  // Lo que queda por descomprimir entre TODAS las entradas, no por entrada: muchas medianas suman igual.
+  const presupuesto = { restante: LIMITES_DE_LECTURA.bytesDescomprimidos };
 
   for (let numero = 0; numero < cuantas; numero += 1) {
     if (vista.getUint32(puntero, true) !== 0x02014b50) break;
@@ -400,14 +432,53 @@ async function abrirZip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
 
     // Sólo interesan las piezas que se van a leer: un .xlsx real trae imágenes y temas que no pintan nada aquí.
     if (nombre.endsWith('.xml') || nombre.endsWith('.rels')) {
-      entradas.set(nombre, metodo === 0 ? crudo : await inflar(crudo));
+      if (metodo === 0) gastar(presupuesto, crudo.byteLength);
+      entradas.set(nombre, metodo === 0 ? crudo : await inflar(crudo, presupuesto));
     }
     puntero += 46 + largoNombre + largoExtra + largoComentario;
   }
   return entradas;
 }
 
-async function inflar(datos: Uint8Array): Promise<Uint8Array> {
-  const flujo = new Blob([datos as BlobPart]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Uint8Array(await new Response(flujo).arrayBuffer());
+const MENSAJE_DEMASIADO_GRANDE = `El archivo descomprimido pasa de ${megas(LIMITES_DE_LECTURA.bytesDescomprimidos)}: no parece una plantilla de importación.`;
+
+function gastar(presupuesto: { restante: number }, bytes: number): void {
+  presupuesto.restante -= bytes;
+  if (presupuesto.restante < 0) throw new Error(MENSAJE_DEMASIADO_GRANDE);
+}
+
+/**
+ * Descomprime trozo a trozo y corta en cuanto se pasa del presupuesto: esperar a tener el
+ * resultado entero (`new Response(flujo).arrayBuffer()`) sería dejar que la bomba explote antes
+ * de mirarla.
+ */
+async function inflar(datos: Uint8Array, presupuesto: { restante: number }): Promise<Uint8Array> {
+  const origen = new ReadableStream<BufferSource>({
+    start(control) {
+      control.enqueue(datos as Uint8Array<ArrayBuffer>);
+      control.close();
+    },
+  });
+  const lector = origen.pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const trozos: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await lector.read();
+      if (done) break;
+      gastar(presupuesto, value.byteLength);
+      trozos.push(value);
+      total += value.byteLength;
+    }
+  } catch (error) {
+    await lector.cancel().catch(() => undefined);
+    throw error;
+  }
+  const salida = new Uint8Array(total);
+  let desplazamiento = 0;
+  for (const trozo of trozos) {
+    salida.set(trozo, desplazamiento);
+    desplazamiento += trozo.byteLength;
+  }
+  return salida;
 }

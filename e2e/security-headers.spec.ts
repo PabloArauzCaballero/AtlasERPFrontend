@@ -13,6 +13,8 @@ test('CSP de producción usa nonce único y permite hidratar el login', async ({
   page.on('pageerror', (error) => violations.push(error.message));
 
   const first = await page.goto('/login');
+  // HSTS sale del servidor aunque aquí sea http: el navegador sólo la obedece por https (RFC 6797 §8.1).
+  expect(first?.headers()['strict-transport-security']).toBe('max-age=31536000; includeSubDomains');
   const firstPolicy = first?.headers()['content-security-policy'] ?? '';
   const nonce = firstPolicy.match(/'nonce-([^']+)'/)?.[1];
   expect(nonce).toMatch(/^[a-f0-9]{32}$/);

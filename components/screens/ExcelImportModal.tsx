@@ -6,7 +6,7 @@ import { FileDropField } from '@/components/atlas/FileDropField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { Modal } from '@/components/atlas/Modal';
 import { StatusPill } from '@/components/atlas/StatusPill';
-import { descargarPlantillaExcel, leerTabla } from '@/lib/excel';
+import { LIMITES_DE_LECTURA, descargarPlantillaExcel, leerTabla } from '@/lib/excel';
 import {
   agrupar,
   aClavesTecnicas,
@@ -230,6 +230,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
           label="Archivo de Excel"
           tooltip="La plantilla rellenada, en .xlsx o .csv; antes de crear nada se revisa fila por fila."
           accept={TIPOS_DE_HOJA}
+          maxBytes={LIMITES_DE_LECTURA.bytesArchivo}
           files={archivo ? [archivo] : []}
           onFilesChange={(elegidos) => (elegidos[0] ? void cargar(elegidos[0]) : quitarArchivo())}
           status={importando ? 'Importando…' : undefined}

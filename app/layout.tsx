@@ -4,6 +4,7 @@ import './ambient.css';
 import './tutorial.css';
 import { AuthProvider } from '@/lib/authContext';
 import { ToastHost } from '@/components/atlas/ToastHost';
+import { CierrePorInactividad } from '@/components/layout/CierrePorInactividad';
 
 // El CSP usa un nonce nuevo por petición; el HTML debe generarse con ese nonce.
 export const dynamic = 'force-dynamic';
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0,0&display=swap" rel="stylesheet" />
       </head>
-      <body><AuthProvider>{children}</AuthProvider><ToastHost /></body>
+      <body><AuthProvider>{children}<CierrePorInactividad /></AuthProvider><ToastHost /></body>
     </html>
   );
 }

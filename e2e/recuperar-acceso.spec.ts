@@ -63,28 +63,35 @@ async function simularBackend(page: Page, confirmacion: { ok: boolean } = { ok: 
 }
 
 test.describe('Recuperar el acceso del comercio', () => {
-  test('el enlace lleva el canal de cada pestaña y el correo escrito', async ({ page }) => {
+  /*
+   * El correo ya NO viaja en la dirección (`&correo=` hasta 2026-10-09): pasa por `sessionStorage`
+   * y la pantalla de recuperación lo borra al leerlo (`lib/traspasoEfimero.ts`). Una URL se queda
+   * en el historial y en los registros del proxy, y un correo es un dato personal.
+   */
+  test('el enlace lleva el canal de cada pestaña y el correo escrito, fuera de la URL', async ({ page }) => {
     await page.goto('/login');
     const enlace = page.getByRole('link', { name: '¿Olvidaste tu contraseña?' });
 
     // Pestaña interna (la que abre por defecto).
     await expect(enlace).toBeVisible();
     await page.getByLabel(/Correo corporativo/i).fill('persona@atlas.internal');
-    await expect(enlace).toHaveAttribute(
-      'href',
-      '/recuperar-acceso?canal=interno&correo=persona%40atlas.internal',
-    );
+    await expect(enlace).toHaveAttribute('href', '/recuperar-acceso?canal=interno');
 
     await page.getByRole('tab', { name: 'Comercio afiliado' }).click();
     await page.getByLabel(/Correo del comercio/i).fill('comercio@alfa.test');
-    await expect(enlace).toHaveAttribute(
-      'href',
-      '/recuperar-acceso?canal=comercio&correo=comercio%40alfa.test',
-    );
+    await expect(enlace).toHaveAttribute('href', '/recuperar-acceso?canal=comercio');
 
     await enlace.click();
-    await expect(page).toHaveURL(/\/recuperar-acceso\?canal=comercio&correo=comercio%40alfa\.test/);
+    await expect(page).toHaveURL(/\/recuperar-acceso\?canal=comercio$/);
     await expect(page.getByLabel(/Correo del comercio/i)).toHaveValue('comercio@alfa.test');
+    expect(page.url()).not.toContain('correo');
+    // Se entrega una vez y se borra: no queda esperando en la pestaña.
+    expect(await page.evaluate(() => Object.keys(window.sessionStorage).filter((k) => k.startsWith('atlas:traspaso:')))).toEqual([]);
+  });
+
+  test('un `?correo=` pegado en la dirección ya no rellena nada', async ({ page }) => {
+    await page.goto('/recuperar-acceso?canal=comercio&correo=comercio%40alfa.test');
+    await expect(page.getByLabel(/Correo del comercio/i)).toHaveValue('');
   });
 
   /**
@@ -109,9 +116,9 @@ test.describe('Recuperar el acceso del comercio', () => {
       });
     });
 
-    await page.goto('/recuperar-acceso?canal=interno&correo=persona%40atlas.internal');
+    await page.goto('/recuperar-acceso?canal=interno');
     await expect(page.getByText('Panel administrativo interno')).toBeVisible();
-    await expect(page.getByLabel(/Correo corporativo/i)).toHaveValue('persona@atlas.internal');
+    await page.getByLabel(/Correo corporativo/i).fill('persona@atlas.internal');
 
     await page.getByRole('button', { name: 'Enviarme el código' }).click();
     await expect(page.getByRole('heading', { name: 'Escribe el código' })).toBeVisible();
@@ -152,7 +159,8 @@ test.describe('Recuperar el acceso del comercio', () => {
 
   test('un código equivocado se dice en la pantalla y deja reintentar', async ({ page }) => {
     await simularBackend(page, { ok: false });
-    await page.goto('/recuperar-acceso?correo=comercio%40alfa.test');
+    await page.goto('/recuperar-acceso');
+    await page.getByLabel(/Correo del comercio/i).fill('comercio@alfa.test');
 
     await page.getByRole('button', { name: 'Enviarme el código' }).click();
     await page.getByLabel(/Código del correo/i).fill('000000');

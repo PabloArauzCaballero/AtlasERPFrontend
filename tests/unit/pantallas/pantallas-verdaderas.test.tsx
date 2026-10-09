@@ -6,6 +6,7 @@ import FacturacionElectronicaPage from '@/app/operaciones/contabilidad/facturaci
 import { CommandCenterScreen } from '@/components/screens/CommandCenterScreen';
 import { SecurityAdministrationScreen } from '@/components/screens/SecurityAdministrationScreen';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
+import { pedirBusquedaGlobal } from '@/lib/busquedaGlobal';
 
 const mocks = vi.hoisted(() => ({
   q: '' as string,
@@ -45,12 +46,16 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-it('la búsqueda de la barra superior llega a la pantalla (?q=) y no ofrece pantallas ocultas', () => {
-  mocks.q = 'campaña';
+it('la búsqueda de la barra superior llega a la pantalla (sin ?q=) y no ofrece pantallas ocultas', () => {
+  // Llega por `sessionStorage`, no por la URL: un `?q=` ya no se lee.
+  mocks.q = 'esto-no-debe-aparecer';
+  pedirBusquedaGlobal('campaña');
   render(<CommandCenterScreen />);
   expect((screen.getByLabelText(/Buscar una pantalla/) as HTMLInputElement).value).toBe('campaña');
   expect(screen.queryByText('Gestión de campañas')).toBeNull();
   expect(screen.queryByText('Campañas de notificación masiva')).toBeNull();
+  // Entregada y borrada: no queda esperando a la próxima visita.
+  expect(window.sessionStorage.getItem('atlas:traspaso:busqueda-global')).toBeNull();
 });
 
 it('editar una cuenta GL no ofrece Tipo ni Naturaleza (el sistema no los guarda)', async () => {

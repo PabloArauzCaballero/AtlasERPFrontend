@@ -92,13 +92,30 @@ export function FilePreview({ url, mimeType, nombre, alto = 'bajo' }: FilePrevie
       </div>
     );
   }
-  if (vista === 'pdf' || !mimeType) {
+  if (vista === 'pdf') {
     /*
      * `#toolbar=0&view=FitH`: la primera página a lo ancho, sin la barra del visor, que en un
      * recuadro de este tamaño taparía media página. Quien quiera hojearlo lo abre en otra pestaña.
+     *
+     * Este `<iframe>` va SIN `sandbox`, y es deliberado: Chrome se niega a pintar un PDF dentro de
+     * un marco con `sandbox`, con cualquier combinación de permisos (probado el 2026-10-09: sale
+     * el icono de documento roto). Lo que lo hace seguro es otra cosa: un `blob:` que llega aquí
+     * como PDF tiene el tipo `application/pdf` —los guardados pasan por `blobInofensivo`, que deja
+     * en `application/octet-stream` todo lo que no sea PDF o imagen; los elegidos en el disco
+     * traen el tipo de su extensión—, y con ese tipo el navegador abre su visor de PDF, que no
+     * interpreta HTML ni scripts aunque el archivo los contenga.
      */
-    const fuente = vista === 'pdf' ? `${url}#toolbar=0&navpanes=0&view=FitH` : url;
-    return <iframe src={fuente} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-slate-100 ${altura}`} />;
+    return <iframe src={`${url}#toolbar=0&navpanes=0&view=FitH`} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-slate-100 ${altura}`} />;
+  }
+  if (!mimeType) {
+    /*
+     * Tipo desconocido (una evidencia guardada de la que la pantalla no sabe el tipo, como las del
+     * alta de comercio). Va SIN `sandbox` por lo mismo que el PDF: casi siempre ES un PDF, y con
+     * `sandbox` Chrome no lo pinta. Lo que lo hace seguro es que la única fuente de un tipo
+     * desconocido es `StoredFilePreview`, cuyo `blob:` sale de `apiBlobUrl` → `blobInofensivo`: un
+     * HTML, SVG o XML llega aquí como `application/octet-stream` y el navegador no lo interpreta.
+     */
+    return <iframe src={url} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-slate-100 ${altura}`} />;
   }
   return null;
 }

@@ -200,6 +200,8 @@ export function OnboardingChecklistEvidenceModal({
     setError(null);
     try {
       const url = await b2bService.checklistEvidenceUrl(String(caso.id), itemId);
+      // Seguro aunque aquí no se sepa el tipo: `apiBlobUrl` deja en `application/octet-stream` todo lo
+      // que no sea PDF o imagen, y con ese tipo la pestaña nueva lo descarga en vez de pintarlo.
       window.open(url, '_blank', 'noopener');
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
