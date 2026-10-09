@@ -71,6 +71,17 @@ export const authService = {
   merchantMe() {
     return apiRequest<{ user: MerchantUserProfile }>('auth/merchant/me');
   },
+  /**
+   * Repite la contraseña con la sesión abierta y devuelve la prueba de un solo uso (5 min) que el
+   * backend exige para cambiar la cuenta/QR de cobro (`x-reauth-token`). Sin `skipAuthRetry`: si la
+   * sesión venció, se renueva y se reintenta como cualquier otra llamada con sesión.
+   */
+  merchantReauthenticate(body: { password: string }) {
+    return apiRequest<{ reauthToken: string; expiresInSeconds: number; expiresAt: string }>('auth/merchant/reauthenticate', {
+      method: 'POST',
+      body,
+    });
+  },
   merchantLogout(allDevices = false) {
     return apiRequest<{ loggedOut: boolean }>('auth/merchant/logout', {
       method: 'POST',
