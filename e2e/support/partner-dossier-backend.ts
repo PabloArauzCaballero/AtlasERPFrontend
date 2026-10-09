@@ -1,6 +1,11 @@
 import type { Page, Route } from '@playwright/test';
 import { seedRefreshSession } from './auth-session';
 
+/** La contraseña del comercio simulado: la que el diálogo de reautenticación acepta (ERP-03). */
+export const MERCHANT_PASSWORD = 'Comercio#2026';
+/** La prueba que emite el simulador y que exige al registrar un QR. */
+const REAUTH_TOKEN = 'prueba-reauth-e2e';
+
 /**
  * Backend simulado del expediente del partner, con el MISMO contrato que sirve AtlasBackend.
  *
@@ -87,6 +92,15 @@ function json(route: Route, status: number, data: unknown) {
   });
 }
 
+/** Un rechazo con el sobre de error del backend, con su código estable. */
+function errorJson(route: Route, status: number, code: string, message: string) {
+  return route.fulfill({
+    status,
+    contentType: 'application/json',
+    body: JSON.stringify({ success: false, error: { code, message } }),
+  });
+}
+
 /** Las mismas reglas de `PartnerProfileService.findSubmissionGaps`, para que el embudo coincida. */
 function gapsOf(state: DossierState) {
   const gaps: Array<{ requirement: string; detail: string }> = [];
@@ -144,6 +158,19 @@ export async function installPartnerDossierBackend(page: Page) {
 
   // Sesión de comercio: sin ella `RequireAuth audience="merchant"` devuelve al login.
   await page.route('**/api/v1/auth/merchant/me', (route) => json(route, 200, { user: MERCHANT }));
+
+  /*
+   * ERP-03: cambiar el QR de cobro exige la contraseña repetida. El simulador emite una prueba sólo
+   * con la contraseña buena y el registro del QR la exige en `x-reauth-token`, como AtlasBackend;
+   * sin esto la prueba pasaría aunque la pantalla se olvidara de mandarla.
+   */
+  await page.route('**/api/v1/auth/merchant/reauthenticate', async (route) => {
+    const body = JSON.parse(route.request().postData() ?? '{}') as { password?: string };
+    if (body.password !== MERCHANT_PASSWORD) {
+      return errorJson(route, 400, 'REAUTH_INVALID_PASSWORD', 'La contraseña no es correcta.');
+    }
+    return json(route, 201, { reauthToken: REAUTH_TOKEN, expiresInSeconds: 300, expiresAt: new Date(Date.now() + 300_000).toISOString() });
+  });
 
   /*
    * Los dominios cerrados que publica el backend. La entidad del QR bancario se ELIGE de
@@ -344,6 +371,9 @@ export async function installPartnerDossierBackend(page: Page) {
     }
 
     if (method === 'POST' && path.endsWith('/qr-codes')) {
+      if (request.headers()['x-reauth-token'] !== REAUTH_TOKEN) {
+        return errorJson(route, 403, 'REAUTH_REQUIRED', 'Confirma tu contraseña para hacer este cambio.');
+      }
       const kind = body.qrKind === 'bank' ? 'bank' : 'business';
       // Un QR nuevo REEMPLAZA al vigente del mismo tipo; el anterior no se borra.
       for (const existing of state.qrCodes) {

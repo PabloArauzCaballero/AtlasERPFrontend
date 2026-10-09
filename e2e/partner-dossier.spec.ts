@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { installPartnerDossierBackend, seedMerchantSession } from './support/partner-dossier-backend';
+import { MERCHANT_PASSWORD, installPartnerDossierBackend, seedMerchantSession } from './support/partner-dossier-backend';
 import { pngConQr } from './support/qr-png';
 
 /**
@@ -170,6 +170,19 @@ test.describe('expediente del negocio', () => {
     await page.getByTestId('campo-cuenta').fill('****7890');
     await page.getByTestId('input-qr-cobro').setInputFiles({ name: 'qr-bank.png', mimeType: 'image/png', buffer: PNG });
     await page.getByTestId('btn-subir-qr-cobro').click();
+
+    /*
+     * ERP-03: antes de cambiar la cuenta de cobro se pide la contraseña otra vez. Primero una
+     * errada —se dice en el diálogo y no se sube nada— y después la buena.
+     */
+    await expect(page.getByTestId('dialogo-reautenticacion')).toBeVisible();
+    await page.getByTestId('campo-reautenticacion').fill('no-es-esta');
+    await page.getByTestId('btn-confirmar-reautenticacion').click();
+    await expect(page.getByTestId('reautenticacion-error')).toContainText('no es correcta');
+    expect(backend.qrCodes.some((qr) => qr.qrKind === 'bank')).toBe(false);
+    await page.getByTestId('campo-reautenticacion').fill(MERCHANT_PASSWORD);
+    await page.getByTestId('btn-confirmar-reautenticacion').click();
+    await expect(page.getByTestId('dialogo-reautenticacion')).toHaveCount(0);
 
     /*
      * La sigla ASFI llegó al backend. Se comprueba sobre lo que el backend RECIBIÓ y no sobre lo

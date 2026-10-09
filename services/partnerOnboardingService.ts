@@ -191,8 +191,16 @@ export const partnerOnboardingService = {
   listQrCodes(partnerId: string) {
     return apiRequest<PartnerQrCode[]>(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes`);
   },
-  registerQr(partnerId: string, body: JsonObject) {
-    return apiRequest<PartnerQrCode>(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes`, { method: 'POST', body });
+  /**
+   * Registra (o reemplaza) el QR. Un comercio manda la prueba de reautenticación en
+   * `x-reauth-token`: sin ella el backend responde 403 `REAUTH_REQUIRED` (ver `ReautenticacionDialog`).
+   */
+  registerQr(partnerId: string, body: JsonObject, reauthToken?: string) {
+    return apiRequest<PartnerQrCode>(`${RUTA}/${encodeURIComponent(partnerId)}/qr-codes`, {
+      method: 'POST',
+      body,
+      ...(reauthToken ? { headers: { 'x-reauth-token': reauthToken } } : {}),
+    });
   },
   /**
    * La imagen del QR, como URL de blob lista para un `<img>`.

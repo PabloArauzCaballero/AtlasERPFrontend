@@ -20,6 +20,9 @@ import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
 import { withEmpty } from '@/services/optionLoaders';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
+import { ReautenticacionDialog } from '@/components/atlas/ReautenticacionDialog';
+import { ApiError, getSessionKind } from '@/lib/apiClient';
+import type { JsonObject } from '@/services/types';
 
 /**
  * Los estados del expediente en los que AtlasBackend admite subir o cambiar el QR
@@ -129,6 +132,13 @@ export function MerchantPaymentQrScreen({
   const archivo = useRef<HTMLInputElement>(null);
   /** Cuántos QR se subieron en esta visita: remonta el campo de archivo vacío después de cada uno. */
   const [subidas, setSubidas] = useState(0);
+  /** El diálogo que pide la contraseña otra vez antes de cambiar la cuenta de cobro (ERP-03). */
+  const [pidiendoContrasena, setPidiendoContrasena] = useState(false);
+  /**
+   * El QR ya subido al almacén cuyo registro rechazó el backend porque la confirmación venció
+   * (`REAUTH_REQUIRED`). Al confirmar de nuevo sólo se reintenta el registro: no se vuelve a subir.
+   */
+  const registroPendiente = useRef<{ partnerId: string; body: JsonObject } | null>(null);
 
   const recargar = useCallback(async (id: string) => {
     setCargando(true);
@@ -187,11 +197,12 @@ export function MerchantPaymentQrScreen({
   }, [partnerIdProp, recargar]);
 
   /**
-   * La subida va en dos pasos: se pide el permiso y el binario viaja DIRECTO al almacenamiento.
+   * Comprueba el formulario y, si está bien, pide la contraseña antes de tocar nada.
    *
-   * El ticket firma tipo y tamaño, así que el almacenamiento rechaza lo que no coincida con lo
-   * autorizado, y el servidor mira el objeto real antes de escribir la fila: el expediente nunca
-   * afirma tener una evidencia que no existe.
+   * Cambiar el QR bancario cambia a qué cuenta pagan los clientes, y el login del comercio no lleva
+   * segundo factor: el backend exige la contraseña repetida (`x-reauth-token`) y se pide AQUÍ, antes
+   * de subir, para no gastar una subida que después se rechazaría. Una sesión interna no la necesita
+   * (entra con segundo factor); si aun así el backend la pidiera, se pide al recibir el rechazo.
    */
   async function subir() {
     const file = archivo.current?.files?.[0];
@@ -209,40 +220,77 @@ export function MerchantPaymentQrScreen({
       setAviso({ tono: 'danger', texto: cuentaLeida.motivo });
       return;
     }
+    /*
+     * Se comprueba ANTES de subir. El servidor vuelve a comprobarlo y es el que manda —esto se
+     * puede saltar—, pero avisar aquí ahorra el viaje entero al almacenamiento y no deja allí un
+     * objeto que nadie va a registrar. Donde el navegador no sepa leer códigos, esto no bloquea.
+     */
+    if ((await imagenTieneQr(file)) === 'sin-codigo') {
+      setAviso({ tono: 'danger', texto: AVISO_SIN_QR });
+      return;
+    }
+    setAviso(null);
+    registroPendiente.current = null;
+    if (getSessionKind() === 'merchant') {
+      setPidiendoContrasena(true);
+      return;
+    }
+    await guardar(undefined);
+  }
 
+  /**
+   * La subida va en dos pasos: se pide el permiso y el binario viaja DIRECTO al almacenamiento.
+   *
+   * El ticket firma tipo y tamaño, así que el almacenamiento rechaza lo que no coincida con lo
+   * autorizado, y el servidor mira el objeto real antes de escribir la fila: el expediente nunca
+   * afirma tener una evidencia que no existe. El registro lleva la prueba de reautenticación.
+   */
+  async function guardar(reauthToken: string | undefined) {
     setSubiendo(true);
     setAviso(null);
     try {
-      /*
-       * Se comprueba ANTES de subir. El servidor vuelve a comprobarlo y es el que manda —esto se
-       * puede saltar—, pero avisar aquí ahorra el viaje entero al almacenamiento y no deja allí un
-       * objeto que nadie va a registrar. Donde el navegador no sepa leer códigos, esto no bloquea.
-       */
-      if ((await imagenTieneQr(file)) === 'sin-codigo') {
-        setAviso({ tono: 'danger', texto: AVISO_SIN_QR });
-        return;
+      let pendiente = registroPendiente.current?.partnerId === partnerId ? registroPendiente.current : null;
+      if (!pendiente) {
+        const file = archivo.current?.files?.[0];
+        const cuentaLeida = leerCuentaEnmascarada(cuenta);
+        if (!file || !cuentaLeida.ok) {
+          setAviso({ tono: 'info', texto: 'Vuelva a elegir la imagen de su QR bancario.' });
+          return;
+        }
+        const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
+          qrKind: 'bank',
+          contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
+          sizeBytes: file.size,
+        });
+        await uploadQrFile(ticket, file);
+        pendiente = {
+          partnerId,
+          body: {
+            qrKind: 'bank',
+            storageKey: ticket.storageKey,
+            bankInstitutionCode: entidad.trim().toUpperCase(),
+            ...(cuentaLeida.valor ? { accountNumberMasked: cuentaLeida.valor } : {}),
+          },
+        };
+        registroPendiente.current = pendiente;
       }
-
-      const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
-        qrKind: 'bank',
-        contentType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
-        sizeBytes: file.size,
-      });
-      await uploadQrFile(ticket, file);
-      await partnerOnboardingService.registerQr(partnerId, {
-        qrKind: 'bank',
-        storageKey: ticket.storageKey,
-        bankInstitutionCode: entidad.trim().toUpperCase(),
-        ...(cuentaLeida.valor ? { accountNumberMasked: cuentaLeida.valor } : {}),
-      });
+      await partnerOnboardingService.registerQr(pendiente.partnerId, pendiente.body, reauthToken);
+      registroPendiente.current = null;
       setAviso({
         tono: 'success',
-        texto: 'QR bancario registrado y enviado a revisión. Los clientes lo verán cuando Atlas lo apruebe; mientras tanto sigue vigente el QR anterior, si lo hay.',
+        texto: 'QR bancario registrado: desde ahora es el que ven sus clientes al pagar.',
       });
       if (archivo.current) archivo.current.value = '';
       setSubidas((cuenta) => cuenta + 1);
       await recargarYAvisar(partnerId);
     } catch (fallo) {
+      if (fallo instanceof ApiError && fallo.code === 'REAUTH_REQUIRED') {
+        // La confirmación venció o ya se usó: el QR ya está subido, sólo falta confirmar otra vez.
+        setAviso({ tono: 'info', texto: 'Su confirmación venció. Escriba otra vez su contraseña para terminar el cambio.' });
+        setPidiendoContrasena(true);
+        return;
+      }
+      registroPendiente.current = null;
       setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR.' });
     } finally {
       setSubiendo(false);
@@ -511,6 +559,20 @@ export function MerchantPaymentQrScreen({
           </table>
         </Panel>
       ) : null}
+
+      <ReautenticacionDialog
+        open={pidiendoContrasena}
+        accion={vigente ? 'reemplazar su QR de cobro' : 'registrar su QR de cobro'}
+        onConfirmada={(reauthToken) => {
+          setPidiendoContrasena(false);
+          void guardar(reauthToken);
+        }}
+        onCancel={() => {
+          setPidiendoContrasena(false);
+          registroPendiente.current = null;
+          setAviso({ tono: 'info', texto: 'No se cambió el QR de cobro: hace falta confirmar su contraseña.' });
+        }}
+      />
 
       <InlineNotice tone="info" title="Atlas nunca recibe este dinero">
         Su cliente transfiere directo a la cuenta de este QR. Por eso, cuando avise que pagó, es usted quien lo confirma
