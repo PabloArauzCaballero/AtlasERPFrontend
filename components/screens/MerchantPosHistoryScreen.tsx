@@ -180,10 +180,10 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-xs" data-testid="historial-pos">
+            <table className="w-full min-w-[920px] text-left text-xs" data-testid="historial-pos">
               <thead className="text-[10px] uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="py-2">Fecha</th>
+                <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:font-semibold [&>th]:whitespace-nowrap [&>th:first-child]:pl-0 [&>th:last-child]:pr-0">
+                  <th>Fecha</th>
                   <th>Tipo</th>
                   <th>Código</th>
                   <th>Sucursal</th>
@@ -195,19 +195,26 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
               </thead>
               <tbody className={cargando ? 'opacity-60' : ''}>
                 {datos.items.map((m) => (
-                  <tr key={m.id} className="border-t border-slate-100">
-                    <td className="py-2 whitespace-nowrap">{fecha(m.happenedAt)}</td>
+                  <tr
+                    key={m.id}
+                    className="border-t border-slate-100 align-middle [&>td]:px-3 [&>td]:py-2.5 [&>td:first-child]:pl-0 [&>td:last-child]:pr-0"
+                  >
+                    <td className="whitespace-nowrap">{fecha(m.happenedAt)}</td>
                     <td>
                       <StatusPill tone={tipoDe(m).tono} dot={false}>
                         {tipoDe(m).texto}
                       </StatusPill>
                     </td>
-                    <td className="font-semibold">{m.code}</td>
-                    <td>{m.branchName ?? '—'}</td>
-                    <td className="font-semibold text-[#006a61]">{nombreDeCaja(m) ?? '—'}</td>
-                    <td className="text-right font-semibold">{formatBob(m.amount)}</td>
-                    <td>{m.reference ?? '—'}</td>
-                    <td>
+                    <td className="max-w-[170px]">
+                      <span className="block truncate font-mono text-[11px] font-semibold" title={m.code}>
+                        {m.code}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap">{m.branchName ?? '—'}</td>
+                    <td className="whitespace-nowrap font-semibold text-[#006a61]">{nombreDeCaja(m) ?? '—'}</td>
+                    <td className="whitespace-nowrap text-right font-semibold tabular-nums">{formatBob(m.amount)}</td>
+                    <td className="whitespace-nowrap tabular-nums">{m.reference ?? '—'}</td>
+                    <td className="whitespace-nowrap">
                       <StatusPill tone={estadoDe(m).tono}>{estadoDe(m).texto}</StatusPill>
                     </td>
                   </tr>
