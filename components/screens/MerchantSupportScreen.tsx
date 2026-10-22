@@ -9,6 +9,17 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { Modal } from '@/components/atlas/Modal';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
+import {
+  armarHilo,
+  AvisoDelSistema,
+  BurbujaDeChat,
+  CompositorDeChat,
+  Escribiendo,
+  InicioDeChat,
+  PresenciaDeSoporte,
+  SeparadorDeDia,
+  type LadoDelMensaje,
+} from '@/components/support/ChatSoporte';
 import { TutorialCenter } from '@/components/tutorial/TutorialCenter';
 import { useTabParam } from '@/hooks/useTabParam';
 import { merchantCreditService } from '@/services/merchantCreditService';
@@ -42,6 +53,11 @@ function nuevoClientMessageId(): string {
 }
 
 const PESTANAS = ['soporte', 'tutoriales'] as const;
+
+function ladoDelMensaje(mensaje: MensajeDeSoporte): LadoDelMensaje {
+  if (mensaje.senderActorType === 'SYSTEM' || mensaje.visibility === 'SYSTEM') return 'sistema';
+  return mensaje.senderActorType === 'PARTNER_USER' ? 'mio' : 'suyo';
+}
 
 export function MerchantSupportScreen() {
   const [pestana, elegirPestana] = useTabParam('soporte', PESTANAS);
@@ -457,61 +473,43 @@ export function MerchantSupportScreen() {
               ) : null}
 
               {channelId ? (
-                <Panel
-                  title="Conversación"
-                  description={conectado ? 'En vivo' : 'Reconectando…'}
-                >
-                  <div className="flex h-[420px] flex-col gap-3 overflow-y-auto rounded-lg bg-slate-50 p-4">
-                    {mensajes.map((mensaje) => {
-                      const mio = mensaje.senderActorType === 'PARTNER_USER';
-                      const delSistema = mensaje.senderActorType === 'SYSTEM' || mensaje.visibility === 'SYSTEM';
-
-                      if (delSistema) {
-                        return (
-                          <div key={mensaje.messageId} className="mx-auto max-w-[80%] rounded-lg bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
-                            {mensaje.body}
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div key={mensaje.messageId} className={mio ? 'flex justify-end' : 'flex justify-start'}>
-                          <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ring-1 ${mio ? 'bg-emerald-50 text-slate-900 ring-emerald-200' : 'bg-white text-slate-900 ring-slate-200'}`}>
-                            <p className="whitespace-pre-wrap">{mensaje.body}</p>
-                            {mensaje.redacted ? (
-                              <p className="mt-1 text-xs text-slate-500">Ocultamos un dato sensible por seguridad.</p>
-                            ) : null}
-                            <p className="mt-1 text-right text-[11px] text-slate-500">
-                              {new Date(mensaje.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
-                              {mio ? <span className="ml-2">{fueLeido(mensaje) ? 'Leído' : 'Enviado'}</span> : null}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {escribiendo ? <p className="text-xs text-slate-500">Atlas está escribiendo…</p> : null}
-                    <div ref={finDelHilo} />
-                  </div>
-
-                  <div className="mt-4 flex items-end gap-3">
-                    <div className="flex-1">
-                      <FormField tooltip="Tu respuesta o aclaración para el equipo de soporte."
-                        label="Tu mensaje"
-                        name="mensajeDeSoporte"
-                        value={texto}
-                        onChange={(evento) => {
-                          setTexto(evento.target.value);
-                          if (evento.target.value.length === 1 && channelId) {
-                            void supportService.avisarEscribiendo(channelId).catch(() => undefined);
-                          }
-                        }}
-                        placeholder="Escribe aquí…"
-                      />
+                <Panel title="Conversación" description="Tu conversación con el equipo de soporte de Atlas.">
+                  {/* Rediseño 2026-10-22: el mismo lenguaje de chat que las apps móviles (`components/support/ChatSoporte.tsx`). */}
+                  <div className="overflow-hidden rounded-lg ring-1 ring-slate-200">
+                    <PresenciaDeSoporte estado={conectado ? 'en_linea' : 'reconectando'} />
+                    <div className="flex h-[460px] flex-col overflow-y-auto bg-slate-50 px-4 py-3" data-testid="hilo-de-soporte">
+                      {mensajes.length === 0 ? <InicioDeChat onElegir={setTexto} /> : null}
+                      {armarHilo(mensajes, ladoDelMensaje).map((entrada) =>
+                        entrada.tipo === 'dia' ? (
+                          <SeparadorDeDia key={entrada.clave} dia={entrada.etiqueta} />
+                        ) : entrada.lado === 'sistema' ? (
+                          <AvisoDelSistema key={entrada.clave} texto={entrada.mensaje.body ?? ''} />
+                        ) : (
+                          <BurbujaDeChat
+                            key={entrada.clave}
+                            mio={entrada.lado === 'mio'}
+                            primeroDelGrupo={entrada.primeroDelGrupo}
+                            ultimoDelGrupo={entrada.ultimoDelGrupo}
+                            hora={new Date(entrada.mensaje.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                            leido={fueLeido(entrada.mensaje)}
+                            nota={entrada.mensaje.redacted ? 'Ocultamos un dato sensible por seguridad.' : null}
+                            cuerpo={entrada.mensaje.body ?? ''}
+                          />
+                        ),
+                      )}
+                      {escribiendo ? <Escribiendo /> : null}
+                      <div ref={finDelHilo} />
                     </div>
-                    <AtlasButton onClick={() => void enviar()} disabled={texto.trim().length === 0}>
-                      Enviar
-                    </AtlasButton>
+                    <CompositorDeChat
+                      texto={texto}
+                      onChange={(valor) => {
+                        setTexto(valor);
+                        if (valor.length === 1 && channelId) {
+                          void supportService.avisarEscribiendo(channelId).catch(() => undefined);
+                        }
+                      }}
+                      onEnviar={() => void enviar()}
+                    />
                   </div>
                 </Panel>
               ) : null}
