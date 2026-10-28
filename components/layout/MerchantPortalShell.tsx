@@ -9,6 +9,7 @@ import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
+import { MerchantBottomNav } from './MerchantBottomNav';
 import { NavDrawer } from './NavDrawer';
 import { isActivePath, PORTAL_COMERCIO_MENU } from './navigation';
 
@@ -74,7 +75,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           {/* El nombre del comercio se retira en pantallas muy estrechas: con la
               barra a 320 px empujaba los botones fuera del borde derecho. La
               identidad sigue visible en la ficha del menú lateral. */}
-          <Link href="/portal-comercio/expediente" title="Mi empresa" aria-label={`Mi empresa: ${displayName}`} className="flex items-center gap-2 rounded-full py-1 pl-2 pr-1 transition hover:bg-slate-100 sm:gap-3">
+          <Link href="/portal-comercio/expediente" title="Mi empresa" aria-label={`Mi empresa: ${displayName}`} className="flex min-h-11 items-center gap-2 rounded-full py-1 pl-2 pr-1 transition hover:bg-slate-100 sm:gap-3">
             <div className="hidden max-w-40 text-right sm:block">
               <p className="truncate text-xs font-bold">{displayName}</p>
               <p className="truncate text-[10px] text-slate-500">{displayRole}</p>
@@ -102,7 +103,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           <PortalNav pathname={pathname} />
         </aside>
         {/* `pb-24`: deja sitio al botón flotante del asistente para que no tape la última fila. */}
-        <main className="min-w-0 p-3 pb-36 sm:p-4 sm:pb-36 md:p-6 md:pb-36 xl:p-8 xl:pb-36">{children}</main>
+        <main className="min-w-0 p-3 pb-40 sm:p-4 sm:pb-40 md:p-6 md:pb-40 lg:pb-36 xl:p-8 xl:pb-36">{children}</main>
       </div>
 
       {/* Justo encima del botón del asistente (h-14 en la esquina inferior derecha). */}
@@ -110,14 +111,17 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         href="/portal-comercio/soporte"
         data-tutorial-id="portal-soporte"
         className={cn(
-          'fixed bottom-[5.5rem] right-4 z-[45] flex h-11 items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-lg transition sm:bottom-[6.5rem] sm:right-6',
+          // Sólo en escritorio: por debajo de `lg` «Soporte» es una pestaña de la barra inferior, porque
+          // en 375 px este botón se pintaba encima del texto de la pantalla.
+          'fixed bottom-[5.5rem] right-4 z-[45] hidden h-11 items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-lg transition sm:right-6 lg:flex lg:bottom-[6.5rem]',
           isActivePath(pathname, '/portal-comercio/soporte') ? 'bg-[#006a61] text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:text-[#006a61]',
         )}
       >
         <Icon name="support_agent" className="text-[18px]" />
         <span>Soporte y tutoriales</span>
       </Link>
-      <AtlasAssist surface="merchant-portal" />
+      <MerchantBottomNav pathname={pathname} />
+      <AtlasAssist surface="merchant-portal" sobreBarraInferior />
     </div>
     </TutorialProvider>
   );

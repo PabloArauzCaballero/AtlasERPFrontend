@@ -113,3 +113,11 @@ button { -webkit-tap-highlight-color: transparent; }
    se oculta la barra de desplazamiento porque el carril ya se anuncia con el propio recorte. */
 .atlas-rail { scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 .atlas-rail::-webkit-scrollbar { display: none; }
+/*
+ * Pista de que un carril desplazable tiene más contenido: el borde con pestañas ocultas se difumina.
+ * Sin esto, en 375 px «Historial» ni se veía y «Comprobantes por ver…» se cortaba a media palabra,
+ * sin nada que dijera que había que deslizar. Las marcas las pone `TabbedPanels` al medir el carril.
+ */
+.atlas-rail[data-mas-derecha='true'] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.25rem), transparent); }
+.atlas-rail[data-mas-izquierda='true'] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 2.25rem), transparent); }
+.atlas-rail[data-mas-izquierda='true'][data-mas-derecha='true'] { -webkit-mask-image: linear-gradient(to right, transparent, #000 2.25rem, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, transparent, #000 2.25rem, #000 calc(100% - 2.25rem), transparent); }
