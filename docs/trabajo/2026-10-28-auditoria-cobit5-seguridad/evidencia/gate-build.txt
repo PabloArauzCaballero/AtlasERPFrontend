@@ -1,0 +1,26 @@
+├ ƒ /operaciones/crm/propuestas                            164 B         197 kB
+├ ƒ /operaciones/crm/propuestas/crear                    6.02 kB         161 kB
+├ ƒ /operaciones/crm/segmentos                           2.54 kB         191 kB
+├ ƒ /operaciones/crm/sucursales                          1.99 kB         190 kB
+├ ƒ /operaciones/crm/tags                                1.39 kB         184 kB
+├ ƒ /operaciones/cuenta                                    140 B         145 kB
+├ ƒ /operaciones/tutoriales                              3.26 kB         139 kB
+├ ƒ /portal-comercio/cartera                             9.81 kB         147 kB
+├ ƒ /portal-comercio/cuenta                                141 B         145 kB
+├ ƒ /portal-comercio/expediente                          26.6 kB         195 kB
+├ ƒ /portal-comercio/facturacion                         8.21 kB         156 kB
+├ ƒ /portal-comercio/gestion-pos                         7.82 kB         155 kB
+├ ƒ /portal-comercio/soporte                             7.89 kB         154 kB
+├ ƒ /recuperar-acceso                                    3.78 kB         122 kB
+└ ƒ /version                                               146 B         103 kB
++ First Load JS shared by all                             102 kB
+  ├ chunks/1255-60d8dc7c8c9309a1.js                      46.3 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js                  54.2 kB
+  └ other shared chunks (total)                          1.95 kB
+
+
+ƒ Middleware                                             34.5 kB
+
+ƒ  (Dynamic)  server-rendered on demand
+
+build exit=0

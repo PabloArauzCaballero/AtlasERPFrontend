@@ -1,0 +1,9 @@
+ ✓ tests/unit/guia-pdf.test.ts (2 tests) 5ms
+ ✓ tests/unit/estadoBnplSucursal.test.ts (3 tests) 3ms
+
+ Test Files  40 passed (40)
+      Tests  372 passed (372)
+   Start at  06:04:05
+   Duration  43.35s (transform 4.84s, setup 0ms, collect 17.36s, tests 24.17s, environment 47.98s, prepare 13.12s)
+
+test exit=0

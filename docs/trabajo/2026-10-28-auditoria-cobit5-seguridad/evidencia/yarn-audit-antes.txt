@@ -1,0 +1,7 @@
+moderate next >=15.0.0 <15.5.27 -> >=15.5.27 GHSA-4jqv-mc3x-m676 CVE-2026-94543 | Next.js has cache poisoning of SSG and ISR pages in self-hosted applications
+moderate next >=15.0.0 <15.5.27 -> >=15.5.27 GHSA-mcj8-r9mp-w47p CVE-2026-94484 | Next.js has cache poisoning in SSG/ISR rendering that leads to cross-user content substitution and persistent denial of service
+critical next >=10.0.0 <=15.5.27 -> >=15.5.28 GHSA-2464-fhr4-w9xw  | Next.js: Unauthenticated Remote Code Execution in Image Optimization API when SVG files are used
+high     next >=13.0.0 <=15.5.27 -> >=15.5.28 GHSA-p3m5-59mp-jv5r CVE-2026-94482 | Next.js: Denial of Service in App Router using Server Actions
+high     source-map-js >=1.0.0 <1.2.2 -> >=1.2.2 GHSA-68fv-2mgg-jv7q CVE-2026-93749 | source-map-js allows event-loop denial of service through indexed source-map section offsets
+moderate postcss-selector-parser <6.1.5 -> >=6.1.5 GHSA-rj75-hqrm-r3gf CVE-2026-104844 | PostCSS: Quadratic complexity in flat selector parsing allows CPU exhaustion
+RESUMEN {"info":0,"low":0,"moderate":4,"high":3,"critical":1} deps 132

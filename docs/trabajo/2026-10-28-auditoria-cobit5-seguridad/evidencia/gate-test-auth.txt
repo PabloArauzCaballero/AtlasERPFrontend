@@ -1,0 +1,9 @@
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2076.352717
+test:auth exit=0

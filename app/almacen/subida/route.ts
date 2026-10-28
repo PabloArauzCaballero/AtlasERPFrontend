@@ -22,6 +22,10 @@
  *    pasan las cabeceras que la firma cubre.
  *  - `content-length` obligatorio y el cuerpo se lee con tope: nunca más de lo declarado ni de
  *    `TAMANO_MAXIMO`.
+ *  - Presupuesto GLOBAL de bytes en vuelo (`PRESUPUESTO_EN_VUELO`): la ruta bufferiza el archivo
+ *    entero y no exige sesión, así que el tope por petición no basta; unas pocas subidas de 50 MiB
+ *    simultáneas agotaban los 512 MiB del contenedor (CWE-770, auditoría 2026-10-28). Lo que no cabe
+ *    recibe 503 en texto plano con `Retry-After`, que `lib/reintentos.ts` lee como pasarela y repite.
  *  - Al llamante vuelve el ESTADO del almacén. El cuerpo, sólo si es el XML de error de S3 y cabe en
  *    `CUERPO_MAXIMO_DEVUELTO`; cualquier otra cosa se descarta. `lib/almacen.ts` sólo mira el estado.
  *
@@ -34,6 +38,17 @@ export const dynamic = 'force-dynamic';
 
 /** Por encima de lo que AtlasBackend autoriza para cualquier documento; frena cuerpos absurdos. */
 const TAMANO_MAXIMO = 50 * 1024 * 1024;
+
+/**
+ * Suma máxima de `content-length` declarados que pueden estar en memoria a la vez. Cada subida ocupa
+ * hasta el doble de lo declarado (los trozos y la copia concatenada), y el contenedor tiene 512 MiB
+ * con Node y Next ya residentes: 100 MiB declarados dejan un pico de ~200 MiB. Una sola subida del
+ * tamaño máximo siempre cabe.
+ */
+const PRESUPUESTO_EN_VUELO = 100 * 1024 * 1024;
+
+/** Lo que piden reservar las subidas que están en curso en ESTE proceso. */
+let bytesEnVuelo = 0;
 
 /** Lo más que se devuelve al navegador de la respuesta del almacén (su XML de error cabe de sobra). */
 const CUERPO_MAXIMO_DEVUELTO = 8 * 1024;
@@ -142,6 +157,23 @@ export async function PUT(request: Request): Promise<Response> {
   }
   const tamano = Number(declarado);
   if (tamano > TAMANO_MAXIMO) return rechazo(413, 'El archivo es demasiado grande.');
+  if (bytesEnVuelo + tamano > PRESUPUESTO_EN_VUELO) {
+    // Texto plano a propósito: `lib/reintentos.ts` lo lee como pasarela y repite la subida.
+    return new Response('Hay demasiadas subidas en curso. Inténtelo en unos segundos.', {
+      status: 503,
+      headers: { 'content-type': 'text/plain', 'retry-after': '2' },
+    });
+  }
+  // La reserva se toma ANTES de leer el cuerpo y se suelta siempre, también si algo lanza.
+  bytesEnVuelo += tamano;
+  try {
+    return await reenviarAlAlmacen(request, destino, tamano);
+  } finally {
+    bytesEnVuelo -= tamano;
+  }
+}
+
+async function reenviarAlAlmacen(request: Request, destino: URL, tamano: number): Promise<Response> {
   const cuerpo = await leerConTope(request.body, tamano);
   if (cuerpo === null) return rechazo(413, 'El archivo es más grande de lo que declara.');
 

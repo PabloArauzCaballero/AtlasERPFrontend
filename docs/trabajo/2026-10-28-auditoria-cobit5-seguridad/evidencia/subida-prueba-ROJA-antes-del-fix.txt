@@ -1,0 +1,30 @@
+   ✓ PUT /almacen/subida > libera la reserva aunque el almacén no responda (502), para no ahogar las subidas siguientes 3ms
+   ✓ PUT /almacen/subida > si el almacén no responde devuelve 502 en texto plano (pasarela, se reintenta) 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/almacen-subida-route.test.ts > PUT /almacen/subida > no deja que subidas simultáneas sin sesión sumen más bytes en memoria que el presupuesto (CWE-770)
+AssertionError: expected null to be 503 // Object.is equality
+
+[32m- Expected:[39m 
+503
+
+[31m+ Received:[39m 
+null
+
+ ❯ tests/unit/almacen-subida-route.test.ts:144:26
+    142|       await new Promise((resolver) => setTimeout(resolver, 50));
+    143|       // 40 + 40 MiB caben en el presupuesto; la tercera lo rebasa y s…
+    144|       expect(estados[2]).toBe(503);
+       |                          ^
+    145|       expect(estados[0]).toBeNull();
+    146|       expect(estados[1]).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 passed (14)
+   Start at  06:02:55
+   Duration  1.07s (transform 152ms, setup 0ms, collect 174ms, tests 93ms, environment 0ms, prepare 248ms)
+

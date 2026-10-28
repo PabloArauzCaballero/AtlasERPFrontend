@@ -118,6 +118,57 @@ describe('PUT /almacen/subida', () => {
     expect(await r3.text()).toBe('');
   });
 
+  it('no deja que subidas simultáneas sin sesión sumen más bytes en memoria que el presupuesto (CWE-770)', async () => {
+    // El contenedor tiene 512 MiB y la ruta no exige sesión: sin un tope global, unas pocas peticiones de
+    // 50 MiB lo matan por falta de memoria. Aquí el almacén «tarda» para que las tres coincidan en vuelo.
+    let liberar: () => void = () => undefined;
+    const compuerta = new Promise<void>((resolver) => {
+      liberar = resolver;
+    });
+    vi.mocked(fetch).mockImplementation(async () => {
+      await compuerta;
+      return new Response(null, { status: 200 });
+    });
+    const grande = { 'content-length': String(40 * 1024 * 1024) };
+    const url = `http://${TEST}/x?${FIRMA}`;
+    const estados: Array<number | null> = [null, null, null];
+    const peticiones = [0, 1, 2].map((i) =>
+      PUT(subida(url, 'hola', grande)).then((r) => {
+        estados[i] = r.status;
+        return r;
+      }),
+    );
+    try {
+      await new Promise((resolver) => setTimeout(resolver, 50));
+      // 40 + 40 MiB caben en el presupuesto; la tercera lo rebasa y se rechaza SIN esperar al almacén.
+      expect(estados[2]).toBe(503);
+      expect(estados[0]).toBeNull();
+      expect(estados[1]).toBeNull();
+    } finally {
+      liberar();
+    }
+    const respuestas = await Promise.all(peticiones);
+    expect(respuestas[0]?.status).toBe(200);
+    expect(respuestas[1]?.status).toBe(200);
+    // 503 en texto plano con Retry-After: `lib/reintentos.ts` lo lee como pasarela y repite la subida.
+    expect(respuestas[2]?.headers.get('content-type')).toBe('text/plain');
+    expect(respuestas[2]?.headers.get('retry-after')).toBeTruthy();
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    // La reserva se libera al terminar: con el almacén ya libre, la siguiente pasa.
+    vi.mocked(fetch).mockImplementation(async () => new Response(null, { status: 200 }));
+    expect((await PUT(subida(url, 'hola', grande))).status).toBe(200);
+  });
+
+  it('libera la reserva aunque el almacén no responda (502), para no ahogar las subidas siguientes', async () => {
+    const grande = { 'content-length': String(40 * 1024 * 1024) };
+    const url = `http://${TEST}/x?${FIRMA}`;
+    vi.mocked(fetch).mockRejectedValue(new TypeError('fetch failed'));
+    for (let i = 0; i < 5; i += 1) {
+      expect((await PUT(subida(url, 'hola', grande))).status).toBe(502);
+    }
+  });
+
   it('si el almacén no responde devuelve 502 en texto plano (pasarela, se reintenta)', async () => {
     vi.mocked(fetch).mockRejectedValueOnce(new TypeError('fetch failed'));
     const r = await PUT(subida(`http://${TEST}/x?${FIRMA}`));

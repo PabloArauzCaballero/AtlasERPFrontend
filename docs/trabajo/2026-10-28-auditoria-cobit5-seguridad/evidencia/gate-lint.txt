@@ -1,0 +1,4 @@
+check-pestanas-accion: ninguna pestaña es una acción.
+check-campos: ningún formulario pide códigos del sistema ni escribe dominios a mano.
+check-ayuda: todos los campos dicen qué poner y todas las opciones qué significan.
+lint exit=0
