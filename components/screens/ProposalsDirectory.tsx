@@ -7,6 +7,7 @@ import { camposLineaPropuesta, camposPropuesta, propuestaDesdeExcel } from '@/co
 import { b2bService } from '@/services/b2bService';
 import type { ResourceRow } from '@/services/types';
 import { avisoDeEnvio } from '@/lib/avisoEnvioPropuesta';
+import { puedeAceptarse } from '@/lib/propuestaAceptable';
 
 /** Estados en los que la propuesta todavía es un borrador y admite correcciones. */
 const EDITABLES = new Set(['DRAFT', 'PENDING_APPROVAL']);
@@ -159,6 +160,7 @@ export function ProposalsDirectory({ embedded = false }: ProposalsDirectoryProps
           label: 'Marcar aceptada',
           description: 'Registra que el cliente aceptó la propuesta; la oportunidad pasa a contratación.',
           icon: 'task_alt',
+          enabled: (row) => puedeAceptarse(row.status),
           run: (row) => b2bService.acceptProposal(String(row.id ?? '')),
           confirm: {
             title: 'Marcar la propuesta como aceptada',

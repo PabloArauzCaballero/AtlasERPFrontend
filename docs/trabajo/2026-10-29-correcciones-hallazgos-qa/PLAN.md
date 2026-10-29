@@ -60,3 +60,21 @@
 | -------- | ---------------------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------- | ------ |
 | H3.S1.M1 | `loadAcceptedProposals` (sólo `ACCEPTED`) y su uso en la página de contratos | un `DRAFT` y un `SENT` no salen   | `yarn vitest run tests/unit/propuestas-aceptadas.test.ts` | HECHO  |
 | H3.S1.M2 | Clic real                                                                    | el selector lista sólo `ACCEPTED` | script `h4-erp-contrato.cjs`                              | HECHO  |
+
+## H4 — OBS-27: el formulario de cuentas GL tiene etiquetas en inglés
+**CA:** Dado el alta de una cuenta GL (diálogo y página), cuando se abre, entonces las banderas y la sección están en español con su ayuda («Cuenta de control», «Exige centro de costo»…).
+**DoD:** `yarn vitest run tests/unit/banderas-cuenta-gl.test.ts` + type-check + lint (incluye `check-ayuda`).
+**Estado:** HECHO
+
+| ID | Microtarea | CA (binario) | DoD | Estado |
+|---|---|---|---|---|
+| H4.S1.M1 | `lib/banderasCuentaGl.ts` con etiqueta y ayuda por bandera y su uso en las dos pantallas; títulos de sección en español | ninguna etiqueta coincide con el nombre camelCase | prueba + `yarn lint` | HECHO |
+
+## H5 — OBS-28 (ERP): «Marcar aceptada» aparece en borradores
+**CA:** Dada la lista de propuestas, cuando una propuesta no está enviada, entonces «Marcar aceptada» no se puede pulsar (el servidor sólo acepta las enviadas).
+**DoD:** `yarn vitest run tests/unit/propuesta-aceptable.test.ts` + type-check + lint.
+**Estado:** HECHO
+
+| ID | Microtarea | CA (binario) | DoD | Estado |
+|---|---|---|---|---|
+| H5.S1.M1 | `puedeAceptarse(estado)` (sólo `SENT`) y `enabled` en la acción | un DRAFT no la habilita | prueba + lint | HECHO |

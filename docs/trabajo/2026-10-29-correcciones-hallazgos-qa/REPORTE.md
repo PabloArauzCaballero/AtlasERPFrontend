@@ -1,4 +1,4 @@
-> **AVANCE: 7 / 7 — 100,0 %.**
+> **AVANCE: 9 / 9 — 100,0 %.**
 
 - Fecha: 2026-10-29 · Plan: [PLAN.md](./PLAN.md) · Rama: `claude/compassionate-franklin-p7u3rw`
 - Peldaño de evidencia alcanzado: `TESTED` (el botón no se observó en navegador tras el cambio).
@@ -14,6 +14,10 @@
 | H3.S1.M1 | BUG-10 (hallado en la pasada H4): «Generar contrato desde propuesta» ofrecía borradores bajo «Propuesta aceptada»; `loadAcceptedProposals` sólo deja las `ACCEPTED` | `yarn vitest run tests/unit/propuestas-aceptadas.test.ts`                                   | PASS (2) · type-check exit 0 · lint OK                                                                                                                                    |
 | H3.S1.M2 | BUG-10 en el navegador                                                                                                                                              | script `h4-erp-contrato.cjs`                                                                | antes: 4 propuestas (3 borradores) · después: sólo `PROP-2026-000001 — Tienda Sintética 984830`                                                                           |
 | H1.S1.M2 | BUG-4 repetido en el navegador («Crear cuenta»/empresa con ciudad «La Paz», pasada H4)                                                                              | script `f7-cuenta.cjs` (scratchpad)                                                         | el `POST /api/v1/b2b/accounts` lleva `"city":"La Paz"`; BD `atlas_sales.b2b_accounts.city = 'La Paz'` para las dos cuentas creadas (`Tienda Sintética 302683` y `302684`) |
+| H4.S1.M1 | OBS-27: las banderas de la cuenta GL tienen etiqueta y ayuda en español (`lib/banderasCuentaGl.ts`) y las secciones del alta ya no están en inglés | `yarn vitest run tests/unit/banderas-cuenta-gl.test.ts` | PASS (2) · type-check exit 0 · lint (incluye `check-ayuda`) OK |
+| H5.S1.M1 | OBS-28 (ERP): «Marcar aceptada» sólo se habilita en propuestas enviadas | `yarn vitest run tests/unit/propuesta-aceptable.test.ts` | PASS (2) · suite completa 46 archivos / 391 pruebas |
+
+Nota de proceso: el commit de BUG-10 reformateó por error `services/optionLoaders.ts` y `app/operaciones/crm/contratos/page.tsx` con Prettier (este repo no lo usa); se rehicieron con ediciones mínimas y el diff quedó acotado.
 
 ## A medias
 

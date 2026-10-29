@@ -7,9 +7,9 @@ import { cargarTodo } from '@/lib/cargarTodo';
 import { useOptions } from '@/hooks/useOptions';
 import { domainLoader } from '@/services/domains';
 import { loadChartsOfAccounts, loadGlAccounts, withEmpty } from '@/services/optionLoaders';
+import { BANDERAS_CUENTA_GL } from '@/lib/banderasCuentaGl';
 
 const detailBase = '/operaciones/contabilidad/cuentas-gl/detalle';
-const banderas = ['isControlAccount', 'requiresCostCenter', 'requiresProfitCenter', 'requiresPartner', 'requiresTaxCode'];
 const siNo = [{ label: 'No', value: 'false' }, { label: 'Sí', value: 'true' }];
 
 export default function GlAccountsPage() {
@@ -59,7 +59,7 @@ export default function GlAccountsPage() {
           { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true },
           { name: 'accountType', label: 'Tipo', tooltip: 'Clase de cuenta (activo, pasivo, ingreso…); decide en qué estado financiero se presenta.', required: true, optionsSource: 'domain:accounting.glAccountType' },
           { name: 'normalBalance', label: 'Naturaleza', tooltip: 'Saldo natural de la cuenta: deudor (activos, gastos) o acreedor (pasivos, ingresos).', required: true, optionsSource: 'domain:accounting.normalBalance' },
-          ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, defaultValue: 'false', options: siNo })),
+          ...BANDERAS_CUENTA_GL.map((bandera) => ({ ...bandera, type: 'select' as const, valueKind: 'boolean' as const, defaultValue: 'false', options: siNo })),
         ],
         submit: async (payload) => { const created = await accountingService.createGlAccount(payload); setVersion((value) => value + 1); return created; },
       }}
@@ -71,7 +71,7 @@ export default function GlAccountsPage() {
          */
         fields: [
           { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, span: 2 },
-          ...banderas.map((name) => ({ name, label: name.replace(/([A-Z])/g, ' $1'), type: 'select' as const, valueKind: 'boolean' as const, options: siNo })),
+          ...BANDERAS_CUENTA_GL.map((bandera) => ({ ...bandera, type: 'select' as const, valueKind: 'boolean' as const, options: siNo })),
         ],
         submit: (id, payload) => accountingService.updateGlAccount(id, payload),
       }}
