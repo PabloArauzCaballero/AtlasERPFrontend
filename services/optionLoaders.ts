@@ -1,9 +1,9 @@
-import { accountingService } from './accountingService';
-import { asRows } from '@/lib/asRows';
-import { adsService } from './adsService';
-import { b2bService } from './b2bService';
-import { filesService } from './filesService';
-import type { PaginatedResult, ResourceRow } from './types';
+import { accountingService } from "./accountingService";
+import { asRows } from "@/lib/asRows";
+import { adsService } from "./adsService";
+import { b2bService } from "./b2bService";
+import { filesService } from "./filesService";
+import type { PaginatedResult, ResourceRow } from "./types";
 
 export interface Option {
   label: string;
@@ -12,9 +12,13 @@ export interface Option {
   description?: string | undefined;
 }
 
-const s = (value: unknown): string => (value === undefined || value === null ? '' : String(value));
+const s = (value: unknown): string =>
+  value === undefined || value === null ? "" : String(value);
 
-function toOptions(rows: ResourceRow[], label: (row: ResourceRow) => string): Option[] {
+function toOptions(
+  rows: ResourceRow[],
+  label: (row: ResourceRow) => string,
+): Option[] {
   return rows.map((row) => ({ value: s(row.id), label: label(row) }));
 }
 
@@ -23,55 +27,105 @@ function rowsOf(result: PaginatedResult<ResourceRow>): ResourceRow[] {
 }
 
 /** Antepone una opción vacía para campos opcionales (evita forzar un valor). */
-export function withEmpty(options: Option[], label = '— Ninguno —'): Option[] {
-  return [{ label, value: '' }, ...options];
+export function withEmpty(options: Option[], label = "— Ninguno —"): Option[] {
+  return [{ label, value: "" }, ...options];
 }
 
 export const loadLegalEntities = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listLegalEntities(), (r) => `${s(r.code)} — ${s(r.legalName)}`);
+  toOptions(
+    await accountingService.listLegalEntities(),
+    (r) => `${s(r.code)} — ${s(r.legalName)}`,
+  );
 
 export const loadChartsOfAccounts = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listChartsOfAccounts(), (r) => `${s(r.code)} — ${s(r.name)} (v${s(r.versionNo)})`);
+  toOptions(
+    await accountingService.listChartsOfAccounts(),
+    (r) => `${s(r.code)} — ${s(r.name)} (v${s(r.versionNo)})`,
+  );
 
 export const loadLedgers = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listLedgers(), (r) => `${s(r.code)} — ${s(r.name)}`);
+  toOptions(
+    await accountingService.listLedgers(),
+    (r) => `${s(r.code)} — ${s(r.name)}`,
+  );
 
 export const loadAccountingPeriods = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listAccountingPeriods(), (r) => `Período ${s(r.periodNo)} · ${s(r.startDate).slice(0, 10)}`);
+  toOptions(
+    await accountingService.listAccountingPeriods(),
+    (r) => `Período ${s(r.periodNo)} · ${s(r.startDate).slice(0, 10)}`,
+  );
 
 export const loadTaxCodes = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listTaxCodes(), (r) => `${s(r.code)} — ${s(r.taxType)} ${s(r.rate)}%`);
+  toOptions(
+    await accountingService.listTaxCodes(),
+    (r) => `${s(r.code)} — ${s(r.taxType)} ${s(r.rate)}%`,
+  );
 
 export const loadGlAccounts = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await accountingService.listGlAccounts({ page: 1, pageSize: 100 })), (r) => `${s(r.accountNo)} — ${s(r.name)}`);
+  toOptions(
+    rowsOf(await accountingService.listGlAccounts({ page: 1, pageSize: 100 })),
+    (r) => `${s(r.accountNo)} — ${s(r.name)}`,
+  );
 
 export const loadBusinessPartners = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await accountingService.listBusinessPartners({ page: 1, pageSize: 100 })), (r) => `${s(r.partnerNo)} — ${s(r.legalName)}`);
+  toOptions(
+    rowsOf(
+      await accountingService.listBusinessPartners({ page: 1, pageSize: 100 }),
+    ),
+    (r) => `${s(r.partnerNo)} — ${s(r.legalName)}`,
+  );
 
 export const loadContracts = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await accountingService.listContracts()), (r) => `${s(r.contractNo)} — ${s(r.contractType)}`);
+  toOptions(
+    rowsOf(await accountingService.listContracts()),
+    (r) => `${s(r.contractNo)} — ${s(r.contractType)}`,
+  );
 
 export const loadCostCenters = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listCostCenters(), (r) => `${s(r.code)} — ${s(r.name)}`);
+  toOptions(
+    await accountingService.listCostCenters(),
+    (r) => `${s(r.code)} — ${s(r.name)}`,
+  );
 
 export const loadProfitCenters = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listProfitCenters(), (r) => `${s(r.code)} — ${s(r.name)}`);
+  toOptions(
+    await accountingService.listProfitCenters(),
+    (r) => `${s(r.code)} — ${s(r.name)}`,
+  );
 
 export const loadBankAccounts = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listBankAccounts(), (r) => `${s(r.accountName)} (${s(r.currencyCode)})`);
+  toOptions(
+    await accountingService.listBankAccounts(),
+    (r) => `${s(r.accountName)} (${s(r.currencyCode)})`,
+  );
 
 export const loadAccountGroups = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await accountingService.listAccountGroups({ page: 1, pageSize: 100 })), (r) => `${s(r.code)} — ${s(r.name)}`);
+  toOptions(
+    rowsOf(
+      await accountingService.listAccountGroups({ page: 1, pageSize: 100 }),
+    ),
+    (r) => `${s(r.code)} — ${s(r.name)}`,
+  );
 
 export const loadArInvoices = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await accountingService.listArInvoices()), (r) => `${s(r.invoiceNo)} — ${s(r.netAmount)}`);
+  toOptions(
+    rowsOf(await accountingService.listArInvoices()),
+    (r) => `${s(r.invoiceNo)} — ${s(r.netAmount)}`,
+  );
 
 export const loadBillingEvents = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listBillingEvents(), (r) => `${s(r.eventType)} — ${s(r.baseAmount)} ${s(r.currencyCode)} (${s(r.eventTime).slice(0, 10)})`);
+  toOptions(
+    await accountingService.listBillingEvents(),
+    (r) =>
+      `${s(r.eventType)} — ${s(r.baseAmount)} ${s(r.currencyCode)} (${s(r.eventTime).slice(0, 10)})`,
+  );
 
 // ---- CRM ----
 export const loadInternalUsers = async (): Promise<Option[]> =>
-  toOptions(await b2bService.listInternalUsers(), (r) => `${s(r.fullName)} (${s(r.roleCode)})`);
+  toOptions(
+    await b2bService.listInternalUsers(),
+    (r) => `${s(r.fullName)} (${s(r.roleCode)})`,
+  );
 
 /**
  * Los atributos que un segmento comercial puede mirar, prefijados por su sujeto.
@@ -93,10 +147,16 @@ export const loadSegmentAttributes = async (): Promise<Option[]> => {
 
 /** Sucursales de comercio, para elegir dónde se origina una venta a plazos. */
 export const loadMerchantBranches = async (): Promise<Option[]> =>
-  toOptions(await b2bService.listBranches(), (r) => `${s(r.name)} — ${s(r.city) || 'sin ciudad'}`);
+  toOptions(
+    await b2bService.listBranches(),
+    (r) => `${s(r.name)} — ${s(r.city) || "sin ciudad"}`,
+  );
 
 export const loadB2BAccounts = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await b2bService.listAccounts({ page: 1, limit: 100 })), (r) => `${s(r.tradeName || r.legalName)}`);
+  toOptions(
+    rowsOf(await b2bService.listAccounts({ page: 1, limit: 100 })),
+    (r) => `${s(r.tradeName || r.legalName)}`,
+  );
 
 /**
  * Comercios a los que se puede abrir un caso de onboarding: los que ganaron una oportunidad
@@ -105,38 +165,58 @@ export const loadB2BAccounts = async (): Promise<Option[]> =>
  */
 export const loadAccountsReadyForOnboarding = async (): Promise<Option[]> => {
   const [ganadas, casos, cuentas] = await Promise.all([
-    b2bService.listOpportunities({ stage: 'CLOSED_WON' }),
-    b2bService.listOnboardingCases({ scope: 'todos', limit: 200 }),
+    b2bService.listOpportunities({ stage: "CLOSED_WON" }),
+    b2bService.listOnboardingCases({ scope: "todos", limit: 200 }),
     b2bService.listAccounts({ page: 1, limit: 100 }),
   ]);
   const conGanada = new Set(ganadas.map((row) => s(row.accountId)));
   const conCaso = new Set((casos.items ?? []).map((row) => s(row.accountId)));
-  return toOptions(rowsOf(cuentas).filter((row) => conGanada.has(s(row.id)) && !conCaso.has(s(row.id))), (r) => s(r.tradeName || r.legalName));
+  return toOptions(
+    rowsOf(cuentas).filter(
+      (row) => conGanada.has(s(row.id)) && !conCaso.has(s(row.id)),
+    ),
+    (r) => s(r.tradeName || r.legalName),
+  );
 };
 
 export const loadB2BContracts = async (): Promise<Option[]> =>
-  toOptions(await b2bService.listB2BContracts(), (r) => `${s(r.contractNumber)} — ${s(r.status)}`);
+  toOptions(
+    await b2bService.listB2BContracts(),
+    (r) => `${s(r.contractNumber)} — ${s(r.status)}`,
+  );
 
 export const loadReceivables = async (): Promise<Option[]> =>
-  toOptions(await b2bService.listReceivables(), (r) => `${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`);
+  toOptions(
+    await b2bService.listReceivables(),
+    (r) =>
+      `${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`,
+  );
 
 /**
  * Cargos que se pueden facturar: PENDIENTES, todavía sin factura y —si se indica— del comercio
  * elegido, con su nombre delante. Mezclar cargos de dos comercios el backend lo rechaza con «no
  * pertenecen al comercio».
  */
-export const loadReceivablesPorFacturar = async (accountId?: string): Promise<Option[]> => {
+export const loadReceivablesPorFacturar = async (
+  accountId?: string,
+): Promise<Option[]> => {
   const [cargos, cuentas] = await Promise.all([
     b2bService.listReceivables(),
     b2bService.listAccounts({ page: 1, limit: 100 }),
   ]);
-  const nombres = new Map(rowsOf(cuentas).map((c) => [s(c.id), s(c.tradeName || c.legalName)]));
+  const nombres = new Map(
+    rowsOf(cuentas).map((c) => [s(c.id), s(c.tradeName || c.legalName)]),
+  );
   const pendientes = cargos.filter(
-    (r) => s(r.status) === 'PENDING' && !r.invoiceId && (!accountId || s(r.accountId) === accountId),
+    (r) =>
+      s(r.status) === "PENDING" &&
+      !r.invoiceId &&
+      (!accountId || s(r.accountId) === accountId),
   );
   return toOptions(
     pendientes,
-    (r) => `${nombres.get(s(r.accountId)) ?? 'Comercio'} · ${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`,
+    (r) =>
+      `${nombres.get(s(r.accountId)) ?? "Comercio"} · ${s(r.sourceType)} — saldo ${s(r.amountOpen)} (vence ${s(r.dueDate)})`,
   );
 };
 
@@ -147,13 +227,18 @@ export const loadReceivablesPorFacturar = async (accountId?: string): Promise<Op
  * y con cuantos requisitos quedan pendientes, que es lo que decide si el caso se puede activar.
  */
 export const loadOnboardingCases = async (): Promise<Option[]> =>
-  ((await b2bService.listOnboardingCases({ scope: 'abiertos', limit: 200 })).items ?? []).map((row) => ({
+  (
+    (await b2bService.listOnboardingCases({ scope: "abiertos", limit: 200 }))
+      .items ?? []
+  ).map((row) => ({
     value: s(row.id),
-    label: `${s(row.tradeName) || s(row.accountId)} — ${s(row.status)}${Number(row.pendingItems) > 0 ? ` (${s(row.pendingItems)} pendiente(s))` : ''}`,
+    label: `${s(row.tradeName) || s(row.accountId)} — ${s(row.status)}${Number(row.pendingItems) > 0 ? ` (${s(row.pendingItems)} pendiente(s))` : ""}`,
   }));
 
 /** Requisitos del caso elegido. Vacio mientras no haya caso: no hay item sin caso. */
-export const loadChecklistItems = async (onboardingCaseId: string): Promise<Option[]> => {
+export const loadChecklistItems = async (
+  onboardingCaseId: string,
+): Promise<Option[]> => {
   if (!onboardingCaseId) return [];
   const detail = await b2bService.getOnboardingCase(onboardingCaseId);
   const items = (detail.checklistItems ?? []) as Array<Record<string, unknown>>;
@@ -170,11 +255,24 @@ export const loadProposals = async (): Promise<Option[]> =>
     label: `${s(row.proposalNumber)} — ${s(row.tradeName) || s(row.accountId)} (${s(row.status)})`,
   }));
 
+/**
+ * Sólo las propuestas ACEPTADAS: es lo único de lo que nace un contrato (el servidor responde 409
+ * «Solo una propuesta aceptada puede convertirse en contrato»). El selector las ofrecía todas
+ * —borradores incluidos— bajo la etiqueta «Propuesta aceptada» (QA 2026-10-29, BUG-10).
+ */
+export const loadAcceptedProposals = async (): Promise<Option[]> =>
+  (await b2bService.listProposals())
+    .filter((row) => s(row.status).toUpperCase() === "ACCEPTED")
+    .map((row) => ({
+      value: s(row.id),
+      label: `${s(row.proposalNumber)} — ${s(row.tradeName) || s(row.accountId)}`,
+    }));
+
 /** Aprobaciones esperando decision. Sin este listado la cola no se podia ni leer. */
 export const loadPendingApprovals = async (): Promise<Option[]> =>
   (await b2bService.listApprovals(true)).map((row) => ({
     value: s(row.id),
-    label: `${s(row.approvalType)} — ${s(row.reason).slice(0, 60) || 'sin motivo'}`,
+    label: `${s(row.approvalType)} — ${s(row.reason).slice(0, 60) || "sin motivo"}`,
   }));
 
 /** Oportunidades del pipeline, por nombre y etapa. */
@@ -187,23 +285,38 @@ export const loadOpportunities = async (): Promise<Option[]> =>
 // ---- Ads ----
 /** Anunciantes registrados. El bloque de Ads ya los expone; la pantalla pedia su uuid a mano. */
 export const loadAdvertisers = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await adsService.listAdvertisers({ page: 1, pageSize: 100 })), (r) => `${s(r.name || r.legalName)}`);
+  toOptions(
+    rowsOf(await adsService.listAdvertisers({ page: 1, pageSize: 100 })),
+    (r) => `${s(r.name || r.legalName)}`,
+  );
 
 /** Campanas, por nombre y estado. */
 export const loadCampaigns = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await adsService.listCampaigns({ page: 1, pageSize: 100 })), (r) => `${s(r.name)} — ${s(r.status)}`);
+  toOptions(
+    rowsOf(await adsService.listCampaigns({ page: 1, pageSize: 100 })),
+    (r) => `${s(r.name)} — ${s(r.status)}`,
+  );
 
 /** Segmentos de audiencia. */
 export const loadSegments = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await adsService.listSegments({ page: 1, pageSize: 100 })), (r) => `${s(r.name)}`);
+  toOptions(
+    rowsOf(await adsService.listSegments({ page: 1, pageSize: 100 })),
+    (r) => `${s(r.name)}`,
+  );
 
 /** Anos fiscales. Ya existia `GET /accounting/financial-structure/fiscal-years`. */
 export const loadFiscalYears = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listFiscalYears(), (r) => `${s(r.code || r.name)} (${s(r.status)})`);
+  toOptions(
+    await accountingService.listFiscalYears(),
+    (r) => `${s(r.code || r.name)} (${s(r.status)})`,
+  );
 
 /** Documentos contables, por numero y fecha. */
 export const loadAccountingDocuments = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await accountingService.listAccountingDocuments()), (r) => `${s(r.documentNo || r.id)} — ${s(r.postingDate).slice(0, 10)}`);
+  toOptions(
+    rowsOf(await accountingService.listAccountingDocuments()),
+    (r) => `${s(r.documentNo || r.id)} — ${s(r.postingDate).slice(0, 10)}`,
+  );
 
 /** Cuotas BNPL, por vencimiento e importe: es como las reconoce quien concilia. */
 export const loadInstallments = async (): Promise<Option[]> =>
@@ -223,11 +336,15 @@ export const loadPayables = async (): Promise<Option[]> =>
  * Comprobantes ya subidos al expediente de un comercio (sólo los vigentes: el listado de archivos
  * no devuelve los retirados). Sirve para no volver a subir el mismo PDF cuando un registro falló.
  */
-export const loadMerchantEvidenceFiles = async (accountId: string): Promise<Option[]> =>
-  (await filesService.listFiles('B2B_ACCOUNT', accountId)).map((row) => ({
+export const loadMerchantEvidenceFiles = async (
+  accountId: string,
+): Promise<Option[]> =>
+  (await filesService.listFiles("B2B_ACCOUNT", accountId)).map((row) => ({
     value: s(row.id),
-    label: s(row.fileName) || 'Archivo sin nombre',
-    description: row.createdAt ? `Subido el ${s(row.createdAt).slice(0, 10)}` : undefined,
+    label: s(row.fileName) || "Archivo sin nombre",
+    description: row.createdAt
+      ? `Subido el ${s(row.createdAt).slice(0, 10)}`
+      : undefined,
   }));
 
 /** Recuperaciones abiertas, por mora e importe cubierto. */
@@ -272,22 +389,37 @@ export const loadMerchantInvoices = async (): Promise<Option[]> =>
  * evento seleccionado en el monitor» obligaba a copiarlo a mano de una tabla a un campo de texto.
  */
 export const loadDeliveryEvents = async (): Promise<Option[]> =>
-  toOptions(rowsOf(await adsService.getDeliveryMonitor({ page: 1, pageSize: 100 })), (r) =>
-    `${s(r.eventType)} — ${s(r.occurredAt).slice(0, 16).replace('T', ' ')} — ${s(r.billableStatus)}`);
+  toOptions(
+    rowsOf(await adsService.getDeliveryMonitor({ page: 1, pageSize: 100 })),
+    (r) =>
+      `${s(r.eventType)} — ${s(r.occurredAt).slice(0, 16).replace("T", " ")} — ${s(r.billableStatus)}`,
+  );
 
 /**
  * Códigos de motivo de una decisión de moderación: «cumple» y los códigos de las políticas que
  * existen (se administran en Ads › Inventario). Antes cada moderador tecleaba el suyo.
  */
-export const MODERATION_REASON_OK: Option = { value: 'POLICY_OK', label: 'POLICY_OK — Cumple las políticas' };
+export const MODERATION_REASON_OK: Option = {
+  value: "POLICY_OK",
+  label: "POLICY_OK — Cumple las políticas",
+};
 export const loadModerationReasonCodes = async (): Promise<Option[]> => {
   const result = await adsService.listPolicies({ page: 1, limit: 100 });
   const politicas = rowsOf(result)
-    .map((row) => ({ code: s(row.policyCode ?? row.code), detail: s(row.description ?? row.category) }))
+    .map((row) => ({
+      code: s(row.policyCode ?? row.code),
+      detail: s(row.description ?? row.category),
+    }))
     .filter((row) => row.code && row.code !== MODERATION_REASON_OK.value)
-    .map((row) => ({ value: row.code, label: row.detail ? `${row.code} — ${row.detail}` : row.code }));
+    .map((row) => ({
+      value: row.code,
+      label: row.detail ? `${row.code} — ${row.detail}` : row.code,
+    }));
   return [MODERATION_REASON_OK, ...politicas];
 };
 /** Sucursales contables (las de la estructura financiera), para los vínculos de tipo BRANCH. */
 export const loadAccountingBranches = async (): Promise<Option[]> =>
-  toOptions(await accountingService.listBranches(), (r) => `${s(r.code)} — ${s(r.name)}`);
+  toOptions(
+    await accountingService.listBranches(),
+    (r) => `${s(r.code)} — ${s(r.name)}`,
+  );
