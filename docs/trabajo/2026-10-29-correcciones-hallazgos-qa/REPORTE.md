@@ -1,27 +1,23 @@
-> **AVANCE: 6 / 7 — 85,7 %.**
+> **AVANCE: 7 / 7 — 100,0 %.**
 
 - Fecha: 2026-10-29 · Plan: [PLAN.md](./PLAN.md) · Rama: `claude/compassionate-franklin-p7u3rw`
 - Peldaño de evidencia alcanzado: `TESTED` (el botón no se observó en navegador tras el cambio).
 
 ## Completado
 
-| ID       | Qué se logró                                                                                                                                                        | Comando                                                                                     | Resultado                                                                                       |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| H1.S1.M1 | BUG-4: `payloadDefinitions` incluye el campo `city` de los `countryCity` (sin duplicar); `formDataToPayload` lo devuelve                                            | `yarn test` (form-payload-ciudad, 4 pruebas)                                                | PASS · 42 archivos / 383 pruebas                                                                |
-| H2.S1.M1 | OBS-12: con el expediente en `under_review`/`approved` no se ofrece «Enviar a revisión»; se explica el motivo (`aviso-expediente-enviado`)                          | `yarn test` (expediente-enviado, 9 pruebas) + `yarn type-check` exit 0 + `yarn lint` exit 0 | PASS                                                                                            |
-| H3.S1.M1 | OBS-11: `PinControl` mide `calc(6ch+3em+3rem)`; el sexto dígito cabe                                                                                                | medición en Chromium con el mismo CSS (`pin-measure.cjs`, scratchpad)                       | antes: client 142 / scroll 173 (recortado) · después: client 178 / scroll 178 (cabe)            |
-| H3.S1.M2 | OBS-11: prueba que fija el ancho y el recorte a 6 dígitos                                                                                                           | `yarn vitest run`                                                                           | PASS · 43 archivos / 385 pruebas                                                                |
-| H3.S1.M1 | BUG-10 (hallado en la pasada H4): «Generar contrato desde propuesta» ofrecía borradores bajo «Propuesta aceptada»; `loadAcceptedProposals` sólo deja las `ACCEPTED` | `yarn vitest run tests/unit/propuestas-aceptadas.test.ts`                                   | PASS (2) · type-check exit 0 · lint OK                                                          |
-| H3.S1.M2 | BUG-10 en el navegador                                                                                                                                              | script `h4-erp-contrato.cjs`                                                                | antes: 4 propuestas (3 borradores) · después: sólo `PROP-2026-000001 — Tienda Sintética 984830` |
+| ID       | Qué se logró                                                                                                                                                        | Comando                                                                                     | Resultado                                                                                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1.S1.M1 | BUG-4: `payloadDefinitions` incluye el campo `city` de los `countryCity` (sin duplicar); `formDataToPayload` lo devuelve                                            | `yarn test` (form-payload-ciudad, 4 pruebas)                                                | PASS · 42 archivos / 383 pruebas                                                                                                                                          |
+| H2.S1.M1 | OBS-12: con el expediente en `under_review`/`approved` no se ofrece «Enviar a revisión»; se explica el motivo (`aviso-expediente-enviado`)                          | `yarn test` (expediente-enviado, 9 pruebas) + `yarn type-check` exit 0 + `yarn lint` exit 0 | PASS                                                                                                                                                                      |
+| H3.S1.M1 | OBS-11: `PinControl` mide `calc(6ch+3em+3rem)`; el sexto dígito cabe                                                                                                | medición en Chromium con el mismo CSS (`pin-measure.cjs`, scratchpad)                       | antes: client 142 / scroll 173 (recortado) · después: client 178 / scroll 178 (cabe)                                                                                      |
+| H3.S1.M2 | OBS-11: prueba que fija el ancho y el recorte a 6 dígitos                                                                                                           | `yarn vitest run`                                                                           | PASS · 43 archivos / 385 pruebas                                                                                                                                          |
+| H3.S1.M1 | BUG-10 (hallado en la pasada H4): «Generar contrato desde propuesta» ofrecía borradores bajo «Propuesta aceptada»; `loadAcceptedProposals` sólo deja las `ACCEPTED` | `yarn vitest run tests/unit/propuestas-aceptadas.test.ts`                                   | PASS (2) · type-check exit 0 · lint OK                                                                                                                                    |
+| H3.S1.M2 | BUG-10 en el navegador                                                                                                                                              | script `h4-erp-contrato.cjs`                                                                | antes: 4 propuestas (3 borradores) · después: sólo `PROP-2026-000001 — Tienda Sintética 984830`                                                                           |
+| H1.S1.M2 | BUG-4 repetido en el navegador («Crear cuenta»/empresa con ciudad «La Paz», pasada H4)                                                                              | script `f7-cuenta.cjs` (scratchpad)                                                         | el `POST /api/v1/b2b/accounts` lleva `"city":"La Paz"`; BD `atlas_sales.b2b_accounts.city = 'La Paz'` para las dos cuentas creadas (`Tienda Sintética 302683` y `302684`) |
 
 ## A medias
 
-### H1.S1.M2 — «Crear empresa» en navegador
-
-- Qué anda: la regla pura devuelve `city`; type-check y lint en verde.
-- Qué no anda: no se observó el `POST` real con `city` ni la ciudad persistida.
-- Qué falta exactamente: levantar el ERP FE con el cambio, repetir «Crear empresa» y capturar red y BD.
-- Dónde quedó: rama indicada, compila.
+ninguna
 
 ## Pendiente
 

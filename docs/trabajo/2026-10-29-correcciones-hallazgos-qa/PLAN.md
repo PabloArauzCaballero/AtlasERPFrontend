@@ -14,14 +14,14 @@
 
 **CA:** Dado el formulario «Crear empresa», cuando se elige una ciudad en «País y ciudad» y se guarda, entonces el payload incluye `city` con esa ciudad.
 **DoD:** `yarn vitest run` verde (prueba nueva) · `yarn type-check` · `yarn lint` · repetición en el navegador contra el stack local.
-**Estado:** A MEDIAS
+**Estado:** HECHO
 
 ### H1.S1 — Declarar el control de ciudad como parte del payload
 
-| ID       | Microtarea                                                                                                     | CA (binario)                                        | DoD                                                      | Estado   |
-| -------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------- | -------- |
-| H1.S1.M1 | `payloadDefinitions` añade `{name: cityFieldName, optional: true}` por cada campo `countryCity` (sin duplicar) | `formDataToPayload` devuelve `city`                 | `yarn vitest run tests/unit/form-payload-ciudad.test.ts` | HECHO    |
-| H1.S1.M2 | Repetir «Crear empresa» en el navegador                                                                        | el `POST` lleva `city` y la cuenta guarda la ciudad | captura de red / BD                                      | A MEDIAS |
+| ID       | Microtarea                                                                                                     | CA (binario)                                        | DoD                                                      | Estado |
+| -------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------- | ------ |
+| H1.S1.M1 | `payloadDefinitions` añade `{name: cityFieldName, optional: true}` por cada campo `countryCity` (sin duplicar) | `formDataToPayload` devuelve `city`                 | `yarn vitest run tests/unit/form-payload-ciudad.test.ts` | HECHO  |
+| H1.S1.M2 | Repetir «Crear empresa» en el navegador                                                                        | el `POST` lleva `city` y la cuenta guarda la ciudad | captura de red / BD                                      | HECHO  |
 
 ## H2 — OBS-12: «Enviar a revisión» con el expediente ya enviado o aprobado
 
