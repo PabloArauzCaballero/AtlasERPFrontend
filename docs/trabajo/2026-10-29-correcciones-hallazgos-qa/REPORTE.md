@@ -1,4 +1,4 @@
-> **AVANCE: 9 / 9 — 100,0 %.**
+> **AVANCE: 11 / 11 — 100,0 %.**
 
 - Fecha: 2026-10-29 · Plan: [PLAN.md](./PLAN.md) · Rama: `claude/compassionate-franklin-p7u3rw`
 - Peldaño de evidencia alcanzado: `TESTED` (el botón no se observó en navegador tras el cambio).
@@ -16,6 +16,8 @@
 | H1.S1.M2 | BUG-4 repetido en el navegador («Crear cuenta»/empresa con ciudad «La Paz», pasada H4)                                                                              | script `f7-cuenta.cjs` (scratchpad)                                                         | el `POST /api/v1/b2b/accounts` lleva `"city":"La Paz"`; BD `atlas_sales.b2b_accounts.city = 'La Paz'` para las dos cuentas creadas (`Tienda Sintética 302683` y `302684`) |
 | H4.S1.M1 | OBS-27: las banderas de la cuenta GL tienen etiqueta y ayuda en español (`lib/banderasCuentaGl.ts`) y las secciones del alta ya no están en inglés | `yarn vitest run tests/unit/banderas-cuenta-gl.test.ts` | PASS (2) · type-check exit 0 · lint (incluye `check-ayuda`) OK |
 | H5.S1.M1 | OBS-28 (ERP): «Marcar aceptada» sólo se habilita en propuestas enviadas | `yarn vitest run tests/unit/propuesta-aceptable.test.ts` | PASS (2) · suite completa 46 archivos / 391 pruebas |
+| H6.S1.M1 | OBS-5: `bootstrapSession` no pide refresh si el navegador no tiene marca de sesión | `yarn test:auth` | PASS (11, 2 nuevas) · suite vitest 46 archivos / 391 pruebas · type-check y lint sin salida de error |
+| H6.S1.M2 | OBS-5 en Chromium: `/login` sin sesión no hace `auth/refresh` ni devuelve 401 | script Playwright `obs5.cjs` | PASS: `{"refresh":[],"bad":[]}` (consola y red sin errores). No cubierto: recarga con sesión viva (la cubre `test:auth`, no el navegador) |
 
 Nota de proceso: el commit de BUG-10 reformateó por error `services/optionLoaders.ts` y `app/operaciones/crm/contratos/page.tsx` con Prettier (este repo no lo usa); se rehicieron con ediciones mínimas y el diff quedó acotado.
 

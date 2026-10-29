@@ -190,6 +190,11 @@ export async function bootstrapSession(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   if (memoryAccessToken) return true;
+  // Sin marca de sesión en este navegador no hay nada que renovar: la cookie httpOnly no se puede
+  // consultar, pero `setAccessToken` deja la marca al entrar y `clearAccessToken` la quita al salir.
+  // Sin esta guarda, cada visita anónima a /login pegaba un `POST auth/refresh` que respondía 401
+  // y ensuciaba consola y red (QA 2026-10-29, OBS-5).
+  if (window.localStorage.getItem(SESSION_KIND_KEY) === null) return false;
   await tryRefreshSession();
   // El login pudo completar mientras el refresh inicial seguía pendiente.
   return memoryAccessToken !== null;

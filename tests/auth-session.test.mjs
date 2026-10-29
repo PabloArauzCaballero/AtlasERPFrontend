@@ -61,6 +61,27 @@ test('bootstrap destruye el bearer heredado y recupera la sesión interna con co
   assert.equal(calls[0].init.headers.Authorization, undefined);
 });
 
+test('bootstrap sin marca de sesión no llama a refresh (visita anónima a /login)', async () => {
+  const calls = [];
+  const { api } = session(async (url) => {
+    calls.push(new URL(url).pathname);
+    return json(null, 401);
+  });
+  assert.equal(await api.bootstrapSession(), false);
+  assert.deepEqual(calls, []);
+  assert.equal(api.getAccessToken(), null);
+});
+
+test('bootstrap con marca de sesión sigue renovando con la cookie', async () => {
+  const calls = [];
+  const { api } = session(async (url) => {
+    calls.push(new URL(url).pathname);
+    return json({ accessToken: 'renovado' });
+  }, { atlas_session_kind: 'internal' });
+  assert.equal(await api.bootstrapSession(), true);
+  assert.deepEqual(calls, ['/api/v1/auth/refresh']);
+});
+
 test('bootstrap de comercio usa su endpoint y el bearer queda solo en memoria', async () => {
   const paths = [];
   const { api, values } = session(async (url) => {

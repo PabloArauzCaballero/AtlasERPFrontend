@@ -78,3 +78,13 @@
 | ID | Microtarea | CA (binario) | DoD | Estado |
 |---|---|---|---|---|
 | H5.S1.M1 | `puedeAceptarse(estado)` (sólo `SENT`) y `enabled` en la acción | un DRAFT no la habilita | prueba + lint | HECHO |
+
+## H6 — OBS-5: visitar /login sin sesión dispara `POST auth/refresh` → 401
+**CA:** Dado un navegador sin sesión previa, cuando se abre /login, entonces no se hace ninguna petición de refresh; con una sesión previa (marca `atlas_session_kind`), el arranque sigue renovándola con la cookie.
+**DoD:** `yarn test:auth` (2 pruebas nuevas) + type-check + lint + red de /login en Chromium sin 401.
+**Estado:** HECHO
+
+| ID | Microtarea | CA (binario) | DoD | Estado |
+|---|---|---|---|---|
+| H6.S1.M1 | `bootstrapSession` no renueva si no hay marca de sesión | 0 llamadas a refresh sin marca | `yarn test:auth` | HECHO |
+| H6.S1.M2 | Red de /login en Chromium sin 401 | 0 respuestas 401 | script Playwright | HECHO |
