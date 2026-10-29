@@ -472,7 +472,9 @@ export function MerchantBillingScreen() {
                   <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
                 ) : creditosVisibles.length === 0 ? (
                   <p className="py-6 text-center text-xs text-slate-500">
-                    {cuotas.length === 0 ? 'No hay créditos originados en su comercio.' : 'Ninguna cuota en ese estado.'}
+                    {cuotas.length === 0
+                      ? 'No hay créditos originados en su comercio.'
+                      : 'Ninguna cuota en ese estado. Elija otro estado arriba para ver más.'}
                   </p>
                 ) : (
                   <div className="space-y-4">
