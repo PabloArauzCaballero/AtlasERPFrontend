@@ -32,8 +32,9 @@ export function PinControl({ className: _className, onChange, maxLength: _maxLen
         onChange?.(event);
       }}
       // Clase propia y completa: `cn` del ERP sólo concatena, así que mezclarla con la del control
-      // normal dejaría dos altos y dos anchos peleando. 6 dígitos + 6 separaciones de 0,5em.
-      className="block h-11 w-[calc(9ch+2.25rem)] max-w-full rounded-md border border-slate-300 bg-white pl-[calc(1.125rem+0.25em)] pr-[1.125rem] font-mono text-xl tracking-[0.5em] text-slate-900 outline-none placeholder:text-slate-300 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100"
+      // normal dejaría dos altos y dos anchos peleando. 6 dígitos (6ch) + 6 separaciones de 0,5em (3em) + el relleno y el borde (3rem). Con 9ch el sexto
+      // dígito quedaba tras el borde (medido en Chromium: 142 px útiles para 173 de texto; QA OBS-11).
+      className="block h-11 w-[calc(6ch+3em+3rem)] max-w-full rounded-md border border-slate-300 bg-white pl-[calc(1.125rem+0.25em)] pr-[1.125rem] font-mono text-xl tracking-[0.5em] text-slate-900 outline-none placeholder:text-slate-300 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100"
     />
   );
 }

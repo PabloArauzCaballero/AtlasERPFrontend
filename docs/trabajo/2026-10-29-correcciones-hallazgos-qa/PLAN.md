@@ -33,3 +33,13 @@
 | Riesgo | Impacto | Mitigación |
 |---|---|---|
 | Otros formularios con `cityFieldName` ahora envían `city` | Bajo: el backend ignora o acepta campos opcionales de su DTO | el campo es opcional y sólo viaja si tiene valor |
+
+## H3 — OBS-11: el campo del código de 6 dígitos no recorta el sexto
+**CA:** Dado el campo «Código del correo» con 6 dígitos, cuando se escribe el código completo, entonces los 6 caben dentro de la caja.
+**DoD:** medición en Chromium (`scrollWidth <= clientWidth`) + `yarn vitest run tests/unit/pin-control.test.tsx` + type-check/lint.
+**Estado:** HECHO
+
+| ID | Microtarea | CA (binario) | DoD | Estado |
+|---|---|---|---|---|
+| H3.S1.M1 | Ancho `calc(6ch+3em+3rem)` en `PinControl` | scroll ≤ client en Chromium | script de medición (salida en REPORTE) | HECHO |
+| H3.S1.M2 | Prueba que fija la clase de ancho | falla con `9ch` | `yarn vitest run tests/unit/pin-control.test.tsx` | HECHO |
