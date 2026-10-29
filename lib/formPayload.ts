@@ -68,7 +68,7 @@ export function formDataToPayload(formData: FormData, definitions: PayloadFieldD
  * `valueKind: 'datetime'` en cada pantalla y olvidarlo en una.
  */
 export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinition[] {
-  return fields
+  const declaradas = fields
     // Lo que asigna el backend no viaja: el control se pinta sólo para enseñarlo.
     .filter((field) => !field.assignedByBackend)
     .map((field) => ({
@@ -84,4 +84,22 @@ export function payloadDefinitions(fields: ActionField[]): PayloadFieldDefinitio
               : undefined),
       optional: field.optional,
     }));
+  return [...declaradas, ...ciudadesDeCountryCity(fields, declaradas)];
+}
+
+/**
+ * La ciudad de un campo `countryCity`.
+ *
+ * El árbol «País y ciudad» pinta DOS controles ocultos —país (`name`) y ciudad (`cityFieldName`)— pero
+ * el formulario declara un solo campo. Como el payload se arma a partir de los campos declarados, la
+ * ciudad elegida se quedaba en el formulario y nunca viajaba: la cuenta se creaba sin ciudad y el
+ * alta del comercio la exigía después. Aquí se declara como opcional y sólo viaja si tiene valor.
+ */
+function ciudadesDeCountryCity(fields: ActionField[], declaradas: PayloadFieldDefinition[]): PayloadFieldDefinition[] {
+  const yaDeclaradas = new Set(declaradas.map((definicion) => definicion.name));
+  const ciudades = fields
+    .filter((field) => field.type === 'countryCity' && !field.assignedByBackend && field.cityFieldName)
+    .map((field) => field.cityFieldName as string)
+    .filter((nombre) => !yaDeclaradas.has(nombre));
+  return [...new Set(ciudades)].map((name) => ({ name, optional: true }));
 }

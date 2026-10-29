@@ -24,6 +24,7 @@ import {
   type PartnerOnboardingState,
 } from '@/services/partnerOnboardingService';
 import type { JsonObject } from '@/services/types';
+import { expedienteYaEnviado } from '@/lib/expedienteEnviado';
 
 /**
  * Los campos escritos del formulario, sin los vacíos.
@@ -347,14 +348,22 @@ export function PartnerDossierScreen() {
                   />
                 </div>
                 <div className="mt-3">
-                  <AtlasButton
-                    type="button"
-                    disabled={busy || !state.readyToSubmit}
-                    data-testid="btn-enviar-revision"
-                    onClick={() => void run('Envío a revisión', () => partnerOnboardingService.submit(partnerId))}
-                  >
-                    <Icon name="send" className="text-[18px]" /> Enviar a revisión
-                  </AtlasButton>
+                  {expedienteYaEnviado(state.profile.onboardingStatus) ? (
+                    <p className="text-sm text-slate-600" data-testid="aviso-expediente-enviado">
+                      {state.profile.onboardingStatus === 'approved'
+                        ? 'El expediente ya está aprobado: no necesita volver a enviarse.'
+                        : 'El expediente ya está en revisión: te avisaremos cuando haya una decisión.'}
+                    </p>
+                  ) : (
+                    <AtlasButton
+                      type="button"
+                      disabled={busy || !state.readyToSubmit}
+                      data-testid="btn-enviar-revision"
+                      onClick={() => void run('Envío a revisión', () => partnerOnboardingService.submit(partnerId))}
+                    >
+                      <Icon name="send" className="text-[18px]" /> Enviar a revisión
+                    </AtlasButton>
+                  )}
                 </div>
               </Panel>
               ),

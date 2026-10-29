@@ -1,0 +1,35 @@
+# Plan — Correcciones de los hallazgos del QA transversal (AtlasERPFrontend)
+
+- Fecha: 2026-10-29 · Repos afectados: AtlasERPFrontend · Predecesor: `AtlasDocumentationHub/10-testing/qa-flujo-completo-2026-10-28` (BUG-4, OBS-12)
+- Resultado observable: (1) «Crear empresa» envía la ciudad elegida en «País y ciudad»; (2) el portal del comercio no ofrece «Enviar a revisión» con el expediente ya enviado o aprobado.
+- Kill-test: (1) `POST /b2b/accounts` desde la pantalla no lleva `city` (reproducido: payload con `countryCode` y `address`, sin `city`); (2) con el expediente `approved`, el botón sigue visible y el servidor responde 422.
+
+## Alcance
+- IN: `lib/formPayload.ts` (definiciones de payload de los campos `countryCity`), `components/screens/PartnerDossierScreen.tsx` (botón de envío) + pruebas vitest.
+- OUT: backend (el DTO ya acepta `city`), el resto de hallazgos de otros repos.
+- Ambigüedades: ninguna.
+
+## H1 — BUG-4: la ciudad elegida no viajaba
+**CA:** Dado el formulario «Crear empresa», cuando se elige una ciudad en «País y ciudad» y se guarda, entonces el payload incluye `city` con esa ciudad.
+**DoD:** `yarn vitest run` verde (prueba nueva) · `yarn type-check` · `yarn lint` · repetición en el navegador contra el stack local.
+**Estado:** A MEDIAS
+
+### H1.S1 — Declarar el control de ciudad como parte del payload
+| ID | Microtarea | CA (binario) | DoD | Estado |
+|---|---|---|---|---|
+| H1.S1.M1 | `payloadDefinitions` añade `{name: cityFieldName, optional: true}` por cada campo `countryCity` (sin duplicar) | `formDataToPayload` devuelve `city` | `yarn vitest run tests/unit/form-payload-ciudad.test.ts` | HECHO |
+| H1.S1.M2 | Repetir «Crear empresa» en el navegador | el `POST` lleva `city` y la cuenta guarda la ciudad | captura de red / BD | A MEDIAS |
+
+## H2 — OBS-12: «Enviar a revisión» con el expediente ya enviado o aprobado
+**CA:** Dado un expediente en `under_review` o `approved`, cuando el comercio abre «Mi empresa», entonces no ve el botón de envío y sí un texto que explica el estado.
+**DoD:** `yarn vitest run` verde · `yarn type-check` · `yarn lint`.
+**Estado:** A MEDIAS
+
+| ID | Microtarea | CA (binario) | DoD | Estado |
+|---|---|---|---|---|
+| H2.S1.M1 | Ocultar el botón y mostrar el motivo cuando el estado es `under_review`/`approved` | sin `btn-enviar-revision` en esos estados | prueba de la regla pura + `yarn type-check` | HECHO |
+
+## Riesgos y bloqueos previstos
+| Riesgo | Impacto | Mitigación |
+|---|---|---|
+| Otros formularios con `cityFieldName` ahora envían `city` | Bajo: el backend ignora o acepta campos opcionales de su DTO | el campo es opcional y sólo viaja si tiene valor |
