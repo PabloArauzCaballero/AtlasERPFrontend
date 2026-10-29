@@ -27,7 +27,7 @@
 
 **CA:** Dado un expediente en `under_review` o `approved`, cuando el comercio abre «Mi empresa», entonces no ve el botón de envío y sí un texto que explica el estado.
 **DoD:** `yarn vitest run` verde · `yarn type-check` · `yarn lint`.
-**Estado:** A MEDIAS
+**Estado:** HECHO
 
 | ID       | Microtarea                                                                         | CA (binario)                              | DoD                                         | Estado |
 | -------- | ---------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------- | ------ |
@@ -58,5 +58,5 @@
 
 | ID       | Microtarea                                                                   | CA (binario)                      | DoD                                                       | Estado |
 | -------- | ---------------------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------- | ------ |
-| H3.S1.M1 | `loadAcceptedProposals` (sólo `ACCEPTED`) y su uso en la página de contratos | un `DRAFT` y un `SENT` no salen   | `yarn vitest run tests/unit/propuestas-aceptadas.test.ts` | TODO   |
-| H3.S1.M2 | Clic real                                                                    | el selector lista sólo `ACCEPTED` | script `h4-erp-contrato.cjs`                              | TODO   |
+| H3.S1.M1 | `loadAcceptedProposals` (sólo `ACCEPTED`) y su uso en la página de contratos | un `DRAFT` y un `SENT` no salen   | `yarn vitest run tests/unit/propuestas-aceptadas.test.ts` | HECHO  |
+| H3.S1.M2 | Clic real                                                                    | el selector lista sólo `ACCEPTED` | script `h4-erp-contrato.cjs`                              | HECHO  |
