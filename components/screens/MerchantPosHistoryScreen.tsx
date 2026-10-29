@@ -176,7 +176,12 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
         ) : !datos || datos.items.length === 0 ? (
           <div className="py-10 text-center">
             <Icon name="inbox" className="text-[28px] text-slate-400" />
-            <p className="mt-2 text-xs text-slate-500">{hayFiltros ? 'No hay nada con estos filtros.' : 'Todavía no hay movimientos en la caja.'}</p>
+            <p className="mt-2 text-xs font-bold">{hayFiltros ? 'Ningún movimiento coincide con estos filtros' : 'Todavía no hay movimientos en la caja'}</p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              {hayFiltros
+                ? 'Pulse «Quitar filtros» para ver todo el historial.'
+                : 'Aquí aparecerán las solicitudes respondidas y los pagos verificados.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">

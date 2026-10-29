@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { Icon } from './Icon';
 
@@ -56,6 +56,37 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
   const visitados = useRef<Set<string>>(new Set());
   if (active?.id) visitados.current.add(active.id);
 
+  /*
+   * El carril de pestañas se desplaza en horizontal cuando no caben (375 px). Se mide cuánto queda
+   * oculto a cada lado para que CSS difumine ese borde —la única pista de que hay más—, y al elegir
+   * una pestaña se centra en el carril para que la elegida nunca quede a medias bajo el difuminado.
+   * Se mueve `scrollLeft` a mano y no `scrollIntoView`: éste además desplazaría la página.
+   */
+  const carril = useRef<HTMLDivElement>(null);
+  const [mas, setMas] = useState({ izquierda: false, derecha: false });
+  const medir = useCallback(() => {
+    const el = carril.current;
+    if (!el) return;
+    const izquierda = el.scrollLeft > 1;
+    const derecha = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setMas((previo) => (previo.izquierda === izquierda && previo.derecha === derecha ? previo : { izquierda, derecha }));
+  }, []);
+  useEffect(() => {
+    medir();
+    const el = carril.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observador = new ResizeObserver(medir);
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, [medir, tabs.length]);
+  useEffect(() => {
+    const el = carril.current;
+    const elegida = el?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!el || !elegida) return;
+    el.scrollLeft = elegida.offsetLeft - (el.clientWidth - elegida.offsetWidth) / 2;
+    medir();
+  }, [active?.id, medir]);
+
   if (!tabs.length) return null;
   /*
    * Una sola pestaña no es una barra de secciones: es una etiqueta que no lleva a ningún sitio.
@@ -66,7 +97,15 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
 
   return (
     <div className={cn('space-y-4', className)}>
-      <div role="tablist" aria-label="Secciones" className="atlas-rail -mx-1 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1">
+      <div
+        ref={carril}
+        role="tablist"
+        aria-label="Secciones"
+        onScroll={medir}
+        data-mas-izquierda={mas.izquierda}
+        data-mas-derecha={mas.derecha}
+        className="atlas-rail -mx-1 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1"
+      >
         {tabs.map((tab) => {
           const selected = tab.id === active?.id;
           return (

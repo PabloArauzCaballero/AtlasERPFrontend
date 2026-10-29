@@ -161,7 +161,12 @@ export function MerchantPortfolioScreen() {
               <>
           <Panel title="Los próximos cobros" description="Lo que debería entrar en los siguientes días." icon="event_upcoming">
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-              : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cuotas pendientes de cobro.</p>
+              : proximos.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-xs font-bold">No hay cuotas pendientes de cobro</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Cuando un crédito tenga una cuota pendiente, aparecerá aquí.</p>
+                </div>
+              )
               : (
                 <div className="space-y-2">
                   {proximos.slice(0, 8).map((dia) => (
@@ -191,7 +196,12 @@ export function MerchantPortfolioScreen() {
               <>
           <Panel data-tutorial-id="cartera-creditos" title="Créditos pendientes de pago" description="Abra uno para ver su detalle cuota a cuota." icon="request_quote">
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-              : (cartera?.credits ?? []).length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay créditos originados en su comercio.</p>
+              : (cartera?.credits ?? []).length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-xs font-bold">No hay créditos originados en su comercio</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Los créditos de las compras financiadas en su comercio aparecerán aquí.</p>
+                </div>
+              )
               : (
                 <div className="space-y-2">
                   {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => {
@@ -247,7 +257,12 @@ export function MerchantPortfolioScreen() {
               <>
           <Panel data-tutorial-id="cartera-calendario" title="Calendario de cobros" description="Cuánto debería entrar cada día." icon="calendar_month">
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
-              : proximos.length === 0 ? <p className="py-8 text-center text-xs text-slate-500">No hay cobros programados.</p>
+              : proximos.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-xs font-bold">No hay cobros programados</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Cuando haya cuotas por cobrar, verá aquí cuánto entra cada día.</p>
+                </div>
+              )
               : (
                 <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {proximos.map((dia) => (

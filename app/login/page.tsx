@@ -283,7 +283,8 @@ function PasoDelCodigo({
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Revisa tu correo</h1>
         <p className="mt-1.5 text-sm leading-6 text-slate-600">
           Enviamos un código de 6 dígitos al correo de tu cuenta. Vence en {expiresInMinutes} minutos
-          y sólo puede usarse una vez.
+          y sólo puede usarse una vez. Si no llega, revisa la carpeta de correo no deseado o pulsa
+          «Usar otra cuenta» para volver a empezar.
         </p>
       </header>
 

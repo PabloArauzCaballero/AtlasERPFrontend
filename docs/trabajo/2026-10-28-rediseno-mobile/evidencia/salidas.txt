@@ -1,0 +1,22 @@
+# Salidas literales (recortadas). Entorno: Node 22.22.0, yarn 1.22.22 (--ignore-engines solo para instalar).
+# Backend SIMULADO: sesión de comercio/interna inventada con rutas de Playwright (@example.test).
+
+$ npx tsc --noEmit            -> TSC_OK
+$ npm run -s lint             -> LINT_OK   (check-pestanas-accion, check-campos, check-ayuda, eslint --max-warnings=0)
+$ npm run -s test:auth        -> AUTH_OK
+$ npx vitest run
+ Test Files  42 passed (42)
+      Tests  384 passed (384)        (incluye 8 de merchant-bottom-nav y 6 de tabbed-panels-rail, nuevos)
+$ NEXT_TELEMETRY_DISABLED=1 npm run -s build ; echo $?
+ build exit=0
+
+# Arnés 375x812 (isMobile, hasTouch), portal de comercio /portal-comercio/gestion-pos
+ANTES   {"headerControls":3,"overflowX":false,"under44":[["Mi empresa: Comercio Sin",44,40]]}   + botón flotante «Soporte y tutoriales» sobre el texto del vacío
+DESPUÉS {"headerControls":3,"overflowX":false,"under44":[]}                                    + barra inferior POS/Cartera/Mi empresa/Soporte
+# Escritorio 1280: sin barra inferior, flotante de soporte presente, tabla y lateral iguales.
+consoleErrors 0 en los tres viewports.
+
+# Consola interna /operaciones a 375: «ATLAS ERP» ya no sale en under44 (antes 84x24).
+# Avatar «Perfil de usuario»: caja 36x36 pero área táctil efectiva 44x44 (pseudo-elemento):
+$ elementFromPoint a 3 px fuera en los 4 lados -> true; a 6 px -> false
+{"box":[36,36],"hit3pxLeft":true,"hit3pxTop":true,"hit3pxRight":true,"hit3pxBottom":true,"hit6pxLeft":false}

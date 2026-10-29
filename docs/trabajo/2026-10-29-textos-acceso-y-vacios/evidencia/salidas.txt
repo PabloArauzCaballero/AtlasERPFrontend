@@ -1,0 +1,8 @@
+$ npx tsc --noEmit            -> TSC_OK
+$ npm run -s lint             -> LINT_OK  (check-pestanas-accion, check-campos, check-ayuda, eslint --max-warnings=0)
+$ npm run -s test:auth        -> AUTH_OK
+$ npx vitest run              -> Test Files 43 passed (43) · Tests 385 passed (385)   (incluye 1 nueva: tests/unit/login-pin-copy.test.tsx)
+$ NEXT_TELEMETRY_DISABLED=1 npm run -s build ; echo $?   -> 0
+# Arnés 375x812, backend SIMULADO (sesión de comercio sintética, listas vacías), /portal-comercio/cartera
+DOM: "No hay cuotas pendientes de cobro" | "Cuando un crédito tenga una cuota pendiente, aparecerá aquí."
+consoleErrors 0

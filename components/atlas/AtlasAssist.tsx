@@ -57,7 +57,14 @@ const ENFOCABLES = 'a[href], button:not([disabled]), textarea:not([disabled]), [
  * el panel, por encima del cajón de navegación (z-60) y por debajo de las guías, los recorridos,
  * los avisos y los diálogos (z-70 en adelante).
  */
-export function AtlasAssist({ surface }: Readonly<{ surface: SuperficieAsistente }>) {
+export function AtlasAssist({
+  surface,
+  sobreBarraInferior = false,
+}: Readonly<{
+  surface: SuperficieAsistente;
+  /** Hay una barra de navegación inferior por debajo de `lg`: el botón sube para no quedar tapado por ella. */
+  sobreBarraInferior?: boolean;
+}>) {
   const pathname = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [carga, setCarga] = useState<Carga>('sin-pedir');
@@ -226,7 +233,8 @@ export function AtlasAssist({ surface }: Readonly<{ surface: SuperficieAsistente
         title="Preguntale al asistente"
         data-testid="asistente-boton"
         className={cn(
-          'fixed bottom-4 right-4 z-[45] grid h-14 w-14 place-items-center rounded-full border border-white/20 bg-[#006a61] text-white shadow-lg transition sm:bottom-6 sm:right-6',
+          'fixed right-4 z-[45] grid h-14 w-14 place-items-center rounded-full border border-white/20 bg-[#006a61] text-white shadow-lg transition sm:right-6',
+          sobreBarraInferior ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:bottom-6' : 'bottom-4 sm:bottom-6',
           'hover:-translate-y-0.5 hover:bg-[#00544d] hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30',
           abierto && 'max-sm:hidden',
         )}
