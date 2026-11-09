@@ -27,6 +27,7 @@ export function RequireAuth({ children, audience }: Readonly<{ children: React.R
 
   useEffect(() => {
     if (status === 'unauthenticated') {
+      // `/login` reparte por la pantalla pedida: una del portal del comercio abre su acceso.
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }

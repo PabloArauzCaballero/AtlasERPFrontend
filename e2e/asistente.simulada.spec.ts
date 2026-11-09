@@ -119,7 +119,7 @@ test('apagado en el ambiente: el botón sigue y el panel lo explica', async ({ p
 
 test('el inicio de sesión no tiene asistente', async ({ page }) => {
   await page.route('**/api/v1/**', (route) => responder(route, 401, { message: 'Sin sesión' }));
-  await page.goto('/login');
+  await page.goto('/login/interno');
   await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Asistente de Atlas' })).toHaveCount(0);
 });

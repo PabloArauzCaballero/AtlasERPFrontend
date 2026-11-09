@@ -12,7 +12,7 @@ test('CSP de producción usa nonce único y permite hidratar el login', async ({
   });
   page.on('pageerror', (error) => violations.push(error.message));
 
-  const first = await page.goto('/login');
+  const first = await page.goto('/login/comercios');
   // HSTS sale del servidor aunque aquí sea http: el navegador sólo la obedece por https (RFC 6797 §8.1).
   expect(first?.headers()['strict-transport-security']).toBe('max-age=31536000; includeSubDomains');
   const firstPolicy = first?.headers()['content-security-policy'] ?? '';
@@ -22,8 +22,7 @@ test('CSP de producción usa nonce único y permite hidratar el login', async ({
   expect(scriptNonces.length).toBeGreaterThan(0);
   expect(scriptNonces.every((value) => value === nonce)).toBe(true);
 
-  await page.getByRole('tab', { name: 'Comercio afiliado' }).click();
-  await expect(page.getByRole('tab', { name: 'Comercio afiliado' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByLabel(/Correo del comercio/i)).toBeVisible();
   const second = await page.reload();
   expect(second?.headers()['content-security-policy']).not.toBe(firstPolicy);
   expect(violations).toEqual([]);

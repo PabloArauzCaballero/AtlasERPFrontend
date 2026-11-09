@@ -28,7 +28,7 @@ test.setTimeout(180_000);
 
 test.beforeEach(async ({ page }) => {
   test.skip(!INTERNO.email || !INTERNO.password, 'Sin PW_INTERNAL_EMAIL/PW_INTERNAL_PASSWORD.');
-  await page.goto('/login');
+  await page.goto('/login/interno');
   await page.locator('input[name="email"]').fill(INTERNO.email);
   await page.locator('input[name="password"]').fill(INTERNO.password);
   await page.getByRole('button', { name: /iniciar sesi/i }).click();

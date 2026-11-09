@@ -9,6 +9,7 @@ import { AuthPortada } from '@/components/atlas/AuthPortada';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { authService } from '@/services/authService';
+import { RUTA_LOGIN } from '@/lib/accesoAudiencia';
 import { TRASPASO, recogerDeLaPantallaAnterior } from '@/lib/traspasoEfimero';
 
 /**
@@ -71,6 +72,8 @@ function RecuperarAcceso() {
   const [paso, setPaso] = useState<Paso>('pedir');
   const canal: Canal = searchParams.get('canal') === 'interno' ? 'interno' : 'comercio';
   const copy = CANAL_COPY[canal];
+  // De vuelta, a la puerta de la misma población que pidió recuperar.
+  const audiencia = canal === 'interno' ? 'internal' : 'merchant';
   // El correo llega prellenado desde el login para no teclearlo dos veces, pero sigue siendo
   // editable: quien se equivocó de cuenta al entrar se equivocaría igual aquí.
   //
@@ -148,7 +151,7 @@ function RecuperarAcceso() {
                     : ''}
                 </p>
               </header>
-              <AtlasButton className="w-full" onClick={() => router.replace('/login')}>
+              <AtlasButton className="w-full" onClick={() => router.replace(RUTA_LOGIN[audiencia])}>
                 Ir al acceso
               </AtlasButton>
             </>
@@ -247,7 +250,7 @@ function RecuperarAcceso() {
 
           <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">
             ¿Ya la recordaste?{' '}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
+            <Link href={RUTA_LOGIN[audiencia]} className="font-semibold text-primary hover:underline">
               Volver al acceso
             </Link>
           </p>
