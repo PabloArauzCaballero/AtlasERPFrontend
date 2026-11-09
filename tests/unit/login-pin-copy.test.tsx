@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import LoginPage from '@/app/login/page';
+import { LoginScreen } from '@/components/auth/LoginScreen';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
@@ -18,7 +18,7 @@ afterEach(cleanup);
 describe('Acceso · paso del código de verificación', () => {
   it('dice qué hacer si el código no llega, sin prometer un reenvío que no existe', async () => {
     login.mockResolvedValueOnce({ pinChallengeRequired: true, challengeToken: 'token-de-prueba', expiresInMinutes: 10 });
-    render(<LoginPage />);
+    render(<LoginScreen audience="internal" />);
 
     fireEvent.change(screen.getByLabelText(/correo corporativo/i), { target: { value: 'qa@example.test' } });
     fireEvent.change(screen.getByLabelText(/contraseña/i), { target: { value: 'clave-de-prueba' } });

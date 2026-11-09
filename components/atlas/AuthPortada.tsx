@@ -14,7 +14,7 @@ const CAPACIDADES = [
  * Fondo oscuro y una sola idea grande. El degradado es adorno —no señal—, así que va en tonos del
  * propio acento en vez de traer un color nuevo que compita con los estados del producto.
  */
-export function AuthPortada() {
+export function AuthPortada({ audience = 'internal' }: Readonly<{ audience?: 'internal' | 'merchant' }>) {
   return (
     /*
      * La losa es verde ATLAS, no un carbón con dos manchas encima.
@@ -65,7 +65,8 @@ export function AuthPortada() {
 
       {/* Al 45% este aviso no se leía sobre la losa: es texto legal, no un adorno. */}
       <p className="relative text-xs text-white/70">
-        Acceso únicamente para personal autorizado · Todas las acciones son auditadas
+        {audience === 'merchant' ? 'Acceso para comercios afiliados' : 'Acceso únicamente para personal autorizado'} ·
+        Todas las acciones son auditadas
       </p>
     </aside>
   );

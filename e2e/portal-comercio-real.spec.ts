@@ -51,9 +51,8 @@ async function sinErrores(page: import('@playwright/test').Page, donde: string) 
 
 test.beforeEach(async ({ page }) => {
   test.skip(!COMERCIO.email || !COMERCIO.password, 'Sin PW_MERCHANT_EMAIL/PW_MERCHANT_PASSWORD.');
-  await page.goto('/login');
-  // La pestaña del comercio: su canal es distinto del interno a propósito.
-  await page.getByRole('tab', { name: /comercio afiliado/i }).click();
+  await page.goto('/login/comercios');
+  // El acceso del comercio tiene su propia dirección: su canal es distinto del interno a propósito.
   await page.locator('input[name="email"]').fill(COMERCIO.email);
   await page.locator('input[name="password"]').fill(COMERCIO.password);
   await page.getByRole('button', { name: /iniciar sesi/i }).click();

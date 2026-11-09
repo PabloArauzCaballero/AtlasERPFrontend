@@ -19,8 +19,7 @@ const COMERCIO = {
 
 test.beforeEach(async ({ page }) => {
   test.skip(!COMERCIO.email || !COMERCIO.password, 'Sin PW_MERCHANT_EMAIL/PW_MERCHANT_PASSWORD.');
-  await page.goto('/login');
-  await page.getByRole('tab', { name: /comercio afiliado/i }).click();
+  await page.goto('/login/comercios');
   await page.locator('input[name="email"]').fill(COMERCIO.email);
   await page.locator('input[name="password"]').fill(COMERCIO.password);
   await page.getByRole('button', { name: /iniciar sesi/i }).click();

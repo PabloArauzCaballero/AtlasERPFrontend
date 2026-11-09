@@ -119,11 +119,11 @@ export const TOURS_NEGOCIO: readonly InteractiveTutorial[] = [
       },
       {
         id: 'entrar',
-        route: '/login',
+        route: '/login/comercios',
         target: '[data-tutorial-id="topbar-search"]',
         title: '4 · Primer ingreso',
         content:
-          'La persona entra en «Comercio afiliado» con su correo y la contraseña temporal, y la cambia desde Mi cuenta. Si no le llegó el correo, un operador puede reenviarlo desde el Portal interno.',
+          'La persona entra por el acceso del comercio con su correo y la contraseña temporal, y la cambia desde Mi cuenta. Si no le llegó el correo, un operador puede reenviarlo desde el Portal interno.',
         optional: true,
       },
     ],

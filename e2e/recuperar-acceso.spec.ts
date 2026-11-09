@@ -68,16 +68,18 @@ test.describe('Recuperar el acceso del comercio', () => {
    * y la pantalla de recuperación lo borra al leerlo (`lib/traspasoEfimero.ts`). Una URL se queda
    * en el historial y en los registros del proxy, y un correo es un dato personal.
    */
-  test('el enlace lleva el canal de cada pestaña y el correo escrito, fuera de la URL', async ({ page }) => {
-    await page.goto('/login');
+  test('el enlace lleva el canal de cada acceso y el correo escrito, fuera de la URL', async ({ page }) => {
     const enlace = page.getByRole('link', { name: '¿Olvidaste tu contraseña?' });
 
-    // Pestaña interna (la que abre por defecto).
+    // El acceso interno.
+    await page.goto('/login/interno');
     await expect(enlace).toBeVisible();
     await page.getByLabel(/Correo corporativo/i).fill('persona@atlas.internal');
     await expect(enlace).toHaveAttribute('href', '/recuperar-acceso?canal=interno');
 
-    await page.getByRole('tab', { name: 'Comercio afiliado' }).click();
+    // El del comercio, que es además a donde lleva `/login` a quien llega por primera vez.
+    await page.goto('/login');
+    await expect(page).toHaveURL(/\/login\/comercios$/);
     await page.getByLabel(/Correo del comercio/i).fill('comercio@alfa.test');
     await expect(enlace).toHaveAttribute('href', '/recuperar-acceso?canal=comercio');
 

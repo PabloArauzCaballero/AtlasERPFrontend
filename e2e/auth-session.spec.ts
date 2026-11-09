@@ -24,7 +24,7 @@ test('el reload recupera la sesión interna sin guardar ni reutilizar el bearer'
     return respond({ items: [], total: 0 });
   });
 
-  await page.goto('/login');
+  await page.goto('/login/interno');
   await expect(page).toHaveURL(/\/operaciones/);
   expect(await page.evaluate(() => window.localStorage.getItem('atlas_access_token'))).toBeNull();
   await page.reload();
@@ -45,7 +45,7 @@ test('un refresh rechazado deja anónima la sesión sin rescatar un token hereda
   await page.route('**/api/v1/auth/merchant/refresh', (route) => route.fulfill({
     status: 401, contentType: 'application/json', body: JSON.stringify({ success: false, error: { message: 'Sesión vencida' } }),
   }));
-  await page.goto('/login');
+  await page.goto('/login/interno');
   await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
   expect(await page.evaluate(() => window.localStorage.getItem('atlas_access_token'))).toBeNull();
 });
@@ -76,7 +76,7 @@ test('login y logout internos usan el bearer en memoria y revocan la sesión del
     }
     return respond({ items: [], total: 0 });
   });
-  await page.goto('/login');
+  await page.goto('/login/interno');
   await page.locator('input[name=email]').fill('qa@atlas.test');
   await page.locator('input[name=password]').fill('password-de-prueba');
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();

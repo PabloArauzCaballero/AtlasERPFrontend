@@ -1,0 +1,314 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { AmbientBackground } from '@/components/atlas/AmbientBackground';
+import { AtlasButton } from '@/components/atlas/AtlasButton';
+import { FormField } from '@/components/atlas/FormField';
+import { InlineNotice } from '@/components/atlas/InlineNotice';
+import { AuthPortada } from '@/components/atlas/AuthPortada';
+import { RUTA_LOGIN, recordarAudiencia, type Audience } from '@/lib/accesoAudiencia';
+import { useAuth } from '@/lib/authContext';
+import { rutaInternaSegura } from '@/lib/rutaInterna';
+import { TRASPASO, dejarParaLaSiguientePantalla, recogerDeLaPantallaAnterior } from '@/lib/traspasoEfimero';
+import { isPinChallenge } from '@/services/authTypes';
+import type { PinChallenge } from '@/services/authTypes';
+
+/**
+ * Dos poblaciones, dos canales. El personal interno se autentica contra el plano interno de
+ * AtlasBackend; el comercio, contra el suyo (`/auth/merchant/login`). No es una preferencia de
+ * interfaz: son tablas de identidad distintas, y hasta hace poco el comercio simplemente no tenía
+ * dónde entrar — su rol se fabricaba desde un rol de empleado.
+ *
+ * Cada población tiene su propia dirección (`/login/comercios`, `/login/interno`) y esta pantalla
+ * recibe cuál es: ya no hay pestaña para elegirla. La pestaña abría siempre en «Personal Atlas» y
+ * el comercio veía primero un acceso que no era el suyo (ver `lib/accesoAudiencia.ts`).
+ *
+ * ## La portada
+ *
+ * Es la anatomía del acceso del motor de decisión, traída aquí: portada de marca a la izquierda con
+ * lo que el producto hace, tarjeta de acceso a la derecha. Antes esto era un formulario centrado de
+ * 340 px sobre blanco — correcto y anónimo: nada decía a qué se está entrando ni por qué esa
+ * pantalla pertenece a ATLAS.
+ *
+ * La portada se OCULTA por debajo de `lg`. En un móvil no hay sitio para dos columnas, y apilar el
+ * discurso encima del formulario obliga a desplazarse para hacer lo único que se vino a hacer.
+ */
+const AUDIENCE_COPY: Record<
+  Audience,
+  {
+    antetitulo: string;
+    acceso: string;
+    emailLabel: string;
+    placeholder: string;
+    home: string;
+    otraPuerta: { pregunta: string; enlace: string; audience: Audience };
+  }
+> = {
+  internal: {
+    antetitulo: 'Acceso corporativo',
+    acceso: 'al panel administrativo interno',
+    emailLabel: 'Correo corporativo',
+    placeholder: 'usuario@atlas.internal',
+    home: '/operaciones',
+    otraPuerta: { pregunta: '¿Tienes un comercio afiliado?', enlace: 'Entra al portal del comercio', audience: 'merchant' },
+  },
+  merchant: {
+    antetitulo: 'Portal del comercio',
+    acceso: 'al portal de tu comercio',
+    emailLabel: 'Correo del comercio',
+    placeholder: 'usuario@micomercio.com',
+    home: '/portal-comercio/gestion-pos',
+    otraPuerta: { pregunta: '¿Eres del equipo de Atlas?', enlace: 'Entra al acceso interno', audience: 'internal' },
+  },
+};
+
+export function LoginScreen({ audience }: Readonly<{ audience: Audience }>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login, verifyLoginPin, loginMerchant, status, isMerchant } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  // Desafío del segundo factor pendiente: la contraseña ya se validó, pero todavía no hay sesión.
+  // Sólo el canal interno lo produce; el del comercio no exige PIN.
+  const [challenge, setChallenge] = useState<PinChallenge | null>(null);
+  const [pin, setPin] = useState('');
+
+  const copy = AUDIENCE_COPY[audience];
+  /*
+   * El `next` se valida UNA vez y todos los caminos usan el mismo resultado: antes había tres
+   * lecturas sueltas de `searchParams.get('next')` y bastaba con olvidar una para dejar abierta la
+   * redirección (ver `lib/rutaInterna.ts`).
+   */
+  const destinoPedido = rutaInternaSegura(searchParams.get('next'));
+  // Por qué se cerró la sesión anterior, si la cerró el reloj de inactividad. Se lee una vez y se borra.
+  const [cierrePorInactividad, setCierrePorInactividad] = useState(false);
+  useEffect(() => {
+    if (recogerDeLaPantallaAnterior(TRASPASO.cierrePorInactividad)) setCierrePorInactividad(true);
+  }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      // El destino lo manda la sesión REAL, no la pestaña elegida: si alguien llega con sesión de
+      // comercio y `next=/operaciones`, mandarlo allí sólo produciría un rebote del guard.
+      const home = AUDIENCE_COPY[isMerchant ? 'merchant' : 'internal'].home;
+      router.replace(destinoPedido && !isMerchant ? destinoPedido : home);
+    }
+  }, [status, isMerchant, router, destinoPedido]);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      if (audience === 'merchant') {
+        await loginMerchant({ email, password });
+        recordarAudiencia(audience);
+        router.replace(copy.home);
+      } else {
+        const outcome = await login({ email, password });
+        if (isPinChallenge(outcome)) {
+          setChallenge(outcome);
+          return;
+        }
+        recordarAudiencia(audience);
+        router.replace(destinoPedido ?? copy.home);
+      }
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No fue posible iniciar sesión.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleVerifyPin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!challenge) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      await verifyLoginPin({ challengeToken: challenge.challengeToken, pin });
+      recordarAudiencia(audience);
+      router.replace(destinoPedido ?? AUDIENCE_COPY.internal.home);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No fue posible verificar el código.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="grid min-h-screen bg-background grid-cols-[minmax(0,1fr)] lg:grid-cols-[1.05fr_1fr]">
+      <AuthPortada audience={audience} />
+
+      {/*
+       * La columna del formulario lleva el fondo ambiental —el mismo del motor de
+       * decisión— y la portada no: allí ya hay un degradado propio, y dos capas de
+       * atmósfera compitiendo se leen como ruido. Aquí, en cambio, había un plano
+       * liso, y es la superficie a la que se mira mientras se teclea.
+       */}
+      <section className="relative flex items-center justify-center px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] pt-[calc(2.5rem+env(safe-area-inset-top,0px))] sm:px-10">
+        <AmbientBackground variant="auth" state={error ? 'error' : 'idle'} />
+        <div className="relative z-10 w-full max-w-[380px]">
+          {challenge ? (
+            <PasoDelCodigo
+              expiresInMinutes={challenge.expiresInMinutes}
+              pin={pin}
+              onPin={setPin}
+              error={error}
+              submitting={submitting}
+              onSubmit={handleVerifyPin}
+              onCancel={() => {
+                setChallenge(null);
+                setPin('');
+                setError(null);
+              }}
+            />
+          ) : (
+            <>
+              {cierrePorInactividad ? (
+                <InlineNotice tone="info" title="Cerramos tu sesión" className="mb-5">
+                  Pasaron 15 minutos sin actividad. Vuelve a entrar para seguir.
+                </InlineNotice>
+              ) : null}
+              <header className="mb-6">
+                <p className="text-xs font-bold tracking-[0.02em] text-primary">{copy.antetitulo}</p>
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                  Bienvenido nuevamente
+                </h1>
+                <p className="mt-1.5 text-sm leading-6 text-slate-600">
+                  Ingresa tus credenciales para acceder {copy.acceso}.
+                </p>
+              </header>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <FormField tooltip="El correo con el que te dieron de alta; es tu usuario para entrar. Ej.: nombre@empresa.bo."
+                  label={copy.emailLabel}
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder={copy.placeholder}
+                />
+                <FormField tooltip="Tu contraseña del ERP; distingue mayúsculas."
+                  label="Contraseña"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="••••••••"
+                  hint="Nunca compartas tu contraseña; el equipo de soporte jamás te la pedirá."
+                />
+                {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
+                <AtlasButton type="submit" className="w-full" loading={submitting}>
+                  Iniciar sesión
+                </AtlasButton>
+                {/*
+                  * El enlace lleva el CANAL en la dirección, no en un estado de la pantalla:
+                  * cada población tiene su propia ruta en el backend y la pantalla de recuperación
+                  * necesita saber a cuál llamar. Así el enlace también sirve pegado en un correo
+                  * de soporte, que es como se usa la mitad de las veces.
+                  *
+                  * El CORREO, en cambio, ya no va en la dirección (`&correo=` hasta 2026-10-09): una
+                  * URL queda en el historial del navegador y en los registros de acceso del proxy, y
+                  * un correo es un dato personal. Pasa por `sessionStorage` y la pantalla siguiente
+                  * lo borra al leerlo (`lib/traspasoEfimero.ts`).
+                  */}
+                <p className="text-center text-xs text-slate-500">
+                  <Link
+                    href={`/recuperar-acceso?canal=${audience === 'merchant' ? 'comercio' : 'interno'}`}
+                    onClick={() => dejarParaLaSiguientePantalla(TRASPASO.correoARecuperar, email.trim())}
+                    className="font-semibold text-primary transition hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </p>
+              </form>
+
+              {/* La otra puerta, discreta: quien llegó a la que no era suya no se queda sin salida. */}
+              <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">
+                {copy.otraPuerta.pregunta}{' '}
+                <Link
+                  href={RUTA_LOGIN[copy.otraPuerta.audience]}
+                  className="font-semibold text-primary transition hover:underline"
+                >
+                  {copy.otraPuerta.enlace}
+                </Link>
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+/** Segundo paso del acceso interno: el código de 6 dígitos que llega al correo de la cuenta. */
+function PasoDelCodigo({
+  expiresInMinutes,
+  pin,
+  onPin,
+  error,
+  submitting,
+  onSubmit,
+  onCancel,
+}: Readonly<{
+  expiresInMinutes: number;
+  pin: string;
+  onPin: (value: string) => void;
+  error: string | null;
+  submitting: boolean;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onCancel: () => void;
+}>) {
+  return (
+    <>
+      <header className="mb-6">
+        <p className="text-xs font-bold tracking-[0.02em] text-primary">Verificación en dos pasos</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Revisa tu correo</h1>
+        <p className="mt-1.5 text-sm leading-6 text-slate-600">
+          Enviamos un código de 6 dígitos al correo de tu cuenta. Vence en {expiresInMinutes} minutos
+          y sólo puede usarse una vez. Si no llega, revisa la carpeta de correo no deseado o pulsa
+          «Usar otra cuenta» para volver a empezar.
+        </p>
+      </header>
+
+      <form onSubmit={onSubmit} className="space-y-5">
+        <FormField tooltip="Código de seis dígitos que te llegó al correo; caduca en pocos minutos."
+          label="Código de verificación"
+          name="pin"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+          required
+          value={pin}
+          onChange={(event) => onPin(event.target.value)}
+          placeholder="000000"
+        />
+        {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
+        <AtlasButton type="submit" className="w-full" loading={submitting}>
+          Confirmar y entrar
+        </AtlasButton>
+        <button
+          type="button"
+          className="w-full text-xs font-semibold text-slate-500 transition hover:text-slate-700"
+          onClick={onCancel}
+        >
+          Usar otra cuenta
+        </button>
+      </form>
+
+      <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">
+        Nadie de soporte te pedirá este código. Si no pediste entrar, ignóralo y cambia tu
+        contraseña.
+      </p>
+    </>
+  );
+}
