@@ -37,7 +37,7 @@ async function conExpediente(page: import('@playwright/test').Page) {
   await expect(page.getByTestId('tab-sucursales')).toBeVisible({ timeout: 30_000 });
 }
 
-test('el menú son dos entradas; Mi empresa va en el avatar y Soporte sobre el asistente', async ({ page }) => {
+test('el menú son dos entradas; Mi empresa va en el avatar y Soporte en un botón flotante', async ({ page }) => {
   await page.goto('/portal-comercio/gestion-pos');
   const menu = page.getByRole('navigation').first();
   // Cartera y facturación comparten UNA entrada; la ficha del negocio y el soporte salieron del menú.
@@ -50,11 +50,9 @@ test('el menú son dos entradas; Mi empresa va en el avatar y Soporte sobre el a
 
   // Mi empresa: el avatar de la cabecera es el enlace a la cuenta de la empresa.
   await expect(page.getByRole('link', { name: /^mi empresa/i })).toHaveAttribute('href', '/portal-comercio/expediente');
-  // Soporte y tutoriales: botón flotante, encima del botón del asistente.
+  // Soporte y tutoriales: botón flotante.
   const soporte = page.getByRole('link', { name: /soporte y tutoriales/i });
   await expect(soporte).toHaveAttribute('href', '/portal-comercio/soporte');
-  const [cajaSoporte, cajaAsistente] = await Promise.all([soporte.boundingBox(), page.getByTestId('asistente-boton').boundingBox().catch(() => null)]);
-  if (cajaSoporte && cajaAsistente) expect(cajaSoporte.y + cajaSoporte.height).toBeLessThanOrEqual(cajaAsistente.y);
   await page.screenshot({ path: `${EVIDENCIA}/menu-dos-entradas.png`, fullPage: true });
 });
 

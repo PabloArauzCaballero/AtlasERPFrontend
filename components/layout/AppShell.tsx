@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
-import { AtlasAssist } from '@/components/atlas/AtlasAssist';
 import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { AtlasSidebar } from './AtlasSidebar';
 import { AtlasTopbar } from './AtlasTopbar';
@@ -53,7 +52,6 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-4 md:space-y-6 md:p-6">{children}</div>
       </main>
 
-      <AtlasAssist surface="erp-staff" />
     </div>
     </TutorialProvider>
   );
