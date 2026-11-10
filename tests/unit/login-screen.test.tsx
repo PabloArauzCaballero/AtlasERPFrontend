@@ -7,7 +7,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace, push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
-vi.mock('@/components/atlas/AmbientBackground', () => ({ AmbientBackground: () => null }));
 vi.mock('@/lib/authContext', () => ({
   useAuth: () => ({ login, verifyLoginPin: vi.fn(), loginMerchant, status: 'unauthenticated', isMerchant: false }),
 }));

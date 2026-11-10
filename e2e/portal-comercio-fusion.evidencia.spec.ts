@@ -64,7 +64,7 @@ test('Cartera y facturación: una entrada, dos vistas con selector', async ({ pa
   await expect(page).toHaveURL(/\/portal-comercio\/facturacion/);
   await expect(page.getByRole('tab', { name: /consumo y facturación/i })).toHaveAttribute('aria-selected', 'true');
   // La entrada del menú sigue activa en la vista hermana.
-  await expect(entrada).toHaveClass(/bg-primary/);
+  await expect(entrada).toHaveAttribute('aria-current', 'page');
 });
 
 test('Gestión POS abre la pestaña que dice la URL', async ({ page }) => {

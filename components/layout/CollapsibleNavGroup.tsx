@@ -39,10 +39,10 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
         aria-expanded={open}
         className={cn(
           'flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
-          containsActive ? 'text-primary' : 'text-slate-600 hover:bg-white hover:text-primary',
+          containsActive ? 'text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900',
         )}
       >
-        <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-primary' : 'text-slate-500')} />
+        <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-slate-900' : 'text-slate-500')} />
         <span className="flex-1 truncate text-left">{label}</span>
         <Icon name={open ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-500" />
       </button>
@@ -55,12 +55,13 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
-                  active ? 'bg-primary-container text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-primary',
+                  'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors',
+                  active ? 'bg-brand-soft font-semibold text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900',
                 )}
               >
-                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-white/75' : 'text-slate-500')} />
+                <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-slate-900' : 'text-slate-500')} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );

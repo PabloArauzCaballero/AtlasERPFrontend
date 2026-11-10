@@ -50,7 +50,7 @@ export function NavDrawer({ open, onClose, label, children }: NavDrawerProps) {
       aria-hidden={open ? undefined : true}
     >
       <div
-        className={`absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-scrim transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
       <div
@@ -58,7 +58,7 @@ export function NavDrawer({ open, onClose, label, children }: NavDrawerProps) {
         role="dialog"
         aria-modal={open ? true : undefined}
         aria-label={label}
-        className={`absolute inset-y-0 left-0 flex w-[min(86vw,20rem)] flex-col border-r border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl transition-transform duration-200 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`absolute inset-y-0 left-0 flex w-[min(86vw,20rem)] flex-col border-r border-border-strong bg-white transition-transform duration-200 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {children}
       </div>

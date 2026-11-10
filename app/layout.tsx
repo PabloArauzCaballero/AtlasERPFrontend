@@ -3,7 +3,6 @@ import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import './tema.css';
 import './globals.css';
-import './ambient.css';
 import './tutorial.css';
 import { AuthProvider } from '@/lib/authContext';
 import { ToastHost } from '@/components/atlas/ToastHost';
@@ -25,7 +24,7 @@ const mono = localFont({ src: './fuentes/jbmono-latin.woff2', weight: '400 500',
 export const metadata: Metadata = {
   title: { default: 'ATLAS ERP', template: '%s | ATLAS ERP' },
   description: 'Plataforma operacional y financiera ATLAS.',
-  // El logo de la app móvil, servido desde `public/`: es el icono de la pestaña en todos los portales.
+  // El isotipo de Cuotea, servido desde `public/`.
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },

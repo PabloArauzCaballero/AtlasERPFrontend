@@ -33,3 +33,14 @@ test('la tipografía es Outfit y se sirve desde este origen', async ({ page }) =
   expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toMatch(/Outfit/i);
   expect(remotas).toEqual([]);
 });
+
+test('el conmutador cambia el tema en el acto y lo recuerda', async ({ page }) => {
+  await page.goto('/login/interno');
+  await page.getByTestId('tema-dark').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.getByTestId('tema-dark')).toHaveAttribute('aria-checked', 'true');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByTestId('tema-light').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+});
