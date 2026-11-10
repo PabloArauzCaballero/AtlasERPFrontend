@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { JetBrains_Mono, Outfit } from 'next/font/google';
+import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import './tema.css';
 import './globals.css';
@@ -14,12 +14,13 @@ import { SCRIPT_DE_TEMA } from '@/lib/tema';
 export const dynamic = 'force-dynamic';
 
 /*
- * Outfit, autoalojada: `next/font` descarga la fuente AL CONSTRUIR y la sirve desde `/_next/static`,
- * así que el navegador no pide nada a Google por la tipografía. Sólo 400, 500 y 600 (la identidad
- * no usa más peso). La monoespaciada es para identificadores y código.
+ * Outfit, autoalojada con `next/font/local`: los archivos viven en `app/fuentes/` y se sirven desde
+ * `/_next/static`, así que ni el navegador ni el constructor piden nada a Google por la tipografía
+ * (con `next/font/google` el CI falló de forma intermitente al descargarla). El subconjunto latino cubre el español. Sólo 400,
+ * 500 y 600 (la identidad no usa más peso). La monoespaciada es para identificadores y código.
  */
-const outfit = Outfit({ subsets: ['latin', 'latin-ext'], weight: ['400', '500', '600'], display: 'swap', variable: '--font-sans' });
-const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], display: 'swap', variable: '--font-mono' });
+const outfit = localFont({ src: './fuentes/outfit-latin.woff2', weight: '400 600', display: 'swap', variable: '--font-sans' });
+const mono = localFont({ src: './fuentes/jbmono-latin.woff2', weight: '400 500', display: 'swap', variable: '--font-mono' });
 
 export const metadata: Metadata = {
   title: { default: 'ATLAS ERP', template: '%s | ATLAS ERP' },
