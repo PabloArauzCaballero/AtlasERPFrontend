@@ -2,28 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FASE 3 BORRA ESTA LÍNEA y el bloque `:root` de abajo, junto con el fondo ambiental. */
-@import '../styles/ambient.css';
-
-/*
- * Variables que la hoja del fondo ambiental (portada verbatim del Motor) consume por nombre.
- * NO son la identidad: los colores de Cuotea viven en `app/tema.css`. Se van en la fase 3.
- */
-:root {
-  --accent: #006a61;
-  --accent-strong: #00544d;
-  --accent-rgb: 0, 106, 97;
-  --ink: #1d1d1f;
-  --text: #38383d;
-  --muted: #5a5a63;
-  --line: #e4e4e7;
-  --canvas: #f5f5f7;
-  --surface: #ffffff;
-  --dur-slow: 280ms;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-}
-
 * { box-sizing: border-box; }
 
 html {

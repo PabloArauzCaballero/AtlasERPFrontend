@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '@/components/atlas/Icon';
+import { LogoCuotea } from '@/components/atlas/Marca';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/lib/authContext';
 import { CollapsibleNavGroup } from './CollapsibleNavGroup';
@@ -38,21 +39,15 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-slate-200/80 px-5 py-5">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary text-white"><Icon name="account_balance" className="text-[23px]" /></span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-extrabold text-primary">Financial Core</p>
-            <p className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Enterprise Hub</p>
-          </div>
-        </div>
-      </div>
+      {/* En escritorio el logo ya está en la barra superior; aquí sólo hace falta dentro del cajón móvil. */}
+      <div className="border-b border-slate-200 px-5 py-4 lg:hidden"><LogoCuotea alto={24} /></div>
       <nav data-tutorial-id="sidebar-nav" className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
         <Link
           href="/operaciones"
           data-tutorial-id="sidebar-dashboard"
           onClick={onNavigate}
-          className={cn('mb-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones' ? 'bg-primary-container text-white' : 'text-slate-600 hover:bg-white')}
+          aria-current={pathname === '/operaciones' ? 'page' : undefined}
+          className={cn('mb-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold transition-colors', pathname === '/operaciones' ? 'bg-brand-soft text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900')}
         >
           <Icon name="dashboard" className="text-[19px]" /> Dashboard
         </Link>
@@ -63,7 +58,8 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
         <Link
           href="/operaciones/tutoriales"
           onClick={onNavigate}
-          className={cn('mb-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones/tutoriales' ? 'bg-primary-container text-white' : 'text-slate-600 hover:bg-white')}
+          aria-current={pathname === '/operaciones/tutoriales' ? 'page' : undefined}
+          className={cn('mb-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold transition-colors', pathname === '/operaciones/tutoriales' ? 'bg-brand-soft text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900')}
         >
           <Icon name="school" className="text-[19px]" /> Centro de Tutoriales
         </Link>
@@ -101,11 +97,11 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
         * de Tutoriales que ya está arriba del menú. Quitado, queda sólo salir, y con su nombre: un
         * icono solitario en una esquina es la clase de control que se pulsa sin querer.
         */}
-      <div className="border-t border-slate-200/80 p-3">
+      <div className="border-t border-slate-200 p-3">
         <button
           type="button"
           onClick={handleLogout}
-          className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+          className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-danger hover:bg-danger-soft"
         >
           <Icon name="logout" className="text-[18px]" /> Cerrar sesión
         </button>
@@ -142,13 +138,12 @@ function GrupoDeMenu({ group, pathname, defaultOpen, onNavigate }: Readonly<{
         onClick={() => setAbierto((valor) => !valor)}
         aria-expanded={abierto}
         className={cn(
-          'mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] transition-colors',
-          contieneActiva ? 'text-primary' : 'text-slate-500 hover:bg-white hover:text-primary',
+          'mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
+          contieneActiva ? 'text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900',
         )}
       >
-        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${group.accent}`} />
         <span className="flex-1 truncate text-left">{group.label}</span>
-        <Icon name={abierto ? 'expand_less' : 'expand_more'} className="text-[16px] text-slate-400" />
+        <Icon name={abierto ? 'expand_less' : 'expand_more'} className="text-[16px] text-slate-500" />
       </button>
       {abierto ? (
         <div className="space-y-0.5">
@@ -159,9 +154,10 @@ function GrupoDeMenu({ group, pathname, defaultOpen, onNavigate }: Readonly<{
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
-                className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors', active ? 'bg-primary-container text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-primary')}
+                aria-current={active ? 'page' : undefined}
+                className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors', active ? 'bg-brand-soft font-semibold text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900')}
               >
-                <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-white/75' : 'text-slate-500')} />
+                <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-slate-900' : 'text-slate-500')} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );

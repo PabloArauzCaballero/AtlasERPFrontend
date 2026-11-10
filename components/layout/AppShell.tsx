@@ -1,20 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { AtlasSidebar } from './AtlasSidebar';
 import { AtlasTopbar } from './AtlasTopbar';
 import { NavDrawer } from './NavDrawer';
-import { ambientVariantFor, areaForPath } from './navigation';
 
 /**
  * Armazón de la consola interna.
  *
  * Tres piezas: la barra superior fija, el menú lateral —columna fija en
- * escritorio, cajón deslizante por debajo de `lg`— y el contenido. Detrás de
- * todo, el fondo ambiental, que se tiñe con el color del área en la que se está.
+ * escritorio, cajón deslizante por debajo de `lg`— y el contenido.
  *
  * El estado del cajón vive aquí porque lo abre la barra superior y lo pinta el
  * lateral: es el ancestro común, y lo alternativo sería un contexto para un solo
@@ -23,8 +20,6 @@ import { ambientVariantFor, areaForPath } from './navigation';
 export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
-  const area = useMemo(() => areaForPath(pathname), [pathname]);
-  const ambiente = useMemo(() => ambientVariantFor(pathname), [pathname]);
 
   // Navegar cierra el cajón. `AtlasSidebar` ya lo cierra al pulsar un enlace,
   // pero no toda navegación sale de ahí —una miga de pan, el botón atrás del
@@ -33,12 +28,11 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
   return (
     <TutorialProvider>
-    <div className="relative min-h-[100dvh] text-slate-900">
-      <AmbientBackground variant={ambiente} accent={area} />
+    <div className="relative min-h-[100dvh] bg-canvas text-slate-900">
 
       <AtlasTopbar onOpenNav={() => setNavOpen(true)} />
 
-      <aside className="fixed bottom-0 left-0 top-16 z-40 hidden w-64 border-r border-slate-200/80 bg-white/70 backdrop-blur-xl lg:block">
+      <aside className="fixed bottom-0 left-0 top-16 z-40 hidden w-64 border-r border-slate-200 bg-white lg:block">
         <AtlasSidebar />
       </aside>
 

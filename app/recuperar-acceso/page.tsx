@@ -3,11 +3,12 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { AuthPortada } from '@/components/atlas/AuthPortada';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
+import { LogoCuotea } from '@/components/atlas/Marca';
+import { SelectorDeTema } from '@/components/atlas/SelectorDeTema';
 import { authService } from '@/services/authService';
 import { RUTA_LOGIN } from '@/lib/accesoAudiencia';
 import { TRASPASO, recogerDeLaPantallaAnterior } from '@/lib/traspasoEfimero';
@@ -130,17 +131,17 @@ function RecuperarAcceso() {
   }
 
   return (
-    <main className="grid min-h-screen bg-background grid-cols-[minmax(0,1fr)] lg:grid-cols-[1.05fr_1fr]">
+    <main className="grid min-h-screen bg-canvas grid-cols-[minmax(0,1fr)] lg:grid-cols-[1.05fr_1fr]">
       <AuthPortada />
 
       <section className="relative flex items-center justify-center px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] pt-[calc(2.5rem+env(safe-area-inset-top,0px))] sm:px-10">
-        <AmbientBackground variant="auth" state={error ? 'error' : 'idle'} />
         <div className="relative z-10 w-full max-w-[380px]">
+          <LogoCuotea alto={32} className="mb-8 lg:hidden" />
           {paso === 'listo' ? (
             <>
               <header className="mb-6">
-                <p className="text-xs font-bold tracking-[0.02em] text-primary">Contraseña nueva</p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                <p className="text-xs font-medium text-slate-600">Contraseña nueva</p>
+                <h1 className="mt-1 text-2xl font-semibold leading-[30px] tracking-tight text-slate-900">
                   Ya puedes entrar
                 </h1>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
@@ -151,7 +152,7 @@ function RecuperarAcceso() {
                     : ''}
                 </p>
               </header>
-              <AtlasButton className="w-full" onClick={() => router.replace(RUTA_LOGIN[audiencia])}>
+              <AtlasButton variant="strong" className="w-full" onClick={() => router.replace(RUTA_LOGIN[audiencia])}>
                 Ir al acceso
               </AtlasButton>
             </>
@@ -160,10 +161,10 @@ function RecuperarAcceso() {
           {paso === 'pedir' ? (
             <>
               <header className="mb-6">
-                <p className="text-xs font-bold tracking-[0.02em] text-primary">
+                <p className="text-xs font-medium text-slate-600">
                   {copy.antetitulo}
                 </p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                <h1 className="mt-1 text-2xl font-semibold leading-[30px] tracking-tight text-slate-900">
                   Recuperar el acceso
                 </h1>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">{copy.entradilla}</p>
@@ -182,7 +183,7 @@ function RecuperarAcceso() {
                   placeholder={copy.marcador}
                 />
                 {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
-                <AtlasButton type="submit" className="w-full" loading={submitting}>
+                <AtlasButton type="submit" variant="strong" className="w-full" loading={submitting}>
                   Enviarme el código
                 </AtlasButton>
               </form>
@@ -192,8 +193,8 @@ function RecuperarAcceso() {
           {paso === 'confirmar' ? (
             <>
               <header className="mb-6">
-                <p className="text-xs font-bold tracking-[0.02em] text-primary">Revisa tu correo</p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                <p className="text-xs font-medium text-slate-600">Revisa tu correo</p>
+                <h1 className="mt-1 text-2xl font-semibold leading-[30px] tracking-tight text-slate-900">
                   Escribe el código
                 </h1>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
@@ -229,12 +230,12 @@ function RecuperarAcceso() {
                   hint="Al menos 10 caracteres. Nunca la compartas; soporte jamás te la pedirá."
                 />
                 {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
-                <AtlasButton type="submit" className="w-full" loading={submitting}>
+                <AtlasButton type="submit" variant="strong" className="w-full" loading={submitting}>
                   Cambiar mi contraseña
                 </AtlasButton>
                 <button
                   type="button"
-                  className="w-full text-xs font-semibold text-slate-500 transition hover:text-slate-700"
+                  className="w-full text-xs font-medium text-primary hover:underline"
                   onClick={() => {
                     setPaso('pedir');
                     setCode('');
@@ -248,12 +249,13 @@ function RecuperarAcceso() {
             </>
           ) : null}
 
-          <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">
+          <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-600">
             ¿Ya la recordaste?{' '}
-            <Link href={RUTA_LOGIN[audiencia]} className="font-semibold text-primary hover:underline">
+            <Link href={RUTA_LOGIN[audiencia]} className="font-medium text-primary underline-offset-2 hover:underline">
               Volver al acceso
             </Link>
           </p>
+          <div className="mt-8 flex justify-center"><SelectorDeTema /></div>
         </div>
       </section>
     </main>

@@ -6,7 +6,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
-vi.mock('@/components/atlas/AmbientBackground', () => ({ AmbientBackground: () => null }));
 
 const { login } = vi.hoisted(() => ({ login: vi.fn() }));
 vi.mock('@/lib/authContext', () => ({

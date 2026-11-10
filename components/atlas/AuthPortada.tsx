@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- es un SVG propio servido desde `public/marca`: el optimizador de imágenes no aporta nada a un vector */
 import { Icon } from '@/components/atlas/Icon';
 
 /** Lo que el ERP hace, en la voz del producto y no en la del catálogo de módulos. */
@@ -9,62 +10,38 @@ const CAPACIDADES = [
 ];
 
 /**
- * La portada.
+ * La portada del acceso: el panel de marca.
  *
- * Fondo oscuro y una sola idea grande. El degradado es adorno —no señal—, así que va en tonos del
- * propio acento en vez de traer un color nuevo que compita con los estados del producto.
+ * Es EL bloque amarillo de esta pantalla (regla 1 de la identidad: uno solo), y por eso el botón
+ * «Iniciar sesión» de al lado va en tinta y no en amarillo. Amarillo plano, sin degradado ni halo,
+ * y todo lo que va encima en `on-brand` (tinta): sobre amarillo nunca hay texto blanco ni a media
+ * opacidad. Es igual en los dos temas, porque el amarillo de marca no cambia.
  */
 export function AuthPortada({ audience = 'internal' }: Readonly<{ audience?: 'internal' | 'merchant' }>) {
   return (
-    /*
-     * La losa es verde ATLAS, no un carbón con dos manchas encima.
-     *
-     * Era `slate-900` —un gris azulado— con el acento aplicado como dos radiales al 50% de
-     * opacidad: mezclados sobre ese gris, el verde no llegaba a leerse como color de marca y la
-     * mitad izquierda del acceso quedaba de un carbón sucio que no aparece en ninguna otra
-     * pantalla del producto. Es la misma malla que ya usa el portal interno —el degradado va de
-     * un casi negro al verde profundo—, así que las dos aplicaciones abren igual.
-     */
-    <aside className="relative hidden overflow-hidden bg-[linear-gradient(135deg,#12181a_0%,#10322f_48%,#00544d_100%)] px-12 py-14 text-white lg:flex lg:flex-col lg:justify-between">
-      {/* Un halo del acento en la esquina baja, que es lo que le da profundidad a la losa sin
-          volver a lavar el color con una capa a media opacidad por encima. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-[#006a61]/25 blur-3xl"
-      />
+    <aside className="hidden bg-brand px-12 py-14 text-on-brand lg:flex lg:flex-col lg:justify-between">
+      {/* El SVG trae su propio margen (117 de 760): el `-ml-7` lo alinea con el texto de abajo. */}
+      <img src="/marca/cuotea-logo-amarillo.svg" alt="Cuotea" width={190} height={80} className="-ml-7 h-20 w-auto self-start" />
 
-      <div className="relative flex items-center gap-3">
-        <span className="grid h-9 w-9 place-items-center rounded-sm bg-white/10 text-sm font-black backdrop-blur">
-          A
-        </span>
-        <div>
-          <p className="text-sm font-bold leading-tight">ATLAS</p>
-          <p className="text-xs text-white/75">Enterprise Hub</p>
-        </div>
-      </div>
-
-      <div className="relative max-w-md">
-        <h2 className="text-[2rem] font-bold leading-[1.15] tracking-tight">
+      <div className="max-w-md">
+        <h2 className="text-[2rem] font-semibold leading-[1.15] tracking-tight">
           La operación de tu negocio, con cada número explicable.
         </h2>
-        <p className="mt-4 text-sm leading-6 text-white/85">
+        <p className="mt-4 text-base leading-6">
           Contabilidad, cartera y publicidad sobre una sola fuente de verdad.
         </p>
 
         <ul className="mt-9 space-y-3.5">
           {CAPACIDADES.map((item) => (
-            <li key={item.text} className="flex items-center gap-3 text-sm text-white/90">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-xs bg-white/10">
-                <Icon name={item.icon} className="text-[16px]" />
-              </span>
+            <li key={item.text} className="flex items-center gap-3 text-sm">
+              <Icon name={item.icon} className="shrink-0 text-[20px]" />
               {item.text}
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Al 45% este aviso no se leía sobre la losa: es texto legal, no un adorno. */}
-      <p className="relative text-xs text-white/70">
+      <p className="text-xs">
         {audience === 'merchant' ? 'Acceso para comercios afiliados' : 'Acceso únicamente para personal autorizado'} ·
         Todas las acciones son auditadas
       </p>

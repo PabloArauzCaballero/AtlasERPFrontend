@@ -17,10 +17,6 @@ export interface NavSubGroup {
 export interface NavGroup {
   label: string;
   icon: string;
-  /** Clase de color del punto que encabeza el grupo. */
-  accent: string;
-  /** Clave del área para el fondo ambiental; es el mismo color que `accent`. */
-  area: string;
   items: NavItem[];
   subGroups?: NavSubGroup[];
 }
@@ -38,7 +34,7 @@ export interface NavGroup {
  * crédito). Llamando «Usuarios» y «Segmentos» a secas, las tres cosas se leían como la misma.
  */
 const ADS: NavGroup = {
-  label: 'Publicidad', icon: 'campaign', accent: 'bg-violet-500', area: 'ads', items: [
+  label: 'Publicidad', icon: 'campaign', items: [
     { label: 'Dashboard', href: '/operaciones/ads/dashboard', icon: 'monitoring' },
     { label: 'Anunciantes', href: '/operaciones/ads/anunciantes', icon: 'business' },
     { label: 'Campañas', href: '/operaciones/ads/campanas', icon: 'campaign' },
@@ -85,7 +81,7 @@ const ADS: NavGroup = {
  */
 export const NAVIGATION: NavGroup[] = [
   {
-    label: 'CRM', icon: 'business_center', accent: 'bg-teal-500', area: 'crm',
+    label: 'CRM', icon: 'business_center',
     items: [
       { label: 'Cuentas B2B', href: '/operaciones/crm/cuentas', icon: 'domain' },
       { label: 'Pipeline', href: '/operaciones/crm/oportunidades', icon: 'view_kanban' },
@@ -108,7 +104,7 @@ export const NAVIGATION: NavGroup[] = [
     ],
   },
   {
-    label: 'Contabilidad', icon: 'account_balance_wallet', accent: 'bg-blue-500', area: 'contabilidad',
+    label: 'Contabilidad', icon: 'account_balance_wallet',
     items: [
       { label: 'Business partners', href: '/operaciones/contabilidad/business-partners', icon: 'handshake' },
       { label: 'Contratos', href: '/operaciones/contabilidad/contratos', icon: 'description' },
@@ -132,7 +128,7 @@ export const NAVIGATION: NavGroup[] = [
   },
   ...(PUBLICIDAD_VISIBLE ? [ADS] : []),
   {
-    label: 'Control', icon: 'verified_user', accent: 'bg-amber-500', area: 'control',
+    label: 'Control', icon: 'verified_user',
     items: [
       { label: 'Registro de actividad', href: '/operaciones/auditoria/business-actions', icon: 'history_edu' },
       ...(NOTIFICACIONES_MASIVAS_VISIBLE
@@ -188,38 +184,4 @@ export const PORTAL_COMERCIO_MENU: NavItem[] = [
 /** `true` si la ruta actual es ese ítem o cuelga de él. */
 export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-/**
- * Área a la que pertenece la ruta actual, para teñir el fondo ambiental con el
- * mismo color que ya marca ese grupo en el menú. Sin coincidencia, el azul
- * institucional.
- */
-export function areaForPath(pathname: string): string | undefined {
-  for (const group of NAVIGATION) {
-    const all = [...group.items, ...(group.subGroups?.flatMap((sub) => sub.items) ?? [])];
-    if (all.some((item) => isActivePath(pathname, item.href))) return group.area;
-  }
-  return undefined;
-}
-
-/**
- * Variante de fondo ambiental que le toca a la ruta.
- *
- * El fondo se puso «a media asta» en TODA la consola —aurora al 0,62, red al 0,8, malla al 0,4—
- * razonando que así daría profundidad sin estorbar. Sobre blanco no ocurre eso: en una pantalla de
- * trabajo el verde se cuela por los huecos entre paneles, tiñe sus bordes y cubre la banda de
- * cabecera, donde el título y su descripción viven sobre el fondo y no sobre una tarjeta. El
- * resultado no se lee como profundidad, se lee como una mancha.
- *
- * Es la misma lección que el motor de decisión dejó escrita tras repetirla tres veces, y que aquí
- * se había recogido a medias: se copió la advertencia y luego se atenuó en vez de retirar.
- *
- * Así que el fondo se queda donde hay superficie libre que ganar y nada con lo que competir —el
- * panel de operaciones, que es una portada— y se retira de las pantallas de trabajo. La regla
- * enumera las portadas, que son pocas: una vista nueva nace con el lienzo limpio, que es lo que
- * necesita una tabla, sin que nadie tenga que acordarse de nada.
- */
-export function ambientVariantFor(pathname: string): 'console' | 'trabajo' {
-  return pathname === '/operaciones' ? 'console' : 'trabajo';
 }

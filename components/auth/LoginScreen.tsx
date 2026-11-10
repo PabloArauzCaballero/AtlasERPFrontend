@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AmbientBackground } from '@/components/atlas/AmbientBackground';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { AuthPortada } from '@/components/atlas/AuthPortada';
+import { LogoCuotea } from '@/components/atlas/Marca';
+import { SelectorDeTema } from '@/components/atlas/SelectorDeTema';
 import { RUTA_LOGIN, recordarAudiencia, type Audience } from '@/lib/accesoAudiencia';
 import { useAuth } from '@/lib/authContext';
 import { rutaInternaSegura } from '@/lib/rutaInterna';
@@ -141,18 +142,12 @@ export function LoginScreen({ audience }: Readonly<{ audience: Audience }>) {
   }
 
   return (
-    <main className="grid min-h-screen bg-background grid-cols-[minmax(0,1fr)] lg:grid-cols-[1.05fr_1fr]">
+    <main className="grid min-h-screen bg-canvas grid-cols-[minmax(0,1fr)] lg:grid-cols-[1.05fr_1fr]">
       <AuthPortada audience={audience} />
 
-      {/*
-       * La columna del formulario lleva el fondo ambiental —el mismo del motor de
-       * decisión— y la portada no: allí ya hay un degradado propio, y dos capas de
-       * atmósfera compitiendo se leen como ruido. Aquí, en cambio, había un plano
-       * liso, y es la superficie a la que se mira mientras se teclea.
-       */}
       <section className="relative flex items-center justify-center px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] pt-[calc(2.5rem+env(safe-area-inset-top,0px))] sm:px-10">
-        <AmbientBackground variant="auth" state={error ? 'error' : 'idle'} />
         <div className="relative z-10 w-full max-w-[380px]">
+          <LogoCuotea alto={32} className="mb-8 lg:hidden" />
           {challenge ? (
             <PasoDelCodigo
               expiresInMinutes={challenge.expiresInMinutes}
@@ -175,8 +170,8 @@ export function LoginScreen({ audience }: Readonly<{ audience: Audience }>) {
                 </InlineNotice>
               ) : null}
               <header className="mb-6">
-                <p className="text-xs font-bold tracking-[0.02em] text-primary">{copy.antetitulo}</p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                <p className="text-xs font-medium text-slate-600">{copy.antetitulo}</p>
+                <h1 className="mt-1 text-2xl font-semibold leading-[30px] tracking-tight text-slate-900">
                   Bienvenido nuevamente
                 </h1>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
@@ -207,7 +202,7 @@ export function LoginScreen({ audience }: Readonly<{ audience: Audience }>) {
                   hint="Nunca compartas tu contraseña; el equipo de soporte jamás te la pedirá."
                 />
                 {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
-                <AtlasButton type="submit" className="w-full" loading={submitting}>
+                <AtlasButton type="submit" variant="strong" className="w-full" loading={submitting}>
                   Iniciar sesión
                 </AtlasButton>
                 {/*
@@ -221,11 +216,11 @@ export function LoginScreen({ audience }: Readonly<{ audience: Audience }>) {
                   * un correo es un dato personal. Pasa por `sessionStorage` y la pantalla siguiente
                   * lo borra al leerlo (`lib/traspasoEfimero.ts`).
                   */}
-                <p className="text-center text-xs text-slate-500">
+                <p className="text-center text-xs text-slate-600">
                   <Link
                     href={`/recuperar-acceso?canal=${audience === 'merchant' ? 'comercio' : 'interno'}`}
                     onClick={() => dejarParaLaSiguientePantalla(TRASPASO.correoARecuperar, email.trim())}
-                    className="font-semibold text-primary transition hover:underline"
+                    className="font-medium text-primary underline-offset-2 hover:underline"
                   >
                     ¿Olvidaste tu contraseña?
                   </Link>
@@ -233,17 +228,18 @@ export function LoginScreen({ audience }: Readonly<{ audience: Audience }>) {
               </form>
 
               {/* La otra puerta, discreta: quien llegó a la que no era suya no se queda sin salida. */}
-              <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">
+              <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-600">
                 {copy.otraPuerta.pregunta}{' '}
                 <Link
                   href={RUTA_LOGIN[copy.otraPuerta.audience]}
-                  className="font-semibold text-primary transition hover:underline"
+                  className="font-medium text-primary underline-offset-2 hover:underline"
                 >
                   {copy.otraPuerta.enlace}
                 </Link>
               </p>
             </>
           )}
+          <div className="mt-8 flex justify-center"><SelectorDeTema /></div>
         </div>
       </section>
     </main>
@@ -271,8 +267,8 @@ function PasoDelCodigo({
   return (
     <>
       <header className="mb-6">
-        <p className="text-xs font-bold tracking-[0.02em] text-primary">Verificación en dos pasos</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Revisa tu correo</h1>
+        <p className="text-xs font-medium text-slate-600">Verificación en dos pasos</p>
+        <h1 className="mt-1 text-2xl font-semibold leading-[30px] tracking-tight text-slate-900">Revisa tu correo</h1>
         <p className="mt-1.5 text-sm leading-6 text-slate-600">
           Enviamos un código de 6 dígitos al correo de tu cuenta. Vence en {expiresInMinutes} minutos
           y sólo puede usarse una vez. Si no llega, revisa la carpeta de correo no deseado o pulsa
@@ -293,19 +289,19 @@ function PasoDelCodigo({
           placeholder="000000"
         />
         {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
-        <AtlasButton type="submit" className="w-full" loading={submitting}>
+        <AtlasButton type="submit" variant="strong" className="w-full" loading={submitting}>
           Confirmar y entrar
         </AtlasButton>
         <button
           type="button"
-          className="w-full text-xs font-semibold text-slate-500 transition hover:text-slate-700"
+          className="w-full text-xs font-medium text-primary hover:underline"
           onClick={onCancel}
         >
           Usar otra cuenta
         </button>
       </form>
 
-      <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-500">
+      <p className="mt-6 border-t border-border-subtle pt-4 text-xs leading-5 text-slate-600">
         Nadie de soporte te pedirá este código. Si no pediste entrar, ignóralo y cambia tu
         contraseña.
       </p>

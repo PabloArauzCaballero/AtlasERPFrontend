@@ -37,7 +37,7 @@ export function MerchantBottomNav({ pathname }: Readonly<{ pathname: string }>) 
     <nav
       aria-label="Accesos del portal"
       data-tutorial-id="portal-nav-movil"
-      className="fixed inset-x-0 bottom-0 z-[46] border-t border-slate-200/80 bg-white/90 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-[46] border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
     >
       <ul className="flex items-stretch">
         {DESTINOS.map((destino) => {
@@ -48,7 +48,7 @@ export function MerchantBottomNav({ pathname }: Readonly<{ pathname: string }>) 
                 href={destino.href}
                 aria-current={activo ? 'page' : undefined}
                 className={cn(
-                  'relative flex h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/60',
+                  'relative flex h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs font-medium leading-none transition-colors focus-visible:-outline-offset-2',
                   activo ? 'text-primary' : 'text-slate-600',
                 )}
               >

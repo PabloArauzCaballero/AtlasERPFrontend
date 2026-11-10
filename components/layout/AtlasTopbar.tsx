@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/atlas/Icon';
+import { LogoCuotea } from '@/components/atlas/Marca';
+import { SelectorDeTema } from '@/components/atlas/SelectorDeTema';
 import { useAuth } from '@/lib/authContext';
 import { NOTIFICACIONES_MASIVAS_VISIBLE } from '@/lib/modulos';
 import { RUTA_BUSQUEDA_GLOBAL, pedirBusquedaGlobal } from '@/lib/busquedaGlobal';
@@ -77,46 +79,46 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
   }
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white">
       <div className="flex h-16 items-center justify-between gap-2 px-3 sm:px-4 md:px-6">
         <div className="flex min-w-0 items-center gap-2 md:gap-6">
           <button
             type="button"
             onClick={onOpenNav}
-            className="-ml-1 grid h-11 w-11 shrink-0 place-items-center rounded-md text-slate-600 hover:bg-slate-100 lg:hidden"
+            className="-ml-1 grid h-11 w-11 shrink-0 place-items-center rounded-md text-slate-600 hover:bg-surface-sunken lg:hidden"
             aria-label="Abrir navegación"
           >
             <Icon name="menu" className="text-[22px]" />
           </button>
-          <Link href="/operaciones" className="inline-flex min-h-11 shrink-0 items-center text-base font-black tracking-tight text-primary sm:text-lg">ATLAS ERP</Link>
-          <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-primary focus-within:bg-white md:flex lg:w-72">
+          <Link href="/operaciones" aria-label="Cuotea ERP, ir al inicio" className="inline-flex min-h-11 shrink-0 items-center gap-2"><LogoCuotea alto={24} /><span className="text-sm font-semibold text-slate-600">ERP</span></Link>
+          <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-border-strong bg-white px-3 focus-within:border-primary focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus md:flex lg:w-72">
             <Icon name="search" className="text-[19px] text-slate-500" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder="Buscar una pantalla..." />
-            <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-slate-500 lg:inline">↵</kbd>
+            <kbd className="hidden rounded border border-slate-200 bg-surface-sunken px-1.5 py-0.5 text-xs font-medium text-slate-600 lg:inline">↵</kbd>
           </form>
         </div>
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
           <button
             type="button"
             onClick={() => setSearchOpen((open) => !open)}
-            className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 md:hidden"
+            className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-surface-sunken md:hidden"
             aria-label="Buscar"
             aria-expanded={searchOpen}
           >
             <Icon name={searchOpen ? 'close' : 'search'} className="text-[20px]" />
           </button>
-          <Link href="/operaciones/contabilidad/documentos/crear" className="mr-2 hidden h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary-container xl:flex">
+          <Link href="/operaciones/contabilidad/documentos/crear" className="mr-2 hidden h-9 items-center gap-2 rounded-md border border-border-strong bg-white px-3 text-xs font-semibold text-slate-900 hover:bg-surface-sunken xl:flex">
             <Icon name="add" className="text-[17px]" />Nueva transacción
           </Link>
-          <Link href="/operaciones/contabilidad/documentos/crear" className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Nueva transacción">
+          <Link href="/operaciones/contabilidad/documentos/crear" className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-surface-sunken xl:hidden" aria-label="Nueva transacción">
             <Icon name="add" className="text-[20px]" />
           </Link>
           {NOTIFICACIONES_MASIVAS_VISIBLE ? (
-            <Link href="/operaciones/admin/notificaciones" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 sm:grid" aria-label="Notificaciones">
+            <Link href="/operaciones/admin/notificaciones" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-surface-sunken sm:grid" aria-label="Notificaciones">
               <Icon name="notifications" className="text-[20px]" />
             </Link>
           ) : null}
-          <Link href="/operaciones/admin/seguridad" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 sm:grid" aria-label="Seguridad">
+          <Link href="/operaciones/admin/seguridad" className="hidden h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-surface-sunken sm:grid" aria-label="Seguridad">
             <Icon name="settings" className="text-[20px]" />
           </Link>
           <div className="relative ml-0.5 sm:ml-1" ref={menuRef}>
@@ -124,32 +126,36 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               data-tutorial-id="topbar-profile"
-              className="relative grid h-9 w-9 place-items-center rounded-full bg-primary-container text-[10px] font-black text-white ring-2 ring-slate-100 before:absolute before:-inset-1 before:content-['']"
+              className="relative grid h-9 w-9 place-items-center rounded-full bg-surface-sunken text-xs font-semibold text-slate-900 before:absolute before:-inset-1 before:content-['']"
               aria-label="Perfil de usuario"
               aria-expanded={menuOpen}
             >
               {initialsFrom(user?.fullName)}
             </button>
             {menuOpen ? (
-              <div className="absolute right-0 top-11 w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-slate-200 bg-white p-2 text-xs shadow-lg">
+              <div className="absolute right-0 top-11 w-[min(17rem,calc(100vw-1.5rem))] rounded-md border border-border-strong bg-white p-2 text-xs">
                 <div className="px-2 py-1.5">
-                  <p className="truncate font-bold text-slate-800">{user?.fullName ?? 'Usuario'}</p>
-                  <p className="truncate text-slate-500">{user?.email ?? ''}</p>
-                  {user?.roles.length ? <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-wide text-primary">{user.roles.join(', ')}</p> : null}
+                  <p className="truncate font-semibold text-slate-900">{user?.fullName ?? 'Usuario'}</p>
+                  <p className="truncate text-slate-600">{user?.email ?? ''}</p>
+                  {user?.roles.length ? <p className="mt-1 truncate text-xs font-medium text-slate-600">{user.roles.join(', ')}</p> : null}
                 </div>
                 {/* En móvil estos dos accesos no caben en la barra; aquí sí. */}
                 {NOTIFICACIONES_MASIVAS_VISIBLE ? (
-                  <Link href="/operaciones/admin/notificaciones" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-semibold text-slate-600 hover:bg-slate-50 sm:hidden">
+                  <Link href="/operaciones/admin/notificaciones" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-medium text-slate-600 hover:bg-surface-sunken sm:hidden">
                     <Icon name="notifications" className="text-[16px]" />Notificaciones
                   </Link>
                 ) : null}
-                <Link href="/operaciones/admin/seguridad" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-semibold text-slate-600 hover:bg-slate-50 sm:hidden">
+                <Link href="/operaciones/admin/seguridad" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 font-medium text-slate-600 hover:bg-surface-sunken sm:hidden">
                   <Icon name="settings" className="text-[16px]" />Seguridad
                 </Link>
+                <div className="mt-1 border-t border-slate-200 px-2 pb-1 pt-2">
+                  <p className="mb-1.5 text-xs font-medium text-slate-600">Apariencia</p>
+                  <SelectorDeTema className="w-full justify-between" />
+                </div>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-left font-semibold text-red-600 hover:bg-red-50"
+                  className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-left font-medium text-danger hover:bg-danger-soft"
                 >
                   <Icon name="logout" className="text-[16px]" />Cerrar sesión
                 </button>
@@ -159,7 +165,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
         </div>
       </div>
       {searchOpen ? (
-        <form onSubmit={submit} className="flex h-14 items-center gap-2 border-t border-slate-200/80 px-3 md:hidden">
+        <form onSubmit={submit} className="flex h-14 items-center gap-2 border-t border-slate-200 px-3 md:hidden">
           <Icon name="search" className="text-[19px] text-slate-500" />
           <input
             ref={searchInput}
@@ -168,7 +174,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
             className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             placeholder="Buscar una pantalla..."
           />
-          <button type="submit" className="rounded-md bg-primary px-3 py-2 text-xs font-bold text-white">Buscar</button>
+          <button type="submit" className="rounded-md bg-ink px-3 py-2 text-xs font-semibold text-canvas">Buscar</button>
         </form>
       ) : null}
     </header>
