@@ -77,7 +77,7 @@ export function ConfirmDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[75] grid place-items-center bg-slate-900/45 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[75] grid place-items-center bg-scrim p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCancel();
       }}
@@ -87,35 +87,35 @@ export function ConfirmDialog({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-5 shadow-2xl"
+        className="w-full max-w-md rounded-xl border border-border-strong bg-white p-5"
       >
         <div className="flex items-start gap-3">
           <span
-            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone === 'danger' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-primary'}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone === 'danger' ? 'bg-danger-soft text-danger' : 'bg-primary-wash text-primary'}`}
           >
             <Icon name={tone === 'danger' ? 'warning' : 'help'} className="text-[21px]" />
           </span>
           <div className="min-w-0">
-            <h2 id="confirm-title" className="text-sm font-bold text-slate-900">{title}</h2>
+            <h2 id="confirm-title" className="text-base font-semibold text-slate-900">{title}</h2>
             <p className="mt-1 text-xs leading-5 text-slate-600">{body}</p>
           </div>
         </div>
 
         {needsReason ? (
           <label className="mt-4 block">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{reasonLabel}</span>
+            <span className="text-xs font-medium text-slate-600">{reasonLabel}</span>
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               rows={3}
               placeholder={reasonPlaceholder}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-primary"
+              className="mt-1 w-full rounded-md border border-border-strong bg-white px-3 py-2 text-xs focus:border-primary"
             />
             {/* El motivo no es un trámite: es lo único que queda cuando alguien
                 revisa la decisión meses después. Y si falta, se DICE cuánto
                 falta: descartar en silencio un motivo demasiado corto —que es lo
                 que hacía el `prompt`— se lee como que el sistema no responde. */}
-            <span className="mt-1 block text-[11px] text-slate-500">
+            <span className="mt-1 block text-xs text-slate-600">
               {missing > 0
                 ? `Faltan ${missing} caracteres para poder confirmar. Queda registrado junto a la operación.`
                 : 'Queda registrado junto a la operación.'}

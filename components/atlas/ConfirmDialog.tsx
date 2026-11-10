@@ -39,14 +39,14 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
   const danger = props.tone !== 'primary';
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px]" onClick={props.onCancel} />
-      <div className="relative w-[min(92vw,420px)] rounded-xl border border-slate-200 bg-white p-5 shadow-2xl">
+      <div className="absolute inset-0 bg-scrim" onClick={props.onCancel} />
+      <div className="relative w-[min(92vw,420px)] rounded-xl border border-border-strong bg-white p-5">
         <div className="flex items-start gap-3">
-          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${danger ? 'bg-red-50 text-red-600' : 'bg-primary-wash text-primary'}`}>
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${danger ? 'bg-danger-soft text-danger' : 'bg-primary-wash text-primary'}`}>
             <Icon name={danger ? 'warning' : 'help'} className="text-[22px]" />
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-800">{props.title}</h2>
+            <h2 className="text-base font-semibold text-slate-900">{props.title}</h2>
             <p className="mt-1 text-xs leading-5 text-slate-600">{props.message}</p>
             {props.error ? (
               <p role="alert" data-testid="confirm-error" className="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-xs leading-5 text-red-700">{props.error}</p>

@@ -16,7 +16,7 @@ function toDisplayValue(row: ResourceRow, column: string): string {
 
 function LoadingRows({ columns }: { columns: string[] }) {
   return Array.from({ length: 6 }).map((_, rowIndex) => (
-    <tr className="border-t border-border-subtle" key={rowIndex}>
+    <tr className="border-t border-slate-200" key={rowIndex}>
       {columns.map((column, columnIndex) => (
         <td className="px-3 py-2" key={`${column}-${columnIndex}`}>
           <SkeletonBlock className="h-5 w-full min-w-20" />
@@ -30,14 +30,14 @@ export function DataTable({ columns, isLoading = false, rows }: DataTableProps) 
   if (rows.length === 0 && !isLoading) return null;
 
   return (
-    <div aria-busy={isLoading} className="table-scroll rounded-xl border border-border-subtle bg-surface">
+    <div aria-busy={isLoading} className="table-scroll rounded-lg border border-slate-200 bg-white">
       <table className="min-w-full text-left text-sm">
-        <thead className="bg-surface-muted text-xs uppercase tracking-wide text-outline">
+        <thead className="bg-surface-sunken text-xs font-medium text-slate-600">
           <tr>{columns.map((column) => <th className="whitespace-nowrap px-3 py-2" key={column}>{column}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr className="border-t border-border-subtle" key={String(row.id ?? index)}>
+            <tr className="border-t border-slate-200 hover:bg-surface-sunken" key={String(row.id ?? index)}>
               {columns.map((column) => (
                 <td className="max-w-72 truncate px-3 py-2" key={column}>{typeof row[column] === 'object' && row[column] !== null && '$$typeof' in (row[column] as object) ? row[column] as React.ReactNode : toDisplayValue(row, column)}</td>
               ))}

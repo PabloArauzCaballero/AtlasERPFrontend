@@ -94,7 +94,7 @@ export function FieldTooltip(props: FieldTooltipProps) {
         title={`Ayuda: ${props.label}`}
         aria-describedby={bubbleId}
         data-testid="ayuda-campo"
-        className="ml-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        className="ml-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-surface-sunken hover:text-primary"
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         onFocus={() => setHover(true)}
@@ -119,7 +119,7 @@ export function FieldTooltip(props: FieldTooltipProps) {
                 left: position?.left ?? -9999,
                 width: Math.min(MAX_WIDTH, typeof window !== 'undefined' ? window.innerWidth - EDGE * 2 : MAX_WIDTH),
               }}
-              className="pointer-events-none z-[130] rounded-md bg-slate-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg"
+              className="pointer-events-none z-[130] rounded-md border border-border-strong bg-white px-3 py-2 text-xs leading-relaxed text-slate-900"
             >
               {props.text}
             </div>,

@@ -34,7 +34,7 @@ export function QrCanvas({ value, size = 200, className }: { value: string; size
         style={{ width: size, height: size }}
         data-testid="qr-invalido"
       >
-        <div className="grid h-full w-full place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-center text-[10px] font-semibold text-slate-500">
+        <div className="grid h-full w-full place-items-center rounded-md border border-dashed border-border-strong bg-surface-sunken p-3 text-center text-xs font-medium text-slate-600">
           No se pudo generar el código para este terminal.
         </div>
       </div>

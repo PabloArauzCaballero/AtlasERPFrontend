@@ -5,6 +5,8 @@
  * cuando no tiene alias (se muestra su número de serie), y si la compra no nació de un QR físico se dice con palabras
  * en vez de dejar el hueco.
  */
+import { Icon } from './Icon';
+
 export interface Origen {
   branchName?: string | null;
   terminalAlias?: string | null;
@@ -26,14 +28,14 @@ export function textoDeOrigen(origen: Origen): string {
 export function OrigenDeCaja({ origen, className = '' }: Readonly<{ origen: Origen; className?: string }>) {
   const caja = nombreDeCaja(origen);
   if (!origen.branchName && !caja) {
-    return <p className={`mt-1 text-[11px] italic text-slate-400 ${className}`}>Sin caja registrada en la compra</p>;
+    return <p className={`mt-1 text-xs italic text-slate-500 ${className}`}>Sin caja registrada en la compra</p>;
   }
   return (
-    <p className={`mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-700 ${className}`} data-testid="origen-de-caja">
-      <span className="material-symbols-rounded text-[14px] text-primary">store</span>
+    <p className={`mt-1 flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-700 ${className}`} data-testid="origen-de-caja">
+      <Icon name="store" className="text-[14px] text-primary" />
       <span>{origen.branchName ?? 'Sucursal sin nombre'}</span>
       {caja ? (
-        <span className="rounded bg-primary-wash px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">{caja}</span>
+        <span className="rounded bg-surface-sunken px-1.5 py-0.5 text-xs font-medium text-slate-700">{caja}</span>
       ) : null}
     </p>
   );

@@ -40,11 +40,11 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
    */
   if (status === 'empty') {
     return (
-      <div className="flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
-        <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-500">
+      <div className="flex min-h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-strong bg-white p-8 text-center">
+        <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-surface-sunken text-slate-600">
           <Icon name="search_off" className="text-[26px]" />
         </span>
-        <p className="text-sm font-bold text-slate-800">Sin registros</p>
+        <p className="text-sm font-semibold text-slate-900">Sin registros</p>
         <p className="mt-1 max-w-md text-sm text-on-surface-variant">
           Ningún resultado coincide con los filtros actuales. Amplía el rango o limpia la búsqueda.
         </p>
@@ -68,7 +68,7 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
             <Icon name="lock" className="text-[22px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-amber-900">Tu usuario no tiene acceso a esta información.</p>
+            <p className="font-semibold text-amber-900">Tu usuario no tiene acceso a esta información.</p>
             {/* Reintentar no se ofrece a propósito: el permiso no cambia por volver a pedirlo. */}
             <p className="mt-1 break-words">
               {error ?? 'Pide a un administrador el rol necesario para esta pantalla.'}
@@ -87,7 +87,7 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
             <Icon name="person_off" className="text-[22px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-slate-900">Tu sesión ha caducado.</p>
+            <p className="font-semibold text-slate-900">Tu sesión ha caducado.</p>
             <p className="mt-1 break-words">Vuelve a iniciar sesión para seguir donde estabas.</p>
             {/*
               * Se conserva la ruta actual para volver a ella después de entrar: mandar al usuario
@@ -118,7 +118,7 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
             <Icon name="cloud_off" className="text-[22px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-slate-900">El servidor no respondió a tiempo.</p>
+            <p className="font-semibold text-slate-900">El servidor no respondió a tiempo.</p>
             <p className="mt-1 break-words">
               {error ?? 'Puede ser una conexión lenta. Vuelve a intentarlo.'}
             </p>
@@ -141,7 +141,7 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
             <Icon name="error" className="text-[22px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-red-800">No se pudo cargar la información.</p>
+            <p className="font-semibold text-red-800">No se pudo cargar la información.</p>
             <p className="mt-1 break-words">{error ?? 'El servicio no respondió a tiempo.'}</p>
             {onRetry ? (
               <AtlasButton className="mt-3" variant="secondary" icon="refresh" onClick={onRetry}>

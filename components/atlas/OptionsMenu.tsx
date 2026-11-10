@@ -46,7 +46,7 @@ export function OptionsMenu({ open, description, options, onClose }: Props) {
             disabled={option.disabled}
             data-testid={option.testId}
             data-tutorial-id={option.tutorialId}
-            className="flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-slate-200 disabled:hover:bg-white"
+            className="flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-white"
             onClick={() => {
               /* Primero cierra: el formulario que abre la opción y este cajón no pueden convivir,
                  y dejarlos apilados atrapa el foco entre los dos. */
@@ -56,8 +56,8 @@ export function OptionsMenu({ open, description, options, onClose }: Props) {
           >
             <Icon name={option.icon} className="mt-0.5 text-[18px] text-slate-500" />
             <span className="min-w-0">
-              <b className="block text-xs font-bold text-slate-800">{option.label}</b>
-              {option.detail ? <span className="mt-0.5 block text-[11px] leading-relaxed text-slate-500">{option.detail}</span> : null}
+              <b className="block text-xs font-semibold text-slate-900">{option.label}</b>
+              {option.detail ? <span className="mt-0.5 block text-xs leading-relaxed text-slate-600">{option.detail}</span> : null}
             </span>
           </button>
         ))}

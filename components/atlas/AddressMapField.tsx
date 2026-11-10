@@ -62,7 +62,7 @@ export function AddressMapField(props: AddressMapFieldProps) {
     <div className={cn('block min-w-0', props.className)}>
       <div>
         <FieldLabel htmlFor={id} label={props.label} required={props.required || props.softRequired} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
-        <div className="flex h-9 w-full items-center rounded-md border border-slate-300 bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+        <div className="flex h-9 w-full items-center rounded-md border border-border-strong bg-white focus-within:border-primary focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
           <input
             ref={inputRef}
             id={id}
@@ -104,7 +104,7 @@ export function AddressMapField(props: AddressMapFieldProps) {
               href={externalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border-strong bg-white px-3 text-sm font-medium text-slate-900 hover:bg-surface-sunken"
             >
               <Icon name="open_in_new" className="text-[16px]" />
               Abrir en Google Maps
@@ -113,7 +113,7 @@ export function AddressMapField(props: AddressMapFieldProps) {
           </>
         )}
       >
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-surface-sunken">
           {query ? (
             <iframe
               key={embedUrl}

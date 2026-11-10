@@ -104,7 +104,7 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
         onScroll={medir}
         data-mas-izquierda={mas.izquierda}
         data-mas-derecha={mas.derecha}
-        className="atlas-rail -mx-1 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1"
+        className="atlas-rail -mx-1 flex gap-1 overflow-x-auto rounded-md border border-slate-200 bg-white p-1"
       >
         {tabs.map((tab) => {
           const selected = tab.id === active?.id;
@@ -117,14 +117,14 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
               data-testid={`tab-${tab.id}`}
               onClick={() => select(tab.id)}
               className={cn(
-                'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition',
-                selected ? 'bg-primary-wash text-primary' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+                'inline-flex shrink-0 items-center gap-1.5 rounded px-3 py-2 text-xs font-semibold transition-colors',
+                selected ? 'bg-primary-wash text-primary' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900',
               )}
             >
               {tab.icon ? <Icon name={tab.icon} className="text-[16px]" /> : null}
               {tab.label}
               {tab.badge !== undefined && tab.badge !== '' ? (
-                <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-bold', selected ? 'bg-white/70 text-primary' : 'bg-slate-100 text-slate-600')}>{tab.badge}</span>
+                <span className={cn('rounded-full px-1.5 py-0.5 text-xs font-medium', selected ? 'bg-white text-primary' : 'bg-surface-sunken text-slate-600')}>{tab.badge}</span>
               ) : null}
             </button>
           );

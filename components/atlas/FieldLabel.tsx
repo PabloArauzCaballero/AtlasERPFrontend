@@ -44,7 +44,7 @@ export function FieldLabel(props: FieldLabelProps) {
    * suspensivos.
    */
   return (
-    <div className={`mb-1.5 flex min-w-0 items-center text-xs font-bold text-slate-700 ${props.className ?? ''}`}>
+    <div className={`mb-1.5 flex min-w-0 items-center text-xs font-medium text-slate-700 ${props.className ?? ''}`}>
       {props.htmlFor ? <label id={props.id} className="min-w-0 break-words" htmlFor={props.htmlFor}>{text}</label> : <span className="min-w-0 break-words">{text}</span>}
       {props.tooltip && props.describedById ? (
         <FieldTooltip text={props.tooltip} label={labelText} describedById={props.describedById} forceOpen={props.controlFocused} />

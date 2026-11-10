@@ -45,26 +45,26 @@ export function Modal(props: ModalProps) {
   // (z-40) y de la cabecera (z-50) por mucho z-index que llevara.
   return createPortal(
     <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto p-4 sm:items-center" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px]" onClick={onClose} />
-      <div className={`relative my-auto ${width} rounded-xl border border-slate-200 bg-white shadow-2xl`}>
+      <div className="absolute inset-0 bg-scrim" onClick={onClose} />
+      <div className={`relative my-auto ${width} rounded-xl border border-border-strong bg-white`}>
         <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             {props.icon ? (
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-surface-sunken text-slate-700">
                 <Icon name={props.icon} className="text-[19px]" />
               </span>
             ) : null}
             <div className="min-w-0">
-              <h2 className="truncate text-sm font-bold text-slate-900">{props.title}</h2>
-              {props.description ? <p className="mt-0.5 text-xs text-slate-500">{props.description}</p> : null}
+              <h2 className="truncate text-lg font-semibold leading-6 text-slate-900">{props.title}</h2>
+              {props.description ? <p className="mt-0.5 text-xs text-slate-600">{props.description}</p> : null}
             </div>
           </div>
-          <button type="button" onClick={onClose} disabled={busy} aria-label="Cerrar" className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
+          <button type="button" onClick={onClose} disabled={busy} aria-label="Cerrar" className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-600 hover:bg-surface-sunken hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
             <Icon name="close" className="text-[18px]" />
           </button>
         </header>
         <div className="px-5 py-4">{props.children}</div>
-        {props.footer ? <footer className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50/60 px-5 py-3">{props.footer}</footer> : null}
+        {props.footer ? <footer className="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-surface-sunken px-5 py-3">{props.footer}</footer> : null}
       </div>
     </div>,
     document.body,

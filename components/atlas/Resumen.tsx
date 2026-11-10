@@ -47,13 +47,13 @@ export function Resumen({ datos, className }: Readonly<{ datos: DatoDeResumen[];
            * conservaban su borde y su sangría y se leían como una lista anidada bajo el primero.
            * Apilados no hace falta separador: el hueco ya separa.
            */
-          className="min-w-0 flex-1 basis-36 sm:border-l sm:border-slate-100 sm:pl-3 sm:first:border-l-0 sm:first:pl-0"
+          className="min-w-0 flex-1 basis-36 sm:border-l sm:border-slate-200 sm:pl-3 sm:first:border-l-0 sm:first:pl-0"
         >
-          <dt className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">{dato.label}</dt>
-          <dd className={cn('mt-0.5 truncate text-lg font-bold tabular-nums tracking-tight', dato.alerta ? 'text-amber-700' : 'text-slate-900')}>
+          <dt className="truncate text-xs font-medium text-slate-600">{dato.label}</dt>
+          <dd className={cn('mt-0.5 truncate text-lg font-semibold tabular-nums tracking-tight', dato.alerta ? 'text-warning' : 'text-slate-900')}>
             {dato.value}
           </dd>
-          {dato.nota ? <dd className="text-[10px] font-medium text-slate-500">{dato.nota}</dd> : null}
+          {dato.nota ? <dd className="text-xs text-slate-600">{dato.nota}</dd> : null}
         </div>
       ))}
     </dl>

@@ -3,6 +3,7 @@
 import { useId, useState } from 'react';
 import { FieldLabel } from '@/components/atlas/FieldLabel';
 import { useFieldHelp } from '@/components/atlas/FieldTooltip';
+import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
 
 interface MultiSelectFieldProps {
@@ -69,11 +70,12 @@ export function MultiSelectField(props: MultiSelectFieldProps) {
                 key={option.value}
                 title={option.description}
                 className={cn(
-                  'inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition',
-                  checked ? 'border-primary bg-primary/10 text-primary' : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400',
+                  'inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-colors',
+                  checked ? 'border-border-strong bg-brand-soft text-slate-900' : 'border-border-strong bg-white text-slate-700 hover:bg-surface-sunken',
                 )}
               >
                 <input type="checkbox" className="sr-only" checked={checked} onChange={() => toggle(option.value)} />
+                {checked ? <Icon name="check" className="text-[14px]" /> : null}
                 {option.label}
               </label>
             );
@@ -81,9 +83,9 @@ export function MultiSelectField(props: MultiSelectFieldProps) {
         )}
       </div>
       {props.required && selected.length === 0 ? (
-        <span className="mt-1 block text-[11px] text-amber-700">Elige al menos una opción.</span>
+        <span className="mt-1 block text-xs text-amber-700">Elige al menos una opción.</span>
       ) : props.hint ? (
-        <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span>
+        <span className="mt-1 block text-xs text-slate-600">{props.hint}</span>
       ) : null}
     </fieldset>
   );
