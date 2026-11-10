@@ -105,13 +105,13 @@ export function CountryCityField(props: CountryCityFieldProps) {
       </button>
       <input type="hidden" name={props.name} value={countryCode} required={props.required} />
       <input type="hidden" name={props.cityName} value={city} />
-      {props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null}
+      {props.hint ? <span className="mt-1 block text-xs text-slate-500">{props.hint}</span> : null}
 
       {open ? (
         <div className="absolute left-0 right-0 z-30 mt-1 overflow-hidden rounded-md border border-border-strong bg-white">
           <div className="border-b border-slate-200 p-2">
             <div className="flex h-8 items-center gap-2 rounded-md border border-border-strong bg-white px-2 focus-within:border-primary focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
-              <Icon name="search" className="text-[16px] text-slate-400" />
+              <Icon name="search" className="text-[16px] text-slate-500" />
               <input
                 ref={searchRef}
                 value={search}
@@ -144,8 +144,8 @@ export function CountryCityField(props: CountryCityFieldProps) {
                       className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded px-1 text-left hover:bg-surface-sunken"
                     >
                       <span className="text-base leading-none">{flagEmoji(country.code)}</span>
-                      <span className={cn('truncate', isSelectedCountry ? 'font-bold text-primary' : 'font-semibold text-slate-800')}>{country.name}</span>
-                      <span className="ml-auto shrink-0 text-[11px] text-slate-400">{country.code}</span>
+                      <span className={cn('truncate', isSelectedCountry ? 'font-semibold text-primary' : 'font-semibold text-slate-800')}>{country.name}</span>
+                      <span className="ml-auto shrink-0 text-xs text-slate-500">{country.code}</span>
                     </button>
                   </div>
                   {isOpen ? (
@@ -157,9 +157,9 @@ export function CountryCityField(props: CountryCityFieldProps) {
                             <button
                               type="button"
                               onClick={() => choose(country.code, name)}
-                              className={cn('flex h-7 w-full items-center gap-2 px-3 text-left hover:bg-surface-sunken', isSelectedCity ? 'font-bold text-primary' : 'text-slate-700')}
+                              className={cn('flex h-7 w-full items-center gap-2 px-3 text-left hover:bg-surface-sunken', isSelectedCity ? 'font-semibold text-primary' : 'text-slate-700')}
                             >
-                              <Icon name={isSelectedCity ? 'location_on' : 'fiber_manual_record'} className={cn(isSelectedCity ? 'text-[15px]' : 'text-[7px] text-slate-300')} />
+                              <Icon name={isSelectedCity ? 'location_on' : 'fiber_manual_record'} className={cn(isSelectedCity ? 'text-[15px]' : 'text-[7px] text-slate-500')} />
                               <span className="truncate">{name}</span>
                             </button>
                           </li>

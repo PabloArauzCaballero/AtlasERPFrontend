@@ -423,7 +423,7 @@ export function MerchantSupportScreen() {
                       <li key={motivo.categoryCode}>
                         <button
                           type="button"
-                          className="w-full px-1 py-3 text-left hover:bg-slate-50"
+                          className="w-full px-1 py-3 text-left hover:bg-surface-sunken"
                           onClick={() => elegirMotivo(motivo)}
                         >
                           <span className="block text-sm font-medium text-slate-900">{motivo.label}</span>
@@ -441,7 +441,7 @@ export function MerchantSupportScreen() {
                     <li>
                       <button
                         type="button"
-                        className="w-full px-1 py-3 text-left hover:bg-slate-50"
+                        className="w-full px-1 py-3 text-left hover:bg-surface-sunken"
                         onClick={() => void abrirConversacion()}
                       >
                         <span className="block text-sm font-medium text-slate-900">
@@ -476,12 +476,12 @@ export function MerchantSupportScreen() {
 
                       return (
                         <div key={mensaje.messageId} className={mio ? 'flex justify-end' : 'flex justify-start'}>
-                          <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ring-1 ${mio ? 'bg-emerald-50 text-slate-900 ring-emerald-200' : 'bg-white text-slate-900 ring-slate-200'}`}>
+                          <div className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ring-1 ${mio ? 'bg-emerald-50 text-slate-900 ring-emerald-200' : 'bg-white text-slate-900 ring-slate-200'}`}>
                             <p className="whitespace-pre-wrap">{mensaje.body}</p>
                             {mensaje.redacted ? (
                               <p className="mt-1 text-xs text-slate-500">Ocultamos un dato sensible por seguridad.</p>
                             ) : null}
-                            <p className="mt-1 text-right text-[11px] text-slate-500">
+                            <p className="mt-1 text-right text-xs text-slate-500">
                               {new Date(mensaje.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                               {mio ? <span className="ml-2">{fueLeido(mensaje) ? 'Leído' : 'Enviado'}</span> : null}
                             </p>
@@ -509,7 +509,7 @@ export function MerchantSupportScreen() {
                         placeholder="Escribe aquí…"
                       />
                     </div>
-                    <AtlasButton onClick={() => void enviar()} disabled={texto.trim().length === 0}>
+                    <AtlasButton variant="strong" onClick={() => void enviar()} disabled={texto.trim().length === 0}>
                       Enviar
                     </AtlasButton>
                   </div>

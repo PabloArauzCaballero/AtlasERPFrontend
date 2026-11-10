@@ -69,7 +69,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
       <Panel compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <FormField tooltip="Cuenta B2B que se quiere abrir." kind="select" label="Cuenta B2B" name="accountLookup" value={accountId} onChange={(event) => setAccountId(event.target.value)} options={[{ label: '— Elija la cuenta —', value: '' }, ...accounts]} className="flex-1" />
-          <AtlasButton icon="search" loading={resource.status === 'loading'} onClick={() => setRequestedId(accountId.trim())}>Consultar cuenta</AtlasButton>
+          <AtlasButton variant="strong" icon="search" loading={resource.status === 'loading'} onClick={() => setRequestedId(accountId.trim())}>Consultar cuenta</AtlasButton>
         </div>
       </Panel>
 
@@ -203,24 +203,24 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
 }
 
 function Detail({ label, value, mono = false }: { label: string; value: unknown; mono?: boolean }) {
-  return <div><dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt><dd className={`mt-1 break-words font-semibold text-slate-800 ${mono ? 'font-mono text-[11px]' : ''}`}>{String(value ?? '—')}</dd></div>;
+  return <div><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className={`mt-1 break-words font-semibold text-slate-800 ${mono ? 'font-mono text-xs' : ''}`}>{String(value ?? '—')}</dd></div>;
 }
 function ContactList({ contacts }: { contacts: unknown[] }) {
-  if (!contacts.length) return <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center"><Icon name="contact_page" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-700">Sin contactos asociados</p></div>;
+  if (!contacts.length) return <div className="rounded-md border border-dashed border-border-strong bg-slate-50 px-5 py-8 text-center"><Icon name="contact_page" className="text-[30px] text-slate-500" /><p className="mt-2 text-xs font-semibold text-slate-700">Sin contactos asociados</p></div>;
   return <div className="space-y-2">{contacts.map((value, index) => { const contact = value as ResourceRow; return <article key={String(contact.id ?? index)} className="grid items-center gap-2 rounded-md border border-slate-200 p-3 text-xs grid-cols-1 sm:grid-cols-[1fr_1fr_auto]"><div><b className="block text-slate-800">{String(contact.fullName ?? '—')}</b><span className="text-slate-500">{String(contact.roleTitle ?? contact.decisionRole ?? 'Sin cargo')}</span></div><div className="text-slate-600"><span className="block">{maskPii(contact.email, 'email')}</span><span>{maskPii(contact.phone, 'phone')}</span></div><StatusPill tone={contact.isPrimary ? 'success' : 'neutral'}>{contact.isPrimary ? 'Principal' : String(contact.status ?? 'Activo')}</StatusPill></article>; })}</div>;
 }
 /** Un paso de la cuenta. Bloqueado no es un enlace: se ve el paso y por qué aún no toca. */
 function Quick({ step, done = false, href, icon, title, detail, blockedReason }: { step: number; done?: boolean; href: string; icon: string; title: string; detail: string; blockedReason?: string | undefined }) {
   const cuerpo = (
     <>
-      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${blockedReason ? 'bg-slate-100 text-slate-400' : 'bg-primary-wash text-primary'}`}><Icon name={done ? 'check_circle' : icon} className="text-[18px]" /></span>
-      <span className="min-w-0 flex-1"><b className="block text-xs">{step}. {title}</b><span className="block text-[11px] text-slate-500">{blockedReason ?? detail}</span></span>
-      {blockedReason ? <Icon name="lock" className="text-[17px] text-slate-400" /> : <Icon name="chevron_right" className="text-[17px] text-slate-500" />}
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${blockedReason ? 'bg-slate-100 text-slate-500' : 'bg-primary-wash text-primary'}`}><Icon name={done ? 'check_circle' : icon} className="text-[18px]" /></span>
+      <span className="min-w-0 flex-1"><b className="block text-xs">{step}. {title}</b><span className="block text-xs text-slate-500">{blockedReason ?? detail}</span></span>
+      {blockedReason ? <Icon name="lock" className="text-[17px] text-slate-500" /> : <Icon name="chevron_right" className="text-[17px] text-slate-500" />}
     </>
   );
   if (blockedReason) return <div aria-disabled="true" className="flex cursor-not-allowed items-center gap-3 rounded-md border border-dashed border-slate-200 p-3 text-slate-500">{cuerpo}</div>;
-  return <Link href={href} className="flex items-center gap-3 rounded-md border border-slate-200 p-3 hover:border-slate-300 hover:bg-slate-50">{cuerpo}</Link>;
+  return <Link href={href} className="flex items-center gap-3 rounded-md border border-slate-200 p-3 hover:border-border-strong hover:bg-surface-sunken">{cuerpo}</Link>;
 }
 function Timeline({ label, detail }: { label: string; detail: string }) {
-  return <div className="flex gap-3"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-500 ring-4 ring-teal-50" /><div><b>{label}</b><p className="mt-0.5 text-[11px] leading-4 text-slate-500">{detail}</p></div></div>;
+  return <div className="flex gap-3"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-500 ring-4 ring-teal-50" /><div><b>{label}</b><p className="mt-0.5 text-xs leading-4 text-slate-500">{detail}</p></div></div>;
 }

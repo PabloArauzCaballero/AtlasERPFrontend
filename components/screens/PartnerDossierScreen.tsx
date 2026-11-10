@@ -347,7 +347,7 @@ export function PartnerDossierScreen() {
                   />
                 </div>
                 <div className="mt-3">
-                  <AtlasButton
+                  <AtlasButton variant="strong"
                     type="button"
                     disabled={busy || !state.readyToSubmit}
                     data-testid="btn-enviar-revision"
@@ -406,26 +406,26 @@ export function PartnerDossierScreen() {
                     data-testid="campo-contactPhone"
                   />
                   <div className="md:col-span-3">
-                    <AtlasButton type="submit" disabled={busy} data-testid="btn-guardar-ficha">
+                    <AtlasButton variant="strong" type="submit" disabled={busy} data-testid="btn-guardar-ficha">
                       <Icon name="save" className="text-[18px]" /> Guardar ficha
                     </AtlasButton>
                   </div>
                 </form>
-                <dl className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-xs grid-cols-1 md:grid-cols-3">
+                <dl className="mt-4 grid gap-3 border-t border-slate-200 pt-4 text-xs grid-cols-1 md:grid-cols-3">
                   <div>
-                    <dt className="font-bold text-slate-500">Razón social</dt>
+                    <dt className="font-semibold text-slate-500">Razón social</dt>
                     <dd className="text-slate-800">{state.profile.legalName}</dd>
                   </div>
                   <div>
-                    <dt className="font-bold text-slate-500">NIT</dt>
+                    <dt className="font-semibold text-slate-500">NIT</dt>
                     <dd className="text-slate-800">{state.profile.taxId}</dd>
                   </div>
                   <div>
-                    <dt className="font-bold text-slate-500">Matrícula de comercio</dt>
+                    <dt className="font-semibold text-slate-500">Matrícula de comercio</dt>
                     <dd className="text-slate-800">{state.profile.commercialRegistry ?? 'Sin declarar'}</dd>
                   </div>
                   <div>
-                    <dt className="font-bold text-slate-500">Correo verificado</dt>
+                    <dt className="font-semibold text-slate-500">Correo verificado</dt>
                     <dd className="text-slate-800">
                       {state.profile.contactEmail} {state.profile.emailVerified ? '· verificado' : '· sin verificar'}
                     </dd>

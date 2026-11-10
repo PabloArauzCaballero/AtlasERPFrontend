@@ -104,14 +104,14 @@ export function TutorialCenter({ audience, embedded = false }: { audience: 'inte
               <Icon name="picture_as_pdf" className="text-[22px]" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm font-bold text-slate-900">{guiaPdf.titulo}</h2>
+              <h2 className="text-sm font-semibold text-slate-900">{guiaPdf.titulo}</h2>
               <p className="mt-1 text-xs leading-5 text-slate-600">{guiaPdf.detalle}</p>
             </div>
           </div>
           <a
             href={guiaPdf.href}
             download={guiaPdf.archivo}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary-container"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border border-border-strong bg-white px-3 text-xs font-semibold text-slate-900 hover:bg-surface-sunken"
           >
             <Icon name="download" className="text-[16px]" />
             Descargar la guía en PDF
@@ -128,7 +128,7 @@ export function TutorialCenter({ audience, embedded = false }: { audience: 'inte
 
       <Panel compact>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-primary">
+          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-border-strong bg-white px-3 focus-within:border-primary">
             <Icon name="search" className="text-[18px] text-slate-500" />
             <input
               className="min-w-0 flex-1 bg-transparent text-xs outline-none"
@@ -204,9 +204,9 @@ function SummaryTile({ label, value, detail, icon }: { label: string; value: str
   return (
     <article className="flex min-h-24 items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
       <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-        <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
-        <p className="mt-1 truncate text-[11px] text-slate-500">{detail}</p>
+        <p className="text-xs font-semibold text-slate-500">{label}</p>
+        <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
+        <p className="mt-1 truncate text-xs text-slate-500">{detail}</p>
       </div>
       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary-wash text-primary">
         <Icon name={icon} className="text-[22px]" />
@@ -235,34 +235,34 @@ function TutorialCard({ listing, state, audience, isCompleted, onStart }: CardPr
   const label = primaryActionLabel(state);
 
   return (
-    <article className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+    <article className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide', STATE_TONE[state])}>
+        <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', STATE_TONE[state])}>
           {STATE_LABELS[state]}
         </span>
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
           {TUTORIAL_CATEGORY_LABELS[listing.category]}
         </span>
         {listing.essential ? (
-          <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+          <span className="rounded-full bg-primary-wash px-2 py-0.5 text-xs font-medium text-primary">
             Esencial
           </span>
         ) : null}
       </div>
 
       <div className="min-w-0 flex-1">
-        <h2 className="text-sm font-bold text-slate-900">{listing.title}</h2>
+        <h2 className="text-sm font-semibold text-slate-900">{listing.title}</h2>
         <p className="mt-1 text-xs leading-5 text-slate-600">{listing.intro}</p>
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-slate-500">
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500">
         <span className="flex items-center gap-1"><Icon name="schedule" className="text-[14px]" />{listing.estimatedMinutes} min</span>
         <span className="flex items-center gap-1"><Icon name="list" className="text-[14px]" />{listing.stepCount} pasos</span>
         <span className="flex items-center gap-1"><Icon name="signal_cellular_alt" className="text-[14px]" />{TUTORIAL_LEVEL_LABELS[listing.level]}</span>
       </p>
 
       {pending.length ? (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-4 text-amber-800">
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-xs leading-4 text-amber-800">
           Se entiende mejor después de: {pending.map(tutorialTitle).join(', ')}.
         </p>
       ) : null}
@@ -271,7 +271,7 @@ function TutorialCard({ listing, state, audience, isCompleted, onStart }: CardPr
         <button
           type="button"
           onClick={() => onStart(state === 'in-progress' ? { resume: true } : state === 'completed' ? { repeat: true } : undefined)}
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary-container"
+          className="inline-flex h-9 items-center gap-2 rounded-md bg-ink px-3 text-xs font-semibold text-canvas hover:bg-slate-800"
         >
           <Icon name={state === 'in-progress' ? 'play_arrow' : 'explore'} className="text-[16px]" />
           {label}
@@ -280,7 +280,7 @@ function TutorialCard({ listing, state, audience, isCompleted, onStart }: CardPr
           <button
             type="button"
             onClick={() => onStart()}
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50"
+            className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-surface-sunken"
           >
             <Icon name="restart_alt" className="text-[16px]" />
             Desde el principio

@@ -119,7 +119,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
           </AtlasButton>
         }
       >
-        <div className="grid gap-3 border-b border-slate-100 pb-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="historial-filtros">
+        <div className="grid gap-3 border-b border-slate-200 pb-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="historial-filtros">
           <FormField
             kind="select"
             label="Sucursal"
@@ -175,9 +175,9 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
           <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
         ) : !datos || datos.items.length === 0 ? (
           <div className="py-10 text-center">
-            <Icon name="inbox" className="text-[28px] text-slate-400" />
-            <p className="mt-2 text-xs font-bold">{hayFiltros ? 'Ningún movimiento coincide con estos filtros' : 'Todavía no hay movimientos en la caja'}</p>
-            <p className="mt-1 text-[11px] text-slate-500">
+            <Icon name="inbox" className="text-[28px] text-slate-500" />
+            <p className="mt-2 text-xs font-semibold">{hayFiltros ? 'Ningún movimiento coincide con estos filtros' : 'Todavía no hay movimientos en la caja'}</p>
+            <p className="mt-1 text-xs text-slate-500">
               {hayFiltros
                 ? 'Pulse «Quitar filtros» para ver todo el historial.'
                 : 'Aquí aparecerán las solicitudes respondidas y los pagos verificados.'}
@@ -186,7 +186,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[920px] text-left text-xs" data-testid="historial-pos">
-              <thead className="text-[10px] uppercase tracking-wide text-slate-500">
+              <thead className="text-xs text-slate-500">
                 <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:font-semibold [&>th]:whitespace-nowrap [&>th:first-child]:pl-0 [&>th:last-child]:pr-0">
                   <th>Fecha</th>
                   <th>Tipo</th>
@@ -202,7 +202,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
                 {datos.items.map((m) => (
                   <tr
                     key={m.id}
-                    className="border-t border-slate-100 align-middle [&>td]:px-3 [&>td]:py-2.5 [&>td:first-child]:pl-0 [&>td:last-child]:pr-0"
+                    className="border-t border-slate-200 align-middle [&>td]:px-3 [&>td]:py-2.5 [&>td:first-child]:pl-0 [&>td:last-child]:pr-0"
                   >
                     <td className="whitespace-nowrap">{fecha(m.happenedAt)}</td>
                     <td>
@@ -211,7 +211,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
                       </StatusPill>
                     </td>
                     <td className="max-w-[170px]">
-                      <span className="block truncate font-mono text-[11px] font-semibold" title={m.code}>
+                      <span className="block truncate font-mono text-xs font-semibold" title={m.code}>
                         {m.code}
                       </span>
                     </td>
@@ -230,7 +230,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
         )}
 
         {datos && datos.pages > 1 ? (
-          <nav className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs" aria-label="Páginas del historial">
+          <nav className="flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-xs" aria-label="Páginas del historial">
             <AtlasButton variant="secondary" icon="chevron_left" disabled={datos.page <= 1 || cargando} onClick={() => cambiar({ page: datos.page - 1 })}>
               Anterior
             </AtlasButton>

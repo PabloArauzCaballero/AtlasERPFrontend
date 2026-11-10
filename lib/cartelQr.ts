@@ -1,3 +1,4 @@
+import { IMPRESO } from './coloresImpresos';
 import { qrMatrix } from '@/lib/qr';
 
 /**
@@ -27,15 +28,12 @@ export interface DatosCartel {
 const ANCHO = 1200;
 const ALTO = 1900;
 
-/* Los colores del logo y del portal: el azul noche del icono, su verde menta y el verde azulado del acento. */
-const NOCHE = '#06121f';
-const MENTA = '#2ee6b0';
-const ACENTO = '#006a61';
-const LAVADO = '#f0f8f7';
-const TINTA = '#1d1d1f';
-const TENUE = '#5a5a63';
+/** La familia real de la página (Outfit cargada por `next/font`, con su nombre con huella). */
+function fuenteDeLaPagina(): string {
+  const familia = typeof document === 'undefined' ? '' : getComputedStyle(document.body).fontFamily;
+  return familia || 'system-ui, -apple-system, "Segoe UI", sans-serif';
+}
 
-const FUENTE = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif';
 const MONO = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
 /** Un nombre de archivo que cualquier sistema acepte: sin tildes, sin espacios, sin signos. */
@@ -76,10 +74,10 @@ function rectanguloRedondeado(ctx: CanvasRenderingContext2D, x: number, y: numbe
 /** Texto centrado que encoge hasta caber: un nombre de comercio largo no puede salirse del cartel. */
 function textoQueCabe(ctx: CanvasRenderingContext2D, texto: string, y: number, maximo: number, tamano: number, peso: number, color: string, ancho = ANCHO - 160) {
   let actual = tamano;
-  ctx.font = `${peso} ${actual}px ${FUENTE}`;
+  ctx.font = `${peso} ${actual}px ${fuenteDeLaPagina()}`;
   while (ctx.measureText(texto).width > ancho && actual > 28) {
     actual -= 2;
-    ctx.font = `${peso} ${actual}px ${FUENTE}`;
+    ctx.font = `${peso} ${actual}px ${fuenteDeLaPagina()}`;
   }
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
@@ -96,9 +94,9 @@ function textoQueCabe(ctx: CanvasRenderingContext2D, texto: string, y: number, m
  */
 function nombreDelComercio(ctx: CanvasRenderingContext2D, texto: string, y: number): number {
   const ancho = ANCHO - 160;
-  ctx.font = `800 72px ${FUENTE}`;
+  ctx.font = `600 72px ${fuenteDeLaPagina()}`;
   if (ctx.measureText(texto).width <= ancho) {
-    textoQueCabe(ctx, texto, y, ancho, 72, 800, TINTA);
+    textoQueCabe(ctx, texto, y, ancho, 72, 600, IMPRESO.tinta);
     return 0;
   }
   const palabras = texto.split(/\s+/u);
@@ -106,13 +104,13 @@ function nombreDelComercio(ctx: CanvasRenderingContext2D, texto: string, y: numb
   if (palabras.length < 2) corte = 1;
   const primera = palabras.slice(0, corte).join(' ');
   const segunda = palabras.slice(corte).join(' ');
-  textoQueCabe(ctx, primera, y - 10, ancho, 56, 800, TINTA);
-  if (segunda) textoQueCabe(ctx, segunda, y + 52, ancho, 56, 800, TINTA);
+  textoQueCabe(ctx, primera, y - 10, ancho, 56, 600, IMPRESO.tinta);
+  if (segunda) textoQueCabe(ctx, segunda, y + 52, ancho, 56, 600, IMPRESO.tinta);
   return segunda ? 62 : 0;
 }
 
 /** Dibuja el cartel y lo devuelve como PNG. */
-export async function dibujarCartel(datos: DatosCartel, urlLogo = '/logo.png'): Promise<Blob> {
+export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea-logo-amarillo.svg'): Promise<Blob> {
   if (!datos.codigoManual) throw new Error('Esta caja todavía no tiene código manual: recarga la pantalla e inténtalo de nuevo.');
   if (typeof document !== 'undefined' && document.fonts?.ready) await document.fonts.ready.catch(() => undefined);
 
@@ -123,35 +121,29 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/logo.png'): 
   if (!ctx) throw new Error('Este navegador no puede dibujar el cartel.');
 
   // Fondo blanco: un PNG transparente se imprime sobre el color del papel y deja de leerse.
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = IMPRESO.papel;
   ctx.fillRect(0, 0, ANCHO, ALTO);
 
-  // Cabecera con la marca.
-  ctx.fillStyle = NOCHE;
+  // Cabecera con la marca: banda amarilla y el logo tal cual lo entrega la identidad (760 × 320).
+  ctx.fillStyle = IMPRESO.amarillo;
   ctx.fillRect(0, 0, ANCHO, 300);
   const logo = await cargarImagen(urlLogo);
-  if (logo) {
-    ctx.save();
-    rectanguloRedondeado(ctx, 90, 70, 160, 160, 36);
-    ctx.clip();
-    ctx.drawImage(logo, 90, 70, 160, 160);
-    ctx.restore();
-  }
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `800 92px ${FUENTE}`;
-  ctx.fillText('ATLAS', logo ? 290 : 90, 160);
-  ctx.fillStyle = MENTA;
-  ctx.font = `600 38px ${FUENTE}`;
-  ctx.fillText('Compra ahora, paga en cuotas', logo ? 292 : 92, 216);
-  // Filete de acento bajo la cabecera.
-  ctx.fillStyle = MENTA;
-  ctx.fillRect(0, 300, ANCHO, 10);
+  ctx.fillStyle = IMPRESO.tinta;
+  if (logo) {
+    ctx.drawImage(logo, 20, 30, 570, 240);
+  } else {
+    // Sin logo el cartel sale igual, con la marca escrita: el QR es lo que no puede faltar.
+    ctx.font = `600 92px ${fuenteDeLaPagina()}`;
+    ctx.fillText('ATLAS', 90, 180);
+  }
+  ctx.font = `500 34px ${fuenteDeLaPagina()}`;
+  ctx.fillText('Compra ahora, paga en cuotas', 640, 165);
 
   // A quién pertenece.
   const baja = nombreDelComercio(ctx, datos.comercio, 410);
-  textoQueCabe(ctx, `${datos.sucursal} · ${datos.caja}`, 470 + baja, ANCHO - 160, 42, 600, TENUE);
+  textoQueCabe(ctx, `${datos.sucursal} · ${datos.caja}`, 470 + baja, ANCHO - 160, 42, 600, IMPRESO.tintaSuave);
 
   // El QR, con su zona tranquila de 4 módulos: sin ella un lector pegado a un borde no lo encuentra.
   const matriz = qrMatrix(datos.serial);
@@ -162,21 +154,16 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/logo.png'): 
   const x0 = Math.round((ANCHO - lado) / 2);
   const y0 = 530 + baja;
   const marco = 28;
-  ctx.save();
-  ctx.shadowColor = 'rgba(6,18,31,0.16)';
-  ctx.shadowBlur = 36;
-  ctx.shadowOffsetY = 12;
   rectanguloRedondeado(ctx, x0 - marco, y0 - marco, lado + marco * 2, lado + marco * 2, 44);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = IMPRESO.papel;
   ctx.fill();
-  ctx.restore();
   rectanguloRedondeado(ctx, x0 - marco, y0 - marco, lado + marco * 2, lado + marco * 2, 44);
   ctx.lineWidth = 6;
-  ctx.strokeStyle = ACENTO;
+  ctx.strokeStyle = IMPRESO.bordeFuerte;
   ctx.stroke();
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = IMPRESO.papel;
   ctx.fillRect(x0, y0, lado, lado);
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = IMPRESO.tinta;
   for (let fila = 0; fila < matriz.length; fila += 1) {
     for (let col = 0; col < matriz.length; col += 1) {
       if (matriz[fila]![col]) ctx.fillRect(x0 + (col + quiet) * modulo, y0 + (fila + quiet) * modulo, modulo, modulo);
@@ -184,38 +171,38 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/logo.png'): 
   }
 
   const finQr = y0 + lado + marco;
-  ctx.fillStyle = TINTA;
+  ctx.fillStyle = IMPRESO.tinta;
   ctx.textAlign = 'center';
-  ctx.font = `800 54px ${FUENTE}`;
+  ctx.font = `600 54px ${fuenteDeLaPagina()}`;
   ctx.fillText('Escanea con la app Atlas', ANCHO / 2, finQr + 100);
 
   // El código que se teclea.
   const yCaja = finQr + 160;
   rectanguloRedondeado(ctx, 110, yCaja, ANCHO - 220, 330, 40);
-  ctx.fillStyle = LAVADO;
+  ctx.fillStyle = IMPRESO.lavado;
   ctx.fill();
   ctx.lineWidth = 4;
-  ctx.strokeStyle = ACENTO;
+  ctx.strokeStyle = IMPRESO.bordeFuerte;
   ctx.setLineDash([18, 12]);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = TENUE;
-  ctx.font = `600 36px ${FUENTE}`;
+  ctx.fillStyle = IMPRESO.tintaSuave;
+  ctx.font = `600 36px ${fuenteDeLaPagina()}`;
   ctx.fillText('¿La cámara no lee el QR? Escribe este código en la app', ANCHO / 2, yCaja + 72);
-  ctx.fillStyle = ACENTO;
+  ctx.fillStyle = IMPRESO.tinta;
   let tamanoCodigo = 150;
-  ctx.font = `800 ${tamanoCodigo}px ${MONO}`;
+  ctx.font = `600 ${tamanoCodigo}px ${MONO}`;
   while (ctx.measureText(datos.codigoManual).width > ANCHO - 320 && tamanoCodigo > 60) {
     tamanoCodigo -= 4;
-    ctx.font = `800 ${tamanoCodigo}px ${MONO}`;
+    ctx.font = `600 ${tamanoCodigo}px ${MONO}`;
   }
   ctx.fillText(datos.codigoManual, ANCHO / 2, yCaja + 230);
-  ctx.fillStyle = TENUE;
-  ctx.font = `500 30px ${FUENTE}`;
+  ctx.fillStyle = IMPRESO.tintaSuave;
+  ctx.font = `500 30px ${fuenteDeLaPagina()}`;
   ctx.fillText('Escanear → Ingresar el código a mano', ANCHO / 2, yCaja + 290);
 
   // Pie.
-  textoQueCabe(ctx, `Caja ${datos.serial}`, ALTO - 50, ANCHO - 160, 26, 500, TENUE);
+  textoQueCabe(ctx, `Caja ${datos.serial}`, ALTO - 50, ANCHO - 160, 26, 500, IMPRESO.tintaSuave);
 
   return new Promise<Blob>((resolver, rechazar) => {
     lienzo.toBlob((blob) => (blob ? resolver(blob) : rechazar(new Error('No se pudo generar la imagen del cartel.'))), 'image/png');

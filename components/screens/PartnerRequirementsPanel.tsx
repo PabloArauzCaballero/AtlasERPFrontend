@@ -169,7 +169,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
               data-testid="campo-poder"
             />
             <div className="md:col-span-2 flex justify-end">
-              <AtlasButton type="submit" icon="save" disabled={ocupado} data-testid="btn-guardar-representante">
+              <AtlasButton variant="strong" type="submit" icon="save" disabled={ocupado} data-testid="btn-guardar-representante">
                 Guardar representante
               </AtlasButton>
             </div>

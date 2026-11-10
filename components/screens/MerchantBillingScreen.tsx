@@ -407,7 +407,7 @@ export function MerchantBillingScreen() {
                 ) : (
                   <div className="table-scroll rounded-lg border border-slate-200">
                     <table className="w-full min-w-[820px] text-left text-xs">
-                      <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                      <thead className="bg-slate-50 text-xs text-slate-500">
                         <tr>
                           <th className="p-2.5">Fecha</th>
                           <th className="p-2.5">Crédito</th>
@@ -418,15 +418,15 @@ export function MerchantBillingScreen() {
                           <th className="p-2.5">Estado</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-200">
                         {pagos.map((pago: PagoDeCartera) => (
-                          <tr key={pago.paymentId} className={pago.reversed ? 'bg-slate-50/60 text-slate-400' : undefined}>
+                          <tr key={pago.paymentId} className={pago.reversed ? 'bg-slate-50/60 text-slate-500' : undefined}>
                             <td className="p-2.5">{formatDate(pago.receivedAt)}</td>
-                            <td className="p-2.5 font-mono text-[11px]">{pago.loanCode}</td>
+                            <td className="p-2.5 font-mono text-xs">{pago.loanCode}</td>
                             <td className="p-2.5">{pago.installmentNumbers.length ? pago.installmentNumbers.join(', ') : '—'}</td>
                             <td className="p-2.5 text-slate-500">{pago.paymentMethod}</td>
                             <td className="p-2.5 text-right font-semibold">{formatBob(Number(pago.amount))}</td>
-                            <td className="p-2.5 text-right font-bold">{formatBob(Number(pago.commissionAccrued))}</td>
+                            <td className="p-2.5 text-right font-semibold">{formatBob(Number(pago.commissionAccrued))}</td>
                             <td className="p-2.5">
                               {/* Un pago revertido NO es un cobro: se enseña, porque ocurrió, pero en gris y
                                   sin comisión. Ocultarlo dejaría un hueco inexplicable en la cuenta. */}
@@ -482,18 +482,18 @@ export function MerchantBillingScreen() {
                       <section key={credito.loanId} className="overflow-hidden rounded-lg border border-slate-200" data-testid={`credito-${credito.loanId}`}>
                         <header className="flex flex-wrap items-start justify-between gap-3 bg-slate-50 px-3 py-2.5">
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-900">
+                            <p className="text-xs font-semibold text-slate-900">
                               Compra {credito.applicationCode ?? '—'}
-                              <span className="ml-2 font-mono text-[10px] font-normal text-slate-500" title={credito.loanCode}>
+                              <span className="ml-2 font-mono text-xs font-normal text-slate-500" title={credito.loanCode}>
                                 {codigoCorto(credito.loanCode)}
                               </span>
                             </p>
                             <OrigenDeCaja origen={credito} />
-                            <p className="mt-0.5 text-[11px] text-slate-500">
+                            <p className="mt-0.5 text-xs text-slate-500">
                               Fecha de origen: <b className="text-slate-700">{credito.originatedAt ? formatDate(credito.originatedAt) : '—'}</b>
                             </p>
                           </div>
-                          <div className="text-right text-[11px]">
+                          <div className="text-right text-xs">
                             <p className="text-slate-500">
                               Falta <b className="text-slate-900">{formatBob(Number(credito.outstanding))}</b> de {formatBob(Number(credito.principalAmount))}
                             </p>
@@ -501,7 +501,7 @@ export function MerchantBillingScreen() {
                           </div>
                         </header>
                         <table className="w-full text-left text-xs">
-                          <thead className="text-[10px] uppercase text-slate-500">
+                          <thead className="text-xs text-slate-500">
                             <tr>
                               <th className="p-2.5">Cuota</th>
                               <th className="p-2.5">Vence</th>
@@ -511,14 +511,14 @@ export function MerchantBillingScreen() {
                               <th className="p-2.5">Estado</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-slate-200">
                             {delCredito.map((cuota) => (
                               <tr key={cuota.installmentId}>
                                 <td className="p-2.5 font-semibold">{cuota.installmentNumber}</td>
                                 <td className="p-2.5">{formatDate(cuota.dueDate)}</td>
                                 <td className="p-2.5 text-right">{formatBob(Number(cuota.amountDue))}</td>
                                 <td className="p-2.5 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
-                                <td className="p-2.5 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
+                                <td className="p-2.5 text-right font-semibold">{formatBob(Number(cuota.amountOutstanding))}</td>
                                 <td className="p-2.5">
                                   <StatusPill tone={ESTADOS[cuota.estado].tone}>
                                     {cuota.estado === 'mora' && cuota.daysPastDue > 0 ? `En mora ${cuota.daysPastDue} d` : ESTADOS[cuota.estado].etiqueta}
@@ -553,7 +553,7 @@ export function MerchantBillingScreen() {
                     {receivables.length ? (
                       <div className="table-scroll rounded-lg border border-slate-200">
                         <table className="w-full min-w-[720px] text-left text-xs">
-                          <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                          <thead className="bg-slate-50 text-xs text-slate-500">
                             <tr>
                               <th className="p-2.5">Concepto</th>
                               <th className="p-2.5">Emitido</th>
@@ -563,7 +563,7 @@ export function MerchantBillingScreen() {
                               <th className="p-2.5">Estado</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-slate-200">
                             {receivables.map((receivable) => {
                               const estado = estadoDelCargo(
                                 String(receivable.status ?? ''),
@@ -593,7 +593,7 @@ export function MerchantBillingScreen() {
                     {invoices.length ? (
                       <div className="table-scroll rounded-lg border border-slate-200">
                         <table className="w-full min-w-[720px] text-left text-xs">
-                          <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                          <thead className="bg-slate-50 text-xs text-slate-500">
                             <tr>
                               <th className="p-2.5">Número</th>
                               <th className="p-2.5">Fecha</th>
@@ -603,7 +603,7 @@ export function MerchantBillingScreen() {
                               <th className="p-2.5 text-right">Documento</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-slate-200">
                             {invoices.map((invoice) => {
                               /* Una factura emitida no lleva saldo abierto en su fila: mientras no diga
                                  PAID se debe entera, y por eso el saldo que se le pasa es su total. */
@@ -615,7 +615,7 @@ export function MerchantBillingScreen() {
                               );
                               return (
                                 <tr key={String(invoice.id)}>
-                                  <td className="p-2.5 font-mono text-[11px]">{String(invoice.invoiceNumber ?? '—')}</td>
+                                  <td className="p-2.5 font-mono text-xs">{String(invoice.invoiceNumber ?? '—')}</td>
                                   <td className="p-2.5">{formatDate(typeof invoice.invoiceDate === 'string' ? invoice.invoiceDate : undefined)}</td>
                                   <td className="p-2.5">{formatDate(typeof invoice.dueDate === 'string' ? invoice.dueDate : undefined)}</td>
                                   <td className="p-2.5 text-right font-semibold">{formatBob(Number(invoice.totalAmount ?? 0))}</td>

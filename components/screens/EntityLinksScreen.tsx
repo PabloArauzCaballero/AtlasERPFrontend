@@ -177,19 +177,19 @@ export function EntityLinksScreen() {
     }
     return (
       <div className="overflow-hidden rounded-md border border-slate-200">
-        <div className={`grid ${onDelete ? 'grid-cols-[1.2fr_2fr_1fr_1fr_90px]' : 'grid-cols-[1.2fr_2fr_1fr_1fr]'} bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500`}>
+        <div className={`grid ${onDelete ? 'grid-cols-[1.2fr_2fr_1fr_1fr_90px]' : 'grid-cols-[1.2fr_2fr_1fr_1fr]'} bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500`}>
           <span>Tipo</span><span>Entidad</span><span>Relación</span><span>Creado</span>{onDelete ? <span /> : null}
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-200">
           {items.map((row) => (
             <div key={s(row.id)} className={`grid ${onDelete ? 'grid-cols-[1.2fr_2fr_1fr_1fr_90px]' : 'grid-cols-[1.2fr_2fr_1fr_1fr]'} items-center px-4 py-2 text-xs`}>
               <span><StatusPill tone="neutral">{s(row.entityType).replaceAll('_', ' ')}</StatusPill></span>
-              <span className="truncate font-mono text-[11px] text-slate-600">{s(row.entityId)}</span>
+              <span className="truncate font-mono text-xs text-slate-600">{s(row.entityId)}</span>
               <span className="text-slate-600">{s(row.relation) || 'DEFAULT'}</span>
               <span className="text-slate-500">{row.createdAt ? formatDate(s(row.createdAt)) : '—'}</span>
               {onDelete ? (
                 <span className="text-right">
-                  <AtlasButton variant="danger" className="h-7 px-2 text-[10px]" onClick={() => onDelete(row)}>Quitar</AtlasButton>
+                  <AtlasButton variant="danger" className="h-7 px-2 text-xs" onClick={() => onDelete(row)}>Quitar</AtlasButton>
                 </span>
               ) : null}
             </div>

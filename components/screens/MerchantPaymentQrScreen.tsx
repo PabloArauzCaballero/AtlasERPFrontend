@@ -448,7 +448,7 @@ export function MerchantPaymentQrScreen({
               </dl>
               <StatusPill tone={estadoVigente?.tono ?? 'neutral'}>{estadoVigente?.texto ?? vigente.status}</StatusPill>
               {aprobado && enRevision ? (
-                <p className="text-[11px] text-slate-500" data-testid="qr-cobro-nuevo-en-revision">
+                <p className="text-xs text-slate-500" data-testid="qr-cobro-nuevo-en-revision">
                   Hay un QR nuevo esperando revisión (huella {enRevision.fingerprint}). Sus clientes siguen viendo el
                   aprobado hasta que Atlas lo apruebe.
                 </p>
@@ -456,9 +456,9 @@ export function MerchantPaymentQrScreen({
             </div>
           ) : (
             <div className="py-10 text-center">
-              <Icon name="qr_code_2" className="text-[28px] text-slate-400" />
-              <p className="mt-2 text-xs font-bold">Todavía no hay QR de cobro</p>
-              <p className="mt-1 text-[11px] text-slate-500">Sus clientes ven la instrucción de pago sin código que escanear.</p>
+              <Icon name="qr_code_2" className="text-[28px] text-slate-500" />
+              <p className="mt-2 text-xs font-semibold">Todavía no hay QR de cobro</p>
+              <p className="mt-1 text-xs text-slate-500">Sus clientes ven la instrucción de pago sin código que escanear.</p>
             </div>
           )}
         </Panel>
@@ -521,7 +521,7 @@ export function MerchantPaymentQrScreen({
             >
               {vigente ? 'Reemplazar QR de cobro' : 'Subir QR de cobro'}
             </AtlasButton>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Sólo se guarda la cuenta ENMASCARADA: el expediente prueba de quién es la cuenta, no necesita operarla.
             </p>
           </div>
@@ -531,7 +531,7 @@ export function MerchantPaymentQrScreen({
       {historial.length > 0 ? (
         <Panel title={`QR anteriores (${historial.length})`} description="Se conservan para poder reconstruir contra qué QR se cobró cada día." icon="history">
           <table className="w-full text-left text-xs" data-testid="tabla-qr-historial">
-            <thead className="text-[10px] uppercase tracking-wide text-slate-500">
+            <thead className="text-xs text-slate-500">
               <tr>
                 <th className="py-1">Entidad</th>
                 <th className="py-1">Cuenta</th>
@@ -542,7 +542,7 @@ export function MerchantPaymentQrScreen({
             </thead>
             <tbody>
               {historial.map((codigo) => (
-                <tr key={codigo.qrId} className="border-t border-slate-100">
+                <tr key={codigo.qrId} className="border-t border-slate-200">
                   <td className="py-1.5">{codigo.bankInstitutionCode ?? '—'}</td>
                   <td className="py-1.5 font-mono">{codigo.accountNumberMasked ?? '—'}</td>
                   <td className="py-1.5 font-mono text-slate-500">{codigo.fingerprint}</td>
@@ -550,7 +550,7 @@ export function MerchantPaymentQrScreen({
                   <td className="py-1.5">
                     <StatusPill tone={ESTADO_QR[codigo.status]?.tono ?? 'neutral'}>{ESTADO_QR[codigo.status]?.texto ?? codigo.status}</StatusPill>
                     {codigo.status === 'rejected' && codigo.reviewNote ? (
-                      <p className="mt-0.5 text-[11px] text-slate-500">{codigo.reviewNote}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{codigo.reviewNote}</p>
                     ) : null}
                   </td>
                 </tr>
@@ -586,7 +586,7 @@ export function MerchantPaymentQrScreen({
 function Dato({ termino, valor, mono = false }: Readonly<{ termino: string; valor: string; mono?: boolean }>) {
   return (
     <div>
-      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{termino}</dt>
+      <dt className="text-xs font-semibold text-slate-500">{termino}</dt>
       <dd className={mono ? 'font-mono text-slate-800' : 'text-slate-800'}>{valor}</dd>
     </div>
   );

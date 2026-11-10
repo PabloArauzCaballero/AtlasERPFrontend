@@ -164,10 +164,10 @@ export function CreditRatingScreen() {
           <p className="text-xs text-slate-500">Sin deudas calificadas todavía. «Recalificar toda la cartera» las califica con la política vigente.</p>
         ) : (
           <div className="overflow-hidden rounded-md border border-slate-200">
-            <div className="grid grid-cols-[80px_1.4fr_0.8fr_1fr_1fr] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
+            <div className="grid grid-cols-[80px_1.4fr_0.8fr_1fr_1fr] bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
               <span>Categoría</span><span>Significado</span><span className="text-right">Deudas</span><span className="text-right">Exposición</span><span className="text-right">Previsión</span>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-200">
               {grades.map((row) => (
                 <div key={s(row.grade)} className="grid grid-cols-[80px_1.4fr_0.8fr_1fr_1fr] items-center px-4 py-3 text-xs">
                   <span><StatusPill tone={GRADE_TONE[s(row.grade)] ?? 'neutral'}>{s(row.grade)}</StatusPill></span>
@@ -188,18 +188,18 @@ export function CreditRatingScreen() {
             <InlineNotice tone="danger" title="No se pudo cargar el directorio">{accounts.error}</InlineNotice>
           ) : (
             <div className="overflow-hidden rounded-md border border-slate-200">
-              <div className="grid grid-cols-[2fr_90px_1.1fr_110px] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
+              <div className="grid grid-cols-[2fr_90px_1.1fr_110px] bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                 <span>Cuenta</span><span>Categoría</span><span>Calificada</span><span />
               </div>
               {cuentas.length === 0 && accounts.status !== 'loading' ? (
                 <div className="grid min-h-40 place-items-center p-8 text-center">
                   <div>
-                    <Icon name="domain_disabled" className="text-[34px] text-slate-400" />
-                    <p className="mt-2 text-xs font-bold text-slate-600">Sin cuentas B2B</p>
+                    <Icon name="domain_disabled" className="text-[34px] text-slate-500" />
+                    <p className="mt-2 text-xs font-semibold text-slate-600">Sin cuentas B2B</p>
                   </div>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-slate-200">
                   {cuentas.map((row) => {
                     const grade = s(row.riskRatingGrade);
                     const activa = s(row.id) === selectedId;
@@ -210,20 +210,20 @@ export function CreditRatingScreen() {
                         tabIndex={0}
                         onClick={() => setSelected(row)}
                         onKeyDown={(event) => { if (event.key === 'Enter') setSelected(row); }}
-                        className={`grid cursor-pointer grid-cols-[2fr_90px_1.1fr_110px] items-center px-4 py-3 text-xs transition-colors ${activa ? 'bg-primary-wash' : 'hover:bg-slate-50'}`}
+                        className={`grid cursor-pointer grid-cols-[2fr_90px_1.1fr_110px] items-center px-4 py-3 text-xs transition-colors ${activa ? 'bg-primary-wash' : 'hover:bg-surface-sunken'}`}
                       >
                         <div className="min-w-0">
-                          <p className="truncate font-bold text-slate-800">{s(row.tradeName || row.legalName)}</p>
-                          <p className="truncate text-[11px] text-slate-500">{s(row.category || row.industry) || 'Sin rubro'}</p>
+                          <p className="truncate font-semibold text-slate-800">{s(row.tradeName || row.legalName)}</p>
+                          <p className="truncate text-xs text-slate-500">{s(row.category || row.industry) || 'Sin rubro'}</p>
                         </div>
                         <span>
-                          {grade ? <StatusPill tone={GRADE_TONE[grade] ?? 'neutral'}>{grade}</StatusPill> : <span className="text-slate-400">—</span>}
+                          {grade ? <StatusPill tone={GRADE_TONE[grade] ?? 'neutral'}>{grade}</StatusPill> : <span className="text-slate-500">—</span>}
                         </span>
                         <span className="text-slate-600">{row.riskRatingUpdatedAt ? formatDate(s(row.riskRatingUpdatedAt)) : 'Nunca'}</span>
                         <span className="text-right">
                           <AtlasButton
                             variant="secondary"
-                            className="h-7 px-2 text-[10px]"
+                            className="h-7 px-2 text-xs"
                             loading={calificando === s(row.id)}
                             onClick={(event) => { event.stopPropagation(); void recalificar(row); }}
                           >
@@ -253,18 +253,18 @@ export function CreditRatingScreen() {
                   {rating.previousGrade ? <span className="text-slate-500">(antes {s(rating.previousGrade)})</span> : null}
                 </div>
                 <dl className="grid grid-cols-2 gap-2 text-slate-600">
-                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-500">Mora máxima</dt><dd className="tabular-nums">{n(rating.worstDaysPastDue)} días</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-500">Deudas calificadas</dt><dd className="tabular-nums">{n(rating.ratedReceivableCount)}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-500">Exposición</dt><dd className="tabular-nums">{formatBob(n(rating.totalExposureAmount))}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-500">Previsión</dt><dd className="tabular-nums">{formatBob(n(rating.totalProvisionAmount))}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Mora máxima</dt><dd className="tabular-nums">{n(rating.worstDaysPastDue)} días</dd></div>
+                  <div><dt className="text-xs text-slate-500">Deudas calificadas</dt><dd className="tabular-nums">{n(rating.ratedReceivableCount)}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Exposición</dt><dd className="tabular-nums">{formatBob(n(rating.totalExposureAmount))}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Previsión</dt><dd className="tabular-nums">{formatBob(n(rating.totalProvisionAmount))}</dd></div>
                 </dl>
-                <p className="text-[11px] text-slate-500">Motivo: {s(rating.ratingReason) || '—'} · calificada el {formatDate(s(rating.ratedAt))}</p>
+                <p className="text-xs text-slate-500">Motivo: {s(rating.ratingReason) || '—'} · calificada el {formatDate(s(rating.ratedAt))}</p>
                 {deudas.length ? (
                   <div className="overflow-hidden rounded-md border border-slate-200">
-                    <div className="grid grid-cols-[60px_1fr_1fr] bg-slate-50 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
+                    <div className="grid grid-cols-[60px_1fr_1fr] bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
                       <span>Cat.</span><span className="text-right">Mora</span><span className="text-right">Exposición</span>
                     </div>
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-200">
                       {deudas.map((row) => (
                         <div key={s(row.id)} className={`grid grid-cols-[60px_1fr_1fr] items-center px-3 py-2 ${s(row.receivableId) === s(rating.drivingReceivableId) ? 'bg-amber-50' : ''}`}>
                           <span><StatusPill tone={GRADE_TONE[s(row.grade)] ?? 'neutral'}>{s(row.grade)}</StatusPill></span>
@@ -276,7 +276,7 @@ export function CreditRatingScreen() {
                   </div>
                 ) : null}
                 {rating.drivingReceivableId ? (
-                  <p className="text-[11px] text-slate-500">La fila resaltada es la deuda que fijó la categoría.</p>
+                  <p className="text-xs text-slate-500">La fila resaltada es la deuda que fijó la categoría.</p>
                 ) : null}
               </div>
             )}

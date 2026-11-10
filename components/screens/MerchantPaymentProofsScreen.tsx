@@ -108,7 +108,7 @@ export function ComprobanteImagen({
           className={ampliado ? 'mx-auto max-h-[36rem] w-auto' : 'mx-auto max-h-56 w-auto'}
         />
       </button>
-      <figcaption className="text-[11px] text-slate-500">
+      <figcaption className="text-xs text-slate-500">
         {ampliado ? 'Pulse la imagen para reducirla.' : 'Pulse la imagen para ampliarla.'} Compruebe el monto, la fecha y la
         cuenta de destino antes de confirmar.
       </figcaption>
@@ -290,8 +290,8 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
         ) : comprobantes.length === 0 ? (
           <div className="py-10 text-center">
             <Icon name="check_circle" className="text-[28px] text-emerald-600" />
-            <p className="mt-2 text-xs font-bold">No hay comprobantes esperando</p>
-            <p className="mt-1 text-[11px] text-slate-500">Cuando un cliente avise que transfirió, aparecerá aquí con su comprobante.</p>
+            <p className="mt-2 text-xs font-semibold">No hay comprobantes esperando</p>
+            <p className="mt-1 text-xs text-slate-500">Cuando un cliente avise que transfirió, aparecerá aquí con su comprobante.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -300,22 +300,22 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold">{comprobante.claimCode}</h3>
+                      <h3 className="text-sm font-semibold">{comprobante.claimCode}</h3>
                       <StatusPill tone="warning">POR VERIFICAR</StatusPill>
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       Avisado el {new Date(comprobante.submittedAt).toLocaleString('es-BO')}
                     </p>
                     {/* La caja de la compra de este crédito: dos cuotas iguales pueden ser de cajas distintas. */}
                     <OrigenDeCaja origen={comprobante} />
-                    <p className="mt-1 text-[11px] text-slate-600">
+                    <p className="mt-1 text-xs text-slate-600">
                       Referencia del banco: <b>{comprobante.payerReference ?? 'sin referencia'}</b>
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Importe declarado</p>
-                    <p className="text-2xl font-extrabold">{formatBob(Number(comprobante.claimedAmount))}</p>
-                    <p className="text-[11px] text-slate-500">{comprobante.currencyCode}</p>
+                    <p className="text-xs font-semibold text-slate-500">Importe declarado</p>
+                    <p className="text-2xl font-semibold">{formatBob(Number(comprobante.claimedAmount))}</p>
+                    <p className="text-xs text-slate-500">{comprobante.currencyCode}</p>
                   </div>
                 </div>
 

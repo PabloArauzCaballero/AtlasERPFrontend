@@ -144,13 +144,13 @@ export function CampaignDetailModal({ campaignId, onClose, onChanged, onEdit }: 
         {campaign.metrics?.channels.length ? (
           <div className="overflow-x-auto rounded-md border border-slate-200">
             <table className="w-full text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50 text-xs text-slate-500">
                 <tr><th className="px-3 py-2 text-left">Canal</th><th className="px-3 py-2 text-right">Avisos</th><th className="px-3 py-2 text-right">Entregados</th><th className="px-3 py-2 text-right">Leídos</th><th className="px-3 py-2 text-right">Pendientes</th><th className="px-3 py-2 text-right">Fallidos</th></tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {campaign.metrics.channels.map((row) => (
                   <tr key={row.channel}>
-                    <td className="px-3 py-2 font-bold">{CHANNEL_META[row.channel as CampaignChannel]?.label ?? row.channel}</td>
+                    <td className="px-3 py-2 font-semibold">{CHANNEL_META[row.channel as CampaignChannel]?.label ?? row.channel}</td>
                     {[row.total, row.delivered, row.read, row.pending, row.failed].map((value, index) => <td key={index} className="px-3 py-2 text-right tabular-nums">{formatCount(value)}</td>)}
                   </tr>
                 ))}
@@ -169,11 +169,11 @@ export function CampaignDetailModal({ campaignId, onClose, onChanged, onEdit }: 
             ['Cadencia', `${formatCount(campaign.ratePerMinute)} por minuto${campaign.maxRecipients ? ` · tope ${formatCount(campaign.maxRecipients)}` : ''}`],
             ['Programada', campaign.scheduledAt ? `${formatDateTime(campaign.scheduledAt)} por ${campaign.scheduledBy ?? '—'}` : '—'],
             ['Inicio real / fin', `${formatDateTime(campaign.startedAt)} / ${formatDateTime(campaign.finishedAt)}`],
-          ].map(([label, value]) => <div key={label}><dt className="font-bold text-slate-500">{label}</dt><dd className="whitespace-pre-line text-slate-900">{value}</dd></div>)}
+          ].map(([label, value]) => <div key={label}><dt className="font-semibold text-slate-500">{label}</dt><dd className="whitespace-pre-line text-slate-900">{value}</dd></div>)}
         </dl>
 
         <div className="space-y-2 rounded-lg border border-slate-200 p-3">
-          <p className="text-xs font-bold text-slate-700">Enviar una prueba</p>
+          <p className="text-xs font-semibold text-slate-700">Enviar una prueba</p>
           <div className="flex flex-wrap items-end gap-2">
             <FormField tooltip="Identificador de tu cuenta de cliente en la app para recibir el aviso de prueba." label="ID de cliente de prueba" name="testCustomer" inputMode="numeric" className="w-56" hint="Tu cuenta de cliente en la app. Recibe el aviso marcado [PRUEBA]." value={testCustomer} onChange={(event) => setTestCustomer(event.target.value.replace(/[^0-9]/g, ''))} />
             <AtlasButton variant="secondary" icon="send" loading={busy === 'test'} disabled={!testCustomer || busy !== null} onClick={() => void run('test', async () => setTestResult(await notificationCampaignsService.testSend(campaignId, testCustomer)), 'Prueba enviada')}>
@@ -193,13 +193,13 @@ export function CampaignDetailModal({ campaignId, onClose, onChanged, onEdit }: 
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-bold text-slate-700">Últimos avisos generados</p>
+          <p className="mb-2 text-xs font-semibold text-slate-700">Últimos avisos generados</p>
           <div className="overflow-x-auto rounded-md border border-slate-200">
             <table className="w-full text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50 text-xs text-slate-500">
                 <tr><th className="px-3 py-2 text-left">Cliente</th><th className="px-3 py-2 text-left">Canal</th><th className="px-3 py-2 text-left">Estado</th><th className="px-3 py-2 text-left">Sale</th><th className="px-3 py-2 text-left">Entregado</th><th className="px-3 py-2 text-left">Leído</th></tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {(messages.data?.data ?? []).map((message) => (
                   <tr key={message.id}>
                     <td className="px-3 py-2 font-mono">{message.recipientId}</td>

@@ -162,7 +162,7 @@ export function StoredFilePreview({ cargar, mimeType, nombre, alto }: StoredFile
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 bg-red-50 px-3 py-3 text-[11px] text-red-700" role="alert">
+      <div className="flex items-center gap-2 bg-red-50 px-3 py-3 text-xs text-red-700" role="alert">
         <Icon name="error" className="text-[18px]" />
         {error}
       </div>
@@ -170,7 +170,7 @@ export function StoredFilePreview({ cargar, mimeType, nombre, alto }: StoredFile
   }
   if (!url) {
     return (
-      <div className="flex h-24 items-center justify-center gap-2 bg-slate-50 text-[11px] text-slate-500" role="status">
+      <div className="flex h-24 items-center justify-center gap-2 bg-slate-50 text-xs text-slate-500" role="status">
         <LoadingSpinner label="Cargando la vista previa" />
         Cargando la vista previa…
       </div>
@@ -178,10 +178,10 @@ export function StoredFilePreview({ cargar, mimeType, nombre, alto }: StoredFile
   }
   if (tipoDeVista(mimeType, nombre) === 'otro' && mimeType) {
     return (
-      <div className="flex items-center gap-2 bg-slate-50 px-3 py-3 text-[11px] text-slate-600">
+      <div className="flex items-center gap-2 bg-slate-50 px-3 py-3 text-xs text-slate-600">
         <Icon name={iconoDeArchivo(mimeType, nombre)} className="text-[18px] text-slate-500" />
         Este tipo de archivo no tiene vista previa.{' '}
-        <a href={url} download={nombre} className="font-bold text-primary hover:underline">Descargarlo</a>
+        <a href={url} download={nombre} className="font-semibold text-primary hover:underline">Descargarlo</a>
       </div>
     );
   }

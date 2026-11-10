@@ -145,7 +145,7 @@ export function StructuredActionForm(props: StructuredActionFormProps) {
                 key={section.title}
                 type="button"
                 onClick={() => setActiveTab(index)}
-                className={`inline-flex items-center gap-1.5 rounded-t-md px-3 py-2 text-xs font-bold transition ${index === activeTab ? 'bg-white text-primary shadow-[inset_0_-2px_0_0_#006a61]' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`inline-flex items-center gap-1.5 rounded-t-md border-b-2 px-3 py-2 text-xs font-semibold transition-colors ${index === activeTab ? 'border-primary bg-white text-primary' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
               >
                 {section.icon ? <Icon name={section.icon} className="text-[16px]" /> : null}
                 {section.title}

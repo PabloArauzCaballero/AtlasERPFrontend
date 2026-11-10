@@ -53,11 +53,12 @@ export function RolesPermissionsScreen() {
                   type="button"
                   key={role.code}
                   onClick={() => setSelectedRoleCode(role.code)}
-                  className={`flex w-full items-center justify-between rounded px-3 py-2.5 text-left text-xs ${role.code === selectedRole?.code ? 'bg-primary text-white' : 'hover:bg-slate-50'}`}
+                  aria-pressed={role.code === selectedRole?.code}
+                  className={`flex w-full items-center justify-between rounded px-3 py-2.5 text-left text-xs ${role.code === selectedRole?.code ? 'bg-brand-soft text-slate-900' : 'hover:bg-surface-sunken'}`}
                 >
                   <span className="min-w-0">
-                    <span className="block truncate font-bold">{role.name}</span>
-                    <span className={`block truncate text-[10px] ${role.code === selectedRole?.code ? 'text-white/75' : 'text-slate-500'}`}>{role.department ?? role.code}</span>
+                    <span className="block truncate font-semibold">{role.name}</span>
+                    <span className={`block truncate text-xs text-slate-600`}>{role.department ?? role.code}</span>
                   </span>
                   <Icon name="chevron_right" className="text-[17px] opacity-60" />
                 </button>
@@ -76,7 +77,7 @@ export function RolesPermissionsScreen() {
           ) : (
             <div className="table-scroll">
               <table className="min-w-[720px] w-full text-left text-xs">
-                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                <thead className="bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="p-3">Módulo</th>
                     <th className="p-3">Recurso</th>
@@ -85,12 +86,12 @@ export function RolesPermissionsScreen() {
                     <th className="p-3">Descripción</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-200">
                   {selectedRole.permissions.map((permissionCode) => {
                     const permission = permissionByCode.get(permissionCode);
                     return (
                       <tr key={permissionCode}>
-                        <td className="p-3 font-bold">{permission?.module ?? '—'}</td>
+                        <td className="p-3 font-semibold">{permission?.module ?? '—'}</td>
                         <td className="p-3">{permission?.resource ?? '—'}</td>
                         <td className="p-3">{permission?.action ?? permissionCode}</td>
                         <td className="p-3"><StatusPill tone={riskTone[permission?.riskLevel ?? ''] ?? 'neutral'}>{permission?.riskLevel ?? '—'}</StatusPill></td>

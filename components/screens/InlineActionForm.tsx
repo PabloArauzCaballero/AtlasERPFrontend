@@ -67,7 +67,7 @@ export function InlineActionForm(props: InlineActionFormProps) {
           ))}
         </div>
         {error ? <InlineNotice tone="danger" title="No se pudo completar">{error}</InlineNotice> : null}
-        <div className="flex justify-end border-t border-slate-100 pt-3">
+        <div className="flex justify-end border-t border-slate-200 pt-3">
           <AtlasButton type="submit" icon={props.submitIcon ?? 'save'} loading={saving}>{props.submitLabel}</AtlasButton>
         </div>
       </form>

@@ -258,12 +258,12 @@ export function OptionSelect(props: OptionSelectProps) {
         * que faltaba era decir por qué no se puede continuar, y decirlo ANTES de pulsar.
         */}
       {isEmpty && props.required ? (
-        <span className="mt-1 block text-[11px] font-semibold text-amber-700" data-testid={`select-${props.name}-sin-opciones`}>
+        <span className="mt-1 block text-xs font-semibold text-amber-700" data-testid={`select-${props.name}-sin-opciones`}>
           No hay nada que elegir todavía, y este dato es obligatorio: hasta que exista al menos una opción, este formulario no se puede enviar.
         </span>
       ) : null}
       {selected?.description && !props.compact ? (
-        <span className="mt-1 block text-[11px] text-slate-500" data-testid={`select-${props.name}-descripcion`}>
+        <span className="mt-1 block text-xs text-slate-500" data-testid={`select-${props.name}-descripcion`}>
           {selected.description}
         </span>
       ) : null}

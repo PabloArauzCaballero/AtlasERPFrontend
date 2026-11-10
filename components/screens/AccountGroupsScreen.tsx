@@ -117,10 +117,10 @@ export function AccountGroupsScreen({ embedded = false }: AccountGroupsScreenPro
           </div>
           {resource.error ? <InlineNotice tone="danger" title="No se pudo cargar el árbol">{resource.error}</InlineNotice> : null}
           {!resource.error && tree.length === 0 && resource.status !== 'loading' ? (
-            <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
-              <Icon name="account_tree" className="text-[34px] text-slate-400" />
-              <p className="mt-2 text-xs font-bold text-slate-700">Aún no hay grupos de cuenta</p>
-              <p className="mt-1 text-[11px] text-slate-500">Cree el primer grupo raíz (p. ej. «Balance General») con el botón «Nuevo grupo».</p>
+            <div className="rounded-md border border-dashed border-border-strong bg-slate-50 px-5 py-10 text-center">
+              <Icon name="account_tree" className="text-[34px] text-slate-500" />
+              <p className="mt-2 text-xs font-semibold text-slate-700">Aún no hay grupos de cuenta</p>
+              <p className="mt-1 text-xs text-slate-500">Cree el primer grupo raíz (p. ej. «Balance General») con el botón «Nuevo grupo».</p>
             </div>
           ) : (
             <ul className="space-y-1">
@@ -164,10 +164,10 @@ function GroupBranch({ node, depth }: { node: GroupNode; depth: number }) {
     <li>
       <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2" style={{ marginLeft: depth * 18 }}>
         <Icon name={node.children?.length ? 'folder' : 'description'} className="text-[18px] text-slate-500" />
-        <span className="font-mono text-[11px] text-slate-500">{node.code}</span>
+        <span className="font-mono text-xs text-slate-500">{node.code}</span>
         <span className="flex-1 truncate text-xs font-semibold text-slate-800">{node.name}</span>
         <StatusPill tone={tone} dot={false}>{node.classification}</StatusPill>
-        <span className="hidden text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:inline">{node.statementType.replaceAll('_', ' ')}</span>
+        <span className="hidden text-xs font-semibold text-slate-500 sm:inline">{node.statementType.replaceAll('_', ' ')}</span>
       </div>
       {node.children?.length ? (
         <ul className="mt-1 space-y-1">

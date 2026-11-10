@@ -186,11 +186,11 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
           : (
             <div className="table-scroll rounded-lg border border-slate-200">
               <table className="w-full min-w-[820px] text-left text-xs">
-                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Comisión</th><th className="p-2.5">Sucursal</th><th className="p-2.5">Rubro</th><th className="p-2.5">Segmento</th><th className="p-2.5 text-right">Mínima</th><th className="p-2.5 text-right">Máxima</th><th className="p-2.5">Estado</th><th className="p-2.5" /></tr></thead>
-                <tbody className="divide-y divide-slate-100">
+                <thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="p-2.5">Comisión</th><th className="p-2.5">Sucursal</th><th className="p-2.5">Rubro</th><th className="p-2.5">Segmento</th><th className="p-2.5 text-right">Mínima</th><th className="p-2.5 text-right">Máxima</th><th className="p-2.5">Estado</th><th className="p-2.5" /></tr></thead>
+                <tbody className="divide-y divide-slate-200">
                   {reglas.map((regla) => (
                     <tr key={String(regla.id)} className={regla.isActive ? '' : 'opacity-50'}>
-                      <td className="p-2.5 font-extrabold">{Number(regla.ratePercent).toFixed(2)} %</td>
+                      <td className="p-2.5 font-semibold">{Number(regla.ratePercent).toFixed(2)} %</td>
                       <td className="p-2.5 text-slate-600">{nombreDeSucursal(regla.branchId)}</td>
                       <td className="p-2.5 text-slate-600">{String(regla.productCategory ?? 'Cualquiera')}</td>
                       <td className="p-2.5 text-slate-600">{String(regla.riskSegment ?? 'Cualquiera')}</td>

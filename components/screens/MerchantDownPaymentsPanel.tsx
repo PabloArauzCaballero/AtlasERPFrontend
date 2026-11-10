@@ -98,8 +98,8 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
         ) : pagos.length === 0 ? (
           <div className="py-8 text-center">
             <Icon name="check_circle" className="text-[28px] text-emerald-600" />
-            <p className="mt-2 text-xs font-bold">No hay pagos iniciales esperando</p>
-            <p className="mt-1 text-[11px] text-slate-500">Cuando un cliente avise que pagó el inicial de su compra, aparecerá aquí con su comprobante.</p>
+            <p className="mt-2 text-xs font-semibold">No hay pagos iniciales esperando</p>
+            <p className="mt-1 text-xs text-slate-500">Cuando un cliente avise que pagó el inicial de su compra, aparecerá aquí con su comprobante.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -108,21 +108,21 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold">Compra {pago.applicationCode}</h3>
+                      <h3 className="text-sm font-semibold">Compra {pago.applicationCode}</h3>
                       <StatusPill tone="warning">PAGO INICIAL POR CONFIRMAR</StatusPill>
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       {pago.submittedAt ? `Avisado el ${new Date(pago.submittedAt).toLocaleString('es-BO')}` : 'Sin fecha'}
                     </p>
                     <OrigenDeCaja origen={pago} />
-                    <p className="mt-1 text-[11px] text-slate-600">
+                    <p className="mt-1 text-xs text-slate-600">
                       Referencia del banco: <b>{pago.payerReference ?? 'sin referencia'}</b>
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Importe declarado</p>
-                    <p className="text-2xl font-extrabold">{formatBob(Number(pago.downPaymentAmount))}</p>
-                    <p className="text-[11px] text-slate-500">{pago.currencyCode}</p>
+                    <p className="text-xs font-semibold text-slate-500">Importe declarado</p>
+                    <p className="text-2xl font-semibold">{formatBob(Number(pago.downPaymentAmount))}</p>
+                    <p className="text-xs text-slate-500">{pago.currencyCode}</p>
                   </div>
                 </div>
 

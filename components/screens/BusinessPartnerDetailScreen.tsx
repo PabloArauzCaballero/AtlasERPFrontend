@@ -166,8 +166,8 @@ export function BusinessPartnerDetailScreen({ initialId = '' }: { initialId?: st
 function Detail({ label, value, mono = false }: { label: string; value: unknown; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className={`mt-1 break-words font-semibold text-slate-800 ${mono ? 'font-mono text-[11px]' : ''}`}>{String(value ?? '—')}</dd>
+      <dt className="text-xs font-semibold text-slate-500">{label}</dt>
+      <dd className={`mt-1 break-words font-semibold text-slate-800 ${mono ? 'font-mono text-xs' : ''}`}>{String(value ?? '—')}</dd>
     </div>
   );
 }

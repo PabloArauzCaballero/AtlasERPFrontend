@@ -221,14 +221,14 @@ export function OnboardingChecklistEvidenceModal({
     >
       <form className="space-y-3" onSubmit={subir} data-testid="form-evidencia-requisito" aria-busy={ocupado}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <ol className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600" aria-label="Pasos">
-            <li><span className="font-bold text-slate-800">1.</span> Elija el requisito</li>
-            <li><span className="font-bold text-slate-800">2.</span> Adjunte el archivo (PDF, JPEG o PNG hasta 15 MB)</li>
-            <li><span className="font-bold text-slate-800">3.</span> Marque el requisito completado en la fila</li>
+          <ol className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600" aria-label="Pasos">
+            <li><span className="font-semibold text-slate-800">1.</span> Elija el requisito</li>
+            <li><span className="font-semibold text-slate-800">2.</span> Adjunte el archivo (PDF, JPEG o PNG hasta 15 MB)</li>
+            <li><span className="font-semibold text-slate-800">3.</span> Marque el requisito completado en la fila</li>
           </ol>
                   </div>
         {cargandoDetalle ? (
-          <p role="status" className="text-[11px] text-slate-600" data-testid="evidencia-cargando">Consultando qué requisitos ya tienen archivo…</p>
+          <p role="status" className="text-xs text-slate-600" data-testid="evidencia-cargando">Consultando qué requisitos ya tienen archivo…</p>
         ) : null}
         <FormField tooltip="Requisito del checklist de alta sobre el que se actúa."
           kind="select"
@@ -260,8 +260,8 @@ export function OnboardingChecklistEvidenceModal({
         {elegido?.hasEvidence && viendoActual ? (
           <div className="overflow-hidden rounded-lg border border-slate-200" data-testid="vista-evidencia-actual">
             <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-1.5">
-              <span className="text-[11px] font-bold text-slate-700">Archivo actual del requisito</span>
-              <button type="button" onClick={abrirEnPestana} className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+              <span className="text-xs font-semibold text-slate-700">Archivo actual del requisito</span>
+              <button type="button" onClick={abrirEnPestana} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
                 <Icon name="open_in_new" className="text-[14px]" />
                 Abrir en otra pestaña
               </button>
@@ -274,7 +274,7 @@ export function OnboardingChecklistEvidenceModal({
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
               <div className="h-full rounded-full bg-slate-800 transition-all duration-500" style={{ width: fase === 'preparando' ? '20%' : fase === 'subiendo' ? '60%' : '90%' }} />
             </div>
-            <p className="text-[11px] text-slate-600">{TEXTO_FASE[fase]} No cierre esta ventana.</p>
+            <p className="text-xs text-slate-600">{TEXTO_FASE[fase]} No cierre esta ventana.</p>
           </div>
         ) : null}
         {error ? <InlineNotice tone="danger" title="No se pudo adjuntar">{error}</InlineNotice> : null}

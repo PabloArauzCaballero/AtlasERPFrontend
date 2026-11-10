@@ -128,22 +128,22 @@ export function MerchantAccessModal({ caso, onClose, onDone }: { caso: ResourceR
           ) : null}
 
           <fieldset className="space-y-1.5" data-testid="acceso-contactos">
-            <legend className="mb-1.5 text-xs font-bold text-slate-700">Persona</legend>
+            <legend className="mb-1.5 text-xs font-semibold text-slate-700">Persona</legend>
             {contactos.map((c) => {
               const deshabilitado = !c.email;
               const activo = seleccion === c.id;
               return (
                 <label
                   key={c.id}
-                  className={`flex items-start gap-3 rounded-md border px-3 py-2.5 text-xs transition ${deshabilitado ? 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400' : activo ? 'cursor-pointer border-primary bg-primary-wash text-slate-800' : 'cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                  className={`flex items-start gap-3 rounded-md border px-3 py-2.5 text-xs transition ${deshabilitado ? 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-500' : activo ? 'cursor-pointer border-primary bg-primary-wash text-slate-800' : 'cursor-pointer border-slate-200 text-slate-700 hover:bg-surface-sunken'}`}
                 >
                   <input type="radio" name="contacto" value={c.id} checked={activo} disabled={deshabilitado} onChange={() => setElegido(c.id)} className="mt-0.5" />
                   <span className="min-w-0">
                     <span className="block font-semibold">
                       {c.fullName}
-                      {c.isPrimary ? <span className="ml-2 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-600">Principal</span> : null}
+                      {c.isPrimary ? <span className="ml-2 rounded bg-slate-200 px-1.5 py-0.5 text-xs font-semibold text-slate-600">Principal</span> : null}
                     </span>
-                    <span className="block text-[11px] text-slate-500">
+                    <span className="block text-xs text-slate-500">
                       {c.email ?? 'Sin correo: agrégaselo en la ficha de la cuenta para poder darle acceso.'}
                       {c.roleTitle ? ` · ${c.roleTitle}` : ''}
                     </span>
@@ -151,11 +151,11 @@ export function MerchantAccessModal({ caso, onClose, onDone }: { caso: ResourceR
                 </label>
               );
             })}
-            <label className={`flex items-start gap-3 rounded-md border px-3 py-2.5 text-xs transition cursor-pointer ${aMano ? 'border-primary bg-primary-wash text-slate-800' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+            <label className={`flex items-start gap-3 rounded-md border px-3 py-2.5 text-xs transition cursor-pointer ${aMano ? 'border-primary bg-primary-wash text-slate-800' : 'border-slate-200 text-slate-700 hover:bg-surface-sunken'}`}>
               <input type="radio" name="contacto" value={OTRA_PERSONA} checked={aMano} onChange={() => setElegido(OTRA_PERSONA)} className="mt-0.5" />
               <span>
                 <span className="flex items-center gap-1 font-semibold"><Icon name="person_add" className="text-[15px]" /> Otra persona</span>
-                <span className="block text-[11px] text-slate-500">Alguien que todavía no está entre los contactos de la cuenta, por ejemplo quien atiende una caja.</span>
+                <span className="block text-xs text-slate-500">Alguien que todavía no está entre los contactos de la cuenta, por ejemplo quien atiende una caja.</span>
               </span>
             </label>
           </fieldset>
@@ -167,7 +167,7 @@ export function MerchantAccessModal({ caso, onClose, onDone }: { caso: ResourceR
           </div>
 
           {error ? <InlineNotice tone="danger" title="No se pudo pedir el acceso">{error}</InlineNotice> : null}
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+          <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
             <AtlasButton variant="secondary" type="button" onClick={onClose} disabled={guardando}>Cancelar</AtlasButton>
             <AtlasButton type="submit" icon="send" loading={guardando}>Pedir acceso</AtlasButton>
           </div>

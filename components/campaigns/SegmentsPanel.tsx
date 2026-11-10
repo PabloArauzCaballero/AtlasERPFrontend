@@ -43,13 +43,13 @@ export function SegmentsPanel() {
       {list.error ? <InlineNotice tone="danger" title="No se pudieron cargar los segmentos">{list.error}</InlineNotice> : null}
       <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
         <table className="w-full text-xs">
-          <thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+          <thead className="bg-slate-50 text-xs text-slate-500">
             <tr><th className="px-3 py-2 text-left">Segmento</th><th className="px-3 py-2 text-left">Condiciones</th><th className="px-3 py-2 text-right" title="Tamaño bruto del segmento. Una campaña comercial alcanza sólo a quien aceptó promociones, y ese número se ve al armarla.">Personas</th><th className="px-3 py-2 text-left">Calculado</th><th className="px-3 py-2 text-right">Acciones</th></tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-200">
             {rows.map((segment) => (
               <tr key={segment.id}>
-                <td className="px-3 py-2"><p className="font-bold text-slate-900">{segment.name}</p>{segment.description ? <p className="text-slate-500">{segment.description}</p> : null}</td>
+                <td className="px-3 py-2"><p className="font-semibold text-slate-900">{segment.name}</p>{segment.description ? <p className="text-slate-500">{segment.description}</p> : null}</td>
                 <td className="px-3 py-2 text-slate-700">{segment.definition.rules.length ? segment.definition.rules.map(describeRule).join(segment.definition.match === 'any' ? ' · o · ' : ' · y · ') : 'Todos los clientes activos'}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{segment.lastEstimate ? formatCount(segment.lastEstimate.total) : '—'}</td>
                 <td className="px-3 py-2">{formatDateTime(segment.lastEstimatedAt)}</td>

@@ -310,7 +310,7 @@ export function FileDropField(props: FileDropFieldProps) {
                 <Icon name={encima ? 'file_download' : 'cloud_upload'} className={hayArchivos ? 'text-[18px]' : 'text-[22px]'} />
               </span>
               <span className={hayArchivos ? 'text-left' : ''}>
-                <span className="block text-xs font-bold text-slate-800">
+                <span className="block text-xs font-semibold text-slate-800">
                   {encima
                     ? 'Suelta para adjuntarlo'
                     : hayArchivos
@@ -319,7 +319,7 @@ export function FileDropField(props: FileDropFieldProps) {
                         ? 'Arrastra los archivos aquí o elige uno o varios'
                         : 'Arrastra el archivo aquí o elige uno'}
                 </span>
-                {detalleZona ? <span className="mt-0.5 block text-[11px] text-slate-500">{detalleZona}</span> : null}
+                {detalleZona ? <span className="mt-0.5 block text-xs text-slate-500">{detalleZona}</span> : null}
               </span>
             </span>
           </button>
@@ -327,12 +327,12 @@ export function FileDropField(props: FileDropFieldProps) {
       </div>
 
       {error ? (
-        <p id={errorId} role="alert" className="mt-1.5 flex items-start gap-1 text-[11px] font-semibold text-red-700">
+        <p id={errorId} role="alert" className="mt-1.5 flex items-start gap-1 text-xs font-semibold text-red-700">
           <Icon name="error" className="text-[15px]" />
           <span>{error}</span>
         </p>
       ) : null}
-      {props.hint ? <span id={pistaId} className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null}
+      {props.hint ? <span id={pistaId} className="mt-1 block text-xs text-slate-500">{props.hint}</span> : null}
     </div>
   );
 }
@@ -373,8 +373,8 @@ function FichaDeArchivo({ file, status, bloqueado, onCambiar, onQuitar }: FichaD
           <Icon name={iconoDeArchivo(file.type, file.name)} className="text-[20px]" />
         </span>
         <div className="min-w-0 flex-1 basis-40">
-          <p className="truncate text-xs font-bold text-slate-800" title={file.name}>{file.name}</p>
-          <p className="text-[11px] text-slate-500">
+          <p className="truncate text-xs font-semibold text-slate-800" title={file.name}>{file.name}</p>
+          <p className="text-xs text-slate-500">
             {etiquetaDeTipo(file.type, file.name)} · {tamanoLegible(file.size)}
             {status ? ` · ${status}` : ''}
           </p>
