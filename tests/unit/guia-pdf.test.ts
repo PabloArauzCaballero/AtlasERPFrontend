@@ -7,7 +7,8 @@ describe('guía en PDF', () => {
   it('cada guía ofrecida existe en public/: el botón nunca lleva a un 404', () => {
     for (const guia of Object.values(GUIAS_PDF)) {
       expect(existsSync(join(process.cwd(), 'public', guia!.href)), guia!.href).toBe(true);
-      expect(guia!.href.endsWith(guia!.archivo)).toBe(true);
+      // El nombre con que se DESCARGA ya es el de la marca; el archivo publicado lo sigue nombrando el generador externo.
+      expect(guia!.archivo).toMatch(/^Cuotea-Guia-.*\.pdf$/);
     }
   });
 

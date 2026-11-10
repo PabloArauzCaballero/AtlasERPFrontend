@@ -33,7 +33,7 @@ export default function CreditProductsPage() {
     <CrudDirectory
       moduleLabel="CRM"
       title="Productos de crédito"
-      description="Los productos con los que Atlas financia las compras: su rango de monto, su plazo y su tasa. La app del cliente elige el producto activo que admite la parte financiada de la compra; sin uno, la compra no avanza."
+      description="Los productos con los que Cuotea financia las compras: su rango de monto, su plazo y su tasa. La app del cliente elige el producto activo que admite la parte financiada de la compra; sin uno, la compra no avanza."
       load={load}
       labelKey="productName"
       searchPlaceholder="Buscar por nombre o código…"
@@ -58,7 +58,7 @@ export default function CreditProductsPage() {
         title: 'Nuevo producto de crédito',
         description: 'Nace en borrador: nadie lo ve hasta que lo actives. Los montos son de la parte FINANCIADA (el 40 % de la compra): para que una compra de Bs 200 pueda financiarse, el mínimo tiene que ser Bs 80 o menos.',
         fields: [
-          { name: 'productName', label: 'Nombre del producto', tooltip: 'Cómo se llama el producto en las pantallas; el código del sistema se genera solo a partir de este nombre.', required: true, placeholder: 'Compra a cuotas Atlas', span: 2 },
+          { name: 'productName', label: 'Nombre del producto', tooltip: 'Cómo se llama el producto en las pantallas; el código del sistema se genera solo a partir de este nombre.', required: true, placeholder: 'Compra a cuotas Cuotea', span: 2 },
           { name: 'currencyCode', label: 'Moneda', tooltip: 'Moneda en la que se expresan los montos del producto.', optionsSource: 'catalog:currency', required: true, defaultValue: 'BOB' },
           { name: 'minAmount', label: 'Financia desde (monto mínimo)', tooltip: 'La menor parte financiada que admite este producto. La app financia el 40 % de la compra: con mínimo 50 se pueden financiar compras desde Bs 125.', type: 'number', valueKind: 'number', required: true, defaultValue: 50 },
           { name: 'maxAmount', label: 'Financia hasta (monto máximo)', tooltip: 'La mayor parte financiada que admite este producto. Una compra que financie más no encuentra producto.', type: 'number', valueKind: 'number', required: true, defaultValue: 5000 },

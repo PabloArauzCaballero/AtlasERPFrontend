@@ -137,7 +137,7 @@ export function facturaDeComercio(
     estado: invoice.status ? String(invoice.status) : undefined,
     fechaEmision: invoice.invoiceDate ? String(invoice.invoiceDate) : undefined,
     fechaVencimiento: invoice.dueDate ? String(invoice.dueDate) : undefined,
-    emisor: { nombre: 'Atlas', nit: undefined, detalle: undefined },
+    emisor: { nombre: 'Cuotea', nit: undefined, detalle: undefined },
     receptor: account
       ? {
           nombre: String(account.legalName ?? account.tradeName ?? '—'),

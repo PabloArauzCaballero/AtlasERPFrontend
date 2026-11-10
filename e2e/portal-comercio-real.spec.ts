@@ -185,7 +185,7 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   await expect(resumen.getByText(/cobrado/i).first()).toBeVisible();
   // La cuarta tarjeta pasó a ser la comisión: es la cifra que el comercio pregunta más. El rótulo
   // que pinta la pantalla es «Comisión a Atlas»; la prueba se había quedado con uno anterior.
-  await expect(resumen.getByText(/comisión a atlas/i)).toBeVisible();
+  await expect(resumen.getByText(/comisión a cuotea/i)).toBeVisible();
   await sinErrores(page, 'cartera · panel');
   await page.screenshot({ path: `${EVIDENCIA}/01-panel.png`, fullPage: true });
 
@@ -204,7 +204,7 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   // Comision: cuanto se le cobra por venta y cuanto le debe a Atlas.
   await page.getByRole('button', { name: /^comisión$/i }).click();
   await expect(page.locator('[data-tutorial-id="cartera-comision"]')).toBeVisible();
-  await expect(page.getByText(/comisión a atlas/i).first()).toBeVisible();
+  await expect(page.getByText(/comisión a cuotea/i).first()).toBeVisible();
   // El aviso que explica que la comisión se devenga al cobrar, no al vender. Se llamaba «De dónde
   // sale este porcentaje» y hoy es «Cómo se cobra»: la prueba se había quedado con el rótulo viejo.
   await expect(page.getByText(/cómo se cobra/i)).toBeVisible();

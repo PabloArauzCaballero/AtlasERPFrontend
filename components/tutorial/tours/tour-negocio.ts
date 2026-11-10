@@ -22,7 +22,7 @@ export const TOURS_NEGOCIO: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="crud-tabla"]',
         title: '1 · Todo empieza con la empresa',
         content:
-          'Un negocio en Atlas es primero una CUENTA B2B: razón social, NIT, rubro y una persona de contacto. Sin cuenta no hay oportunidad, sin oportunidad no hay propuesta y sin propuesta aceptada no hay contrato ni onboarding. Este recorrido sigue ese orden.',
+          'Un negocio en Cuotea es primero una CUENTA B2B: razón social, NIT, rubro y una persona de contacto. Sin cuenta no hay oportunidad, sin oportunidad no hay propuesta y sin propuesta aceptada no hay contrato ni onboarding. Este recorrido sigue ese orden.',
         tip: 'Antes de crear, busca por NIT: un duplicado parte el expediente en dos.',
       },
       {
@@ -91,7 +91,7 @@ export const TOURS_NEGOCIO: readonly InteractiveTutorial[] = [
     id: 'usuario-final-comercio',
     title: 'Crear un usuario final del comercio, paso a paso',
     intro:
-      'Cómo una persona del negocio recibe su acceso al Portal del comercio: se pide desde el caso de onboarding, Atlas lo concede y le llega un correo con su contraseña temporal.',
+      'Cómo una persona del negocio recibe su acceso al Portal del comercio: se pide desde el caso de onboarding, Cuotea lo concede y le llega un correo con su contraseña temporal.',
     version: 1,
     steps: [
       {
@@ -107,15 +107,15 @@ export const TOURS_NEGOCIO: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="crud-tabla"]',
         title: '2 · Nombre, correo y rol',
         content:
-          'Se registra el nombre completo, el correo REAL de la persona y su rol en el comercio. El usuario nace INVITADO: el ERP encola la petición en Atlas, porque la identidad la concede el portal interno, no el ERP.',
+          'Se registra el nombre completo, el correo REAL de la persona y su rol en el comercio. El usuario nace INVITADO: el ERP encola la petición en Cuotea, porque la identidad la concede el portal interno, no el ERP.',
         tip: 'El correo tiene que ser accesible: ahí llega la contraseña.',
       },
       {
         id: 'conceder',
         target: '[data-tutorial-id="crud-tabla"]',
-        title: '3 · Atlas concede y avisa por correo',
+        title: '3 · Cuotea concede y avisa por correo',
         content:
-          'En el Portal interno (Comercios › Usuarios) un operador aprueba la petición. En ese momento Atlas genera la contraseña temporal y la envía al correo de la persona («ATLAS — Tu cuenta fue creada»). El ERP reconcilia solo y el usuario pasa de INVITADO a ACTIVO.',
+          'En el Portal interno (Comercios › Usuarios) un operador aprueba la petición. En ese momento Cuotea genera la contraseña temporal y la envía al correo de la persona («ATLAS — Tu cuenta fue creada»). El ERP reconcilia solo y el usuario pasa de INVITADO a ACTIVO.',
       },
       {
         id: 'entrar',

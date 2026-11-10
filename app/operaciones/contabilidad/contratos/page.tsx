@@ -148,7 +148,7 @@ export default function AccountingContractsPage() {
         <Modal
           open
           title={`Documentos · ${String(documentosDe.contractNo ?? 'contrato')}`}
-          description="El contrato firmado y sus anexos, en el almacén de evidencia de Atlas. Si la contraparte es un comercio, también se ven en su carpeta de Archivos."
+          description="El contrato firmado y sus anexos, en el almacén de evidencia de Cuotea. Si la contraparte es un comercio, también se ven en su carpeta de Archivos."
           icon="attach_file"
           width="lg"
           onClose={() => setDocumentosDe(null)}

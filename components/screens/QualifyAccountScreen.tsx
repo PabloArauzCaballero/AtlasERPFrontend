@@ -39,7 +39,7 @@ export function QualifyAccountScreen({ accountId }: { accountId: string }) {
       key={String(actual.id ?? 'nueva')}
       moduleLabel="CRM"
       title="Calificar cuenta"
-      description="Decide si el negocio encaja con Atlas y clasifícalo con los datos que el equipo comercial usa para priorizar. Calificada la cuenta, ya se le puede abrir una oportunidad."
+      description="Decide si el negocio encaja con Cuotea y clasifícalo con los datos que el equipo comercial usa para priorizar. Calificada la cuenta, ya se le puede abrir una oportunidad."
       submitLabel="Guardar calificación"
       submitIcon="verified"
       onSubmit={qualify}
@@ -48,9 +48,9 @@ export function QualifyAccountScreen({ accountId }: { accountId: string }) {
       }}
       sections={[
         {
-          title: 'Decisión', icon: 'verified', description: 'Si el negocio encaja con lo que ofrece Atlas.', fields: [
+          title: 'Decisión', icon: 'verified', description: 'Si el negocio encaja con lo que ofrece Cuotea.', fields: [
             { name: 'accountId', label: 'Cuenta B2B', tooltip: 'Cuenta B2B del comercio que se califica.', type: 'select', required: true, span: 2, optionsLoader: loadB2BAccounts, defaultValue: accountId || undefined },
-            { name: 'hasCommercialFit', label: '¿Encaja con Atlas?', tooltip: 'Si el negocio encaja con lo que ofrecemos. Sin encaje la cuenta se descalifica y no se le abre oportunidad.', type: 'select', valueKind: 'boolean', required: true, defaultValue: 'true', options: [{ label: 'Sí, calificar', value: 'true' }, { label: 'No, descalificar', value: 'false' }] },
+            { name: 'hasCommercialFit', label: '¿Encaja con Cuotea?', tooltip: 'Si el negocio encaja con lo que ofrecemos. Sin encaje la cuenta se descalifica y no se le abre oportunidad.', type: 'select', valueKind: 'boolean', required: true, defaultValue: 'true', options: [{ label: 'Sí, calificar', value: 'true' }, { label: 'No, descalificar', value: 'false' }] },
             { name: 'disqualificationReason', label: 'Motivo de descalificación', tooltip: 'Por qué se descarta; sirve para no volver a contactar sin motivo.', type: 'textarea', optional: true, placeholder: 'Obligatorio si no encaja. Ej.: no acepta pagos con tarjeta.', span: 3 },
           ],
         },
@@ -60,7 +60,7 @@ export function QualifyAccountScreen({ accountId }: { accountId: string }) {
             { name: 'classification.category', label: 'Categoría comercial', tooltip: 'Tipo de comercio dentro de su sector; afina las reglas de comisión.', optional: true, optionsSource: 'domain:crm.merchantCategory', defaultValue: texto(actual.category) },
             { name: 'classification.businessLine', label: 'Rubro', tooltip: 'Qué vende exactamente el comercio. Ej.: Farmacia, Restaurante.', optional: true, optionsSource: 'domain:crm.businessLine', defaultValue: texto(actual.businessLine) },
             { name: 'classification.businessDescription', label: 'Qué ofrece el negocio', tooltip: 'Descripción breve de lo que vende y a quién, dentro de su segmento. Es lo primero que lee el comercial antes de abrir una oportunidad.', type: 'textarea', optional: true, span: 3, placeholder: 'Ej.: Cadena de farmacias con 12 sucursales en Santa Cruz; fuerte en dermocosmética y venta a crédito a clientes frecuentes.', hint: 'Obligatorio para calificar si la cuenta aún no lo tiene. Mínimo 10 caracteres.', defaultValue: texto(actual.businessDescription) },
-            { name: 'classification.expectedMonthlyVolume', label: 'Ventas mensuales esperadas con Atlas (BOB)', tooltip: 'Cuánto se espera que venda al mes con Atlas; dimensiona la cuenta.', type: 'number', valueKind: 'number', optional: true, defaultValue: numero(actual.expectedMonthlyVolume) },
+            { name: 'classification.expectedMonthlyVolume', label: 'Ventas mensuales esperadas con Cuotea (BOB)', tooltip: 'Cuánto se espera que venda al mes con Cuotea; dimensiona la cuenta.', type: 'number', valueKind: 'number', optional: true, defaultValue: numero(actual.expectedMonthlyVolume) },
             { name: 'classification.annualRevenue', label: 'Facturación anual (BOB)', tooltip: 'Tamaño del negocio por su facturación anual aproximada.', type: 'number', valueKind: 'number', optional: true, defaultValue: numero(actual.annualRevenue) },
             { name: 'classification.employeeCount', label: 'Empleados', tooltip: 'Número aproximado de empleados; otra medida del tamaño.', type: 'number', valueKind: 'number', optional: true, defaultValue: numero(actual.employeeCount) },
             { name: 'classification.riskTier', label: 'Nivel de riesgo', tooltip: 'Riesgo comercial percibido; ordena a quién se prioriza y con qué condiciones.', optional: true, optionsSource: 'domain:crm.riskTier', defaultValue: texto(actual.riskTier) },

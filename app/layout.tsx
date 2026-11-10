@@ -22,8 +22,8 @@ const outfit = localFont({ src: './fuentes/outfit-latin.woff2', weight: '400 600
 const mono = localFont({ src: './fuentes/jbmono-latin.woff2', weight: '400 500', display: 'swap', variable: '--font-mono' });
 
 export const metadata: Metadata = {
-  title: { default: 'ATLAS ERP', template: '%s | ATLAS ERP' },
-  description: 'Plataforma operacional y financiera ATLAS.',
+  title: { default: 'Cuotea ERP', template: '%s | Cuotea ERP' },
+  description: 'Plataforma operacional y financiera de Cuotea.',
   // El isotipo de Cuotea, servido desde `public/`.
   icons: {
     icon: [

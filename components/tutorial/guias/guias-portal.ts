@@ -34,7 +34,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Por qué el pago lo confirmas tú',
-        body: 'El cliente transfiere al QR bancario de tu comercio, así que ese dinero entra en tu cuenta y no en la de Atlas. Nadie más puede mirar tu extracto: por eso la cuota se salda cuando tú dices que llegó.',
+        body: 'El cliente transfiere al QR bancario de tu comercio, así que ese dinero entra en tu cuenta y no en la de Cuotea. Nadie más puede mirar tu extracto: por eso la cuota se salda cuando tú dices que llegó.',
       },
       {
         title: 'Un comprobante no es un pago',
@@ -80,7 +80,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
   '/portal-comercio/facturacion': {
     eyebrow: 'Portal del comercio',
     title: 'Consumo y facturación',
-    intro: 'Lo que Atlas te ha facturado y lo que queda pendiente de pago.',
+    intro: 'Lo que Cuotea te ha facturado y lo que queda pendiente de pago.',
     sections: [
       {
         title: 'Facturas y saldos son cosas distintas',
@@ -104,7 +104,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
     sections: [
       {
         title: 'Cuatro pestañas, una sola empresa',
-        body: '«Estado del expediente» dice qué falta para que Atlas te apruebe; «Ficha comercial» son tus datos; «Mi QR de cobro» es el código con el que te pagan las cuotas; «Sucursales» son tus locales con las cajas de cada uno. Las cuatro hablan siempre del mismo negocio: si administras varios, el que elijas arriba vale para todas.',
+        body: '«Estado del expediente» dice qué falta para que Cuotea te apruebe; «Ficha comercial» son tus datos; «Mi QR de cobro» es el código con el que te pagan las cuotas; «Sucursales» son tus locales con las cajas de cada uno. Las cuatro hablan siempre del mismo negocio: si administras varios, el que elijas arriba vale para todas.',
       },
       {
         title: 'Se abre una vez y se completa por partes',
@@ -112,8 +112,8 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Qué puedes corregir y qué no',
-        body: 'El nombre comercial, el rubro y el teléfono los cambias cuando quieras, incluso con el negocio ya aprobado: son datos que se mueven con el negocio vivo. La razón social, el NIT y la matrícula no, porque son contra lo que Atlas verificó que tu empresa es tu empresa.',
-        tip: 'El rubro describe tu negocio en tu ficha; tenlo al día para que Atlas sepa a qué te dedicas.',
+        body: 'El nombre comercial, el rubro y el teléfono los cambias cuando quieras, incluso con el negocio ya aprobado: son datos que se mueven con el negocio vivo. La razón social, el NIT y la matrícula no, porque son contra lo que Cuotea verificó que tu empresa es tu empresa.',
+        tip: 'El rubro describe tu negocio en tu ficha; tenlo al día para que Cuotea sepa a qué te dedicas.',
       },
       {
         title: 'El QR de cada caja está en la tabla, sin abrir nada',
@@ -122,11 +122,11 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Dos QR distintos, y conviene no confundirlos',
-        body: 'El de «Mi QR de cobro» lo pones tú: es la imagen del QR de tu banco, y es a esa cuenta a la que tu cliente transfiere las cuotas. Los de «Sucursales» los genera Atlas, uno por caja, y sirven para que el cliente pida la compra en ese mostrador. Uno cobra, el otro identifica dónde estás.',
+        body: 'El de «Mi QR de cobro» lo pones tú: es la imagen del QR de tu banco, y es a esa cuenta a la que tu cliente transfiere las cuotas. Los de «Sucursales» los genera Cuotea, uno por caja, y sirven para que el cliente pida la compra en ese mostrador. Uno cobra, el otro identifica dónde estás.',
       },
       {
         title: 'El QR lleva el código de la caja, no tu nombre',
-        body: 'Dentro del cuadro no va el nombre de tu negocio: va el código de esa caja, y el nombre lo pone Atlas cuando el teléfono lo consulta. Es lo que impide que alguien imprima un QR con tu nombre y cobre por ti.',
+        body: 'Dentro del cuadro no va el nombre de tu negocio: va el código de esa caja, y el nombre lo pone Cuotea cuando el teléfono lo consulta. Es lo que impide que alguien imprima un QR con tu nombre y cobre por ti.',
       },
       {
         title: 'Un terminal suspendido ya no sirve para pedir compras',
@@ -147,7 +147,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Al enviar, pasa a revisión',
-        body: 'Deja de ser tuyo para editar y lo revisa Atlas. Repasa los datos antes: una corrección después es un caso, no un cambio.',
+        body: 'Deja de ser tuyo para editar y lo revisa Cuotea. Repasa los datos antes: una corrección después es un caso, no un cambio.',
       },
     ],
   },
@@ -155,7 +155,7 @@ export const GUIAS_PORTAL: Readonly<Record<string, ScreenGuide>> = {
   '/portal-comercio/soporte': {
     eyebrow: 'Portal del comercio',
     title: 'Soporte y tutoriales',
-    intro: 'Habla con Atlas cuando algo no sale, o repasa cómo se hace antes de intentarlo.',
+    intro: 'Habla con Cuotea cuando algo no sale, o repasa cómo se hace antes de intentarlo.',
     sections: [
       {
         title: 'Están juntos porque son la misma pregunta',

@@ -85,7 +85,7 @@ export function codigoCorto(codigo: string): string {
 function AvisoDeFacturacion() {
   return (
     <InlineNotice tone="info" title="Se factura cuando el cliente termina de pagar">
-      Atlas factura un crédito sólo cuando el cliente terminó de pagar TODAS sus cuotas. Mientras queden cuotas pendientes o en
+      Cuotea factura un crédito sólo cuando el cliente terminó de pagar TODAS sus cuotas. Mientras queden cuotas pendientes o en
       mora no se emite factura por esa venta.
     </InlineNotice>
   );
@@ -252,7 +252,7 @@ export function MerchantBillingScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Consumo y facturación' }]}
         title="Consumo y facturación"
-        description="Cada cobro con su comisión, lo que queda por cobrar y los cargos que Atlas le factura."
+        description="Cada cobro con su comisión, lo que queda por cobrar y los cargos que Cuotea le factura."
         actions={
           <BotonPdf
             label="Descargar PDF"
@@ -298,7 +298,7 @@ export function MerchantBillingScreen() {
                   ),
                 },
                 {
-                  title: 'Cargos de Atlas',
+                  title: 'Cargos de Cuotea',
                   table: tablaPdf(
                     [
                       { key: 'sourceType', label: 'Concepto' },
@@ -373,12 +373,12 @@ export function MerchantBillingScreen() {
           facturación»: la facturación ni siquiera se llegó a pedir. */}
       {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu negocio">{scope.error}</InlineNotice> : null}
       {carteraError ? <InlineNotice tone="danger" title="No se pudieron cargar sus cobros">{carteraError}</InlineNotice> : null}
-      {billing.error ? <InlineNotice tone="danger" title="No se pudieron cargar los cargos de Atlas">{billing.error}</InlineNotice> : null}
+      {billing.error ? <InlineNotice tone="danger" title="No se pudieron cargar los cargos de Cuotea">{billing.error}</InlineNotice> : null}
 
       <Resumen
         datos={[
           { label: 'Cobrado', value: cargandoCartera ? '…' : formatBob(Number(resumen?.collected ?? 0)) },
-          { label: `Comisión a Atlas (${tasa} %)`, value: cargandoCartera ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
+          { label: `Comisión a Cuotea (${tasa} %)`, value: cargandoCartera ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
           { label: 'Pendiente', value: cargandoCartera ? '…' : formatBob(Number(resumen?.pendingAmount ?? 0)) },
           { label: 'En mora', value: cargandoCartera ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0)), alerta: Number(resumen?.overdueAmount ?? 0) > 0 },
         ]}
@@ -396,7 +396,7 @@ export function MerchantBillingScreen() {
             content: (
               <Panel
                 title="Cobros recibidos"
-                description="Cada pago de sus clientes, con la comisión que ese pago le devengó a Atlas."
+                description="Cada pago de sus clientes, con la comisión que ese pago le devengó a Cuotea."
                 icon="receipt"
                 action={nombreExpediente ? <StatusPill tone="neutral">{nombreExpediente}</StatusPill> : null}
               >
@@ -537,7 +537,7 @@ export function MerchantBillingScreen() {
           },
           {
             id: 'cargos',
-            label: 'Cargos de Atlas',
+            label: 'Cargos de Cuotea',
             icon: 'account_balance_wallet',
             content: (
               <>
@@ -545,8 +545,8 @@ export function MerchantBillingScreen() {
               {ready && !billing.error ? (
                 <>
                   <Panel
-                    title="Cargos de Atlas"
-                    description="Lo que Atlas le factura: la comisión de cada venta, la publicidad y su tarifa."
+                    title="Cargos de Cuotea"
+                    description="Lo que Cuotea le factura: la comisión de cada venta, la publicidad y su tarifa."
                     icon="account_balance_wallet"
                     action={<StatusPill tone="neutral">{`Tarifa: ${String(summary.planName ?? 'sin tarifa')}`}</StatusPill>}
                   >
@@ -585,7 +585,7 @@ export function MerchantBillingScreen() {
                         </table>
                       </div>
                     ) : (
-                      <p className="py-6 text-center text-xs text-slate-500">Atlas todavía no le ha emitido ningún cargo.</p>
+                      <p className="py-6 text-center text-xs text-slate-500">Cuotea todavía no le ha emitido ningún cargo.</p>
                     )}
                   </Panel>
 
@@ -652,14 +652,14 @@ export function MerchantBillingScreen() {
 
       {!ready && !error ? (
         <InlineNotice tone="info" title="Elige un negocio">
-          Administras varios negocios: elige de cuál quieres ver los cargos que Atlas le factura.
+          Administras varios negocios: elige de cuál quieres ver los cargos que Cuotea le factura.
         </InlineNotice>
       ) : null}
 
       <InlineNotice tone="info" title="Cómo se cobra la comisión">
         La comisión se devenga sobre lo que usted COBRA, no sobre lo que vende: una cuota impagada no
         genera comisión, y un pago revertido la devuelve. La tasa vigente es {tasa} % y se pactó en su
-        alta desde el ERP interno de Atlas.
+        alta desde el ERP interno de Cuotea.
       </InlineNotice>
     </div>
   );

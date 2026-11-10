@@ -175,7 +175,7 @@ export default function AccountingDocumentsPage() {
         <Modal
           open
           title={`Respaldo · ${String(respaldoDe.documentNo ?? 'asiento')}`}
-          description="El comprobante que prueba el asiento: factura, recibo, extracto. Se guarda en el almacén de evidencia de Atlas."
+          description="El comprobante que prueba el asiento: factura, recibo, extracto. Se guarda en el almacén de evidencia de Cuotea."
           icon="attach_file"
           width="lg"
           onClose={() => setRespaldoDe(null)}

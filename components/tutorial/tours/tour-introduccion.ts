@@ -11,7 +11,7 @@ import type { InteractiveTutorial } from '../tutorial-types';
 export const TOURS_INTRODUCCION: readonly InteractiveTutorial[] = [
   {
     id: 'primeros-pasos',
-    title: 'Primeros pasos en Atlas ERP',
+    title: 'Primeros pasos en Cuotea ERP',
     intro: 'Qué es cada parte de la pantalla y cómo llegar a lo que necesitas.',
     version: 1,
     steps: [

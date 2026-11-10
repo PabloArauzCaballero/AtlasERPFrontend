@@ -46,7 +46,7 @@ export const MENSAJES_COBERTURA: Record<string, string> = {
   NOTICE_NOT_PENDING: 'Ese aviso de pago ya no está pendiente. Recargue la lista y elija otro.',
   NOTICE_ID_REQUIRED: 'La cuota tiene varios avisos de pago pendientes: elija cuál está decidiendo.',
   COVERAGE_IN_PLACE:
-    'Atlas ya cubrió esta cuota al comercio: no se puede dar además por pagada por el cliente. Cancele la cobertura si aún no se pagó, o registre lo cobrado como recuperación.',
+    'Cuotea ya cubrió esta cuota al comercio: no se puede dar además por pagada por el cliente. Cancele la cobertura si aún no se pagó, o registre lo cobrado como recuperación.',
 };
 
 /**

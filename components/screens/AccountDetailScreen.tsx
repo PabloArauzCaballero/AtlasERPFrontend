@@ -79,7 +79,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
       {requestedId && !resource.error ? (
         <>
           {sinNit || sinCorreo ? (
-            <InlineNotice tone="warning" title="A esta cuenta le faltan datos para su carpeta en Atlas">
+            <InlineNotice tone="warning" title="A esta cuenta le faltan datos para su carpeta en Cuotea">
               <span className="block">
                 {`Falta ${[sinNit ? 'el NIT' : '', sinCorreo ? 'un contacto con correo' : ''].filter(Boolean).join(' y ')}. Sin eso no se puede iniciar su onboarding ni se crea la carpeta del comercio.`}
               </span>
@@ -153,7 +153,7 @@ export function AccountDetailScreen({ initialId = '' }: { initialId?: string }) 
           open
           icon="badge"
           title={`NIT de ${name}`}
-          description="El NIT del comercio, tal como figura en el padrón. Atlas lo usa para abrir su ficha y su carpeta; no puede repetirse en otra cuenta."
+          description="El NIT del comercio, tal como figura en el padrón. Cuotea lo usa para abrir su ficha y su carpeta; no puede repetirse en otra cuenta."
           submitLabel="Guardar NIT"
           fields={[
             { name: 'taxId', label: 'NIT', tooltip: 'NIT (o CI si es persona natural) sin puntos ni guiones, de 7 a 15 dígitos. Ej.: 1023456019.', required: true, placeholder: '1023456019', hint: 'De 7 a 15 dígitos, sin puntos ni guiones.', span: 2 },

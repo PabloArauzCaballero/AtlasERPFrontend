@@ -99,8 +99,8 @@ test('el segundo archivo de un requisito avisa de que reemplaza al primero', asy
 test('enlazar con la carpeta ya asignada lo dice y no vuelve a llamar', async ({ page }) => {
   const llamadas = await instalar(page, { enlazado: true });
   await page.goto('/operaciones/crm/onboarding');
-  await abrirAccion(page, /enlazar expediente de atlas/i);
-  await expect(page.getByText(/esta cuenta ya tiene su carpeta en atlas/i)).toBeVisible();
+  await abrirAccion(page, /enlazar expediente de cuotea/i);
+  await expect(page.getByText(/esta cuenta ya tiene su carpeta en cuotea/i)).toBeVisible();
   await expect(page.getByText(/operación registrada/i)).toHaveCount(0);
   await page.screenshot({ path: 'test-results/onboarding-enlace-ya-hecho.png', fullPage: true });
   expect(llamadas.enlaces).toBe(0);
@@ -109,8 +109,8 @@ test('enlazar con la carpeta ya asignada lo dice y no vuelve a llamar', async ({
 test('enlazar sin expediente en Atlas avisa en vez de dar por hecho', async ({ page }) => {
   const llamadas = await instalar(page, { enlazado: false });
   await page.goto('/operaciones/crm/onboarding');
-  await abrirAccion(page, /enlazar expediente de atlas/i);
-  await expect(page.getByText(/atlas no tiene expediente para este comercio/i)).toBeVisible();
+  await abrirAccion(page, /enlazar expediente de cuotea/i);
+  await expect(page.getByText(/cuotea no tiene expediente para este comercio/i)).toBeVisible();
   await expect(page.getByText(/operación registrada/i)).toHaveCount(0);
   expect(llamadas.enlaces).toBe(1);
 });
@@ -141,7 +141,7 @@ test('la ficha de una cuenta sin NIT lo pide y deja completarlo', async ({ page 
   });
 
   await page.goto(`/operaciones/crm/cuentas/detalle?id=${CUENTA}`);
-  await expect(page.getByText(/a esta cuenta le faltan datos para su carpeta en atlas/i)).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByText(/a esta cuenta le faltan datos para su carpeta en cuotea/i)).toBeVisible({ timeout: 120_000 });
   await expect(page.getByText(/falta el NIT\./i)).toBeVisible();
   await page.screenshot({ path: 'test-results/cuenta-sin-nit.png', fullPage: true });
   await page.getByTestId('btn-completar-nit').click();

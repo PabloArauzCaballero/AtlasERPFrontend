@@ -98,7 +98,7 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
   return (
     <Panel
       title={title}
-      description={description ?? 'PDF, JPEG o PNG hasta 15 MB. Se guardan en el almacén de evidencia de Atlas y se abren con tu sesión.'}
+      description={description ?? 'PDF, JPEG o PNG hasta 15 MB. Se guardan en el almacén de evidencia de Cuotea y se abren con tu sesión.'}
       icon="attach_file"
     >
       <FileDropField

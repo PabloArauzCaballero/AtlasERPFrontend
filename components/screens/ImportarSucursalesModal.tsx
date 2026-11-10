@@ -53,7 +53,7 @@ const LINEAS: LineasSpec = {
       name: 'terminalSerial',
       label: 'Serial de la caja',
       optional: true,
-      tooltip: 'Opcional: el número de serie de tu terminal, si quieres que el QR lo use. Vacío = Atlas usa «Cantidad de cajas».',
+      tooltip: 'Opcional: el número de serie de tu terminal, si quieres que el QR lo use. Vacío = Cuotea usa «Cantidad de cajas».',
       placeholder: 'SN-00042',
     },
   ],

@@ -61,7 +61,7 @@ const AUDIENCE_COPY: Record<
     emailLabel: 'Correo del comercio',
     placeholder: 'usuario@micomercio.com',
     home: '/portal-comercio/gestion-pos',
-    otraPuerta: { pregunta: '¿Eres del equipo de Atlas?', enlace: 'Entra al acceso interno', audience: 'internal' },
+    otraPuerta: { pregunta: '¿Eres del equipo de Cuotea?', enlace: 'Entra al acceso interno', audience: 'internal' },
   },
 };
 

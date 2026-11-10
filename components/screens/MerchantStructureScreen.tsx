@@ -349,7 +349,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
           <InlineNotice tone="warning" title="Tu expediente todavía no está aprobado">
             Está en «{ESTADO_EXPEDIENTE[datosExpediente.profile.onboardingStatus] ?? datosExpediente.profile.onboardingStatus}». Mientras no esté
             aprobado, la app de tus clientes no reconoce ningún QR ni código de tus cajas —aunque la caja esté activa— y responde «Este QR no es de
-            Atlas». Los carteles ya se pueden descargar, pero empezarán a funcionar al aprobarse el expediente.
+            Cuotea». Los carteles ya se pueden descargar, pero empezarán a funcionar al aprobarse el expediente.
           </InlineNotice>
         </div>
       ) : null}
@@ -374,7 +374,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
       <Modal
         open={creando}
         title="Agregar sucursal"
-        description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Atlas aparte."
+        description="Registra un local nuevo de tu negocio. Nace activo; vender a crédito en él lo habilita Cuotea aparte."
         icon="add_location"
         width="md"
         onClose={() => setCreando(false)}
@@ -498,10 +498,10 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
               data-testid={`campo-cantidad-cajas-${nuevaCaja.erpBranchId}`}
             />
             <FormField
-              tooltip="Sólo si tu terminal ya trae un número de serie y quieres que el QR lo use. Si lo dejas vacío, Atlas lo genera."
+              tooltip="Sólo si tu terminal ya trae un número de serie y quieres que el QR lo use. Si lo dejas vacío, Cuotea lo genera."
               label="Serial propio (opcional, sólo para una caja)"
               name="terminalSerial"
-              hint="Déjalo vacío para que Atlas lo genere: NOMBRE-DE-LA-SUCURSAL-…-CAJA-N."
+              hint="Déjalo vacío para que Cuotea lo genere: NOMBRE-DE-LA-SUCURSAL-…-CAJA-N."
               data-testid={`campo-pos-serial-${nuevaCaja.erpBranchId}`}
             />
             <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
@@ -693,7 +693,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                       type="button"
                                       className="w-full rounded bg-ink px-2 py-1 text-xs font-semibold text-canvas hover:bg-slate-800 disabled:opacity-50"
                                       disabled={!pos.manualCode || ocupada === `qr-${pos.terminalId}`}
-                                      title={pos.manualCode ? 'Descarga el cartel con el diseño de Atlas, listo para imprimir' : 'Esta caja aún no tiene código manual'}
+                                      title={pos.manualCode ? 'Descarga el cartel con el diseño de Cuotea, listo para imprimir' : 'Esta caja aún no tiene código manual'}
                                       data-testid={`btn-descargar-qr-${pos.terminalSerial}`}
                                       onClick={() => {
                                         setOcupada(`qr-${pos.terminalId}`);

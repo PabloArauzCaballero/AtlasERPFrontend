@@ -55,11 +55,11 @@ export const GUIAS_CONTROL: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/admin/seguridad': {
     eyebrow: 'Control',
     title: 'Usuarios internos',
-    intro: 'Quién del personal de Atlas tiene acceso, con qué roles y en qué estado.',
+    intro: 'Quién del personal de Cuotea tiene acceso, con qué roles y en qué estado.',
     sections: [
       {
         title: 'Usuarios internos, no comercios',
-        body: 'Aquí vive el personal de Atlas. Los usuarios de un comercio afiliado son otra población, se dan de alta en su onboarding y entran por otra puerta.',
+        body: 'Aquí vive el personal de Cuotea. Los usuarios de un comercio afiliado son otra población, se dan de alta en su onboarding y entran por otra puerta.',
       },
       {
         title: 'El rol es lo que decide los permisos',

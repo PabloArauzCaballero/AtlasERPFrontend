@@ -301,7 +301,7 @@ export function MerchantSupportScreen() {
     <div className="space-y-6">
       <WorkspaceHeader
         title="Soporte y tutoriales"
-        description="Habla con Atlas, sigue tus casos abiertos y repasa cómo se hace cada cosa."
+        description="Habla con Cuotea, sigue tus casos abiertos y repasa cómo se hace cada cosa."
         actions={
           /* Sólo en Soporte: abrir un caso desde la pestaña de tutoriales no querría decir nada. */
           pestana !== 'soporte' ? null : channelId ? (
@@ -490,7 +490,7 @@ export function MerchantSupportScreen() {
                       );
                     })}
 
-                    {escribiendo ? <p className="text-xs text-slate-500">Atlas está escribiendo…</p> : null}
+                    {escribiendo ? <p className="text-xs text-slate-500">Cuotea está escribiendo…</p> : null}
                     <div ref={finDelHilo} />
                   </div>
 

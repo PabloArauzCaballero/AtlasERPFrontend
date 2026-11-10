@@ -139,7 +139,7 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="resource-table"]',
         title: 'Dos estados distintos en la misma fila',
         content:
-          'El estado operativo (activa, pausada) dice qué quiere el anunciante. El de aprobación (aprobada, rechazada) dice qué permite Atlas. Una campaña activa pero NO aprobada no entrega nada.',
+          'El estado operativo (activa, pausada) dice qué quiere el anunciante. El de aprobación (aprobada, rechazada) dice qué permite Cuotea. Una campaña activa pero NO aprobada no entrega nada.',
       },
       {
         id: 'presupuesto',
@@ -162,14 +162,14 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
   {
     id: 'control-usuarios',
     title: 'Dar acceso a alguien del equipo',
-    intro: 'Cómo se conceden permisos en Atlas, y por qué no se conceden de uno en uno.',
+    intro: 'Cómo se conceden permisos en Cuotea, y por qué no se conceden de uno en uno.',
     version: 1,
     steps: [
       {
         id: 'directorio',
         route: '/operaciones/admin/seguridad',
         target: '[data-tutorial-id="resource-table"]',
-        title: 'Este es el personal de Atlas',
+        title: 'Este es el personal de Cuotea',
         content:
           'Sólo usuarios internos. Los usuarios de un comercio afiliado son otra población: se dan de alta en su onboarding y entran por otra puerta.',
       },
@@ -236,7 +236,7 @@ export const TOURS_OPERACION: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="portal-nav"]',
         title: 'Éstas son tus secciones',
         content:
-          'Cinco: lo que pasa en tu caja, tu cartera de ventas a crédito, lo que Atlas te factura, la ficha de tu empresa y el sitio donde preguntar. Nada de lo que veas aquí es de otro comercio.',
+          'Cinco: lo que pasa en tu caja, tu cartera de ventas a crédito, lo que Cuotea te factura, la ficha de tu empresa y el sitio donde preguntar. Nada de lo que veas aquí es de otro comercio.',
         tip: 'En el móvil el menú se abre con el botón de las tres rayas, arriba a la izquierda.',
       },
       {

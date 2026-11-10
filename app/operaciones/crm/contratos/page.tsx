@@ -116,7 +116,7 @@ export default function CommercialContractsPage() {
         {
           key: 'comision',
           label: 'Comisión por venta (MDR)',
-          description: 'Muestra, agrega o desactiva las reglas de cuánto cobra Atlas por cada venta del comercio.',
+          description: 'Muestra, agrega o desactiva las reglas de cuánto cobra Cuotea por cada venta del comercio.',
           icon: 'percent',
           primary: true,
           /*
@@ -135,7 +135,7 @@ export default function CommercialContractsPage() {
         <Modal
           open
           title={`Comisión por venta · ${String(comisionDe.contractNumber ?? 'contrato')}`}
-          description="Lo que Atlas cobra al comercio por cada venta de este contrato. Gana la regla más específica."
+          description="Lo que Cuotea cobra al comercio por cada venta de este contrato. Gana la regla más específica."
           icon="percent"
           width="lg"
           onClose={() => setComisionDe(null)}

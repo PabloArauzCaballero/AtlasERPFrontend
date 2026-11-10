@@ -11,4 +11,4 @@
  * habría dejado el sexto mintiendo, que es exactamente cómo envejecen estos textos.
  */
 export const SIN_EXPEDIENTE =
-  'Tu comercio todavía no tiene expediente en Atlas, y casi todo cuelga de él. Ábrelo tú mismo en «Mi empresa», pestaña «Estado del expediente»: son siete campos y tarda un minuto.';
+  'Tu comercio todavía no tiene expediente en Cuotea, y casi todo cuelga de él. Ábrelo tú mismo en «Mi empresa», pestaña «Estado del expediente»: son siete campos y tarda un minuto.';

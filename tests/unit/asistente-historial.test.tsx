@@ -38,7 +38,7 @@ afterEach(cleanup);
 
 async function abrirPanel() {
   render(<AtlasAssist surface="erp-staff" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
   await screen.findByText('En Contabilidad › Cierres.');
 }
 const verHistorial = async () => {
@@ -61,7 +61,7 @@ it('Nueva conversación vacía el hilo sin llamar al servidor y la siguiente pre
 it('Nueva conversación está deshabilitada con el hilo vacío y lo explica', async () => {
   m.conversacion.mockResolvedValue({ conversationId: null, turns: [] });
   render(<AtlasAssist surface="erp-staff" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
   const boton = screen.getByRole('button', { name: 'Nueva conversación' }) as HTMLButtonElement;
   expect(boton.disabled).toBe(true);
   expect(boton.getAttribute('aria-describedby')).toBeTruthy();

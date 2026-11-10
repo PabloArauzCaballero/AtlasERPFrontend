@@ -48,7 +48,7 @@ export function nombreArchivoCartel(datos: Pick<DatosCartel, 'comercio' | 'sucur
     )
     .filter(Boolean)
     .join('_');
-  return `atlas-qr_${limpio || 'caja'}.png`;
+  return `cuotea-qr_${limpio || 'caja'}.png`;
 }
 
 function cargarImagen(url: string): Promise<HTMLImageElement | null> {
@@ -136,7 +136,7 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea
   } else {
     // Sin logo el cartel sale igual, con la marca escrita: el QR es lo que no puede faltar.
     ctx.font = `600 92px ${fuenteDeLaPagina()}`;
-    ctx.fillText('ATLAS', 90, 180);
+    ctx.fillText('Cuotea', 90, 180);
   }
   ctx.font = `500 34px ${fuenteDeLaPagina()}`;
   ctx.fillText('Compra ahora, paga en cuotas', 640, 165);
@@ -174,7 +174,7 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea
   ctx.fillStyle = IMPRESO.tinta;
   ctx.textAlign = 'center';
   ctx.font = `600 54px ${fuenteDeLaPagina()}`;
-  ctx.fillText('Escanea con la app Atlas', ANCHO / 2, finQr + 100);
+  ctx.fillText('Escanea con la app Cuotea', ANCHO / 2, finQr + 100);
 
   // El código que se teclea.
   const yCaja = finQr + 160;

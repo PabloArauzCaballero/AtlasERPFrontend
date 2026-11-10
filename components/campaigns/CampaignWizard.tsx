@@ -231,7 +231,7 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
           <div className="rounded-lg bg-slate-900 p-4 text-white" aria-label="Vista previa del aviso">
             <p className="mb-3 text-xs font-medium text-white/70">Vista previa en el teléfono</p>
             <div className="rounded-md bg-white p-3 text-slate-900">
-              <div className="flex items-center gap-2 text-xs text-slate-500"><Icon name="notifications" className="text-[14px]" /> Atlas · ahora</div>
+              <div className="flex items-center gap-2 text-xs text-slate-500"><Icon name="notifications" className="text-[14px]" /> Cuotea · ahora</div>
               <p className="mt-1 truncate text-sm font-semibold">{form.title || 'Título del aviso'}</p>
               <p className="line-clamp-3 text-xs text-slate-700">{form.body || 'El mensaje aparece aquí.'}</p>
             </div>
