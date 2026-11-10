@@ -92,7 +92,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
           <p className="mb-2 px-3 text-xs font-medium text-slate-600">Operación</p>
           <PortalNav pathname={pathname} onNavigate={() => setNavOpen(false)} />
-          <div className="mt-6 px-3"><p className="mb-1.5 text-xs font-medium text-slate-600">Apariencia</p><SelectorDeTema /></div>
+          <div className="mt-6 px-3"><p className="mb-1.5 text-xs font-medium text-slate-600">Apariencia</p><SelectorDeTema soloIconos className="w-full" /></div>
         </div>
       </NavDrawer>
 
@@ -100,7 +100,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         <aside className="hidden border-r border-slate-200 bg-white p-4 lg:block">
           <p className="mb-3 px-3 text-xs font-medium text-slate-600">Operación</p>
           <PortalNav pathname={pathname} />
-          <div className="mt-6 px-3"><p className="mb-1.5 text-xs font-medium text-slate-600">Apariencia</p><SelectorDeTema /></div>
+          <div className="mt-6 px-3"><p className="mb-1.5 text-xs font-medium text-slate-600">Apariencia</p><SelectorDeTema soloIconos className="w-full" /></div>
         </aside>
         {/* `pb-24`: deja sitio al botón flotante del asistente para que no tape la última fila. */}
         <main className="min-w-0 p-3 pb-40 sm:p-4 sm:pb-40 md:p-6 md:pb-40 lg:pb-36 xl:p-8 xl:pb-36">{children}</main>

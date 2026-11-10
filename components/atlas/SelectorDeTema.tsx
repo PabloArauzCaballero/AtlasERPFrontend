@@ -18,7 +18,7 @@ const OPCIONES: ReadonlyArray<{ valor: PreferenciaDeTema; etiqueta: string; icon
  * lee tras montar: en el servidor no hay almacenamiento, y pintar una opción marcada que luego
  * cambia sería una discrepancia de hidratación.
  */
-export function SelectorDeTema({ className }: Readonly<{ className?: string }>) {
+export function SelectorDeTema({ className, soloIconos = false }: Readonly<{ className?: string; soloIconos?: boolean }>) {
   const [preferencia, setPreferencia] = useState<PreferenciaDeTema | null>(null);
 
   useEffect(() => setPreferencia(leerPreferencia()), []);
@@ -48,17 +48,20 @@ export function SelectorDeTema({ className }: Readonly<{ className?: string }>) 
             role="radio"
             aria-checked={elegida}
             data-testid={`tema-${opcion.valor}`}
+            aria-label={soloIconos ? opcion.etiqueta : undefined}
+            title={soloIconos ? opcion.etiqueta : undefined}
             onClick={() => {
               guardarPreferencia(opcion.valor);
               setPreferencia(opcion.valor);
             }}
             className={cn(
               'atlas-tap inline-flex h-8 items-center gap-1.5 rounded px-2.5 text-xs font-medium transition-colors',
+              soloIconos && 'flex-1 justify-center px-0',
               elegida ? 'bg-brand-soft text-slate-900' : 'text-slate-600 hover:bg-surface-sunken hover:text-slate-900',
             )}
           >
             <Icon name={opcion.icono} className="text-[16px]" />
-            {opcion.etiqueta}
+            {soloIconos ? null : opcion.etiqueta}
           </button>
         );
       })}

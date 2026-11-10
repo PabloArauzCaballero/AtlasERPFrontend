@@ -8,10 +8,15 @@ import { expect, test } from '@playwright/test';
  */
 const CANVAS = { claro: 'rgb(246, 246, 241)', oscuro: 'rgb(17, 17, 17)' };
 
-test('sin preferencia guardada el portal abre en claro', async ({ page }) => {
-  await page.goto('/login/interno');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(CANVAS.claro);
+test('sin preferencia guardada sigue al sistema', async ({ browser }) => {
+  for (const [esquema, tema, fondo] of [['light', 'light', CANVAS.claro], ['dark', 'dark', CANVAS.oscuro]] as const) {
+    const contexto = await browser.newContext({ colorScheme: esquema });
+    const page = await contexto.newPage();
+    await page.goto('/login/interno');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', tema);
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(fondo);
+    await contexto.close();
+  }
 });
 
 test('la preferencia guardada se aplica antes de hidratar y cambia la paleta', async ({ page }) => {
