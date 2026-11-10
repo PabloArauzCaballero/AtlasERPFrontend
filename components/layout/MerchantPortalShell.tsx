@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AmbientBackground } from '@/components/atlas/AmbientBackground';
-import { AtlasAssist } from '@/components/atlas/AtlasAssist';
 import { TutorialProvider } from '@/components/tutorial/TutorialProvider';
 import { Icon } from '@/components/atlas/Icon';
 import { cn } from '@/lib/cn';
@@ -121,7 +120,6 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
         <span>Soporte y tutoriales</span>
       </Link>
       <MerchantBottomNav pathname={pathname} />
-      <AtlasAssist surface="merchant-portal" sobreBarraInferior />
     </div>
     </TutorialProvider>
   );
