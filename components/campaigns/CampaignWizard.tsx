@@ -201,7 +201,7 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
       <ol className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {STEPS.map((label, index) => (
           <li key={label}>
-            <button type="button" disabled={index > step && stepErrors(step, form).length > 0} onClick={() => setStep(index)} className={`w-full rounded-md border px-3 py-2 text-left text-xs font-bold ${index === step ? 'border-slate-900 bg-slate-900 text-white' : index < step ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600'}`}>
+            <button type="button" disabled={index > step && stepErrors(step, form).length > 0} onClick={() => setStep(index)} aria-current={index === step ? 'step' : undefined} className={`w-full rounded-md border px-3 py-2 text-left text-xs font-semibold ${index === step ? 'border-border-strong bg-brand-soft text-slate-900' : index < step ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600'}`}>
               {index + 1}. {label}
             </button>
           </li>
@@ -217,25 +217,25 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
             <FormField kind="textarea" label={`Mensaje (${form.body.length}/1000)`} tooltip="Qué tiene que saber o hacer la persona al leer el aviso; corto y concreto." name="body" required maxLength={1000} hint="Qué tiene que saber o hacer la persona." value={form.body} onChange={(event) => set('body', event.target.value)} />
             <FormField tooltip="Pantalla de la app que se abre al tocar el aviso." kind="select" label="Al tocar el aviso, abrir" name="deepLink" hint="La pantalla de la app a la que lleva." value={form.deepLink} options={DEEP_LINK_OPTIONS} onChange={(event) => set('deepLink', event.target.value)} />
             <fieldset>
-              <legend className="mb-1.5 text-xs font-bold text-slate-700">Canales<span className="ml-1 text-red-600">*</span></legend>
+              <legend className="mb-1.5 text-xs font-semibold text-slate-700">Canales<span className="ml-1 text-red-600">*</span></legend>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {CHANNELS.map((channel) => (
                   <label key={channel} className={`flex cursor-pointer gap-2 rounded-md border p-2.5 text-xs ${form.channels.includes(channel) ? 'border-slate-900 bg-slate-50' : 'border-slate-200'}`}>
                     <input type="checkbox" checked={form.channels.includes(channel)} onChange={() => toggleChannel(channel)} />
-                    <span><span className="block font-bold text-slate-800">{CHANNEL_META[channel].label}</span><span className="text-slate-500">{CHANNEL_META[channel].hint}</span></span>
+                    <span><span className="block font-semibold text-slate-800">{CHANNEL_META[channel].label}</span><span className="text-slate-500">{CHANNEL_META[channel].hint}</span></span>
                   </label>
                 ))}
               </div>
             </fieldset>
           </div>
-          <div className="rounded-xl bg-slate-900 p-4 text-white" aria-label="Vista previa del aviso">
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-wide text-slate-400">Vista previa en el teléfono</p>
-            <div className="rounded-lg bg-white/95 p-3 text-slate-900 shadow">
-              <div className="flex items-center gap-2 text-[10px] text-slate-500"><Icon name="notifications" className="text-[14px]" /> Atlas · ahora</div>
-              <p className="mt-1 truncate text-sm font-bold">{form.title || 'Título del aviso'}</p>
+          <div className="rounded-lg bg-slate-900 p-4 text-white" aria-label="Vista previa del aviso">
+            <p className="mb-3 text-xs font-medium text-white/70">Vista previa en el teléfono</p>
+            <div className="rounded-md bg-white p-3 text-slate-900">
+              <div className="flex items-center gap-2 text-xs text-slate-500"><Icon name="notifications" className="text-[14px]" /> Atlas · ahora</div>
+              <p className="mt-1 truncate text-sm font-semibold">{form.title || 'Título del aviso'}</p>
               <p className="line-clamp-3 text-xs text-slate-700">{form.body || 'El mensaje aparece aquí.'}</p>
             </div>
-            <p className="mt-3 text-[11px] text-slate-400">Al tocarlo: {DEEP_LINK_OPTIONS.find((option) => option.value === form.deepLink)?.label}</p>
+            <p className="mt-3 text-xs text-slate-500">Al tocarlo: {DEEP_LINK_OPTIONS.find((option) => option.value === form.deepLink)?.label}</p>
           </div>
         </div>
       ) : null}
@@ -298,7 +298,7 @@ export function CampaignWizard({ campaign, onClose, onSaved }: CampaignWizardPro
               ['Cadencia', `${formatCount(Number(form.ratePerMinute))} por minuto${form.maxRecipients ? ` · tope ${formatCount(Number(form.maxRecipients))}` : ''}`],
               ['Personas hoy', estimate ? `${formatCount(estimate.total)} (${formatCount(estimate.withPushDevice)} con push, ${formatCount(estimate.withVerifiedEmail)} con correo)` : 'Calculando…'],
             ].map(([label, value]) => (
-              <div key={label}><dt className="font-bold text-slate-500">{label}</dt><dd className="text-slate-900">{value}</dd></div>
+              <div key={label}><dt className="font-semibold text-slate-500">{label}</dt><dd className="text-slate-900">{value}</dd></div>
             ))}
           </dl>
           {audienceEmpty ? <InlineNotice tone="danger" title="Nadie cumple la audiencia hoy">No se puede programar una campaña sin destinatarios. Ajusta las condiciones.</InlineNotice> : null}

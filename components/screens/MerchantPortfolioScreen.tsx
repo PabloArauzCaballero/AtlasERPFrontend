@@ -163,8 +163,8 @@ export function MerchantPortfolioScreen() {
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
               : proximos.length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-xs font-bold">No hay cuotas pendientes de cobro</p>
-                  <p className="mt-1 text-[11px] text-slate-500">Cuando un crédito tenga una cuota pendiente, aparecerá aquí.</p>
+                  <p className="text-xs font-semibold">No hay cuotas pendientes de cobro</p>
+                  <p className="mt-1 text-xs text-slate-500">Cuando un crédito tenga una cuota pendiente, aparecerá aquí.</p>
                 </div>
               )
               : (
@@ -177,8 +177,8 @@ export function MerchantPortfolioScreen() {
                         {dia.overdue ? <StatusPill tone="warning">Vencido</StatusPill> : null}
                       </div>
                       <div className="text-right">
-                        <p className="font-extrabold">{formatBob(Number(dia.amount))}</p>
-                        <p className="text-[10px] text-slate-500">{dia.installments} cuota(s)</p>
+                        <p className="font-semibold">{formatBob(Number(dia.amount))}</p>
+                        <p className="text-xs text-slate-500">{dia.installments} cuota(s)</p>
                       </div>
                     </div>
                   ))}
@@ -198,8 +198,8 @@ export function MerchantPortfolioScreen() {
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
               : (cartera?.credits ?? []).length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-xs font-bold">No hay créditos originados en su comercio</p>
-                  <p className="mt-1 text-[11px] text-slate-500">Los créditos de las compras financiadas en su comercio aparecerán aquí.</p>
+                  <p className="text-xs font-semibold">No hay créditos originados en su comercio</p>
+                  <p className="mt-1 text-xs text-slate-500">Los créditos de las compras financiadas en su comercio aparecerán aquí.</p>
                 </div>
               )
               : (
@@ -208,31 +208,31 @@ export function MerchantPortfolioScreen() {
                     const abiertoAhora = abierto === credito.loanId;
                     return (
                       <div key={credito.loanId} className="rounded-md border border-slate-200">
-                        <button type="button" onClick={() => setAbierto(abiertoAhora ? null : credito.loanId)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left hover:bg-slate-50">
+                        <button type="button" onClick={() => setAbierto(abiertoAhora ? null : credito.loanId)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left hover:bg-surface-sunken">
                           <div>
-                            <p className="text-xs font-bold">{credito.loanCode}</p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">{credito.installments.length} cuotas · {credito.status}</p>
+                            <p className="text-xs font-semibold">{credito.loanCode}</p>
+                            <p className="mt-0.5 text-xs text-slate-500">{credito.installments.length} cuotas · {credito.status}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
-                              <p className="text-[10px] uppercase tracking-wide text-slate-500">Por cobrar</p>
-                              <p className="text-sm font-extrabold">{formatBob(Number(credito.outstanding))}</p>
+                              <p className="text-xs text-slate-500">Por cobrar</p>
+                              <p className="text-sm font-semibold">{formatBob(Number(credito.outstanding))}</p>
                             </div>
                             <Icon name={abiertoAhora ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-500" />
                           </div>
                         </button>
                         {abiertoAhora ? (
-                          <div className="table-scroll border-t border-slate-100">
+                          <div className="table-scroll border-t border-slate-200">
                             <table className="w-full min-w-[560px] text-left text-xs">
-                              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2">Cuota</th><th className="p-2">Vence</th><th className="p-2 text-right">Debe</th><th className="p-2 text-right">Pagado</th><th className="p-2 text-right">Falta</th><th className="p-2">Estado</th></tr></thead>
-                              <tbody className="divide-y divide-slate-100">
+                              <thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="p-2">Cuota</th><th className="p-2">Vence</th><th className="p-2 text-right">Debe</th><th className="p-2 text-right">Pagado</th><th className="p-2 text-right">Falta</th><th className="p-2">Estado</th></tr></thead>
+                              <tbody className="divide-y divide-slate-200">
                                 {credito.installments.map((cuota) => (
                                   <tr key={cuota.installmentId}>
                                     <td className="p-2 font-semibold">{cuota.installmentNumber}</td>
                                     <td className="p-2 text-slate-600">{fecha(cuota.dueDate)}</td>
                                     <td className="p-2 text-right">{formatBob(Number(cuota.amountDue))}</td>
                                     <td className="p-2 text-right text-slate-600">{formatBob(Number(cuota.amountPaid))}</td>
-                                    <td className="p-2 text-right font-bold">{formatBob(Number(cuota.amountOutstanding))}</td>
+                                    <td className="p-2 text-right font-semibold">{formatBob(Number(cuota.amountOutstanding))}</td>
                                     <td className="p-2"><StatusPill tone={cuota.overdue ? 'warning' : Number(cuota.amountOutstanding) === 0 ? 'success' : 'neutral'}>{cuota.overdue ? `Mora ${cuota.daysPastDue}d` : cuota.status}</StatusPill></td>
                                   </tr>
                                 ))}
@@ -259,8 +259,8 @@ export function MerchantPortfolioScreen() {
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
               : proximos.length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-xs font-bold">No hay cobros programados</p>
-                  <p className="mt-1 text-[11px] text-slate-500">Cuando haya cuotas por cobrar, verá aquí cuánto entra cada día.</p>
+                  <p className="text-xs font-semibold">No hay cobros programados</p>
+                  <p className="mt-1 text-xs text-slate-500">Cuando haya cuotas por cobrar, verá aquí cuánto entra cada día.</p>
                 </div>
               )
               : (
@@ -268,11 +268,11 @@ export function MerchantPortfolioScreen() {
                   {proximos.map((dia) => (
                     <article key={dia.date} className={`rounded-md border p-3 ${dia.overdue ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200'}`}>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold">{fecha(dia.date)}</p>
+                        <p className="text-xs font-semibold">{fecha(dia.date)}</p>
                         {dia.overdue ? <StatusPill tone="warning">Vencido</StatusPill> : null}
                       </div>
-                      <p className="mt-2 text-lg font-extrabold">{formatBob(Number(dia.amount))}</p>
-                      <p className="text-[11px] text-slate-500">{dia.installments} cuota(s)</p>
+                      <p className="mt-2 text-lg font-semibold">{formatBob(Number(dia.amount))}</p>
+                      <p className="text-xs text-slate-500">{dia.installments} cuota(s)</p>
                     </article>
                   ))}
                 </div>
@@ -290,19 +290,19 @@ export function MerchantPortfolioScreen() {
           <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
             <div className="mb-4 grid gap-3 grid-cols-1 sm:grid-cols-3">
               <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Tasa de comisión</p>
-                <p className="mt-1 text-xl font-extrabold">{resumen?.mdrRatePercent ?? '0'} %</p>
-                <p className="text-[11px] text-slate-500">Sobre cada venta financiada</p>
+                <p className="text-xs font-semibold text-slate-500">Tasa de comisión</p>
+                <p className="mt-1 text-xl font-semibold">{resumen?.mdrRatePercent ?? '0'} %</p>
+                <p className="text-xs text-slate-500">Sobre cada venta financiada</p>
               </div>
               <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Cobrado (base)</p>
-                <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.collected ?? 0))}</p>
-                <p className="text-[11px] text-slate-500">Lo que sus clientes ya pagaron</p>
+                <p className="text-xs font-semibold text-slate-500">Cobrado (base)</p>
+                <p className="mt-1 text-xl font-semibold">{formatBob(Number(resumen?.collected ?? 0))}</p>
+                <p className="text-xs text-slate-500">Lo que sus clientes ya pagaron</p>
               </div>
               <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Comisión a Atlas</p>
-                <p className="mt-1 text-xl font-extrabold">{formatBob(Number(resumen?.commissionAccrued ?? 0))}</p>
-                <p className="text-[11px] text-slate-500">Devengada sobre lo cobrado</p>
+                <p className="text-xs font-semibold text-slate-500">Comisión a Atlas</p>
+                <p className="mt-1 text-xl font-semibold">{formatBob(Number(resumen?.commissionAccrued ?? 0))}</p>
+                <p className="text-xs text-slate-500">Devengada sobre lo cobrado</p>
               </div>
             </div>
             {(cartera?.credits ?? []).length === 0 ? (
@@ -310,13 +310,13 @@ export function MerchantPortfolioScreen() {
             ) : (
               <div className="table-scroll rounded-lg border border-slate-200">
                 <table className="w-full min-w-[560px] text-left text-xs">
-                  <thead className="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th className="p-2.5">Crédito</th><th className="p-2.5 text-right">Cobrado</th><th className="p-2.5 text-right">Comisión ({resumen?.mdrRatePercent ?? '0'} %)</th><th className="p-2.5">Estado</th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="p-2.5">Crédito</th><th className="p-2.5 text-right">Cobrado</th><th className="p-2.5 text-right">Comisión ({resumen?.mdrRatePercent ?? '0'} %)</th><th className="p-2.5">Estado</th></tr></thead>
+                  <tbody className="divide-y divide-slate-200">
                     {(cartera?.credits ?? []).map((credito: CreditoDeCartera) => (
                       <tr key={credito.loanId}>
                         <td className="p-2.5 font-semibold text-slate-700">{credito.loanCode}</td>
                         <td className="p-2.5 text-right text-slate-600">{formatBob(Number(credito.collected))}</td>
-                        <td className="p-2.5 text-right font-bold">{formatBob(Number(credito.commissionAccrued))}</td>
+                        <td className="p-2.5 text-right font-semibold">{formatBob(Number(credito.commissionAccrued))}</td>
                         <td className="p-2.5"><StatusPill tone={Number(credito.outstanding) === 0 ? 'success' : 'neutral'}>{credito.status}</StatusPill></td>
                       </tr>
                     ))}
@@ -331,22 +331,22 @@ export function MerchantPortfolioScreen() {
             </InlineNotice>
             {facturado ? (
               <div className="mt-4 rounded-lg border border-slate-200 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Lo que Atlas ya le facturó</p>
+                <p className="text-xs font-semibold text-slate-500">Lo que Atlas ya le facturó</p>
                 <div className="mt-2 grid gap-3 grid-cols-1 sm:grid-cols-3">
                   <div>
-                    <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
-                    <p className="text-[11px] text-slate-500">Facturado ({Number(facturado.summary?.salesCharged ?? 0)} ventas)</p>
+                    <p className="text-lg font-semibold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
+                    <p className="text-xs text-slate-500">Facturado ({Number(facturado.summary?.salesCharged ?? 0)} ventas)</p>
                   </div>
                   <div>
-                    <p className="text-lg font-extrabold">{formatBob(Number(facturado.summary?.settled ?? 0))}</p>
-                    <p className="text-[11px] text-slate-500">Ya pagado por usted</p>
+                    <p className="text-lg font-semibold">{formatBob(Number(facturado.summary?.settled ?? 0))}</p>
+                    <p className="text-xs text-slate-500">Ya pagado por usted</p>
                   </div>
                   <div>
-                    <p className="text-lg font-extrabold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
-                    <p className="text-[11px] text-slate-500">Pendiente de pago a Atlas</p>
+                    <p className="text-lg font-semibold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
+                    <p className="text-xs text-slate-500">Pendiente de pago a Atlas</p>
                   </div>
                 </div>
-                <p className="mt-2 text-[11px] leading-4 text-slate-500">
+                <p className="mt-2 text-xs leading-4 text-slate-500">
                   Devengado y facturado no son el mismo número y no tienen por qué coincidir: lo primero
                   crece con cada cobro suyo, lo segundo sólo cuando Atlas emite el cargo. La diferencia
                   es comisión ya generada que todavía no se le ha facturado.

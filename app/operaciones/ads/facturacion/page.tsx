@@ -83,10 +83,10 @@ export default function AdsBillingPage() {
       />
           <Panel title="Facturas de este cierre" description="Pulsa una para registrar su cobro. Al recargar la pantalla desaparecen: el módulo no expone un listado de facturas." icon="receipt">
             <div className="overflow-hidden rounded-md border border-slate-200">
-              <div className="grid grid-cols-[2fr_2fr_1fr_1fr] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
+              <div className="grid grid-cols-[2fr_2fr_1fr_1fr] bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                 <span>Factura</span><span>Anunciante</span><span>Moneda</span><span className="text-right">Total</span>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-200">
                 {facturas.map((row) => (
                   <div
                     key={row.invoiceId}
@@ -94,10 +94,10 @@ export default function AdsBillingPage() {
                     tabIndex={0}
                     onClick={() => setSeleccionada(row.invoiceId)}
                     onKeyDown={(event) => { if (event.key === 'Enter') setSeleccionada(row.invoiceId); }}
-                    className={`grid cursor-pointer grid-cols-[2fr_2fr_1fr_1fr] items-center px-4 py-2 text-xs ${seleccionada === row.invoiceId ? 'bg-primary-wash' : 'hover:bg-slate-50'}`}
+                    className={`grid cursor-pointer grid-cols-[2fr_2fr_1fr_1fr] items-center px-4 py-2 text-xs ${seleccionada === row.invoiceId ? 'bg-primary-wash' : 'hover:bg-surface-sunken'}`}
                   >
-                    <span className="truncate font-mono text-[11px] text-slate-700">{row.invoiceId}</span>
-                    <span className="truncate font-mono text-[11px] text-slate-500">{row.advertiserId}</span>
+                    <span className="truncate font-mono text-xs text-slate-700">{row.invoiceId}</span>
+                    <span className="truncate font-mono text-xs text-slate-500">{row.advertiserId}</span>
                     <span className="text-slate-600">{row.currency}</span>
                     <span className="text-right tabular-nums text-slate-800">{formatMicrosAsBob(row.totalMicros)}</span>
                   </div>

@@ -81,7 +81,7 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
 
   if (status === 'unauthorized') {
     return (
-      <Card className="border-slate-300 bg-slate-50 text-sm text-slate-700">
+      <Card className="border-border-strong bg-slate-50 text-sm text-slate-700">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-200 text-slate-600">
             <Icon name="person_off" className="text-[22px]" />
@@ -112,7 +112,7 @@ export function ScreenState({ error, hasData = false, onRetry, status }: ScreenS
 
   if (status === 'timeout') {
     return (
-      <Card className="border-slate-300 bg-slate-50 text-sm text-slate-700">
+      <Card className="border-border-strong bg-slate-50 text-sm text-slate-700">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-200 text-slate-600">
             <Icon name="cloud_off" className="text-[22px]" />

@@ -17,7 +17,7 @@ function vigencia(hasta: string | null): { texto: string; tone: 'success' | 'dan
 
 function Fila({ etiqueta, children }: Readonly<{ etiqueta: string; children: React.ReactNode }>) {
   return (
-    <div className="flex flex-col gap-1 border-b border-slate-100 py-2.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <div className="flex flex-col gap-1 border-b border-slate-200 py-2.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <dt className="text-xs font-semibold text-slate-500">{etiqueta}</dt>
       <dd className="text-sm text-slate-900 sm:text-right">{children}</dd>
     </div>

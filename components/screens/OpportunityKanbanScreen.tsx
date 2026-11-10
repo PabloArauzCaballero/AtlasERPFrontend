@@ -14,13 +14,13 @@ import { formatBob } from '@/lib/formatters';
 import type { ResourceRow } from '@/services/types';
 
 const STAGES = [
-  { key: 'DISCOVERY', label: 'Descubrimiento', accent: 'bg-slate-400', description: 'Primer contacto: todavía no se sabe qué necesita ni si encaja.' },
+  { key: 'DISCOVERY', label: 'Descubrimiento', accent: 'bg-slate-500', description: 'Primer contacto: todavía no se sabe qué necesita ni si encaja.' },
   { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-primary/40', description: 'Ya se confirmó necesidad, presupuesto y quién decide.' },
   { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-primary/55', description: 'Se le envió una propuesta comercial y se espera respuesta.' },
   { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-primary/70', description: 'Se discuten precio, plazos o condiciones de la propuesta.' },
   { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-primary', description: 'Acuerdo cerrado de palabra; se redacta y firma el contrato.' },
-  { key: 'CLOSED_WON', label: 'Ganada', accent: 'bg-emerald-500', description: 'Contrato firmado: la oportunidad pasa a ser una cuenta activa.' },
-  { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-red-500', description: 'El cliente desistió o eligió otra opción; se cierra sin venta.' },
+  { key: 'CLOSED_WON', label: 'Ganada', accent: 'bg-success', description: 'Contrato firmado: la oportunidad pasa a ser una cuenta activa.' },
+  { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-danger', description: 'El cliente desistió o eligió otra opción; se cierra sin venta.' },
 ];
 
 interface OpportunityKanbanScreenProps {
@@ -86,7 +86,7 @@ export function OpportunityKanbanScreen({ embedded = false, version = 0 }: Oppor
            barra de sección y bajarían a dos columnas en anchos distintos si cada una eligiera el suyo. */
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-900">Tablero del embudo</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Tablero del embudo</h2>
             <p className="mt-0.5 max-w-2xl text-xs text-slate-500">Cambie la etapa de cada oportunidad desde su tarjeta.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 xl:shrink-0 xl:justify-end">
@@ -114,21 +114,21 @@ export function OpportunityKanbanScreen({ embedded = false, version = 0 }: Oppor
               <section key={stage.key} className="flex w-72 shrink-0 flex-col rounded-lg border border-slate-200 bg-slate-50">
                 <header className="flex items-center gap-2 border-b border-slate-200 px-3 py-2.5">
                   <span className={`h-2 w-2 rounded-full ${stage.accent}`} />
-                  <span className="text-xs font-bold text-slate-700">{stage.label}</span>
-                  <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200">{items.length}</span>
+                  <span className="text-xs font-semibold text-slate-700">{stage.label}</span>
+                  <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">{items.length}</span>
                 </header>
-                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-500">{formatBob(totalVolume)} / mes</div>
+                <div className="px-3 py-1.5 text-xs font-semibold text-slate-500">{formatBob(totalVolume)} / mes</div>
                 <div className="flex-1 space-y-2 p-2">
                   {items.map((op) => {
                     const id = String(op.id);
                     return (
-                      <article key={id} className="rounded-md border border-slate-200 bg-white p-2.5 shadow-sm">
-                        <p className="truncate text-xs font-bold text-slate-800">{String(op.name ?? 'Oportunidad')}</p>
-                        <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+                      <article key={id} className="rounded-md border border-slate-200 bg-white p-2.5 ">
+                        <p className="truncate text-xs font-semibold text-slate-800">{String(op.name ?? 'Oportunidad')}</p>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
                           <Icon name="payments" className="text-[13px]" />{formatBob(Number(op.expectedMonthlyVolume ?? 0))}
                           <Icon name="percent" className="ml-1 text-[13px]" />{String(op.probability ?? '0')}%
                         </div>
-                        {op.expectedMonthlyRevenue ? <p className="mt-0.5 text-[10px] text-emerald-700">Ingreso est.: {formatBob(Number(op.expectedMonthlyRevenue))}</p> : null}
+                        {op.expectedMonthlyRevenue ? <p className="mt-0.5 text-xs text-emerald-700">Ingreso est.: {formatBob(Number(op.expectedMonthlyRevenue))}</p> : null}
                         <div className="mt-2">
                           <OptionSelect
                             name={`etapa-${id}`}
@@ -143,7 +143,7 @@ export function OpportunityKanbanScreen({ embedded = false, version = 0 }: Oppor
                       </article>
                     );
                   })}
-                  {!items.length ? <p className="px-1 py-4 text-center text-[10px] text-slate-500">Sin oportunidades</p> : null}
+                  {!items.length ? <p className="px-1 py-4 text-center text-xs text-slate-500">Sin oportunidades</p> : null}
                 </div>
               </section>
             );

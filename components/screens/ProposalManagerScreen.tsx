@@ -104,7 +104,7 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
   const contexto = <AtlasButton variant="secondary" icon="info" className="w-9 px-0" aria-label="Contexto del cliente" title="Contexto del cliente" onClick={() => setContextoAbierto(true)} />;
   const guardar = <AtlasButton type="submit" icon="save" loading={createMutation.isLoading} disabled={Boolean(proposalId)}>{proposalId ? 'Guardada' : 'Guardar propuesta'}</AtlasButton>;
   // «Enviar» sólo se enciende con la propuesta guardada; sin el título, el botón gris no decía por qué.
-  const enviar = <AtlasButton icon="send" type="button" disabled={!proposalId} onClick={sendProposal} title={proposalId ? undefined : 'Primero guarda la propuesta'}>Enviar al cliente</AtlasButton>;
+  const enviar = <AtlasButton variant="secondary" icon="send" type="button" disabled={!proposalId} onClick={sendProposal} title={proposalId ? undefined : 'Primero guarda la propuesta'}>Enviar al cliente</AtlasButton>;
 
   return (
     <form className="space-y-5" onSubmit={submit}>
@@ -137,19 +137,19 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
             }
           >
             <div className="table-scroll">
-              <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo (informativo)</th><th className="px-2 py-2">Facturación pactada</th><th className="px-2 py-2">Mínimo mensual (informativo)</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{lines.map((line) => <tr key={line.id}>
+              <table className="min-w-[980px] w-full text-left text-xs"><thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="px-2 py-2">Tipo</th><th className="px-2 py-2">Descripción</th><th className="px-2 py-2">Tasa %</th><th className="px-2 py-2">Monto fijo (informativo)</th><th className="px-2 py-2">Facturación pactada</th><th className="px-2 py-2">Mínimo mensual (informativo)</th><th /></tr></thead><tbody className="divide-y divide-slate-200">{lines.map((line) => <tr key={line.id}>
                 <td className="p-2"><OptionSelect name={`termType-${line.id}`} ariaLabel="Tipo de término" compact value={line.termType} onChange={(value) => updateLine(line.id, 'termType', value)} options={lineOptions(tiposDeTermino, line.termType)} /></td>
-                <td className="p-2"><input className="h-9 w-full rounded border border-slate-300 px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" minLength={3} maxLength={240} title="Escriba al menos 3 caracteres." required /></td>
-                <td className="p-2"><input className="h-9 w-24 rounded border border-slate-300 px-2 text-right" type="number" min="0" max="100" step="0.01" title="Entre 0 y 100." value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>
-                <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" min="0" step="0.01" title="0 o más." value={line.fixedAmount} onChange={(event) => updateLine(line.id, 'fixedAmount', event.target.value)} /></td>
+                <td className="p-2"><input className="h-9 w-full rounded border border-border-strong px-2" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} placeholder="Descripción contractual" minLength={3} maxLength={240} title="Escriba al menos 3 caracteres." required /></td>
+                <td className="p-2"><input className="h-9 w-24 rounded border border-border-strong px-2 text-right" type="number" min="0" max="100" step="0.01" title="Entre 0 y 100." value={line.ratePercent} onChange={(event) => updateLine(line.id, 'ratePercent', event.target.value)} /></td>
+                <td className="p-2"><input className="h-9 w-28 rounded border border-border-strong px-2 text-right" type="number" min="0" step="0.01" title="0 o más." value={line.fixedAmount} onChange={(event) => updateLine(line.id, 'fixedAmount', event.target.value)} /></td>
                 <td className="p-2"><OptionSelect name={`billingTiming-${line.id}`} ariaLabel="Momento de cobro" compact value={line.billingTiming} onChange={(value) => updateLine(line.id, 'billingTiming', value)} options={lineOptions(momentosDeCobro, line.billingTiming)} /></td>
-                <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" type="number" min="0" step="0.01" title="0 o más." value={line.minimumMonthlyAmount} onChange={(event) => updateLine(line.id, 'minimumMonthlyAmount', event.target.value)} /></td>
+                <td className="p-2"><input className="h-9 w-28 rounded border border-border-strong px-2 text-right" type="number" min="0" step="0.01" title="0 o más." value={line.minimumMonthlyAmount} onChange={(event) => updateLine(line.id, 'minimumMonthlyAmount', event.target.value)} /></td>
                 <td className="p-2"><button type="button" aria-label="Eliminar línea" className="grid h-8 w-8 place-items-center rounded text-red-600 hover:bg-red-50" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((item) => item.id !== line.id))}><Icon name="delete" className="text-[18px]" /></button></td>
               </tr>)}</tbody></table>
             </div>
           </Panel>
           <Panel title="Excepción de tarifa" icon="warning"><FormField tooltip="Por qué se sale de la tarifa estándar; lo lee quien aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" minLength={5} maxLength={1000} hint="Déjela vacía si no hay excepción; si la escribe, al menos 5 caracteres." placeholder="Explique cualquier condición fuera de la política comercial estándar." /></Panel>
-          <div className="flex justify-end"><AtlasButton type="submit" icon="save" loading={createMutation.isLoading}>Guardar propuesta</AtlasButton></div>
+          <div className="flex justify-end"><AtlasButton variant="strong" type="submit" icon="save" loading={createMutation.isLoading}>Guardar propuesta</AtlasButton></div>
       </div>
 
       <Modal open={contextoAbierto} title="Contexto del cliente" description="Con qué reglas se guarda y se envía esta propuesta." icon="analytics" width="md" onClose={() => setContextoAbierto(false)}>
@@ -174,21 +174,20 @@ export function ProposalManagerScreen({ onDone }: ProposalManagerScreenProps = {
  */
 function ResumenTarjeta({ icon, label, value, tone = 'navy' }: { icon: string; label: string; value: React.ReactNode; tone?: keyof typeof tonoDelChip }) {
   return (
-    <article className="group flex items-center gap-2.5 rounded-xl border border-slate-200/90 bg-white/80 px-3 py-2 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_-18px_rgba(15,23,42,0.28)] backdrop-blur-[2px] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_4px_10px_rgba(15,23,42,0.06),0_18px_36px_-20px_rgba(15,23,42,0.35)]">
-      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl transition-transform duration-200 ease-out group-hover:scale-110 ${tonoDelChip[tone]}`}><Icon name={icon} className="text-[18px]" /></span>
+    <article className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${tonoDelChip[tone]}`}><Icon name={icon} className="text-[18px]" /></span>
       <div className="min-w-0">
-        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
-        <div className="truncate text-sm font-bold tabular-nums tracking-tight text-slate-900">{value}</div>
+        <p className="text-xs font-semibold text-slate-500">{label}</p>
+        <div className="truncate text-sm font-semibold tabular-nums tracking-tight text-slate-900">{value}</div>
       </div>
     </article>
   );
 }
 
-/* Dos paradas del mismo tono: basta para que el chip tenga volumen. */
 const tonoDelChip = {
-  navy: 'bg-gradient-to-br from-primary-wash to-primary-soft text-primary',
-  slate: 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700',
-  amber: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700',
+  navy: 'bg-primary-wash text-primary',
+  slate: 'bg-surface-sunken text-slate-700',
+  amber: 'bg-amber-50 text-amber-700',
 };
 
-function Context({ label, value }: { label: string; value: string }) { return <div className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0"><span className="text-slate-500">{label}</span><b>{value}</b></div>; }
+function Context({ label, value }: { label: string; value: string }) { return <div className="flex items-center justify-between border-b border-slate-200 pb-2 last:border-0"><span className="text-slate-500">{label}</span><b>{value}</b></div>; }

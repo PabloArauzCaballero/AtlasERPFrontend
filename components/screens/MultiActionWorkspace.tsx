@@ -45,13 +45,13 @@ export function MultiActionWorkspace(props: MultiActionWorkspaceProps) {
     <div className="space-y-5">
       <WorkspaceHeader breadcrumbs={[{ label: props.moduleLabel }, { label: props.title }]} title={props.title} description={props.description} />
       {multiple ? (
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1">
+        <div className="flex flex-wrap gap-1 rounded-md border border-slate-200 bg-white p-1">
           {props.actions.map((action, index) => (
             <button
               key={action.id}
               type="button"
               onClick={() => setActive(index)}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition ${index === active ? 'bg-primary-wash text-primary' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition ${index === active ? 'bg-primary-wash text-primary' : 'text-slate-500 hover:bg-surface-sunken hover:text-slate-700'}`}
             >
               <Icon name={action.icon} className="text-[16px]" />
               {action.title}
@@ -103,7 +103,7 @@ function ActionCard({ action }: { action: WorkspaceAction }) {
         </div>
         {mutation.error ? <InlineNotice tone="danger">{mutation.error}</InlineNotice> : null}
         {showResult ? <InlineNotice tone="success">Registro creado correctamente.</InlineNotice> : null}
-        <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+        <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
           <AtlasButton type="submit" icon={action.submitIcon ?? 'save'} loading={mutation.isLoading}>{action.submitLabel}</AtlasButton>
         </div>
       </form>

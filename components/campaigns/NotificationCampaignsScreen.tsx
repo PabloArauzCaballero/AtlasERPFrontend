@@ -67,13 +67,13 @@ export function NotificationCampaignsScreen() {
       {list.error ? <InlineNotice tone="danger" title="No se pudieron cargar las campañas">{list.error}</InlineNotice> : null}
       <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
         <table className="w-full min-w-[860px] text-xs">
-          <thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+          <thead className="bg-slate-50 text-xs text-slate-500">
             <tr><th className="px-3 py-2 text-left">Campaña</th><th className="px-3 py-2 text-left">Estado</th><th className="px-3 py-2 text-left">Canales</th><th className="px-3 py-2 text-right">Audiencia</th><th className="px-3 py-2 text-left">Inicio</th><th className="px-3 py-2 text-left">Fin</th><th className="px-3 py-2 text-right">Acciones</th></tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-200">
             {rows.map((campaign) => (
-              <tr key={campaign.id} className="hover:bg-slate-50/70">
-                <td className="px-3 py-2"><button type="button" className="text-left" onClick={() => setOpenId(campaign.id)}><p className="font-bold text-slate-900 hover:underline">{campaign.name}</p><p className="truncate text-slate-500">{campaign.title}</p></button></td>
+              <tr key={campaign.id} className="hover:bg-surface-sunken">
+                <td className="px-3 py-2"><button type="button" className="text-left" onClick={() => setOpenId(campaign.id)}><p className="font-semibold text-slate-900 hover:underline">{campaign.name}</p><p className="truncate text-slate-500">{campaign.title}</p></button></td>
                 <td className="px-3 py-2"><StatusPill tone={STATUS_META[campaign.status].tone}>{STATUS_META[campaign.status].label}</StatusPill></td>
                 <td className="px-3 py-2"><div className="flex gap-1">{campaign.channels.map((channel) => <span key={channel} title={CHANNEL_META[channel as CampaignChannel]?.label}><Icon name={CHANNEL_META[channel as CampaignChannel]?.icon ?? 'send'} className="text-[18px] text-slate-600" /></span>)}</div></td>
                 <td className="px-3 py-2 text-right tabular-nums">{campaign.targetedCount ? formatCount(campaign.targetedCount) : campaign.audienceEstimate ? `≈ ${formatCount(campaign.audienceEstimate.total)}` : '—'}</td>

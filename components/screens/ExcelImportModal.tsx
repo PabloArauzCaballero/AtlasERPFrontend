@@ -250,7 +250,7 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
 
             <div className="table-scroll max-h-64 overflow-auto rounded-md border border-slate-200">
               <table className="w-full text-left text-xs">
-                <thead className="sticky top-0 bg-slate-50 text-[10px] uppercase text-slate-500">
+                <thead className="sticky top-0 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-2 py-2">Fila</th>
                     {lineas ? <th className="px-2 py-2">{lineas.claveLabel}</th> : null}
@@ -259,11 +259,11 @@ export function ExcelImportModal(props: ExcelImportModalProps) {
                     <th className="px-2 py-2">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-200">
                   {filas.map((fila) => (
                     <tr key={fila.numero} className={fila.errores.length || fila.estado === 'fallida' ? 'bg-red-50/50' : undefined}>
-                      <td className="px-2 py-1.5 font-mono text-[10px] text-slate-500">{fila.numero}</td>
-                      {lineas ? <td className="max-w-32 truncate px-2 py-1.5 font-mono text-[10px]">{fila.etiqueta}</td> : null}
+                      <td className="px-2 py-1.5 font-mono text-xs text-slate-500">{fila.numero}</td>
+                      {lineas ? <td className="max-w-32 truncate px-2 py-1.5 font-mono text-xs">{fila.etiqueta}</td> : null}
                       {columnasPreview.map((campo) => (
                         <td className="max-w-40 truncate px-2 py-1.5" key={campo.name}>{fila.crudo[campo.name] || '—'}</td>
                       ))}

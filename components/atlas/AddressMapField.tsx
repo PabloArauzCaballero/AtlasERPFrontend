@@ -82,14 +82,14 @@ export function AddressMapField(props: AddressMapFieldProps) {
             onClick={openMap}
             title="Ver en el mapa"
             aria-label="Ver la dirección en Google Maps"
-            className="mr-1 inline-flex h-7 shrink-0 items-center gap-1 rounded px-2 text-xs font-bold text-primary hover:bg-primary-wash"
+            className="mr-1 inline-flex h-7 shrink-0 items-center gap-1 rounded px-2 text-xs font-semibold text-primary hover:bg-primary-wash"
           >
             <Icon name="location_on" className="text-[18px]" />
             <span className="hidden sm:inline">Mapa</span>
           </button>
         </div>
       </div>
-      {props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null}
+      {props.hint ? <span className="mt-1 block text-xs text-slate-500">{props.hint}</span> : null}
 
       <Modal
         open={open}

@@ -397,7 +397,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
           />
         </div>
           {branchMutation.error ? <InlineNotice tone="danger">{branchMutation.error}</InlineNotice> : null}
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+          <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
             <AtlasButton variant="secondary" type="button" onClick={() => setCreando(false)}>Cancelar</AtlasButton>
             <AtlasButton type="submit" icon="add_location" loading={branchMutation.isLoading} disabled={!ready}>Registrar sucursal</AtlasButton>
           </div>
@@ -504,7 +504,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
               hint="Déjalo vacío para que Atlas lo genere: NOMBRE-DE-LA-SUCURSAL-…-CAJA-N."
               data-testid={`campo-pos-serial-${nuevaCaja.erpBranchId}`}
             />
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+            <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
               <AtlasButton variant="secondary" type="button" onClick={() => setNuevaCaja(null)}>Cancelar</AtlasButton>
               <AtlasButton type="submit" icon="add" data-testid={`btn-registrar-pos-${nuevaCaja.erpBranchId}`}>
                 Agregar cajas
@@ -525,7 +525,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
         >
           <div className="space-y-2 text-center" data-testid="qr-ampliado">
             <QrCanvas value={qrAmpliado.terminalSerial} size={280} className="mx-auto" />
-            <p className="text-base font-bold text-slate-800">{qrAmpliado.terminalAlias ?? qrAmpliado.terminalSerial}</p>
+            <p className="text-base font-semibold text-slate-800">{qrAmpliado.terminalAlias ?? qrAmpliado.terminalSerial}</p>
             <p className="font-mono text-xs text-slate-600">{qrAmpliado.terminalSerial}</p>
           </div>
         </Modal>
@@ -552,7 +552,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
         ) : branchRows.length ? (
           <div className="table-scroll rounded-lg border border-slate-200">
             <table className="w-full min-w-[900px] text-left text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+              <thead className="bg-slate-50 text-xs text-slate-500">
                 <tr>
                   <th className="p-2.5">Sucursal</th>
                   <th className="p-2.5">BNPL</th>
@@ -569,7 +569,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                   <th className="p-2.5 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {branchRows.map((branch) => {
                   const id = String(branch.id);
                   const local = localDe(id);
@@ -578,7 +578,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                     <tr key={id} className="align-top">
                       <td className="p-2.5">
                         <p className="font-semibold text-slate-800">{String(branch.name ?? '—')}</p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-xs text-slate-500">
                           {String(branch.city ?? 'Sin ciudad')}
                           {branch.address ? ` · ${String(branch.address)}` : ''}
                         </p>
@@ -621,7 +621,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                 ]}
                               />
                             ) : null}
-                            <AtlasButton
+                            <AtlasButton variant="strong"
                               icon="link"
                               data-testid={`habilitar-qr-${id}`}
                               loading={ocupada === `declarar-${id}`}
@@ -659,28 +659,28 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                     >
                                       <QrCanvas value={pos.terminalSerial} size={88} className="mx-auto" />
                                     </button>
-                                    <p className="truncate font-bold text-slate-800" title={pos.terminalAlias ?? pos.terminalSerial}>
+                                    <p className="truncate font-semibold text-slate-800" title={pos.terminalAlias ?? pos.terminalSerial}>
                                       {pos.terminalAlias ?? pos.terminalSerial}
                                     </p>
                                     {/* El serial sólo si el alias no es él mismo: repetirlo no dice nada. */}
                                     {pos.terminalAlias ? (
-                                      <p className="truncate font-mono text-[9px] text-slate-500" title={pos.terminalSerial}>{pos.terminalSerial}</p>
+                                      <p className="truncate font-mono text-xs text-slate-500" title={pos.terminalSerial}>{pos.terminalSerial}</p>
                                     ) : null}
                                     {/*
                                       * El código que se teclea en la app cuando la cámara no lee el QR.
                                       * Es de ESTA caja: dictarlo identifica el mostrador exacto, igual que el QR.
                                       */}
                                     {pos.manualCode ? (
-                                      <p className="text-[11px] text-slate-600">
+                                      <p className="text-xs text-slate-600">
                                         Código a mano:{' '}
-                                        <span className="font-mono text-sm font-extrabold tracking-widest text-slate-900" data-testid={`codigo-manual-${pos.terminalSerial}`}>
+                                        <span className="font-mono text-sm font-semibold tracking-widest text-slate-900" data-testid={`codigo-manual-${pos.terminalSerial}`}>
                                           {pos.manualCode}
                                         </span>
                                       </p>
                                     ) : null}
                                     <StatusPill tone={pos.status === 'active' ? 'success' : 'warning'}>{pos.status}</StatusPill>
                                     {pos.status !== 'active' ? (
-                                      <p className="text-[10px] leading-tight text-slate-500">El teléfono del cliente rechaza este código hasta que la caja esté activa.</p>
+                                      <p className="text-xs leading-tight text-slate-500">El teléfono del cliente rechaza este código hasta que la caja esté activa.</p>
                                     ) : null}
                                     {/*
                                       * Suspender se hace DESDE el terminal y no desde una tabla aparte.
@@ -691,7 +691,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                       */}
                                     <button
                                       type="button"
-                                      className="w-full rounded bg-teal-700 px-2 py-1 text-[11px] font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                                      className="w-full rounded bg-ink px-2 py-1 text-xs font-semibold text-canvas hover:bg-slate-800 disabled:opacity-50"
                                       disabled={!pos.manualCode || ocupada === `qr-${pos.terminalId}`}
                                       title={pos.manualCode ? 'Descarga el cartel con el diseño de Atlas, listo para imprimir' : 'Esta caja aún no tiene código manual'}
                                       data-testid={`btn-descargar-qr-${pos.terminalSerial}`}
@@ -715,7 +715,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                                     </button>
                                     <button
                                       type="button"
-                                      className="w-full rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                      className="w-full rounded border border-border-strong px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-surface-sunken disabled:opacity-50"
                                       disabled={ocupada === `pos-${pos.terminalId}`}
                                       data-testid={`btn-estado-pos-${pos.terminalSerial}`}
                                       onClick={() =>
@@ -759,7 +759,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
             </table>
           </div>
         ) : branches.status !== 'loading' ? (
-          <div className="grid min-h-32 place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center"><div><Icon name="inventory_2" className="text-[30px] text-slate-400" /><p className="mt-2 text-xs font-bold text-slate-600">Tu negocio aún no tiene sucursales registradas.</p></div></div>
+          <div className="grid min-h-32 place-items-center rounded-lg border border-dashed border-border-strong bg-slate-50 p-6 text-center"><div><Icon name="inventory_2" className="text-[30px] text-slate-500" /><p className="mt-2 text-xs font-semibold text-slate-600">Tu negocio aún no tiene sucursales registradas.</p></div></div>
         ) : null}
       </Panel>
     </div>

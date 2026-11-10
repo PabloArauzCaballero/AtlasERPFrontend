@@ -95,7 +95,7 @@ export function ActionFormModal(props: ActionFormModalProps) {
           })}
         </div>
         {error ? <InlineNotice tone="danger" title="No se pudo guardar">{error}</InlineNotice> : null}
-        <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+        <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
           {/* El mismo formulario, en blanco y en PDF, para quien lo rellena a mano y lo entrega. */}
           <AtlasButton variant="secondary" type="button" onClick={props.onClose}>Cancelar</AtlasButton>
           <AtlasButton type="submit" icon="save" loading={saving}>{props.submitLabel}</AtlasButton>

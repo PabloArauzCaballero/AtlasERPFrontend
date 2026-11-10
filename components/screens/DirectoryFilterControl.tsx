@@ -47,7 +47,7 @@ export function DirectoryFilterControl({
       title={filter.kind === 'date' ? filter.label : undefined}
       placeholder={filter.placeholder ?? filter.label}
       data-testid={`filtro-${filter.key}`}
-      className="h-9 min-w-36 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700"
+      className="h-9 min-w-36 rounded-md border border-border-strong bg-white px-3 text-xs text-slate-700"
       value={value}
       onChange={(event) => onChange(event.target.value)}
     />
@@ -66,7 +66,7 @@ export function DirectoryFilterControl({
   return (
     <div className="flex items-center" data-tutorial-id={`directory-filter-${filter.key}`}>
       {/* Un campo de fecha sólo enseña «dd/mm/aaaa»: sin su nombre, «Desde» y «Hasta» no se distinguen. */}
-      {filter.kind === 'date' ? <span className="mr-1.5 text-[11px] font-bold text-slate-600" aria-hidden="true">{filter.label}</span> : null}
+      {filter.kind === 'date' ? <span className="mr-1.5 text-xs font-semibold text-slate-600" aria-hidden="true">{filter.label}</span> : null}
       {control}
       {filter.tooltip ? <FieldTooltip text={filter.tooltip} label={filter.label} describedById={ayudaId} /> : null}
     </div>

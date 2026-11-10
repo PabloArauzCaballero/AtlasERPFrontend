@@ -39,11 +39,11 @@ export function AsistenteHistorial({
   return (
     <div ref={raiz} className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-2">
-        <h3 className="text-xs font-extrabold text-slate-900">Historial de conversaciones</h3>
+        <h3 className="text-xs font-semibold text-slate-900">Historial de conversaciones</h3>
         <button
           type="button"
           onClick={alVolver}
-          className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+          className="inline-flex h-10 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-slate-700 hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
         >
           <Icon name="arrow_back" className="text-[16px]" /> Volver al chat
         </button>
@@ -64,14 +64,14 @@ export function AsistenteHistorial({
             <button
               type="button"
               onClick={() => void cargarLista()}
-              className="h-9 rounded-lg border border-amber-300 bg-white px-3 font-bold hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+              className="h-9 rounded-md border border-amber-300 bg-white px-3 font-semibold hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
             >
               Reintentar
             </button>
           </div>
         ) : null}
         {fase === 'lista' && items.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center text-xs leading-5 text-slate-600">
+          <p className="rounded-lg border border-dashed border-border-strong bg-white p-4 text-center text-xs leading-5 text-slate-600">
             Todavía no tienes conversaciones guardadas. Haz una pregunta y aparecerá aquí.
           </p>
         ) : null}
@@ -125,7 +125,7 @@ function FilaDelHistorial({
   const titulo = item.title?.trim() || 'Conversación sin título';
   const detalle = [fechaRelativa(item.updatedAt), contarMensajes(item.turnCount)].filter(Boolean).join(' · ');
   return (
-    <li className={cn('rounded-xl border bg-white', esActual ? 'border-primary' : 'border-slate-200')}>
+    <li className={cn('rounded-lg border bg-white', esActual ? 'border-primary' : 'border-slate-200')}>
       {confirmando ? (
         <div role="group" aria-label={`Borrar «${titulo}»`} className="space-y-2 px-3 py-2.5">
           <p className="text-xs leading-5 text-slate-800">¿Borrar «{titulo}»? No se puede deshacer.</p>
@@ -134,14 +134,14 @@ function FilaDelHistorial({
               type="button"
               onClick={alBorrar}
               disabled={bloqueada}
-              className="h-9 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-700 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:opacity-60"
+              className="h-9 rounded-md border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:opacity-60"
             >
               {ocupada ? 'Borrando…' : 'Sí, borrar'}
             </button>
             <button
               type="button"
               onClick={alCancelar}
-              className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+              className="h-9 rounded-md border border-border-strong bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
             >
               Cancelar
             </button>
@@ -154,17 +154,17 @@ function FilaDelHistorial({
             onClick={alAbrir}
             disabled={bloqueada}
             aria-current={esActual ? 'true' : undefined}
-            className="min-h-[52px] min-w-0 flex-1 rounded-l-xl px-3 py-2 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-[52px] min-w-0 flex-1 rounded-l-md px-3 py-2 text-left hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <span className="block truncate text-xs font-bold text-slate-900">{titulo}</span>
-            <span className="block text-[11px] text-slate-500">{ocupada ? 'Abriendo…' : detalle}</span>
+            <span className="block truncate text-xs font-semibold text-slate-900">{titulo}</span>
+            <span className="block text-xs text-slate-500">{ocupada ? 'Abriendo…' : detalle}</span>
           </button>
           <button
             type="button"
             onClick={alPedirBorrado}
             disabled={bloqueada}
             aria-label={`Borrar la conversación «${titulo}»`}
-            className="grid w-11 shrink-0 place-items-center rounded-r-xl text-slate-500 hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="grid w-11 shrink-0 place-items-center rounded-r-md text-slate-500 hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Icon name="delete" className="text-[18px]" />
           </button>

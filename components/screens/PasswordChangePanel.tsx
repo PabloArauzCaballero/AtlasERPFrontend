@@ -141,7 +141,7 @@ export function PasswordChangePanel() {
           onChange={(event) => setCurrentPassword(event.target.value)}
         />
         {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
-        <AtlasButton type="submit" loading={submitting}>Enviarme el código</AtlasButton>
+        <AtlasButton variant="strong" type="submit" loading={submitting}>Enviarme el código</AtlasButton>
       </form>
     </Panel>
   );

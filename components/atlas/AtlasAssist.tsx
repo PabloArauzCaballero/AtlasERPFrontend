@@ -233,9 +233,9 @@ export function AtlasAssist({
         title="Preguntale al asistente"
         data-testid="asistente-boton"
         className={cn(
-          'fixed right-4 z-[45] grid h-14 w-14 place-items-center rounded-full border border-white/20 bg-primary text-white shadow-lg transition sm:right-6',
+          'fixed right-4 z-[45] grid h-14 w-14 place-items-center rounded-full border border-border-strong bg-ink text-canvas transition-colors sm:right-6',
           sobreBarraInferior ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:bottom-6' : 'bottom-4 sm:bottom-6',
-          'hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30',
+          'hover:bg-slate-800',
           abierto && 'max-sm:hidden',
         )}
       >
@@ -250,7 +250,7 @@ export function AtlasAssist({
           aria-labelledby={tituloId}
           data-testid="asistente-panel"
           className={cn(
-            'fixed inset-x-2 bottom-2 top-16 z-[65] flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl',
+            'fixed inset-x-2 bottom-2 top-16 z-[65] flex flex-col overflow-hidden rounded-xl border border-border-strong bg-white',
             'sm:inset-x-auto sm:bottom-24 sm:right-6 sm:top-auto sm:h-[min(36rem,calc(100dvh-8rem))] sm:w-[26rem]',
           )}
         >
@@ -259,14 +259,14 @@ export function AtlasAssist({
               <Icon name="chat_bubble" className="text-[20px]" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 id={tituloId} className="truncate text-sm font-extrabold text-slate-900">Asistente de Atlas</h2>
-              <p className="truncate text-[11px] text-slate-500">Dudas sobre cómo usar {surface === 'merchant-portal' ? 'el portal' : 'el ERP'}</p>
+              <h2 id={tituloId} className="truncate text-sm font-semibold text-slate-900">Asistente de Atlas</h2>
+              <p className="truncate text-xs text-slate-500">Dudas sobre cómo usar {surface === 'merchant-portal' ? 'el portal' : 'el ERP'}</p>
             </div>
             <button
               type="button"
               onClick={cerrar}
               aria-label="Cerrar el asistente"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-500 hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
             >
               <Icon name="close" className="text-[20px]" />
             </button>
@@ -281,7 +281,7 @@ export function AtlasAssist({
               }}
               disabled={razonSinNueva !== ''}
               aria-describedby={razonSinNueva ? razonId : undefined}
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-10 items-center gap-1.5 rounded-md border border-border-strong bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Icon name="add_comment" className="text-[16px]" /> Nueva conversación
             </button>
@@ -290,14 +290,14 @@ export function AtlasAssist({
               onClick={() => setVista('historial')}
               aria-pressed={vista === 'historial'}
               className={cn(
-                'inline-flex h-10 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20',
-                vista === 'historial' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50',
+                'inline-flex h-10 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20',
+                vista === 'historial' ? 'border-slate-900 bg-slate-900 text-white' : 'border-border-strong bg-white text-slate-800 hover:bg-surface-sunken',
               )}
             >
               <Icon name="history" className="text-[16px]" /> Historial
             </button>
             {razonSinNueva ? (
-              <span id={razonId} className="w-full text-[11px] text-slate-500">{razonSinNueva}</span>
+              <span id={razonId} className="w-full text-xs text-slate-500">{razonSinNueva}</span>
             ) : null}
           </div>
 
@@ -316,22 +316,22 @@ export function AtlasAssist({
                 <p className="flex items-center gap-2 text-xs text-slate-500"><LoadingSpinner label="Cargando la conversación" /> Cargando la conversación…</p>
               ) : null}
               {carga === 'lista' && turnos.length === 0 && !apagado ? (
-                <p className="rounded-lg border border-dashed border-slate-300 bg-white p-3 text-xs leading-5 text-slate-600">
+                <p className="rounded-lg border border-dashed border-border-strong bg-white p-3 text-xs leading-5 text-slate-600">
                   Pregúntame cómo hacer algo en {surface === 'merchant-portal' ? 'el portal' : 'el ERP'}: dónde está una pantalla, qué significa un estado o qué pasos seguir.
                 </p>
               ) : null}
               {turnos.map((turno) => (
                 <div key={turno.id} className="space-y-2">
-                  <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-slate-900 px-3 py-2 text-xs leading-5 text-white">{turno.pregunta}</p>
+                  <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-lg rounded-br-sm bg-slate-900 px-3 py-2 text-xs leading-5 text-white">{turno.pregunta}</p>
                   {turno.respuesta ? (
-                    <div className="w-fit max-w-[92%] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-800 shadow-sm">
+                    <div className="w-fit max-w-[92%] rounded-lg rounded-bl-sm border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-800 ">
                       <p className="whitespace-pre-wrap">{turno.respuesta}</p>
-                      {turno.sinIa ? <p className="mt-1.5 text-[10px] text-slate-500">Respuesta sin IA: texto de la guía.</p> : null}
+                      {turno.sinIa ? <p className="mt-1.5 text-xs text-slate-500">Respuesta sin IA: texto de la guía.</p> : null}
                       {turno.sugiereAtencion && atencion ? (
                         <Link
                           href={atencion.href}
                           onClick={() => setAbierto(false)}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary-wash px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary-soft"
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary-wash px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary-soft"
                         >
                           <Icon name="support_agent" className="text-[16px]" /> {atencion.texto}
                         </Link>
@@ -342,8 +342,8 @@ export function AtlasAssist({
               ))}
               {pensando ? (
                 <div className="space-y-2">
-                  <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-slate-900/80 px-3 py-2 text-xs leading-5 text-white">{texto.trim()}</p>
-                  <p className="flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" role="status">
+                  <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-lg rounded-br-sm bg-slate-900/80 px-3 py-2 text-xs leading-5 text-white">{texto.trim()}</p>
+                  <p className="flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500" role="status">
                     <LoadingSpinner label="Pensando" /> Pensando…
                   </p>
                 </div>
@@ -364,7 +364,7 @@ export function AtlasAssist({
                 void enviar();
               }}
             >
-              <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
                 <Icon name="lock" className="text-[14px]" /> {AVISO_DATOS}
               </p>
               <div className="flex items-end gap-2">
@@ -384,18 +384,18 @@ export function AtlasAssist({
                   rows={2}
                   disabled={bloqueado}
                   placeholder={apagado ? 'El asistente no está disponible' : 'Escribe tu pregunta'}
-                  className="max-h-32 min-h-[44px] flex-1 resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs leading-5 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  className="max-h-32 min-h-[44px] flex-1 resize-none rounded-lg border border-border-strong bg-white px-3 py-2 text-xs leading-5 text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
                 <button
                   type="submit"
                   disabled={bloqueado || !texto.trim()}
                   aria-label="Enviar pregunta"
-                  className="atlas-tap grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="atlas-tap grid h-11 w-11 shrink-0 place-items-center rounded-md bg-slate-900 text-white transition hover:bg-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {pensando ? <LoadingSpinner label="Enviando" /> : <Icon name="send" className="text-[18px]" />}
                 </button>
               </div>
-              <p className="mt-1 text-right text-[10px] text-slate-400">
+              <p className="mt-1 text-right text-xs text-slate-500">
                 Enter para enviar · Shift+Enter para otra línea · {texto.length}/{MAX_PREGUNTA}
               </p>
             </form>

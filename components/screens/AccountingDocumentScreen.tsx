@@ -175,7 +175,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
           >
             <div data-tutorial-id="document-lines" className="table-scroll">
               <table className="min-w-[1080px] w-full text-left text-xs">
-                <thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
+                <thead className="bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="p-2">Cuenta contable</th>
                     <th className="p-2 text-right">Debe</th>
@@ -186,15 +186,15 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
                     <th />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-200">
                   {lines.map((line) => (
                     <tr key={line.id}>
                       <td className="p-2">
                         <OptionSelect name={`glAccountId-${line.id}`} ariaLabel="Cuenta contable de la línea" compact className="w-72" required value={line.glAccountId} onChange={(value) => updateLine(line.id, 'glAccountId', value)} placeholder="— Cuenta contable —" options={glAccounts} />
                       </td>
-                      <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" aria-label="Importe al debe" type="number" min="0" step="0.01" value={line.debit} onChange={(event) => updateLine(line.id, 'debit', event.target.value)} /></td>
-                      <td className="p-2"><input className="h-9 w-28 rounded border border-slate-300 px-2 text-right" aria-label="Importe al haber" type="number" min="0" step="0.01" value={line.credit} onChange={(event) => updateLine(line.id, 'credit', event.target.value)} /></td>
-                      <td className="p-2"><input className="h-9 w-52 rounded border border-slate-300 px-2" aria-label="Descripción de la línea" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} /></td>
+                      <td className="p-2"><input className="h-9 w-28 rounded border border-border-strong px-2 text-right" aria-label="Importe al debe" type="number" min="0" step="0.01" value={line.debit} onChange={(event) => updateLine(line.id, 'debit', event.target.value)} /></td>
+                      <td className="p-2"><input className="h-9 w-28 rounded border border-border-strong px-2 text-right" aria-label="Importe al haber" type="number" min="0" step="0.01" value={line.credit} onChange={(event) => updateLine(line.id, 'credit', event.target.value)} /></td>
+                      <td className="p-2"><input className="h-9 w-52 rounded border border-border-strong px-2" aria-label="Descripción de la línea" value={line.description} onChange={(event) => updateLine(line.id, 'description', event.target.value)} /></td>
                       <td className="p-2">
                         <OptionSelect name={`partnerId-${line.id}`} ariaLabel="Socio de negocio de la línea" compact className="w-48" value={line.partnerId} onChange={(value) => updateLine(line.id, 'partnerId', value)} options={[{ value: '', label: '— Ninguno —', description: 'La línea no se atribuye a ningún socio de negocio.' }, ...partners]} />
                       </td>
@@ -209,7 +209,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
                     </tr>
                   ))}
                 </tbody>
-                <tfoot data-tutorial-id="document-totals" className="border-t-2 border-slate-200 bg-slate-50 font-bold">
+                <tfoot data-tutorial-id="document-totals" className="border-t-2 border-slate-200 bg-slate-50 font-semibold">
                   <tr>
                     <td className="p-3">Totales</td>
                     <td className="p-3 text-right">{formatBob(totals.debit)}</td>
@@ -250,7 +250,7 @@ export function AccountingDocumentScreen({ onDone }: AccountingDocumentScreenPro
               <Control label="El borrador está guardado" ok={Boolean(documentId)} />
             </div>
             <AtlasButton className="mt-4 w-full" variant="success" icon="verified" data-testid="documento-contabilizar" disabled={!documentId || !balanced || aprobacion === 'PENDING' || aprobacion === 'REJECTED'} loading={postMutation.isLoading} onClick={postDocument}>Contabilizar</AtlasButton>
-            <p className="mt-2 text-[11px] text-slate-500">Se contabiliza el borrador que acabas de guardar, si no exige aprobación. Para contabilizar otro, búscalo en el listado de documentos.</p>
+            <p className="mt-2 text-xs text-slate-500">Se contabiliza el borrador que acabas de guardar, si no exige aprobación. Para contabilizar otro, búscalo en el listado de documentos.</p>
           </Panel>
           <InlineNotice tone="warning">Contabilizar deja el asiento en firme. Lo que venga después se corrige con una reversión, no editando.</InlineNotice>
         </aside>

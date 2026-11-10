@@ -66,7 +66,7 @@ export function SubmissionGaps({ gaps, ready }: Readonly<{ gaps: SubmissionGap[]
 
   return (
     <div data-testid="expediente-pendientes" className="rounded-md border border-amber-200 bg-amber-50 p-3">
-      <p className="flex items-center gap-2 text-xs font-bold text-amber-900">
+      <p className="flex items-center gap-2 text-xs font-semibold text-amber-900">
         <Icon name="checklist" className="text-[18px]" />
         Falta {gaps.length} {gaps.length === 1 ? 'requisito' : 'requisitos'} para enviar a revisión
       </p>
@@ -79,7 +79,7 @@ export function SubmissionGaps({ gaps, ready }: Readonly<{ gaps: SubmissionGap[]
               {donde ? (
                 <>
                   {' '}
-                  <Link href={donde.href} className="font-bold underline underline-offset-2">
+                  <Link href={donde.href} className="font-semibold underline underline-offset-2">
                     Resuélvelo en «{donde.label}»
                   </Link>
                 </>
@@ -106,7 +106,7 @@ export function QrList({ codes }: Readonly<{ codes: PartnerQrCode[] }>) {
 
   return (
     <table className="w-full text-left text-xs" data-testid="tabla-qr">
-      <thead className="text-[10px] uppercase tracking-wide text-slate-500">
+      <thead className="text-xs text-slate-500">
         <tr>
           <th className="py-1">Tipo</th>
           <th className="py-1">Entidad</th>
@@ -117,7 +117,7 @@ export function QrList({ codes }: Readonly<{ codes: PartnerQrCode[] }>) {
       </thead>
       <tbody>
         {codes.map((qr) => (
-          <tr key={qr.qrId} className="border-t border-slate-100" data-qr-kind={qr.qrKind}>
+          <tr key={qr.qrId} className="border-t border-slate-200" data-qr-kind={qr.qrKind}>
             <td className="py-1.5 font-semibold">{qr.qrKind === 'bank' ? 'Bancario' : 'Del negocio'}</td>
             <td className="py-1.5">{qr.bankInstitutionCode ?? '—'}</td>
             <td className="py-1.5 font-mono">{qr.accountNumberMasked ?? '—'}</td>

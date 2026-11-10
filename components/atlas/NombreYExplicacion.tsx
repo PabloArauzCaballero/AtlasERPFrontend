@@ -8,7 +8,7 @@ export function NombreYExplicacion({ nombre, explicacion }: { nombre: string; ex
   return (
     <span className="min-w-0">
       <span className="block">{nombre}</span>
-      <span className="mt-0.5 block text-[11px] font-normal leading-snug text-slate-500">{explicacion}</span>
+      <span className="mt-0.5 block text-xs font-normal leading-snug text-slate-500">{explicacion}</span>
     </span>
   );
 }

@@ -186,7 +186,7 @@ export function ReceiptScreen({ onDone }: ReceiptScreenProps = {}) {
                     options={opcionesFactura}
                   />
                   <input
-                    className="h-9 rounded border border-slate-300 bg-white px-3 text-right text-xs"
+                    className="h-9 rounded border border-border-strong bg-white px-3 text-right text-xs"
                     type="number"
                     min="0.01"
                     step="0.01"
@@ -214,8 +214,8 @@ export function ReceiptScreen({ onDone }: ReceiptScreenProps = {}) {
         <aside className="space-y-4 xl:sticky xl:top-20">
           <Panel title="Cuadre" icon="balance">
             <div className="rounded-md bg-slate-50 p-4">
-              <p className="text-[10px] font-bold uppercase text-slate-500">Repartido entre facturas</p>
-              <p className="mt-1 text-2xl font-bold" data-testid="recibo-total-asignado">{formatBob(totalAllocated)}</p>
+              <p className="text-xs font-semibold text-slate-500">Repartido entre facturas</p>
+              <p className="mt-1 text-2xl font-semibold" data-testid="recibo-total-asignado">{formatBob(totalAllocated)}</p>
             </div>
             <div className="mt-3 flex justify-between text-xs"><span className="text-slate-500">Monto recibido</span><b>{formatBob(montoRecibido)}</b></div>
             <div className="mt-1.5 flex justify-between text-xs"><span className="text-slate-500">Facturas aplicadas</span><b>{allocations.length}</b></div>

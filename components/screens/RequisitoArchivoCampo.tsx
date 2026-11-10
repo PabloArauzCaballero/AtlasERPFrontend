@@ -46,20 +46,20 @@ export function RequisitoArchivoCampo({
         }}
       />
       <div className="flex min-h-9 flex-wrap items-center gap-2">
-        <Icon name={archivo ? (archivo.type === 'application/pdf' ? 'picture_as_pdf' : 'image') : 'attach_file'} className={`text-[18px] ${archivo ? 'text-slate-700' : 'text-slate-400'}`} />
-        <span className={`min-w-0 flex-1 truncate text-xs ${archivo ? 'font-bold text-slate-800' : 'text-slate-500'}`} title={archivo?.name}>
+        <Icon name={archivo ? (archivo.type === 'application/pdf' ? 'picture_as_pdf' : 'image') : 'attach_file'} className={`text-[18px] ${archivo ? 'text-slate-700' : 'text-slate-500'}`} />
+        <span className={`min-w-0 flex-1 truncate text-xs ${archivo ? 'font-semibold text-slate-800' : 'text-slate-500'}`} title={archivo?.name}>
           {archivo ? archivo.name : 'Sin archivo todavía (PDF, JPEG o PNG, hasta 15 MB)'}
         </span>
         <AtlasButton variant="secondary" icon={archivo ? 'swap_horiz' : 'folder_open'} disabled={disabled} onClick={() => entrada.current?.click()}>
           {archivo ? 'Cambiar' : 'Adjuntar archivo'}
         </AtlasButton>
         {archivo ? (
-          <button type="button" className="grid h-9 w-9 place-items-center rounded text-slate-500 hover:bg-slate-100" disabled={disabled} aria-label={`Quitar el archivo: ${label}`} onClick={() => { if (entrada.current) entrada.current.value = ''; onChange(null, null); }}>
+          <button type="button" className="grid h-9 w-9 place-items-center rounded text-slate-500 hover:bg-surface-sunken" disabled={disabled} aria-label={`Quitar el archivo: ${label}`} onClick={() => { if (entrada.current) entrada.current.value = ''; onChange(null, null); }}>
             <Icon name="close" className="text-[18px]" />
           </button>
         ) : null}
       </div>
-      {error ? <p className="mt-1 text-[11px] text-red-700" role="alert">{error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-red-700" role="alert">{error}</p> : null}
     </div>
   );
 }

@@ -114,23 +114,23 @@ export function SecurityAdministrationScreen() {
             <InlineNotice tone="danger" title="No se pudo cargar el directorio">{usersResource.error}</InlineNotice>
           ) : (
             <div className="overflow-hidden rounded-md border border-slate-200">
-              <div className="grid grid-cols-[2fr_1.4fr_1fr_0.7fr_100px] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
+              <div className="grid grid-cols-[2fr_1.4fr_1fr_0.7fr_100px] bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                 <span>Usuario</span><span>Roles</span><span>Estado</span><span>MFA</span><span />
               </div>
               {users.length === 0 && usersResource.status !== 'loading' ? (
                 <div className="grid min-h-56 place-items-center p-8 text-center">
                   <div>
-                    <Icon name="person_search" className="text-[34px] text-slate-400" />
-                    <p className="mt-2 text-xs font-bold text-slate-600">Sin usuarios internos en este tenant</p>
+                    <Icon name="person_search" className="text-[34px] text-slate-500" />
+                    <p className="mt-2 text-xs font-semibold text-slate-600">Sin usuarios internos en este tenant</p>
                   </div>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-slate-200">
                   {users.map((row) => (
                     <div key={row.id} className="grid grid-cols-[2fr_1.4fr_1fr_0.7fr_100px] items-center px-4 py-3 text-xs">
                       <div className="min-w-0">
-                        <p className="truncate font-bold text-slate-800">{row.fullName}{row.id === currentUser?.id ? ' (tú)' : ''}</p>
-                        <p className="truncate text-[11px] text-slate-500">{row.email}</p>
+                        <p className="truncate font-semibold text-slate-800">{row.fullName}{row.id === currentUser?.id ? ' (tú)' : ''}</p>
+                        <p className="truncate text-xs text-slate-500">{row.email}</p>
                       </div>
                       <span className="truncate text-slate-600">{row.roles.join(', ') || '—'}</span>
                       <span><StatusPill tone={statusTone[row.status] ?? 'neutral'}>{row.status}</StatusPill></span>
@@ -139,7 +139,7 @@ export function SecurityAdministrationScreen() {
                         {canManage ? (
                           <AtlasButton
                             variant="secondary"
-                            className="mr-1 h-7 px-2 text-[10px]"
+                            className="mr-1 h-7 px-2 text-xs"
                             onClick={() => setRolesChange(row)}
                           >
                             Roles
@@ -148,7 +148,7 @@ export function SecurityAdministrationScreen() {
                         {canManage && row.id !== currentUser?.id && nextStatus[row.status] ? (
                           <AtlasButton
                             variant="secondary"
-                            className="h-7 px-2 text-[10px]"
+                            className="h-7 px-2 text-xs"
                             loading={pendingUserId === row.id}
                             onClick={() => toggleStatus(row)}
                           >

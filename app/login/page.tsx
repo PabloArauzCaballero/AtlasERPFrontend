@@ -22,7 +22,7 @@ function Repartir() {
 
   return (
     <div className="grid min-h-[100dvh] place-items-center bg-canvas" role="status" aria-label="Abriendo el acceso">
-      <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-primary" />
+      <span className="h-8 w-8 animate-spin rounded-full border-2 border-border-strong border-t-primary" />
     </div>
   );
 }

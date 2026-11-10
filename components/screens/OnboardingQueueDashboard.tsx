@@ -42,7 +42,7 @@ export function OnboardingQueueDashboard({ summary, loading, scope, onScopeChang
           { label: 'Listos para activar', value: n('listosParaActivar') },
         ]}
       />
-      <div role="radiogroup" aria-label="Qué casos mostrar" className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
+      <div role="radiogroup" aria-label="Qué casos mostrar" className="inline-flex rounded-md border border-slate-200 bg-white p-1">
         {SCOPES.map((option) => (
           <button
             key={option.id}
@@ -53,12 +53,12 @@ export function OnboardingQueueDashboard({ summary, loading, scope, onScopeChang
             data-testid={`onboarding-scope-${option.id}`}
             onClick={() => onScopeChange(option.id)}
             className={cn(
-              'rounded-md px-3 py-1.5 text-xs font-bold transition',
-              scope === option.id ? 'bg-primary-wash text-primary' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+              'rounded-md px-3 py-1.5 text-xs font-semibold transition',
+              scope === option.id ? 'bg-primary-wash text-primary' : 'text-slate-500 hover:bg-surface-sunken hover:text-slate-700',
             )}
           >
             {option.label}
-            {option.id === 'historial' && !loading ? <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">{n('activados')}</span> : null}
+            {option.id === 'historial' && !loading ? <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">{n('activados')}</span> : null}
           </button>
         ))}
       </div>

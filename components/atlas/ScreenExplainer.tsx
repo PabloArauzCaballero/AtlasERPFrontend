@@ -20,14 +20,14 @@ export function ScreenExplainer({ lead, points }: Readonly<{ lead: React.ReactNo
           <Icon name="lightbulb" className="text-[18px]" />
         </span>
         <div className="min-w-0">
-          <h2 id="screen-explainer-title" className="text-sm font-bold text-slate-900">¿Qué estás viendo?</h2>
+          <h2 id="screen-explainer-title" className="text-sm font-semibold text-slate-900">¿Qué estás viendo?</h2>
           <p className="mt-0.5 max-w-4xl text-sm leading-6 text-slate-700">{lead}</p>
         </div>
       </div>
       <ol className="mt-4 grid gap-3 md:grid-cols-3">
         {points.map((point, index) => (
           <li key={point.title} className="rounded-md bg-white p-3">
-            <p className="flex items-center gap-2 text-xs font-bold text-slate-900">
+            <p className="flex items-center gap-2 text-xs font-semibold text-slate-900">
               <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-xs text-white">{index + 1}</span>
               {point.title}
             </p>

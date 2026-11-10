@@ -175,7 +175,7 @@ function renderCell(row: ResourceRow, column: DirectoryColumn) {
   if (column.kind === 'datetime') return formatDateTime(typeof raw === 'string' ? raw : undefined);
   if (column.kind === 'pii') return maskPii(raw, column.key);
   if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join(', ') : '—';
-  return <span className={column.kind === 'mono' ? 'font-mono text-[11px]' : ''}>{String(raw ?? '—')}</span>;
+  return <span className={column.kind === 'mono' ? 'font-mono text-xs' : ''}>{String(raw ?? '—')}</span>;
 }
 
 /** Lo que se queda en la fila: las marcadas, o las tres primeras si nadie marcó nada. */
@@ -384,7 +384,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
       {props.embedded ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-900">{props.title}</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{props.title}</h2>
             <p className="mt-0.5 text-xs text-slate-500">{props.description}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">{barraAcciones}</div>
@@ -404,7 +404,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <div data-tutorial-id="directory-filters" className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap">
             {props.searchable === false ? null : (
-              <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 sm:basis-56 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+              <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-border-strong bg-white px-3 sm:basis-56 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
                 <Icon name="search" className="text-[18px] text-slate-500" />
                 <input data-tutorial-id="directory-search" data-testid="directorio-buscar" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
               </label>
@@ -414,7 +414,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
             ))}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-primary" />Actualizando</span> : null}
+            {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-border-strong border-t-primary" />Actualizando</span> : null}
             <OptionSelect name="filas-por-pagina" ariaLabel="Filas por página" compact className="w-28" value={String(pageSize)} onChange={(value) => setQuery((current) => ({ ...current, page: 1, limit: Number(value), pageSize: Number(value) }))} options={[10, 25, 50, 100].map((size) => ({ value: String(size), label: `${size} filas`, description: `Muestra ${size} registros por página.` }))} />
             <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
           </div>
@@ -446,23 +446,23 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         {loading && !rows.length ? <TableSkeleton columns={props.columns.length + 1} /> : (
           <div className="table-scroll">
             <table className="w-full min-w-[900px] border-collapse text-left text-xs">
-              <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                <tr>{props.columns.map((column) => <th className={`border-b border-slate-200 px-3 py-3 font-bold ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`} key={column.key}>{column.label}</th>)}<th className="border-b border-slate-200 px-3 py-3 text-right font-bold">Acciones</th></tr>
+              <thead className="bg-slate-50 text-xs text-slate-500">
+                <tr>{props.columns.map((column) => <th className={`border-b border-slate-200 px-3 py-3 font-semibold ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`} key={column.key}>{column.label}</th>)}<th className="border-b border-slate-200 px-3 py-3 text-right font-semibold">Acciones</th></tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {rows.map((row, index) => {
                   const rowKey = String(row.id ?? row.uuid ?? index);
                   const href = props.detailHref?.(row);
                   const actions = props.rowActions?.(row) ?? [];
                   return (
-                    <tr key={rowKey} className="group hover:bg-slate-50/80">
+                    <tr key={rowKey} className="group hover:bg-surface-sunken">
                       {props.columns.map((column) => <td key={column.key} className={`whitespace-nowrap px-3 py-3 text-slate-700 ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>{renderCell(row, column)}</td>)}
                       <td className="px-3 py-3 text-right">
                         {actions.length ? (
                           <div className="flex items-center justify-end gap-1">
                             {enCarril(actions).map((action) => {
                               const toneClass = action.tone === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-primary hover:bg-primary-wash';
-                              const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold ${toneClass}`;
+                              const className = `inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold ${toneClass}`;
                               return action.href
                                 ? <Link key={action.key} className={className} href={action.href} title={action.description}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</Link>
                                 : <button key={action.key} type="button" className={className} title={action.description} onClick={() => { if (action.form) setRowForm({ action, row }); else if (action.confirm) setPending({ action, row }); else void runAction(action, row); }}>{action.icon ? <Icon name={action.icon} className="text-[16px]" /> : null}{action.label}</button>;
@@ -474,27 +474,27 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
                                 aria-label="Más acciones"
                                 data-testid={`mas-acciones-${rowKey}`}
                                 onClick={() => setMasAcciones({ row, actions: enCajon(actions) })}
-                                className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100"
+                                className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-surface-sunken"
                               >
                                 <Icon name="more_horiz" className="text-[18px]" />
                               </button>
                             ) : null}
                           </div>
                         ) : href ? (
-                          <Link className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-bold text-primary hover:bg-primary-wash" href={href}>Ver <Icon name="chevron_right" className="text-[16px]" /></Link>
+                          <Link className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-primary hover:bg-primary-wash" href={href}>Ver <Icon name="chevron_right" className="text-[16px]" /></Link>
                         ) : (
                           /*
                            * Antes había aquí un botón «Más acciones» SIN `onClick`: se pintaba en
                            * toda fila sin acciones ni detalle, invitaba a pulsarlo y no hacía nada.
                            * Una fila sin nada que hacer no necesita un botón que lo finja.
                            */
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-xs text-slate-500">—</span>
                         )}
                       </td>
                     </tr>
                   );
                 })}
-                {!rows.length && resource.status !== 'loading' ? <tr><td colSpan={props.columns.length + 1} className="px-6 py-16 text-center"><Icon name="inbox" className="text-[36px] text-slate-400" /><p className="mt-2 font-bold text-slate-700">No hay registros para los filtros aplicados</p><p className="mt-1 text-xs text-slate-500">Prueba con otros criterios o crea el primer registro.</p></td></tr> : null}
+                {!rows.length && resource.status !== 'loading' ? <tr><td colSpan={props.columns.length + 1} className="px-6 py-16 text-center"><Icon name="inbox" className="text-[36px] text-slate-500" /><p className="mt-2 font-semibold text-slate-700">No hay registros para los filtros aplicados</p><p className="mt-1 text-xs text-slate-500">Prueba con otros criterios o crea el primer registro.</p></td></tr> : null}
               </tbody>
             </table>
           </div>
@@ -571,7 +571,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
           <div className="space-y-1.5">
             {masAcciones.actions.map((action) => {
               const fila = masAcciones.row;
-              const clase = `flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold transition hover:border-slate-300 hover:bg-slate-50 ${action.tone === 'danger' ? 'text-red-600' : 'text-slate-700'}`;
+              const clase = `flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold transition hover:border-border-strong hover:bg-surface-sunken ${action.tone === 'danger' ? 'text-red-600' : 'text-slate-700'}`;
               return action.href ? (
                 <Link key={action.key} href={action.href} className={clase} onClick={() => setMasAcciones(null)}>
                   {action.icon ? <Icon name={action.icon} className="mt-px text-[18px] text-slate-500" /> : null}
@@ -604,5 +604,5 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
 }
 
 function TableSkeleton({ columns }: { columns: number }) {
-  return <div className="space-y-0"><div className="h-11 animate-pulse border-b border-slate-200 bg-slate-100" />{Array.from({ length: 8 }, (_, row) => <div key={row} className="grid h-12 animate-pulse items-center gap-4 border-b border-slate-100 px-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(80px, 1fr))` }}>{Array.from({ length: columns }, (_, column) => <span key={column} className="h-3 rounded bg-slate-100" />)}</div>)}</div>;
+  return <div className="space-y-0"><div className="h-11 animate-pulse border-b border-slate-200 bg-slate-100" />{Array.from({ length: 8 }, (_, row) => <div key={row} className="grid h-12 animate-pulse items-center gap-4 border-b border-slate-200 px-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(80px, 1fr))` }}>{Array.from({ length: columns }, (_, column) => <span key={column} className="h-3 rounded bg-slate-100" />)}</div>)}</div>;
 }

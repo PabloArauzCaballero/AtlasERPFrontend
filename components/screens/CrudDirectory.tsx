@@ -239,7 +239,7 @@ function renderCell(row: ResourceRow, column: CrudColumn) {
   if (column.kind === 'date') return formatDate(typeof raw === 'string' ? raw : undefined);
   if (column.kind === 'pii') return maskPii(raw, column.key);
   if (column.kind === 'list') return Array.isArray(raw) && raw.length ? raw.join(', ') : '—';
-  return <span className={column.kind === 'mono' ? 'font-mono text-[11px]' : ''}>{String(raw ?? '—')}</span>;
+  return <span className={column.kind === 'mono' ? 'font-mono text-xs' : ''}>{String(raw ?? '—')}</span>;
 }
 
 /**
@@ -617,7 +617,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
          */
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-900">{props.title}</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{props.title}</h2>
             <p className="mt-0.5 max-w-2xl text-xs text-slate-500">{props.description}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 xl:shrink-0 xl:justify-end">{toolbar}</div>
@@ -675,14 +675,14 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           <div className="block min-w-0 flex-1 lg:min-w-[16rem]">
             <FieldLabel htmlFor={busquedaId} label="Buscar" />
             <div className="relative">
-              <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400" />
+              <Icon name="search" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-500" />
               <input
                 id={busquedaId}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={props.searchPlaceholder ?? 'Buscar en todas las columnas…'}
                 data-testid="crud-buscar"
-                className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="h-9 w-full rounded-md border border-border-strong bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>
@@ -717,7 +717,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
 
           <AtlasButton className="shrink-0" variant="secondary" icon="filter_alt_off" disabled={!filtersActive} onClick={() => { setSearch(''); setFilterValues({}); }}>Limpiar</AtlasButton>
         </div>
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-xs text-slate-500">
           {loading && !rows.length ? 'Cargando…' : filtersActive
             ? `${filteredRows.length.toLocaleString('es-BO')} de ${rows.length.toLocaleString('es-BO')} registros con estos filtros.`
             : `${rows.length.toLocaleString('es-BO')} registros.`}
@@ -732,19 +732,19 @@ export function CrudDirectory(props: CrudDirectoryProps) {
       <Panel className="!p-0" data-tutorial-id="crud-tabla">
         <div className="table-scroll overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left text-xs">
-            <thead className="bg-slate-50 text-[10px] uppercase tracking-[0.08em] text-slate-500">
+            <thead className="bg-slate-50 text-xs text-slate-500">
               <tr>
                 {columns.map((column) => (
-                  <th key={column.key} className={`border-b border-slate-200 px-3 py-2.5 font-bold ${column.align === 'right' ? 'text-right' : ''}`}>{column.label}</th>
+                  <th key={column.key} className={`border-b border-slate-200 px-3 py-2.5 font-semibold ${column.align === 'right' ? 'text-right' : ''}`}>{column.label}</th>
                 ))}
-                {hasRowActions ? <th className="border-b border-slate-200 px-3 py-2.5 text-right font-bold">Acciones</th> : null}
+                {hasRowActions ? <th className="border-b border-slate-200 px-3 py-2.5 text-right font-semibold">Acciones</th> : null}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200">
               {visibleRows.map((row, index) => {
                 const id = String(row[idKey] ?? index);
                 return (
-                  <tr key={id} className="hover:bg-slate-50/80" data-testid={`fila-${id}`}>
+                  <tr key={id} className="hover:bg-surface-sunken" data-testid={`fila-${id}`}>
                     {columns.map((column) => (
                       <td key={column.key} className={`whitespace-nowrap px-3 py-2.5 text-slate-700 ${column.align === 'right' ? 'text-right tabular-nums' : ''}`}>
                         {renderCell(row, column)}
@@ -754,7 +754,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                       <td className="px-3 py-2 text-right">
                         <div className="flex justify-end gap-1">
                           {enCarril(props.extraActions ?? [], row).map((action) => {
-                            const clase = 'grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900';
+                            const clase = 'grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-surface-sunken hover:text-slate-900';
                             return action.href ? (
                               <Link key={action.key} href={action.href(row)} title={`${action.label} — ${action.description}`} aria-label={`${action.label}: ${labelFor(row)}`} data-testid={`accion-${action.key}-${id}`} className={clase}>
                                 <Icon name={action.icon} className="text-[17px]" />
@@ -780,7 +780,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                               aria-label={`Más acciones: ${labelFor(row)}`}
                               data-testid={`mas-acciones-${id}`}
                               onClick={() => setMasAcciones(row)}
-                              className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                              className="grid h-8 w-8 place-items-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-surface-sunken hover:text-slate-900"
                             >
                               <Icon name="more_horiz" className="text-[17px]" />
                             </button>
@@ -804,7 +804,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                               title={props.remove.blockedReason(row) ?? ''}
                               aria-label={`No se puede eliminar ${labelFor(row)}: ${props.remove.blockedReason(row) ?? ''}`}
                               data-testid={`eliminar-bloqueado-${id}`}
-                              className="grid h-8 w-8 cursor-not-allowed place-items-center rounded-md border border-slate-100 text-slate-300"
+                              className="grid h-8 w-8 cursor-not-allowed place-items-center rounded-md border border-slate-200 text-slate-500"
                             >
                               <Icon name="delete" className="text-[17px]" />
                             </button>
@@ -830,8 +830,8 @@ export function CrudDirectory(props: CrudDirectoryProps) {
               {!visibleRows.length && !loading ? (
                 <tr>
                   <td colSpan={columns.length + (hasRowActions ? 1 : 0)} className="px-6 py-12 text-center">
-                    <Icon name="inbox" className="text-[30px] text-slate-400" />
-                    <p className="mt-2 font-bold text-slate-700">{filtersActive ? 'Ningún registro coincide con los filtros' : 'Todavía no hay registros'}</p>
+                    <Icon name="inbox" className="text-[30px] text-slate-500" />
+                    <p className="mt-2 font-semibold text-slate-700">{filtersActive ? 'Ningún registro coincide con los filtros' : 'Todavía no hay registros'}</p>
                     <p className="mt-1 text-xs text-slate-500">
                       {filtersActive ? 'Prueba a limpiar los filtros para ver el listado completo.' : props.emptyHint ?? 'Usa el botón «Crear» de arriba para registrar el primero.'}
                     </p>
@@ -848,7 +848,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
 
         {totalPages > 1 ? (
           <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-3 py-2.5">
-            <p className="text-[11px] text-slate-500">Página {currentPage} de {totalPages} · {filteredRows.length.toLocaleString('es-BO')} registros</p>
+            <p className="text-xs text-slate-500">Página {currentPage} de {totalPages} · {filteredRows.length.toLocaleString('es-BO')} registros</p>
             <div className="flex gap-1.5">
               <AtlasButton variant="secondary" icon="chevron_left" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Anterior</AtlasButton>
               <AtlasButton variant="secondary" icon="chevron_right" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>Siguiente</AtlasButton>
@@ -967,7 +967,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
           <div className="space-y-1.5">
             {enCajon(props.extraActions ?? [], masAcciones).map((accion) => {
               const fila = masAcciones;
-              const clase = 'flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50';
+              const clase = 'flex w-full items-start gap-3 rounded-md border border-slate-200 px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition hover:border-border-strong hover:bg-surface-sunken';
               return accion.href ? (
                 <Link key={accion.key} href={accion.href(fila)} data-testid={`accion-${accion.key}-${String(fila[idKey] ?? '')}`} className={clase} onClick={() => setMasAcciones(null)}>
                   <Icon name={accion.icon} className="mt-px text-[18px] text-slate-500" />

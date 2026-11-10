@@ -222,15 +222,15 @@ export function AudienceBuilder({ value, onChange, purpose, onEstimate }: Audien
           <div key={item.label} className="flex items-center gap-3">
             <Icon name={item.icon} className="text-[22px] text-slate-500" />
             <div>
-              <p className="text-lg font-extrabold tabular-nums text-slate-900">{estimating || !complete ? '…' : formatCount(item.value)}</p>
-              <p className="text-[11px] text-slate-500">{item.label}</p>
+              <p className="text-lg font-semibold tabular-nums text-slate-900">{estimating || !complete ? '…' : formatCount(item.value)}</p>
+              <p className="text-xs text-slate-500">{item.label}</p>
             </div>
           </div>
         ))}
       </div>
       {!complete ? <p className="text-xs text-amber-700">Completa las condiciones para calcular la audiencia.</p> : null}
       {purpose === 'marketing' ? (
-        <p className="text-[11px] text-slate-500">Campaña comercial: el recuento ya descuenta a quien no aceptó recibir promociones.</p>
+        <p className="text-xs text-slate-500">Campaña comercial: el recuento ya descuenta a quien no aceptó recibir promociones.</p>
       ) : null}
       {error ? <InlineNotice tone="danger" title="No se pudo calcular la audiencia">{error}</InlineNotice> : null}
     </div>

@@ -203,8 +203,8 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
         ) : solicitudes.length === 0 ? (
           <div className="py-10 text-center">
             <Icon name="check_circle" className="text-[28px] text-emerald-600" />
-            <p className="mt-2 text-xs font-bold">No hay nada esperando</p>
-            <p className="mt-1 text-[11px] text-slate-500">Cuando un cliente escanee el QR y el motor apruebe su compra, aparecerá aquí.</p>
+            <p className="mt-2 text-xs font-semibold">No hay nada esperando</p>
+            <p className="mt-1 text-xs text-slate-500">Cuando un cliente escanee el QR y el motor apruebe su compra, aparecerá aquí.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -213,19 +213,19 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold">{solicitud.applicationCode}</h3>
+                      <h3 className="text-sm font-semibold">{solicitud.applicationCode}</h3>
                       <StatusPill tone="warning">{solicitud.businessAcceptance ?? 'PENDIENTE'}</StatusPill>
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       Pedida el {new Date(solicitud.submittedAt).toLocaleString('es-BO')} · aprobada por el motor
                     </p>
                     {/* A qué sucursal y caja corresponde: dos compras del mismo importe pueden venir de cajas distintas. */}
                     <OrigenDeCaja origen={solicitud} />
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Importe</p>
-                    <p className="text-2xl font-extrabold">{formatBob(Number(solicitud.requestedAmount))}</p>
-                    <p className="text-[11px] text-slate-500">{solicitud.requestedTermMonths} meses · {solicitud.currencyCode}</p>
+                    <p className="text-xs font-semibold text-slate-500">Importe</p>
+                    <p className="text-2xl font-semibold">{formatBob(Number(solicitud.requestedAmount))}</p>
+                    <p className="text-xs text-slate-500">{solicitud.requestedTermMonths} meses · {solicitud.currencyCode}</p>
                   </div>
                 </div>
 

@@ -145,12 +145,12 @@ export function AdsEmailScreen() {
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-end gap-2">
                       <label className="flex-1 min-w-64">
-                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">Identificador de seguimiento</span>
+                        <span className="mb-1 block text-xs font-semibold text-slate-500">Identificador de seguimiento</span>
                         <input
                           value={trackingId}
                           onChange={(event) => setTrackingId(event.target.value.trim())}
                           placeholder="UUID del envío"
-                          className="h-9 w-full rounded-md border border-slate-300 px-3 text-xs"
+                          className="h-9 w-full rounded-md border border-border-strong px-3 text-xs"
                         />
                       </label>
                     </div>
@@ -170,13 +170,13 @@ export function AdsEmailScreen() {
                           ]}
                         />
                         <div className="overflow-hidden rounded-md border border-slate-200">
-                          <div className="grid grid-cols-[1.4fr_1fr_0.6fr_1fr_1.4fr] bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase tracking-wide text-slate-500">
+                          <div className="grid grid-cols-[1.4fr_1fr_0.6fr_1fr_1.4fr] bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                             <span>Referencia</span><span>Estado</span><span className="text-right">Intentos</span><span>Enviado</span><span>Error</span>
                           </div>
-                          <div className="divide-y divide-slate-100">
+                          <div className="divide-y divide-slate-200">
                             {mensajes.map((row) => (
                               <div key={s(row.id)} className="grid grid-cols-[1.4fr_1fr_0.6fr_1fr_1.4fr] items-center px-4 py-2 text-xs">
-                                <span className="truncate font-mono text-[11px] text-slate-600">{s(row.recipientReference) || '—'}</span>
+                                <span className="truncate font-mono text-xs text-slate-600">{s(row.recipientReference) || '—'}</span>
                                 <span><StatusPill tone={s(row.status) === 'SIMULATED' ? 'warning' : statusTone(row.status)}>{etiquetaEstadoCorreo(s(row.status))}</StatusPill></span>
                                 <span className="text-right tabular-nums text-slate-600">{n(row.attempts)}</span>
                                 <span className="text-slate-600">{row.sentAt ? formatDate(s(row.sentAt)) : '—'}</span>

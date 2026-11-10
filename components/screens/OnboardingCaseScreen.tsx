@@ -152,7 +152,7 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
             <div className="mt-3" data-testid="aviso-expediente-incompleto">
               <InlineNotice tone="warning" title="A este comercio le falta parte del expediente">
                 {`Falta ${describirFaltantesDelExpediente(faltaDelExpediente)}. El caso no se abrirá hasta completarlo: `}
-                <Link className="font-bold underline" href={`/operaciones/crm/cuentas/detalle?id=${encodeURIComponent(cuentaElegida)}`}>complétalo en el detalle de la cuenta</Link>
+                <Link className="font-semibold underline" href={`/operaciones/crm/cuentas/detalle?id=${encodeURIComponent(cuentaElegida)}`}>complétalo en el detalle de la cuenta</Link>
                 {' (sección «Datos del expediente») y vuelve aquí.'}
               </InlineNotice>
             </div>
@@ -168,8 +168,8 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
             {items.map((item, index) => item.fijo ? (
               <div key={item.id} className="flex flex-wrap items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3" data-testid="requisito-nit">
                 <Icon name="verified" className="text-[18px] text-emerald-700" />
-                <span className="text-xs font-bold text-slate-800">{item.description}</span>
-                <span className="rounded bg-white px-2 py-0.5 text-[11px] text-slate-600">Legal · obligatorio</span>
+                <span className="text-xs font-semibold text-slate-800">{item.description}</span>
+                <span className="rounded bg-white px-2 py-0.5 text-xs text-slate-600">Legal · obligatorio</span>
                 <div className="basis-full">
                   <RequisitoArchivoCampo label="Archivo del NIT vigente" archivo={item.archivo ?? null} error={item.errorArchivo ?? null} disabled={subiendo} onChange={(file, error) => elegirArchivo(item.id, file, error)} />
                 </div>
@@ -187,7 +187,7 @@ export function OnboardingCaseScreen({ onDone }: OnboardingCaseScreenProps = {})
                   onChange={(value) => updateItem(item.id, 'itemType', value)}
                   options={tiposDeRequisito.some((option) => option.value === item.itemType) ? tiposDeRequisito : [...tiposDeRequisito, { value: item.itemType, label: item.itemType }]}
                 />
-                <input className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito adicional ${index}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} />
+                <input className="h-9 rounded-md border border-border-strong bg-white px-3 text-xs" value={item.description} required placeholder={`Descripción del requisito adicional ${index}`} onChange={(event) => updateItem(item.id, 'description', event.target.value)} />
                 <button type="button" className="grid h-9 place-items-center rounded text-red-600 hover:bg-red-50" onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))} aria-label="Quitar requisito">
                   <Icon name="delete" className="text-[18px]" />
                 </button>
