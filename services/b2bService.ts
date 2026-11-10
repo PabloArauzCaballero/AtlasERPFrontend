@@ -414,6 +414,22 @@ export const b2bService = {
   registerPurchase(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/bnpl/purchases', { method: 'POST', body });
   },
+  /**
+   * Lo que llegó de Atlas y el ERP no pudo aplicar sin adivinar (compras de un préstamo, avisos de
+   * pago). Sólo las abiertas: una resuelta ya no pide nada.
+   */
+  async listCoreExceptions() {
+    const respuesta = await apiRequest<{ items: ResourceRow[] }>('/b2b/integration/core-exceptions');
+    return respuesta.items ?? [];
+  },
+  reprocessCoreException(exceptionId: string, body: JsonObject) {
+    const id = requireUuidPathParam(exceptionId, 'la fila sin aplicar');
+    return apiRequest<ResourceRow>(`/b2b/integration/core-exceptions/${id}/reprocess`, { method: 'POST', body });
+  },
+  dismissCoreException(exceptionId: string, body: JsonObject) {
+    const id = requireUuidPathParam(exceptionId, 'la fila sin aplicar');
+    return apiRequest<ResourceRow>(`/b2b/integration/core-exceptions/${id}/dismiss`, { method: 'POST', body });
+  },
   createBillingInvoice(body: JsonObject) {
     return apiRequest<ResourceRow>('/b2b/billing/invoices', { method: 'POST', body });
   },

@@ -6,6 +6,7 @@ import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { CrudDirectory } from '@/components/screens/CrudDirectory';
 import { RecoveryMovementsDialog } from '@/components/screens/RecoveryMovementsDialog';
+import { accionesDeExcepcion, cargarExcepcionesDeCore } from '@/components/screens/coreExceptionActions';
 import { accionesDeRevision } from '@/components/screens/coverageReviewActions';
 import {
   accionesDeLiquidacion,
@@ -27,7 +28,7 @@ import { loadB2BAccounts, loadMerchantBranches } from '@/services/optionLoaders'
 import type { JsonObject, ResourceRow } from '@/services/types';
 
 /**
- * Cobertura y conciliación: tres tablas, y cada operación en la fila sobre la que actúa.
+ * Cobertura y conciliación: una tabla por pestaña, y cada operación en la fila sobre la que actúa.
  *
  * La vista tenía siete pestañas —tres tablas y cuatro formularios— y cada formulario abría con un
  * desplegable para volver a elegir la cuota, la cobertura o la recuperación que el usuario acababa
@@ -87,6 +88,8 @@ export default function CoverageReconciliationPage() {
   const cargarCuotas = useCallback(() => b2bService.listInstallments(), [version]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const cargarRecuperaciones = useCallback(() => b2bService.listRecoveries(), [version]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cargarSinAplicar = useCallback(() => cargarExcepcionesDeCore(), [version]);
 
   /**
    * El sistema sólo cubre una cuota vencida, impaga y sin otra cobertura; si algo necesita ojos
@@ -160,6 +163,10 @@ export default function CoverageReconciliationPage() {
    * el resto, y las cuotas reparten ese resto en partes iguales con el redondeo en la última. Pedir
    * esas cifras a mano sería pedir que se calcule fuera lo que el sistema ya sabe, y equivocarse una
    * sola vez devuelve un error de validación en vez de una venta.
+   *
+   * Desde el 2026-11-09 es la excepción y no la regla: cada préstamo de una compra registra su compra
+   * sola al desembolsarse. Y la fecha en que vence la comisión ya no se teclea: vence con la factura
+   * del cierre mensual, que es cuando se cobra.
    */
   const registrarCompra = {
     key: 'compra',
@@ -171,11 +178,11 @@ export default function CoverageReconciliationPage() {
     fields: [
       { name: 'merchantAccountId', label: 'Comercio', tooltip: 'Comercio afiliado sobre el que se opera.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadB2BAccounts },
       { name: 'branchId', label: 'Sucursal', tooltip: 'Sucursal del comercio; sólo las habilitadas pueden originar operaciones.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadMerchantBranches, hint: 'Sólo las sucursales habilitadas pueden originar.' },
-      { name: 'consumerExternalRef', label: 'Documento del cliente', tooltip: 'Documento de identidad del cliente final, como lo tiene el comercio. Ej.: 7654321.', required: true, hint: 'Es lo que el comercio tiene delante; el código interno lo resuelve el sistema.' },
+      /* El número de cliente de Atlas, no su documento: con él casa la calificación de riesgo que decide la comisión. */
+      { name: 'consumerExternalRef', label: 'Número de cliente en Atlas', tooltip: 'El número con el que Atlas identifica al cliente; aparece en su ficha del portal interno. Ej.: 1042.', required: true, hint: 'Con el documento la comisión saldría sin la calificación de riesgo del cliente.' },
       { name: 'purchaseAmount', label: 'Precio de la compra (Bs)', tooltip: 'Precio total de la compra en bolivianos, con hasta dos decimales.', type: 'number' as const, required: true },
       { name: 'cuotas', label: 'Número de cuotas', tooltip: 'En cuántas cuotas se paga. Ej.: 6.', type: 'number' as const, required: true, defaultValue: '3' },
       { name: 'primeraCuota', label: 'Primera cuota vence', tooltip: 'Fecha en que vence la primera cuota; las demás se calculan a partir de ella.', type: 'date' as const, required: true },
-      { name: 'mdrReceivableDueDate', label: 'Vence la comisión al comercio', tooltip: 'Fecha límite para que el comercio pague la comisión (MDR) de esta operación.', type: 'date' as const, required: true },
       /* Mismo vocabulario que las reglas de comisión: una categoría tecleada no casaría con ninguna. */
       { name: 'productCategory', label: 'Categoría del producto', tooltip: 'Categoría del producto vendido; decide la comisión que aplica.', optional: true, span: 2 as const, optionsSource: 'domain:crm.merchantCategory' as const },
     ],
@@ -203,7 +210,6 @@ export default function CoverageReconciliationPage() {
         purchaseAmount: precio,
         downPaymentAmount: entrada,
         financedAmount: financiado,
-        mdrReceivableDueDate: payload.mdrReceivableDueDate,
         ...(payload.productCategory ? { productCategory: payload.productCategory } : {}),
         installments: cuotas,
       });
@@ -416,6 +422,39 @@ export default function CoverageReconciliationPage() {
                     },
                   },
                 ]}
+              />
+            ),
+          },
+          {
+            id: 'sin-aplicar',
+            label: 'Sin aplicar',
+            icon: 'sync_problem',
+            content: (
+              <CrudDirectory
+                embedded
+                moduleLabel="CRM"
+                title="Llegó de Atlas y no se pudo aplicar"
+                tope={tope('las 200 más recientes')}
+                description="Compras y pagos que Atlas avisó y el ERP no pudo registrar sin adivinar. Nada se pierde: se reprocesa o se descarta desde su fila."
+                load={cargarSinAplicar}
+                labelKey="motivo"
+                searchPlaceholder="Buscar por motivo o préstamo…"
+                emptyHint="Nada pendiente: todo lo que avisó Atlas quedó registrado."
+                columns={[
+                  { key: 'queEs', label: 'Qué es' },
+                  { key: 'motivo', label: 'Por qué no se aplicó' },
+                  { key: 'detail', label: 'Detalle' },
+                  { key: 'referencia', label: 'Préstamo o aviso', kind: 'mono' },
+                  { key: 'amount', label: 'Importe', kind: 'money', align: 'right' },
+                  { key: 'createdAt', label: 'Llegó', kind: 'date' },
+                ]}
+                filters={[{ key: 'motivo', label: 'Motivo' }]}
+                extraActions={accionesDeExcepcion(recargar)}
+                notice={{
+                  tone: 'info',
+                  title: 'Cómo se resuelve',
+                  body: 'Corrija la causa —ligar el comercio, habilitar la sucursal, activar el contrato— y reprocese desde la fila. Si el comercio no venía ligado, se elige al reprocesar. Lo que no corresponde registrar se descarta con su motivo.',
+                }}
               />
             ),
           },
