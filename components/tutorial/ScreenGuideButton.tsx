@@ -90,7 +90,7 @@ export function ScreenGuideButton({ note }: Props = {}) {
         data-tutorial-id="screen-guide-button"
         data-testid="screen-guide-button"
         onClick={openGuide}
-        className="relative inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:px-3"
+        className="relative inline-flex h-9 items-center gap-1.5 rounded-md border border-border-strong bg-white px-2.5 text-xs font-semibold text-slate-900 transition-colors hover:bg-surface-sunken sm:px-3"
         aria-label={`Qué es esta pantalla: ${guide.title}`}
       >
         <Icon name="help" className="text-[17px] text-primary" />

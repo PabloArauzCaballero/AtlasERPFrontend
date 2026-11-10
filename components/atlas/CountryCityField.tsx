@@ -98,7 +98,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
         aria-haspopup="tree"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 text-left text-sm text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-border-strong bg-white px-3 text-left text-sm text-slate-900 focus:border-primary"
       >
         <span className={cn('truncate', !countryCode && 'text-slate-500')}>{summary}</span>
         <Icon name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-[18px] text-slate-500" />
@@ -108,9 +108,9 @@ export function CountryCityField(props: CountryCityFieldProps) {
       {props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null}
 
       {open ? (
-        <div className="absolute left-0 right-0 z-30 mt-1 overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl">
+        <div className="absolute left-0 right-0 z-30 mt-1 overflow-hidden rounded-md border border-border-strong bg-white">
           <div className="border-b border-slate-200 p-2">
-            <div className="flex h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-2 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+            <div className="flex h-8 items-center gap-2 rounded-md border border-border-strong bg-white px-2 focus-within:border-primary focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
               <Icon name="search" className="text-[16px] text-slate-400" />
               <input
                 ref={searchRef}
@@ -128,12 +128,12 @@ export function CountryCityField(props: CountryCityFieldProps) {
               const isSelectedCountry = country.code === countryCode;
               return (
                 <li key={country.code} role="treeitem" aria-expanded={isOpen} aria-selected={isSelectedCountry}>
-                  <div className={cn('flex items-center gap-1 px-2', isSelectedCountry && 'bg-primary-wash/60')}>
+                  <div className={cn('flex items-center gap-1 px-2', isSelectedCountry && 'bg-brand-soft')}>
                     <button
                       type="button"
                       aria-label={isOpen ? `Contraer ${country.name}` : `Desplegar ${country.name}`}
                       onClick={() => setExpanded((current) => (current === country.code ? null : country.code))}
-                      className="grid h-7 w-7 shrink-0 place-items-center rounded text-slate-500 hover:bg-slate-100"
+                      className="grid h-7 w-7 shrink-0 place-items-center rounded text-slate-500 hover:bg-surface-sunken"
                     >
                       <Icon name={isOpen ? 'expand_more' : 'chevron_right'} className="text-[18px]" />
                     </button>
@@ -141,7 +141,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
                       type="button"
                       onClick={() => choose(country.code, '')}
                       title="Elegir el país sin ciudad"
-                      className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded px-1 text-left hover:bg-slate-50"
+                      className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded px-1 text-left hover:bg-surface-sunken"
                     >
                       <span className="text-base leading-none">{flagEmoji(country.code)}</span>
                       <span className={cn('truncate', isSelectedCountry ? 'font-bold text-primary' : 'font-semibold text-slate-800')}>{country.name}</span>
@@ -157,7 +157,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
                             <button
                               type="button"
                               onClick={() => choose(country.code, name)}
-                              className={cn('flex h-7 w-full items-center gap-2 px-3 text-left hover:bg-slate-50', isSelectedCity ? 'font-bold text-primary' : 'text-slate-700')}
+                              className={cn('flex h-7 w-full items-center gap-2 px-3 text-left hover:bg-surface-sunken', isSelectedCity ? 'font-bold text-primary' : 'text-slate-700')}
                             >
                               <Icon name={isSelectedCity ? 'location_on' : 'fiber_manual_record'} className={cn(isSelectedCity ? 'text-[15px]' : 'text-[7px] text-slate-300')} />
                               <span className="truncate">{name}</span>
@@ -179,7 +179,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
                               if (customCity.trim()) choose(country.code, customCity.trim());
                             }}
                             placeholder="Otra ciudad..."
-                            className="h-7 min-w-0 flex-1 rounded border border-dashed border-slate-300 bg-white px-2 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-primary"
+                            className="h-7 min-w-0 flex-1 rounded border border-dashed border-border-strong bg-white px-2 text-xs text-slate-900 placeholder:text-slate-500 focus:border-primary"
                           />
                           <button
                             type="button"

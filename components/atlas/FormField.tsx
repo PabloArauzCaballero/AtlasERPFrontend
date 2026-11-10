@@ -49,7 +49,7 @@ interface TextareaFieldProps extends BaseFieldProps, Omit<TextareaHTMLAttributes
 
 type FormFieldProps = InputFieldProps | SelectFieldProps | TextareaFieldProps;
 
-const controlClass = 'h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100';
+const controlClass = 'h-9 w-full rounded-md border border-border-strong bg-white px-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary disabled:bg-surface-sunken disabled:text-slate-600';
 
 const asString = (value: string | number | readonly string[] | undefined): string | undefined =>
   value === undefined ? undefined : Array.isArray(value) ? String(value[0] ?? '') : String(value);
@@ -69,7 +69,7 @@ export function FormField(props: FormFieldProps) {
   const labelRow = (
     <FieldLabel htmlFor={id} label={props.label} required={required} tooltip={props.tooltip} describedById={help.describedById} controlFocused={help.focused} />
   );
-  const hintRow = props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null;
+  const hintRow = props.hint ? <span className="mt-1 block text-xs text-slate-600">{props.hint}</span> : null;
 
   if (props.kind === 'select') {
     const { name, className, options, onChange, value, defaultValue, disabled, placeholder, compact } = props;

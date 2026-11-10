@@ -31,5 +31,5 @@ export function InlineLoading({ className, text = 'Cargando', label }: InlineLoa
 }
 
 export function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-lg bg-surface-muted', className)} />;
+  return <div className={cn('animate-pulse rounded-md bg-surface-sunken', className)} />;
 }

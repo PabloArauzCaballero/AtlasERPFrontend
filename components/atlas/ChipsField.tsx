@@ -55,7 +55,7 @@ export function ChipsField(props: ChipsFieldProps) {
           id={id}
           aria-describedby={help.describedById}
           onFocus={help.onFocus}
-          className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-9 w-full rounded-md border border-border-strong bg-white px-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary"
           value={draft}
           placeholder={props.placeholder ?? 'Escribe y pulsa Enter...'}
           onChange={(event) => {
@@ -93,7 +93,7 @@ export function ChipsField(props: ChipsFieldProps) {
       ) : null}
       {/* Input oculto: el formulario lo lee como lista separada por comas (valueKind stringList). */}
       <input type="hidden" name={props.name} value={chips.join(',')} />
-      {props.hint ? <span className="mt-1 block text-[11px] text-slate-500">{props.hint}</span> : null}
+      {props.hint ? <span className="mt-1 block text-xs text-slate-600">{props.hint}</span> : null}
     </div>
   );
 }

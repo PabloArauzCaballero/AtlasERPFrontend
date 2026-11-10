@@ -21,15 +21,15 @@ export function Panel({ title, description, icon, action, children, className, c
   return (
     <section
       data-tutorial-id={rest['data-tutorial-id']}
-      className={cn('overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]', className)}
+      className={cn('overflow-hidden rounded-lg border border-slate-200 bg-white', className)}
     >
       {title || action ? (
-        <header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-white/40 px-4 py-3">
+        <header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
-            {icon ? <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700"><Icon name={icon} className="text-[18px]" /></span> : null}
+            {icon ? <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-surface-sunken text-slate-700"><Icon name={icon} className="text-[18px]" /></span> : null}
             <div className="min-w-0">
-              {title ? <h2 className="truncate text-sm font-bold text-slate-900">{title}</h2> : null}
-              {description ? <p className="mt-0.5 text-xs text-slate-500">{description}</p> : null}
+              {title ? <h2 className="truncate text-sm font-semibold text-slate-900">{title}</h2> : null}
+              {description ? <p className="mt-0.5 text-xs text-slate-600">{description}</p> : null}
             </div>
           </div>
           {action}

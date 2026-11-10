@@ -15,7 +15,7 @@ export function InlineNotice({ tone = 'info', title, children, className }: Read
   return (
     <div className={cn(`flex gap-3 rounded-md border p-3 text-sm ${classes[tone]}`, className)}>
       <Icon name={icons[tone]} className="mt-0.5 text-[18px]" />
-      <div>{title ? <p className="font-bold">{title}</p> : null}<div className="text-xs leading-5">{children}</div></div>
+      <div>{title ? <p className="font-semibold">{title}</p> : null}<div className="text-xs leading-5">{children}</div></div>
     </div>
   );
 }

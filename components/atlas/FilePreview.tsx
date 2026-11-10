@@ -86,9 +86,9 @@ export function FilePreview({ url, mimeType, nombre, alto = 'bajo' }: FilePrevie
     return (
       // `max-h-full` sobre un alto FIJO del contenedor: con `h-full` en una rejilla de alto automático
       // la imagen tomaba su tamaño natural y tapaba la ficha de debajo.
-      <div className={`flex items-center justify-center overflow-hidden bg-slate-100 p-2 ${altura}`}>
+      <div className={`flex items-center justify-center overflow-hidden bg-surface-sunken p-2 ${altura}`}>
         {/* eslint-disable-next-line @next/next/no-img-element -- es un blob local: `next/image` exige una URL que el optimizador pueda buscar. */}
-        <img src={url} alt={`Vista previa de ${nombre}`} className="max-h-full max-w-full rounded object-contain shadow-sm" />
+        <img src={url} alt={`Vista previa de ${nombre}`} className="max-h-full max-w-full rounded object-contain" />
       </div>
     );
   }
@@ -105,7 +105,7 @@ export function FilePreview({ url, mimeType, nombre, alto = 'bajo' }: FilePrevie
      * traen el tipo de su extensión—, y con ese tipo el navegador abre su visor de PDF, que no
      * interpreta HTML ni scripts aunque el archivo los contenga.
      */
-    return <iframe src={`${url}#toolbar=0&navpanes=0&view=FitH`} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-slate-100 ${altura}`} />;
+    return <iframe src={`${url}#toolbar=0&navpanes=0&view=FitH`} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-surface-sunken ${altura}`} />;
   }
   if (!mimeType) {
     /*
@@ -115,7 +115,7 @@ export function FilePreview({ url, mimeType, nombre, alto = 'bajo' }: FilePrevie
      * desconocido es `StoredFilePreview`, cuyo `blob:` sale de `apiBlobUrl` → `blobInofensivo`: un
      * HTML, SVG o XML llega aquí como `application/octet-stream` y el navegador no lo interpreta.
      */
-    return <iframe src={url} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-slate-100 ${altura}`} />;
+    return <iframe src={url} title={`Vista previa de ${nombre}`} className={`block w-full border-0 bg-surface-sunken ${altura}`} />;
   }
   return null;
 }

@@ -272,7 +272,7 @@ export function FileDropField(props: FileDropFieldProps) {
         onChange={(event) => recibir(Array.from(event.target.files ?? []))}
       />
 
-      <div {...eventosDeArrastre} className={cn('space-y-2 rounded-lg transition', encima && hayArchivos && !props.multiple && 'ring-4 ring-primary/15')}>
+      <div {...eventosDeArrastre} className={cn('space-y-2 rounded-lg transition', encima && hayArchivos && !props.multiple && 'outline outline-2 outline-focus')}>
         {hayArchivos ? (
           <ul className="space-y-2" aria-label="Archivos elegidos">
             {archivos.map((file, indice) => (
@@ -298,15 +298,15 @@ export function FileDropField(props: FileDropFieldProps) {
             onBlur={help.onBlur}
             data-testid={props['data-testid'] ? `${props['data-testid']}-zona` : undefined}
             className={cn(
-              'group grid w-full place-items-center rounded-lg border-2 border-dashed px-4 text-center transition',
+              'group grid w-full place-items-center rounded-lg border-2 border-dashed px-4 text-center transition-colors',
               hayArchivos ? 'min-h-[64px] py-3' : 'min-h-[112px] py-5',
-              encima ? 'border-primary bg-primary-wash ring-4 ring-primary/15' : error ? 'border-red-300 bg-red-50/40' : 'border-slate-300 bg-slate-50',
-              'hover:border-primary hover:bg-primary-wash focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20',
-              'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:bg-slate-50',
+              encima ? 'border-primary bg-primary-wash' : error ? 'border-red-600 bg-red-50' : 'border-border-strong bg-surface-sunken',
+              'hover:border-primary hover:bg-primary-wash',
+              'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-border-strong disabled:hover:bg-surface-sunken',
             )}
           >
             <span className={cn('flex items-center gap-3', hayArchivos ? 'flex-row' : 'flex-col gap-2')}>
-              <span className={cn('grid place-items-center rounded-full bg-white text-primary shadow-sm ring-1 ring-slate-200', hayArchivos ? 'h-8 w-8' : 'h-10 w-10')}>
+              <span className={cn('grid place-items-center rounded-full bg-white text-primary', hayArchivos ? 'h-8 w-8' : 'h-10 w-10')}>
                 <Icon name={encima ? 'file_download' : 'cloud_upload'} className={hayArchivos ? 'text-[18px]' : 'text-[22px]'} />
               </span>
               <span className={hayArchivos ? 'text-left' : ''}>
@@ -366,10 +366,10 @@ function FichaDeArchivo({ file, status, bloqueado, onCambiar, onQuitar }: FichaD
   }, [file, vista]);
 
   return (
-    <li className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" data-testid="archivo-elegido">
+    <li className="overflow-hidden rounded-lg border border-slate-200 bg-white" data-testid="archivo-elegido">
       {vista !== 'otro' && url ? <FilePreview url={url} mimeType={file.type} nombre={file.name} /> : null}
       <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2', vista !== 'otro' && 'border-t border-slate-200')}>
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-600">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-surface-sunken text-slate-600">
           <Icon name={iconoDeArchivo(file.type, file.name)} className="text-[20px]" />
         </span>
         <div className="min-w-0 flex-1 basis-40">
@@ -387,7 +387,7 @@ function FichaDeArchivo({ file, status, bloqueado, onCambiar, onQuitar }: FichaD
               type="button"
               onClick={onCambiar}
               disabled={bloqueado}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-50"
+              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-slate-700 hover:bg-surface-sunken disabled:opacity-50"
               aria-label={`Cambiar ${file.name}`}
             >
               <Icon name="swap_horiz" className="text-[16px]" />
@@ -397,7 +397,7 @@ function FichaDeArchivo({ file, status, bloqueado, onCambiar, onQuitar }: FichaD
               type="button"
               onClick={onQuitar}
               disabled={bloqueado}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-[11px] font-bold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 disabled:opacity-50"
+              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
               aria-label={`Quitar ${file.name}`}
             >
               <Icon name="close" className="text-[16px]" />

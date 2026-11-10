@@ -200,7 +200,7 @@ export function OptionSelect(props: OptionSelectProps) {
 
   const activeId = open && visible[active] ? `${listId}-${active}` : undefined;
   const buttonClass = cn(
-    'flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white text-left text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:text-slate-500',
+    'flex w-full items-center justify-between gap-2 rounded-md border border-border-strong bg-white text-left text-slate-900 focus:border-primary disabled:bg-surface-sunken disabled:text-slate-600',
     props.compact ? 'h-9 px-3 text-xs font-semibold text-slate-700' : 'h-9 px-3 text-sm',
     props.className,
   );
@@ -276,11 +276,11 @@ export function OptionSelect(props: OptionSelectProps) {
                 width: rect?.width ?? 240,
                 ...(rect?.up ? { bottom: window.innerHeight - (rect.top ?? 0) } : { top: rect?.top ?? -9999 }),
               }}
-              className="z-[130] min-w-56 overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl"
+              className="z-[130] min-w-56 overflow-hidden rounded-md border border-border-strong bg-white"
               onKeyDown={onKeyDown}
             >
               {searchable ? (
-                <div className="border-b border-slate-100 p-2">
+                <div className="border-b border-slate-200 p-2">
                   <input
                     ref={searchRef}
                     role="searchbox"
@@ -293,7 +293,7 @@ export function OptionSelect(props: OptionSelectProps) {
                       setActive(0);
                     }}
                     placeholder="Escribe para filtrar…"
-                    className="h-8 w-full rounded border border-slate-300 px-2 text-sm outline-none focus:border-primary"
+                    className="h-8 w-full rounded border border-border-strong bg-white px-2 text-sm focus:border-primary"
                   />
                 </div>
               ) : null}
@@ -316,8 +316,8 @@ export function OptionSelect(props: OptionSelectProps) {
                         title={option.description}
                         className={cn(
                           'cursor-pointer px-3 py-2',
-                          isActive && 'bg-primary/10',
-                          isSelected && 'font-semibold text-primary',
+                          isActive && !isSelected && 'bg-surface-sunken',
+                          isSelected && 'bg-brand-soft font-semibold text-slate-900',
                           option.disabled && 'cursor-not-allowed opacity-50',
                         )}
                         onMouseEnter={() => setActive(index)}
@@ -325,7 +325,7 @@ export function OptionSelect(props: OptionSelectProps) {
                         onClick={() => choose(option)}
                       >
                         <span className="block text-sm leading-tight">{option.label || ' '}</span>
-                        {option.description ? <span className="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-slate-500">{option.description}</span> : null}
+                        {option.description ? <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-slate-600">{option.description}</span> : null}
                       </li>
                     );
                   })

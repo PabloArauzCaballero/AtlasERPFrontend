@@ -14,9 +14,9 @@ export interface ExplainerPoint {
  */
 export function ScreenExplainer({ lead, points }: Readonly<{ lead: React.ReactNode; points: readonly ExplainerPoint[] }>) {
   return (
-    <section aria-labelledby="screen-explainer-title" className="rounded-lg border border-teal-200 bg-teal-50/60 p-4">
+    <section aria-labelledby="screen-explainer-title" className="rounded-lg border border-blue-200 bg-blue-50 p-4">
       <div className="flex items-start gap-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-primary ring-1 ring-teal-200">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-white text-primary">
           <Icon name="lightbulb" className="text-[18px]" />
         </span>
         <div className="min-w-0">
@@ -26,9 +26,9 @@ export function ScreenExplainer({ lead, points }: Readonly<{ lead: React.ReactNo
       </div>
       <ol className="mt-4 grid gap-3 md:grid-cols-3">
         {points.map((point, index) => (
-          <li key={point.title} className="rounded-md bg-white p-3 ring-1 ring-teal-100">
+          <li key={point.title} className="rounded-md bg-white p-3">
             <p className="flex items-center gap-2 text-xs font-bold text-slate-900">
-              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] text-white">{index + 1}</span>
+              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-xs text-white">{index + 1}</span>
               {point.title}
             </p>
             <p className="mt-1.5 text-xs leading-5 text-slate-600">{point.text}</p>
