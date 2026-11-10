@@ -14,11 +14,8 @@ export type TemaEfectivo = 'light' | 'dark';
 /** Clave nueva de este rediseño. No sustituye a ninguna clave que ya existiera. */
 export const CLAVE_TEMA = 'cuotea-tema';
 
-/**
- * Qué se aplica cuando la persona todavía no eligió.
- * FASE 6 lo cambia a 'system', cuando el tema oscuro ya está repasado pantalla por pantalla.
- */
-export const PREFERENCIA_POR_DEFECTO: PreferenciaDeTema = 'light';
+/** Qué se aplica cuando la persona todavía no eligió: lo que diga el sistema operativo. */
+export const PREFERENCIA_POR_DEFECTO: PreferenciaDeTema = 'system';
 
 const VALIDAS: readonly string[] = ['light', 'dark', 'system'];
 
