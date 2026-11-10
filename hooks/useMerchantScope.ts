@@ -115,7 +115,7 @@ export function useMerchantScope(): MerchantScope {
     error:
       error ??
       (scope?.isInternalOperator
-        ? 'Esta sección es del portal del comercio y opera sobre el negocio que inició sesión. Tu usuario es personal interno de Atlas: entra desde Operaciones para atender a un comercio.'
+        ? 'Esta sección es del portal del comercio y opera sobre el negocio que inició sesión. Tu usuario es personal interno de Cuotea: entra desde Operaciones para atender a un comercio.'
         : null),
   };
 }

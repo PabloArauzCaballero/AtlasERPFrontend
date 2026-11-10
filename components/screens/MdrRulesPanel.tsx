@@ -161,7 +161,7 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
           <FormField tooltip="Segmento de riesgo del cliente al que aplica la regla; vacío = todos." kind="select" label="Segmento de riesgo" name="riskSegment" options={[CUALQUIERA, ...riesgoOptions]} hint="Vacío: aplica a todos." />
         </div>
         <div className="mt-3">
-          <FormField tooltip="Por qué se pacta una comisión por debajo del mínimo que Atlas permite; lo lee quien la aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" minLength={5} maxLength={1000} hint="Sólo si la comisión queda por debajo del mínimo: la regla no se activa hasta que alguien apruebe la excepción. En los demás casos, déjela vacía." placeholder="Explique por qué este comercio tiene una comisión menor a la política estándar." />
+          <FormField tooltip="Por qué se pacta una comisión por debajo del mínimo que Cuotea permite; lo lee quien la aprueba." kind="textarea" label="Justificación de excepción" name="pricingExceptionReason" minLength={5} maxLength={1000} hint="Sólo si la comisión queda por debajo del mínimo: la regla no se activa hasta que alguien apruebe la excepción. En los demás casos, déjela vacía." placeholder="Explique por qué este comercio tiene una comisión menor a la política estándar." />
         </div>
         {/* Fuera de la rejilla: dentro parecía un campo más y competía con ellos por la vista. */}
         <div className="mt-3 flex justify-end">
@@ -172,7 +172,7 @@ export function MdrRulesPanel({ contractVersionId, accountId }: MdrRulesPanelPro
 
       {enAprobacion !== null ? (
         <InlineNotice className="mt-3" tone="warning" title="Comisión pendiente de aprobación">
-          La comisión de {enAprobacion.toFixed(2)} % está por debajo del mínimo que Atlas permite, así que la
+          La comisión de {enAprobacion.toFixed(2)} % está por debajo del mínimo que Cuotea permite, así que la
           regla quedó inactiva y no se cobra todavía. Empezará a aplicarse cuando quien aprueba las
           excepciones de tarifa la autorice; si la rechaza, seguirá inactiva.
         </InlineNotice>

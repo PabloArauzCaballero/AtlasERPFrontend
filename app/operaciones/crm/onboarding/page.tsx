@@ -196,8 +196,8 @@ export default function OnboardingPage() {
             },
             {
               key: 'enlazar',
-              label: 'Enlazar expediente de Atlas',
-              description: 'Busca el expediente del comercio en Atlas, primero por su cuenta y luego por NIT, y lo vincula a este caso. Sin ese vínculo no se puede pedir la verificación.',
+              label: 'Enlazar expediente de Cuotea',
+              description: 'Busca el expediente del comercio en Cuotea, primero por su cuenta y luego por NIT, y lo vincula a este caso. Sin ese vínculo no se puede pedir la verificación.',
               icon: 'link',
               /*
                * Se ofrece también cuando ya hay puente, para que quien lo busque lea que está hecho en
@@ -208,16 +208,16 @@ export default function OnboardingPage() {
               silent: true,
               run: async (row) => {
                 if (row.partnerProfileId) {
-                  toast.info('Esta cuenta ya tiene su carpeta en Atlas', `El expediente de ${String(row.tradeName ?? 'este comercio')} ya está enlazado a este caso. No hace falta volver a enlazarlo.`);
+                  toast.info('Esta cuenta ya tiene su carpeta en Cuotea', `El expediente de ${String(row.tradeName ?? 'este comercio')} ya está enlazado a este caso. No hace falta volver a enlazarlo.`);
                   return;
                 }
                 const enlace = await b2bService.linkPartnerProfile(String(row.id ?? ''));
                 if (enlace.alreadyLinked) {
-                  toast.info('Esta cuenta ya tiene su carpeta en Atlas', 'El expediente ya estaba enlazado a este caso.');
+                  toast.info('Esta cuenta ya tiene su carpeta en Cuotea', 'El expediente ya estaba enlazado a este caso.');
                 } else if (enlace.linked) {
-                  toast.success('Carpeta enlazada', `El expediente de ${String(row.tradeName ?? 'este comercio')} en Atlas queda enlazado a este caso.`);
+                  toast.success('Carpeta enlazada', `El expediente de ${String(row.tradeName ?? 'este comercio')} en Cuotea queda enlazado a este caso.`);
                 } else {
-                  toast.warning('Atlas no tiene expediente para este comercio', 'No se encontró ni por la cuenta ni por el NIT. El comercio tiene que abrirlo desde su portal.');
+                  toast.warning('Cuotea no tiene expediente para este comercio', 'No se encontró ni por la cuenta ni por el NIT. El comercio tiene que abrirlo desde su portal.');
                 }
                 recargar();
               },
@@ -225,12 +225,12 @@ export default function OnboardingPage() {
             {
               key: 'verificar',
               label: 'Pedir verificación al Motor',
-              description: 'Envía el comercio a la revisión de riesgo (KYB) de Atlas. Sin su aprobación el comercio no se puede activar.',
+              description: 'Envía el comercio a la revisión de riesgo (KYB) de Cuotea. Sin su aprobación el comercio no se puede activar.',
               icon: 'verified_user',
               enabled: (row) => puedePedirVerificacion && PUEDE_PEDIR_VERIFICACION.has(String(row.status ?? '')),
               form: {
                 title: (row) => `Verificación KYB de ${String(row.tradeName ?? 'este comercio')}`,
-                description: 'El ERP lo pide y lo decide la revisión de riesgo de Atlas. Sin su aprobación el comercio no se activa. Si el comercio no tiene expediente en Atlas, tiene que abrirlo desde su portal.',
+                description: 'El ERP lo pide y lo decide la revisión de riesgo de Cuotea. Sin su aprobación el comercio no se activa. Si el comercio no tiene expediente en Cuotea, tiene que abrirlo desde su portal.',
                 fields: [{ name: 'reason', label: 'Motivo (opcional)', tooltip: 'Motivo del cambio, opcional; queda en el historial del caso.', type: 'textarea', optional: true, span: 2, placeholder: 'Por qué se pide ahora: alta comercial, reintento tras corregir…' }],
                 submit: (row, payload: JsonObject) => b2bService.requestKybReview(String(row.id ?? ''), payload),
                 submitLabel: 'Pedir verificación',
@@ -267,20 +267,20 @@ export default function OnboardingPage() {
             {
               key: 'comision',
               label: 'Pactar comisión (MDR)',
-              description: 'Define cuánto cobra Atlas por cada venta del comercio (MDR), con piso y techo opcionales, sobre el contrato pactado.',
+              description: 'Define cuánto cobra Cuotea por cada venta del comercio (MDR), con piso y techo opcionales, sobre el contrato pactado.',
               icon: 'percent',
               /* Sin contrato pactado no hay de dónde colgarla: el backend lo rechaza y aquí ni se ofrece. */
               enabled: (row) => abierto(row) && Boolean(row.contractVersionId),
               form: {
                 title: (row) => `Comisión por venta de ${String(row.tradeName ?? 'este comercio')}`,
-                description: 'Lo que Atlas cobra por cada venta, sobre el contrato pactado en este caso. Gana la regla más específica.',
+                description: 'Lo que Cuotea cobra por cada venta, sobre el contrato pactado en este caso. Gana la regla más específica.',
                 fields: [
                   { name: 'ratePercent', label: 'Comisión (%)', tooltip: 'Comisión (MDR) en porcentaje sobre cada venta. Ej.: 3.', type: 'number', valueKind: 'number', required: true, placeholder: '3.50' },
                   { name: 'productCategory', label: 'Categoría de producto', tooltip: 'Categoría del producto vendido; decide la comisión que aplica.', type: 'select', optional: true, optionsSource: 'domain:crm.merchantCategory', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todas.' },
                   { name: 'riskSegment', label: 'Segmento de riesgo', tooltip: 'Segmento de riesgo del cliente al que aplica la regla; vacío = todos.', type: 'select', optional: true, optionsSource: 'domain:crm.riskTier', emptyOption: CUALQUIERA, hint: 'Vacío: aplica a todos.' },
                   { name: 'minFeeAmount', label: 'Piso (Bs)', tooltip: 'Comisión mínima en bolivianos por venta, aunque el porcentaje dé menos.', type: 'number', valueKind: 'number', optional: true },
                   { name: 'maxFeeAmount', label: 'Techo (Bs)', tooltip: 'Comisión máxima en bolivianos por venta, aunque el porcentaje dé más.', type: 'number', valueKind: 'number', optional: true },
-                  { name: 'pricingExceptionReason', label: 'Justificación de excepción', tooltip: 'Por qué se pacta una comisión por debajo del mínimo que Atlas permite; lo lee quien la aprueba.', type: 'textarea', optional: true, placeholder: 'Sólo si la comisión queda por debajo del mínimo.', hint: 'Si la comisión queda por debajo del mínimo, la regla no se activa hasta que alguien apruebe la excepción.', span: 3 },
+                  { name: 'pricingExceptionReason', label: 'Justificación de excepción', tooltip: 'Por qué se pacta una comisión por debajo del mínimo que Cuotea permite; lo lee quien la aprueba.', type: 'textarea', optional: true, placeholder: 'Sólo si la comisión queda por debajo del mínimo.', hint: 'Si la comisión queda por debajo del mínimo, la regla no se activa hasta que alguien apruebe la excepción.', span: 3 },
                 ],
                 submit: (row, payload: JsonObject) => b2bService.createCaseMdrRule(String(row.id ?? ''), payload),
                 submitLabel: 'Pactar comisión',
@@ -289,7 +289,7 @@ export default function OnboardingPage() {
             {
               key: 'credenciales',
               label: 'Dar acceso a una persona',
-              description: 'Pide el usuario del portal para un contacto de la cuenta (o para otra persona). Atlas genera la contraseña al aprobarlo.',
+              description: 'Pide el usuario del portal para un contacto de la cuenta (o para otra persona). Cuotea genera la contraseña al aprobarlo.',
               icon: 'person_add',
               primary: true,
               /*
@@ -315,7 +315,7 @@ export default function OnboardingPage() {
             {
               key: 'acuse',
               label: 'Comprobar credenciales',
-              description: 'Pregunta a Atlas en qué quedaron los accesos pedidos y actualiza cuántos están concedidos o en espera.',
+              description: 'Pregunta a Cuotea en qué quedaron los accesos pedidos y actualiza cuántos están concedidos o en espera.',
               icon: 'sync',
               /* Sólo cuando hay algo que preguntar: una petición encolada y sin resolver. */
               enabled: (row) => abierto(row) && Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0,
@@ -328,7 +328,7 @@ export default function OnboardingPage() {
             {
               key: 'activar',
               label: 'Activar comercio',
-              description: 'Cierra el alta: Atlas revisa la aprobación de riesgo, los requisitos y el contrato; si todo está bien, el comercio queda operativo.',
+              description: 'Cierra el alta: Cuotea revisa la aprobación de riesgo, los requisitos y el contrato; si todo está bien, el comercio queda operativo.',
               icon: 'rocket_launch',
               tone: 'success',
               primary: true,
@@ -341,7 +341,7 @@ export default function OnboardingPage() {
               },
               confirm: {
                 title: 'Activar el comercio',
-                message: 'Atlas vuelve a comprobar la aprobación de riesgo, los requisitos y el contrato vigente: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa a «Activados».',
+                message: 'Cuotea vuelve a comprobar la aprobación de riesgo, los requisitos y el contrato vigente: si falta algo, rechaza la activación. Al activarlo, el caso sale de la cola y pasa a «Activados».',
                 confirmLabel: 'Activar',
               },
             },
@@ -371,7 +371,7 @@ export default function OnboardingPage() {
           onClose={() => setAccesoDe(null)}
           onDone={() => {
             setAccesoDe(null);
-            toast.success('Acceso pedido', 'Queda esperando que Atlas lo apruebe; la contraseña la recibe la persona por correo.');
+            toast.success('Acceso pedido', 'Queda esperando que Cuotea lo apruebe; la contraseña la recibe la persona por correo.');
             recargar();
             summary.reload();
           }}

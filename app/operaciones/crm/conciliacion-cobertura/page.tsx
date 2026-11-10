@@ -179,7 +179,7 @@ export default function CoverageReconciliationPage() {
       { name: 'merchantAccountId', label: 'Comercio', tooltip: 'Comercio afiliado sobre el que se opera.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadB2BAccounts },
       { name: 'branchId', label: 'Sucursal', tooltip: 'Sucursal del comercio; sólo las habilitadas pueden originar operaciones.', type: 'select' as const, required: true, span: 2 as const, optionsLoader: loadMerchantBranches, hint: 'Sólo las sucursales habilitadas pueden originar.' },
       /* El número de cliente de Atlas, no su documento: con él casa la calificación de riesgo que decide la comisión. */
-      { name: 'consumerExternalRef', label: 'Número de cliente en Atlas', tooltip: 'El número con el que Atlas identifica al cliente; aparece en su ficha del portal interno. Ej.: 1042.', required: true, hint: 'Con el documento la comisión saldría sin la calificación de riesgo del cliente.' },
+      { name: 'consumerExternalRef', label: 'Número de cliente en Cuotea', tooltip: 'El número con el que Cuotea identifica al cliente; aparece en su ficha del portal interno. Ej.: 1042.', required: true, hint: 'Con el documento la comisión saldría sin la calificación de riesgo del cliente.' },
       { name: 'purchaseAmount', label: 'Precio de la compra (Bs)', tooltip: 'Precio total de la compra en bolivianos, con hasta dos decimales.', type: 'number' as const, required: true },
       { name: 'cuotas', label: 'Número de cuotas', tooltip: 'En cuántas cuotas se paga. Ej.: 6.', type: 'number' as const, required: true, defaultValue: '3' },
       { name: 'primeraCuota', label: 'Primera cuota vence', tooltip: 'Fecha en que vence la primera cuota; las demás se calculan a partir de ella.', type: 'date' as const, required: true },
@@ -221,7 +221,7 @@ export default function CoverageReconciliationPage() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'CRM' }, { label: 'Cobertura y conciliación' }]}
         title="Cobertura y conciliación"
-        description="Cuotas en mora que Atlas cubre al comercio, coberturas programadas y recuperación posterior al consumidor."
+        description="Cuotas en mora que Cuotea cubre al comercio, coberturas programadas y recuperación posterior al consumidor."
       />
       <TabbedPanels
         activeId={tab}
@@ -238,7 +238,7 @@ export default function CoverageReconciliationPage() {
                 moduleLabel="CRM"
                 title="Coberturas programadas"
                 tope={tope('las 200 coberturas registradas más recientes')}
-                description="Lo que Atlas se ha comprometido a pagar al comercio por cuotas incumplidas."
+                description="Lo que Cuotea se ha comprometido a pagar al comercio por cuotas incumplidas."
                 load={cargarPayables}
                 labelKey="status"
                 searchPlaceholder="Buscar por estado o motivo…"
@@ -298,7 +298,7 @@ export default function CoverageReconciliationPage() {
                   {
                     key: 'cubrir',
                     label: 'Programar cobertura',
-                    description: 'Genera el pago que Atlas le hace al comercio por esta cuota que el cliente no pagó.',
+                    description: 'Genera el pago que Cuotea le hace al comercio por esta cuota que el cliente no pagó.',
                     icon: 'shield',
                     /* Sólo tiene sentido sobre lo que sigue impagado: lo cubierto ya tiene su compromiso. */
                     enabled: (row) => ['SCHEDULED', 'OVERDUE'].includes(String(row.status ?? '')),
@@ -359,14 +359,14 @@ export default function CoverageReconciliationPage() {
                 moduleLabel="CRM"
                 title="Recuperaciones abiertas"
                 tope={tope('las 200 recuperaciones más recientes')}
-                description="Lo cubierto por Atlas que todavía hay que recuperar del consumidor."
+                description="Lo cubierto por Cuotea que todavía hay que recuperar del consumidor."
                 load={cargarRecuperaciones}
                 labelKey="recoveryStatus"
                 searchPlaceholder="Buscar por estado…"
                 emptyHint="Una recuperación nace cuando se aprueba el pago de una cobertura al comercio."
                 columns={[
                   { key: 'recoveryStatus', label: 'Estado', kind: 'status' },
-                  { key: 'amountCoveredByAtlas', label: 'Cubierto por Atlas', kind: 'money', align: 'right' },
+                  { key: 'amountCoveredByAtlas', label: 'Cubierto por Cuotea', kind: 'money', align: 'right' },
                   { key: 'amountRecovered', label: 'Recuperado', kind: 'money', align: 'right' },
                   { key: 'currency', label: 'Moneda' },
                   { key: 'daysPastDue', label: 'Días de mora', align: 'right' },
@@ -385,12 +385,12 @@ export default function CoverageReconciliationPage() {
                   {
                     key: 'recuperar',
                     label: 'Aplicar recuperación',
-                    description: 'Registra un pago del cliente y lo descuenta de lo que Atlas le adelantó al comercio.',
+                    description: 'Registra un pago del cliente y lo descuenta de lo que Cuotea le adelantó al comercio.',
                     icon: 'currency_exchange',
                     enabled: (row) => !['RECOVERED', 'WRITTEN_OFF'].includes(String(row.recoveryStatus ?? '')),
                     form: {
                       title: () => 'Aplicar un pago del consumidor',
-                      description: 'Aplica lo cobrado contra lo que Atlas adelantó al comercio, en la moneda de la recuperación.',
+                      description: 'Aplica lo cobrado contra lo que Cuotea adelantó al comercio, en la moneda de la recuperación.',
                       submitLabel: 'Aplicar pago',
                       /* Por defecto, lo que falta por recuperar: es el importe que se aplica casi siempre. */
                       fields: (row) => [
@@ -433,13 +433,13 @@ export default function CoverageReconciliationPage() {
               <CrudDirectory
                 embedded
                 moduleLabel="CRM"
-                title="Llegó de Atlas y no se pudo aplicar"
+                title="Llegó de Cuotea y no se pudo aplicar"
                 tope={tope('las 200 más recientes')}
-                description="Compras y pagos que Atlas avisó y el ERP no pudo registrar sin adivinar. Nada se pierde: se reprocesa o se descarta desde su fila."
+                description="Compras y pagos que Cuotea avisó y el ERP no pudo registrar sin adivinar. Nada se pierde: se reprocesa o se descarta desde su fila."
                 load={cargarSinAplicar}
                 labelKey="motivo"
                 searchPlaceholder="Buscar por motivo o préstamo…"
-                emptyHint="Nada pendiente: todo lo que avisó Atlas quedó registrado."
+                emptyHint="Nada pendiente: todo lo que avisó Cuotea quedó registrado."
                 columns={[
                   { key: 'queEs', label: 'Qué es' },
                   { key: 'motivo', label: 'Por qué no se aplicó' },

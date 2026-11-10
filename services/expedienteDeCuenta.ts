@@ -67,11 +67,11 @@ export function avisarEntregaAlExpediente(carpeta: unknown): void {
   const r = (carpeta ?? null) as { partnerId?: string | null; reason?: string | null; gaps?: unknown[]; onboardingStatus?: string | null } | null;
   if (!r) return;
   if (!r.partnerId || r.reason) {
-    toast.warning('Guardado en la cuenta, pero no llegó al expediente del comercio', 'Atlas no respondió o la cuenta tiene datos que el expediente no acepta. Se vuelve a intentar al guardar otra vez.');
+    toast.warning('Guardado en la cuenta, pero no llegó al expediente del comercio', 'Cuotea no respondió o la cuenta tiene datos que el expediente no acepta. Se vuelve a intentar al guardar otra vez.');
     return;
   }
   const huecos = Array.isArray(r.gaps) ? r.gaps : [];
   if (r.onboardingStatus === 'under_review') toast.success('Expediente completo y enviado a revisión', 'El comercio ya lo ve hecho en su portal.');
-  else if (huecos.length) toast.info('Entregado al expediente del comercio', `Atlas todavía reclama ${describirFaltantesDelExpediente(huecos)}.`);
+  else if (huecos.length) toast.info('Entregado al expediente del comercio', `Cuotea todavía reclama ${describirFaltantesDelExpediente(huecos)}.`);
   else toast.success('Entregado al expediente del comercio', 'El comercio ya lo ve en su portal.');
 }

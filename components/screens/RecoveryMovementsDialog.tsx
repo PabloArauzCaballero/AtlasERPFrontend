@@ -52,7 +52,7 @@ export function RecoveryMovementsDialog({
     <Modal
       open
       title="Cobros de la recuperación"
-      description={`Cubierto por Atlas ${importeLegible(recovery.amountCoveredByAtlas, recovery.currency)} · recuperado ${importeLegible(recovery.amountRecovered ?? '0', recovery.currency)}`}
+      description={`Cubierto por Cuotea ${importeLegible(recovery.amountCoveredByAtlas, recovery.currency)} · recuperado ${importeLegible(recovery.amountRecovered ?? '0', recovery.currency)}`}
       icon="receipt_long"
       width="lg"
       onClose={onClose}

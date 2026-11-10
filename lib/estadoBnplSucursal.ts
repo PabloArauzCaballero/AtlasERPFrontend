@@ -14,13 +14,13 @@ export interface EstadoBnpl {
 
 export function estadoBnplSucursal(sucursal: { canOriginateBnpl?: unknown; status?: unknown }): EstadoBnpl {
   if (sucursal.canOriginateBnpl) {
-    return { texto: 'Sí', tono: 'success', explicacion: 'Esta sucursal puede vender a crédito con Atlas.' };
+    return { texto: 'Sí', tono: 'success', explicacion: 'Esta sucursal puede vender a crédito con Cuotea.' };
   }
   if (String(sucursal.status) === 'ACTIVE') {
     return {
       texto: 'Por habilitar',
       tono: 'warning',
-      explicacion: 'Atlas habilita la venta a crédito en cada sucursal después de evaluar a tu comercio. Todavía no se ha habilitado.',
+      explicacion: 'Cuotea habilita la venta a crédito en cada sucursal después de evaluar a tu comercio. Todavía no se ha habilitado.',
     };
   }
   return { texto: 'No', tono: 'neutral', explicacion: 'La sucursal está dada de baja y no puede vender a crédito.' };

@@ -216,7 +216,7 @@ const MOTIVO_SIN_CARPETA: Record<string, string> = {
   SIN_CORREO_DE_CONTACTO: 'La cuenta no tiene ningún contacto con correo. Añade uno en la ficha de la cuenta.',
   DATOS_DE_LA_CUENTA_INVALIDOS: 'A la cuenta le falta el NIT (7 a 15 dígitos) o la razón social, o su matrícula o rubro no tienen la forma que exige el expediente. Complétalos en la ficha de la cuenta.',
   CUENTA_ENLAZADA_A_OTRA_FICHA: 'El NIT de esta cuenta ya pertenece a la ficha de otra cuenta del ERP. Revisa si la cuenta está duplicada.',
-  ATLAS_NO_RESPONDIO: 'Atlas no respondió. Se volverá a intentar al subir el primer documento del contrato.',
+  ATLAS_NO_RESPONDIO: 'Cuotea no respondió. Se volverá a intentar al subir el primer documento del contrato.',
   CUENTA_NO_ENCONTRADA: 'No se encontró la cuenta.',
 };
 
@@ -230,9 +230,9 @@ function avisarCarpetaDelComercio(carpeta: unknown): void {
      */
     const huecos = Array.isArray(resultado.gaps) ? resultado.gaps : [];
     if (resultado.onboardingStatus === 'under_review') {
-      toast.success('Expediente completo y enviado a revisión', 'Atlas ya tiene matrícula, representante, sucursal y QR. Puedes pedir la verificación al Motor desde la fila.');
+      toast.success('Expediente completo y enviado a revisión', 'Cuotea ya tiene matrícula, representante, sucursal y QR. Puedes pedir la verificación al Motor desde la fila.');
     } else if (huecos.length) {
-      toast.warning('Expediente abierto, pero incompleto', `Atlas todavía reclama ${describirFaltantesDelExpediente(huecos)}. Complétalo desde el detalle de la cuenta y vuelve a abrir el caso, o el comercio lo hará desde su portal.`);
+      toast.warning('Expediente abierto, pero incompleto', `Cuotea todavía reclama ${describirFaltantesDelExpediente(huecos)}. Complétalo desde el detalle de la cuenta y vuelve a abrir el caso, o el comercio lo hará desde su portal.`);
     } else {
       toast.success('Carpeta del comercio lista', resultado.created ? 'Se abrió su ficha y su carpeta en Archivos, con «documentos».' : 'Su carpeta en Archivos ya existía y queda enlazada.');
     }

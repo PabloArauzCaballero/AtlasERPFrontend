@@ -20,7 +20,7 @@ export const TOURS_CRM: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="resource-table"]',
         title: 'Este es el directorio de empresas',
         content:
-          'Cada fila es una empresa con la que Atlas tiene o quiere tener relación. Se registra una vez y sobrevive a todos sus contratos, facturas y campañas.',
+          'Cada fila es una empresa con la que Cuotea tiene o quiere tener relación. Se registra una vez y sobrevive a todos sus contratos, facturas y campañas.',
       },
       {
         id: 'buscar-antes',

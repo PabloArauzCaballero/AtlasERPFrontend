@@ -106,7 +106,7 @@ export function MerchantPortfolioScreen() {
                   { label: 'Por cobrar', value: formatBob(Number(resumen?.outstanding ?? 0)) },
                   { label: 'Vencido', value: formatBob(Number(resumen?.overdueAmount ?? 0)) },
                   { label: 'Cobrado', value: formatBob(Number(resumen?.collected ?? 0)) },
-                  { label: 'Comisión a Atlas', value: formatBob(Number(resumen?.commissionAccrued ?? 0)) },
+                  { label: 'Comisión a Cuotea', value: formatBob(Number(resumen?.commissionAccrued ?? 0)) },
                 ],
                 sections: [
                   {
@@ -144,7 +144,7 @@ export function MerchantPortfolioScreen() {
           { label: 'Por cobrar', value: cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0)) },
           { label: 'Vencido', value: cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0)), alerta: Number(resumen?.overdueAmount ?? 0) > 0 },
           { label: 'Cobrado', value: cargando ? '…' : formatBob(Number(resumen?.collected ?? 0)) },
-          { label: `Comisión a Atlas (${resumen?.mdrRatePercent ?? '0'} %)`, value: cargando ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
+          { label: `Comisión a Cuotea (${resumen?.mdrRatePercent ?? '0'} %)`, value: cargando ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
         ]}
       />
 
@@ -287,7 +287,7 @@ export function MerchantPortfolioScreen() {
             icon: 'percent',
             content: (
               <>
-          <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Atlas le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
+          <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Cuotea le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
             <div className="mb-4 grid gap-3 grid-cols-1 sm:grid-cols-3">
               <div className="rounded-md bg-slate-50 p-3">
                 <p className="text-xs font-semibold text-slate-500">Tasa de comisión</p>
@@ -300,7 +300,7 @@ export function MerchantPortfolioScreen() {
                 <p className="text-xs text-slate-500">Lo que sus clientes ya pagaron</p>
               </div>
               <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-xs font-semibold text-slate-500">Comisión a Atlas</p>
+                <p className="text-xs font-semibold text-slate-500">Comisión a Cuotea</p>
                 <p className="mt-1 text-xl font-semibold">{formatBob(Number(resumen?.commissionAccrued ?? 0))}</p>
                 <p className="text-xs text-slate-500">Devengada sobre lo cobrado</p>
               </div>
@@ -327,11 +327,11 @@ export function MerchantPortfolioScreen() {
             <InlineNotice className="mt-4" tone="info" title="Cómo se cobra">
               La comisión se devenga a medida que sus clientes pagan: un crédito aprobado que aún no
               cobra no genera comisión, y una venta pagada al 100 % la genera completa. La tasa se pactó
-              en su alta desde el ERP interno de Atlas.
+              en su alta desde el ERP interno de Cuotea.
             </InlineNotice>
             {facturado ? (
               <div className="mt-4 rounded-lg border border-slate-200 p-3">
-                <p className="text-xs font-semibold text-slate-500">Lo que Atlas ya le facturó</p>
+                <p className="text-xs font-semibold text-slate-500">Lo que Cuotea ya le facturó</p>
                 <div className="mt-2 grid gap-3 grid-cols-1 sm:grid-cols-3">
                   <div>
                     <p className="text-lg font-semibold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
@@ -343,12 +343,12 @@ export function MerchantPortfolioScreen() {
                   </div>
                   <div>
                     <p className="text-lg font-semibold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
-                    <p className="text-xs text-slate-500">Pendiente de pago a Atlas</p>
+                    <p className="text-xs text-slate-500">Pendiente de pago a Cuotea</p>
                   </div>
                 </div>
                 <p className="mt-2 text-xs leading-4 text-slate-500">
                   Devengado y facturado no son el mismo número y no tienen por qué coincidir: lo primero
-                  crece con cada cobro suyo, lo segundo sólo cuando Atlas emite el cargo. La diferencia
+                  crece con cada cobro suyo, lo segundo sólo cuando Cuotea emite el cargo. La diferencia
                   es comisión ya generada que todavía no se le ha facturado.
                 </p>
               </div>

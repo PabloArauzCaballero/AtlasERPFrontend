@@ -227,7 +227,7 @@ export function AtlasAssist({
         ref={boton}
         type="button"
         onClick={() => (abierto ? cerrar() : setAbierto(true))}
-        aria-label="Asistente de Atlas"
+        aria-label="Asistente de Cuotea"
         aria-expanded={abierto}
         aria-haspopup="dialog"
         title="Preguntale al asistente"
@@ -259,7 +259,7 @@ export function AtlasAssist({
               <Icon name="chat_bubble" className="text-[20px]" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 id={tituloId} className="truncate text-sm font-semibold text-slate-900">Asistente de Atlas</h2>
+              <h2 id={tituloId} className="truncate text-sm font-semibold text-slate-900">Asistente de Cuotea</h2>
               <p className="truncate text-xs text-slate-500">Dudas sobre cómo usar {surface === 'merchant-portal' ? 'el portal' : 'el ERP'}</p>
             </div>
             <button

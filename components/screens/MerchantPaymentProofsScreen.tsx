@@ -363,7 +363,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
 
       <InlineNotice tone="info" title="Por qué lo confirma usted">
         El cliente transfiere al QR bancario de su comercio, así que ese dinero entra en su cuenta y
-        no en la de Atlas. Un comprobante es evidencia de que alguien hizo una transferencia, no de
+        no en la de Cuotea. Un comprobante es evidencia de que alguien hizo una transferencia, no de
         que usted la recibió: por eso la cuota se salda cuando usted lo ve en su extracto.
       </InlineNotice>
     </div>

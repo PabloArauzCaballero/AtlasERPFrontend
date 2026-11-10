@@ -51,7 +51,7 @@ export default function BusinessActionLogPage() {
           tooltip: 'Pega el identificador del registro (un período, una factura, una cuenta) para ver todo lo que le pasó, en orden. Tiene que ser el identificador completo, no parte de él.',
         },
         { key: 'moduleCode', label: 'Módulo', kind: 'select', options: MODULOS, tooltip: 'Muestra sólo lo registrado por ese módulo del ERP.' },
-        { key: 'actorUserId', label: 'Quién', kind: 'select', options: personas, tooltip: 'Muestra sólo lo que hizo esa persona del personal de Atlas.' },
+        { key: 'actorUserId', label: 'Quién', kind: 'select', options: personas, tooltip: 'Muestra sólo lo que hizo esa persona del personal de Cuotea.' },
         { key: 'from', label: 'Desde', kind: 'date', tooltip: 'Primer día incluido, según la fecha en que se registró la acción.' },
         { key: 'to', label: 'Hasta', kind: 'date', tooltip: 'Último día incluido, según la fecha en que se registró la acción.' },
         // Un registro transcrito de un papel llega con otro origen y la serie del papel en su resumen.

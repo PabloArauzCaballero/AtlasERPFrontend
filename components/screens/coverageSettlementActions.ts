@@ -93,7 +93,7 @@ export function accionesDeLiquidacion(deps: DependenciasDeLiquidacion): CrudExtr
     {
       key: 'liquidar',
       label: 'Registrar pago al comercio',
-      description: 'Anota el pago que Atlas le hizo al comercio por la cobertura. Queda pendiente hasta que otra persona lo apruebe.',
+      description: 'Anota el pago que Cuotea le hizo al comercio por la cobertura. Queda pendiente hasta que otra persona lo apruebe.',
       icon: 'paid',
       primary: true,
       enabled: (row) => abierta(row) && !estado(row).hay && !deps.estadoLocal[String(row.id ?? '')],

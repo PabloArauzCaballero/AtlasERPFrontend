@@ -90,7 +90,7 @@ export function SecurityAdministrationScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Administración' }, { label: 'Seguridad' }]}
         title="Usuarios internos"
-        description="El personal de Atlas con acceso al ERP: sus roles y el estado de su acceso."
+        description="El personal de Cuotea con acceso al ERP: sus roles y el estado de su acceso."
         actions={
           <>
             <Link href="/operaciones/admin/roles"><AtlasButton variant="secondary" icon="admin_panel_settings">Roles & permisos</AtlasButton></Link>
@@ -109,7 +109,7 @@ export function SecurityAdministrationScreen() {
       />
 
       <div className="grid gap-4 grid-cols-[minmax(0,1fr)]">
-        <Panel title="Personal de Atlas" description="Nombre, rol, estado del acceso y si usa doble factor." icon="manage_accounts">
+        <Panel title="Personal de Cuotea" description="Nombre, rol, estado del acceso y si usa doble factor." icon="manage_accounts">
           {usersResource.error && !users.length ? (
             <InlineNotice tone="danger" title="No se pudo cargar el directorio">{usersResource.error}</InlineNotice>
           ) : (

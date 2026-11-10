@@ -115,7 +115,7 @@ export function MerchantAccessModal({ caso, onClose, onDone }: { caso: ResourceR
     <Modal
       open
       title={`Acceso al portal para ${comercio}`}
-      description={`Elige a quién de la cuenta se le da acceso. La contraseña la genera Atlas al aprobar; el ERP nunca la ve.${yaHay ? ` Este comercio tiene ${yaHay}: cada persona entra con su propio correo.` : ''}`}
+      description={`Elige a quién de la cuenta se le da acceso. La contraseña la genera Cuotea al aprobar; el ERP nunca la ve.${yaHay ? ` Este comercio tiene ${yaHay}: cada persona entra con su propio correo.` : ''}`}
       icon="person_add"
       onClose={() => { if (!guardando) onClose(); }}
     >

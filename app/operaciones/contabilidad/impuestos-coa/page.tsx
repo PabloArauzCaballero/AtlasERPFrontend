@@ -61,7 +61,7 @@ export default function TaxesCoaPage() {
                   fields: [
                     { name: 'code', label: 'Código', tooltip: 'Código corto y único para citar el registro sin usar su identificador interno.', required: true, placeholder: 'COA-BO' },
                     { name: 'versionNo', label: 'Versión', tooltip: 'Versión del plan de cuentas a la que aplica.', type: 'number', valueKind: 'number', required: true, defaultValue: 1 },
-                    { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, placeholder: 'Plan de cuentas ATLAS Bolivia', span: 2 },
+                    { name: 'name', label: 'Nombre', tooltip: 'Nombre con el que se identifica el registro en listados e informes.', required: true, placeholder: 'Plan de cuentas Cuotea Bolivia', span: 2 },
                     { name: 'effectiveFrom', label: 'Vigente desde', tooltip: 'Desde cuándo vale; antes de esta fecha el rol no aplica.', type: 'date', required: true },
                     { name: 'effectiveTo', label: 'Vigente hasta', tooltip: 'Hasta cuándo vale; vacío = sin fecha de fin.', type: 'date', optional: true },
                   ],

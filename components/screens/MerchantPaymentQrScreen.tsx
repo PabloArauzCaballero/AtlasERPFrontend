@@ -34,7 +34,7 @@ const ESTADOS_QUE_ADMITEN_QR = new Set(['draft', 'contact_verified', 'documents_
 function motivoSinSubida(estadoExpediente: string): string | null {
   if (!estadoExpediente || ESTADOS_QUE_ADMITEN_QR.has(estadoExpediente)) return null;
   if (estadoExpediente === 'under_review') {
-    return 'Atlas está revisando su expediente. Mientras dure la revisión no se puede cambiar el QR de cobro.';
+    return 'Cuotea está revisando su expediente. Mientras dure la revisión no se puede cambiar el QR de cobro.';
   }
   if (estadoExpediente === 'rejected') {
     return 'Su expediente fue rechazado. Corrija lo que se le indicó y vuelva a enviarlo antes de subir un QR.';
@@ -47,7 +47,7 @@ const ESTADO_QR: Record<string, { tono: 'success' | 'warning' | 'danger' | 'neut
   active: { tono: 'success', texto: 'Activo · sus clientes ya lo ven' },
   /* Desde el 2026-10-02 el QR queda activo al confirmarlo el comercio; este estado sólo lo tienen los subidos antes. */
   pending_review: { tono: 'warning', texto: 'Pendiente de activar · sus clientes aún no lo ven' },
-  rejected: { tono: 'danger', texto: 'Revocado por Atlas' },
+  rejected: { tono: 'danger', texto: 'Revocado por Cuotea' },
   replaced: { tono: 'neutral', texto: 'Archivado' },
 };
 
@@ -373,7 +373,7 @@ export function MerchantPaymentQrScreen({
         <WorkspaceHeader
           breadcrumbs={[{ label: 'Portal comercio' }, { label: 'QR de cobro' }]}
           title="Mi QR de cobro"
-          description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Atlas."
+          description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Cuotea."
           actions={acciones}
         />
       )}
@@ -400,13 +400,13 @@ export function MerchantPaymentQrScreen({
         </InlineNotice>
       ) : null}
       {ultimoRechazo && !aprobado && !enRevision ? (
-        <InlineNotice tone="danger" title="Atlas rechazó su último QR" data-testid="qr-cobro-rechazo">
+        <InlineNotice tone="danger" title="Cuotea rechazó su último QR" data-testid="qr-cobro-rechazo">
           {ultimoRechazo.reviewNote ?? 'No se indicó el motivo. Suba una imagen nítida del QR de su banco.'}
         </InlineNotice>
       ) : null}
       {enRevision && !aprobado ? (
         <InlineNotice tone="info" title="Su QR está en revisión">
-          Atlas lo revisa antes de enseñárselo a sus clientes. Hasta entonces, la app les dice que el QR está pendiente de
+          Cuotea lo revisa antes de enseñárselo a sus clientes. Hasta entonces, la app les dice que el QR está pendiente de
           aprobación.
         </InlineNotice>
       ) : null}
@@ -420,8 +420,8 @@ export function MerchantPaymentQrScreen({
       {!cargando && !aprobado ? (
         <InlineNotice tone="warning" title="Sus clientes todavía no pueden pagarle">
           {enRevision
-            ? 'El QR bancario está en revisión. Hasta que Atlas lo apruebe, la app no mostrará un código de pago.'
-            : 'Suba su QR bancario. Hasta que Atlas lo apruebe, la app no mostrará un código de pago.'}
+            ? 'El QR bancario está en revisión. Hasta que Cuotea lo apruebe, la app no mostrará un código de pago.'
+            : 'Suba su QR bancario. Hasta que Cuotea lo apruebe, la app no mostrará un código de pago.'}
         </InlineNotice>
       ) : null}
 
@@ -431,7 +431,7 @@ export function MerchantPaymentQrScreen({
           title={aprobado ? 'Lo que ve su cliente' : 'QR bancario del comercio'}
           description={aprobado
             ? 'Esta es la imagen exacta que aparece en la app cuando su cliente pulsa «pagar».'
-            : 'Vista previa del QR. En cuanto lo confirmes, es el que ven tus clientes al pagar; Atlas no lo revisa antes.'}
+            : 'Vista previa del QR. En cuanto lo confirmes, es el que ven tus clientes al pagar; Cuotea no lo revisa antes.'}
           icon="smartphone"
           action={embedded ? acciones : undefined}
         >
@@ -450,7 +450,7 @@ export function MerchantPaymentQrScreen({
               {aprobado && enRevision ? (
                 <p className="text-xs text-slate-500" data-testid="qr-cobro-nuevo-en-revision">
                   Hay un QR nuevo esperando revisión (huella {enRevision.fingerprint}). Sus clientes siguen viendo el
-                  aprobado hasta que Atlas lo apruebe.
+                  aprobado hasta que Cuotea lo apruebe.
                 </p>
               ) : null}
             </div>
@@ -574,7 +574,7 @@ export function MerchantPaymentQrScreen({
         }}
       />
 
-      <InlineNotice tone="info" title="Atlas nunca recibe este dinero">
+      <InlineNotice tone="info" title="Cuotea nunca recibe este dinero">
         Su cliente transfiere directo a la cuenta de este QR. Por eso, cuando avise que pagó, es usted quien lo confirma
         desde «Comprobantes por verificar»: es el único que ve la transferencia en su extracto.
       </InlineNotice>

@@ -372,7 +372,7 @@ export function PartnerDossierScreen() {
               ) : (
               <Panel
                 title="Ficha comercial"
-                description="Cómo se presenta tu negocio. La razón social, el NIT y la matrícula no se editan aquí: son los datos con los que Atlas verificó tu expediente."
+                description="Cómo se presenta tu negocio. La razón social, el NIT y la matrícula no se editan aquí: son los datos con los que Cuotea verificó tu expediente."
                 icon="edit_note"
               >
                 <form

@@ -14,7 +14,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/crm/cuentas': {
     eyebrow: 'CRM B2B',
     title: 'Cuentas B2B',
-    intro: 'El directorio de todas las empresas con las que Atlas tiene o quiere tener relación comercial.',
+    intro: 'El directorio de todas las empresas con las que Cuotea tiene o quiere tener relación comercial.',
     sections: [
       {
         title: 'Qué es una cuenta',
@@ -68,7 +68,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/crm/cuentas/detalle': {
     eyebrow: 'CRM B2B',
     title: 'Ficha de la cuenta',
-    intro: 'Todo lo que Atlas sabe de una empresa, reunido en una pantalla.',
+    intro: 'Todo lo que Cuotea sabe de una empresa, reunido en una pantalla.',
     sections: [
       {
         title: 'Se llega con un identificador',
@@ -93,7 +93,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
     sections: [
       {
         title: 'Calificar es clasificar',
-        body: 'Sector, categoría, rubro, qué ofrece el negocio, su tamaño y cuánto se espera que venda con Atlas. Con eso la cartera se agrupa y se prioriza; sin saber qué ofrece el negocio, la cuenta no se califica.',
+        body: 'Sector, categoría, rubro, qué ofrece el negocio, su tamaño y cuánto se espera que venda con Cuotea. Con eso la cartera se agrupa y se prioriza; sin saber qué ofrece el negocio, la cuenta no se califica.',
       },
       {
         title: 'Es el primer paso de tres',
@@ -186,7 +186,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Los responsables se identifican',
-        body: 'Quién firma por Atlas y quién por el cliente son campos, no un detalle del PDF. Es lo que se consulta cuando hay una disputa.',
+        body: 'Quién firma por Cuotea y quién por el cliente son campos, no un detalle del PDF. Es lo que se consulta cuando hay una disputa.',
       },
     ],
   },
@@ -214,7 +214,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'Activar es el último control',
-        body: 'Atlas vuelve a comprobar requisitos y contrato vigente antes de habilitar. Al activar, el comercio empieza a poder originar operaciones y a facturarse; revertirlo afecta a operaciones vivas.',
+        body: 'Cuotea vuelve a comprobar requisitos y contrato vigente antes de habilitar. Al activar, el comercio empieza a poder originar operaciones y a facturarse; revertirlo afecta a operaciones vivas.',
       },
     ],
     tutorialId: 'crm-onboarding',
@@ -231,7 +231,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
       },
       {
         title: 'El pago se aplica a una factura concreta',
-        body: 'No basta con anotar que entró dinero: hay que decir a qué factura va. Sin esa aplicación explícita, ni el comercio ni Atlas saben qué se debe.',
+        body: 'No basta con anotar que entró dinero: hay que decir a qué factura va. Sin esa aplicación explícita, ni el comercio ni Cuotea saben qué se debe.',
       },
       {
         title: 'Esto es la cara comercial',
@@ -247,7 +247,7 @@ export const GUIAS_CRM: Readonly<Record<string, ScreenGuide>> = {
     sections: [
       {
         title: 'Conciliar es comparar dos verdades',
-        body: 'Lo que Atlas cree que se cobró contra lo que efectivamente entró. Mientras no coincidan, alguna de las dos está mal y hay que saber cuál.',
+        body: 'Lo que Cuotea cree que se cobró contra lo que efectivamente entró. Mientras no coincidan, alguna de las dos está mal y hay que saber cuál.',
       },
       {
         title: 'El orden importa',

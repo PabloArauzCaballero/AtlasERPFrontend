@@ -67,7 +67,7 @@ function camposDeReproceso(row: ResourceRow): ActionField[] {
     {
       name: 'merchantAccountId',
       label: 'Comercio',
-      tooltip: 'Comercio afiliado donde se hizo la compra. Se elige aquí porque en Atlas todavía no está ligado a su ficha del ERP.',
+      tooltip: 'Comercio afiliado donde se hizo la compra. Se elige aquí porque en Cuotea todavía no está ligado a su ficha del ERP.',
       type: 'select',
       required: true,
       span: 2,
@@ -91,7 +91,7 @@ export function accionesDeExcepcion(recargar: () => void): CrudExtraAction[] {
     {
       key: 'reprocesar',
       label: 'Reprocesar',
-      description: 'Vuelve a aplicar lo que llegó de Atlas, ahora que la causa está corregida.',
+      description: 'Vuelve a aplicar lo que llegó de Cuotea, ahora que la causa está corregida.',
       icon: 'replay',
       tone: 'success',
       primary: true,
@@ -99,7 +99,7 @@ export function accionesDeExcepcion(recargar: () => void): CrudExtraAction[] {
         title: (row) => `Reprocesar: ${motivoDeExcepcion(row.reason).toLowerCase()}`,
         description: (row) =>
           faltaComercio(row)
-            ? 'Elija el comercio y la sucursal donde se hizo la compra. La compra se registra con su comisión y sus cuotas quedan ligadas a las de Atlas.'
+            ? 'Elija el comercio y la sucursal donde se hizo la compra. La compra se registra con su comisión y sus cuotas quedan ligadas a las de Cuotea.'
             : `${String(row.detail ?? 'Corrija primero la causa.')} Si ya está corregido, reprocese: si sigue sin poder aplicarse, la fila se queda aquí con el motivo de ahora.`,
         submitLabel: 'Reprocesar',
         fields: camposDeReproceso,

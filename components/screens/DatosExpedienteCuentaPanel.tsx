@@ -49,7 +49,7 @@ export function DatosExpedienteCuentaPanel({ account, onSaved }: DatosExpediente
     <Panel
       title="Datos del expediente"
       icon="fact_check"
-      description="Matrícula, representante legal con su poder, casa matriz y QR de cobro: lo que el expediente del comercio exige y se pide una sola vez. Al abrir el onboarding viaja completo a Atlas."
+      description="Matrícula, representante legal con su poder, casa matriz y QR de cobro: lo que el expediente del comercio exige y se pide una sola vez. Al abrir el onboarding viaja completo a Cuotea."
       action={completo ? <StatusPill tone="success">Completo</StatusPill> : <AtlasButton variant="secondary" icon={editando ? 'close' : 'edit'} onClick={() => setEditando((v) => !v)} data-testid="btn-completar-expediente">{editando ? 'Cerrar' : 'Completar lo que falta'}</AtlasButton>}
       data-testid="panel-datos-expediente"
     >

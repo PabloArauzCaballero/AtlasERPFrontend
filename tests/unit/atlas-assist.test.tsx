@@ -20,9 +20,9 @@ afterEach(cleanup);
 
 it('el botón está siempre y abre el panel con el aviso de datos', async () => {
   render(<AtlasAssist surface="merchant-portal" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
 
-  const panel = await screen.findByRole('dialog', { name: 'Asistente de Atlas' });
+  const panel = await screen.findByRole('dialog', { name: 'Asistente de Cuotea' });
   expect(panel).toBeTruthy();
   expect(screen.getByText('No escribas contraseñas, códigos ni datos personales.')).toBeTruthy();
   expect(mocks.conversacion).toHaveBeenCalledTimes(1);
@@ -31,11 +31,11 @@ it('el botón está siempre y abre el panel con el aviso de datos', async () => 
 it('apagado: el botón sigue, el panel lo dice y el campo queda deshabilitado', async () => {
   mocks.conversacion.mockRejectedValue(new ApiError('Apagado', 404, false, false, 'ASSIST_DISABLED'));
   render(<AtlasAssist surface="erp-staff" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
 
   expect(await screen.findByText('El asistente todavía no está encendido en este ambiente.')).toBeTruthy();
   expect((screen.getByLabelText('Tu pregunta') as HTMLTextAreaElement).disabled).toBe(true);
-  expect(screen.getByRole('button', { name: 'Asistente de Atlas' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Asistente de Cuotea' })).toBeTruthy();
 });
 
 it('Enter envía con la sección actual y, si sugiere ayuda, ofrece «Hablar con soporte»', async () => {
@@ -43,7 +43,7 @@ it('Enter envía con la sección actual y, si sugiere ayuda, ofrece «Hablar con
     reply: 'Eso lo ve soporte.', suggestHandoff: true, conversationId: 'c1', turnId: 't1', mode: 'sin-ia',
   });
   render(<AtlasAssist surface="merchant-portal" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
   const campo = await screen.findByLabelText('Tu pregunta');
   await waitFor(() => expect((campo as HTMLTextAreaElement).disabled).toBe(false));
 
@@ -62,7 +62,7 @@ it('en el ERP del personal no hay enlace a soporte de comercio', async () => {
   mocks.pathname = '/operaciones/contabilidad/cierres';
   mocks.preguntar.mockResolvedValue({ reply: 'Pregúntale a tu responsable.', suggestHandoff: true, conversationId: 'c1', turnId: 't1' });
   render(<AtlasAssist surface="erp-staff" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
   const campo = await screen.findByLabelText('Tu pregunta');
   await waitFor(() => expect((campo as HTMLTextAreaElement).disabled).toBe(false));
   await userEvent.type(campo, 'hola{Enter}');
@@ -77,7 +77,7 @@ it('si falla, la pregunta se queda en el campo y al reenviarla sale con la misma
     .mockRejectedValueOnce(new ApiError('Caído', 503, false, false, 'ASSIST_UNAVAILABLE'))
     .mockResolvedValueOnce({ reply: 'Listo.', suggestHandoff: false, conversationId: 'c1', turnId: 't1' });
   render(<AtlasAssist surface="merchant-portal" />);
-  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Atlas' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Asistente de Cuotea' }));
   const campo = (await screen.findByLabelText('Tu pregunta')) as HTMLTextAreaElement;
   await waitFor(() => expect(campo.disabled).toBe(false));
   await userEvent.type(campo, 'hola{Enter}');
@@ -92,7 +92,7 @@ it('si falla, la pregunta se queda en el campo y al reenviarla sale con la misma
 
 it('Escape cierra el panel y devuelve el foco al botón', async () => {
   render(<AtlasAssist surface="erp-staff" />);
-  const boton = screen.getByRole('button', { name: 'Asistente de Atlas' });
+  const boton = screen.getByRole('button', { name: 'Asistente de Cuotea' });
   await userEvent.click(boton);
   await screen.findByRole('dialog');
   await userEvent.keyboard('{Escape}');

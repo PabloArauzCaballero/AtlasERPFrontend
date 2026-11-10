@@ -92,7 +92,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
         <Panel
           title="Matrícula de comercio"
           icon="badge"
-          description="El número con el que tu empresa está inscrita en el registro de comercio. Si tu ejecutivo de Atlas lo cargó en el alta, ya no aparece aquí."
+          description="El número con el que tu empresa está inscrita en el registro de comercio. Si tu ejecutivo de Cuotea lo cargó en el alta, ya no aparece aquí."
         >
           <form className="grid gap-3 grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] md:items-end" onSubmit={guardarMatricula}>
             <FormField tooltip="Número de matrícula en el registro de comercio (SEPREC); acredita que la empresa existe legalmente."
@@ -117,7 +117,7 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
         <Panel
           title="Representante legal"
           icon="person"
-          description="Lo carga tu ejecutivo de Atlas desde el ERP, con el poder notarial que acredita quién firma por la empresa."
+          description="Lo carga tu ejecutivo de Cuotea desde el ERP, con el poder notarial que acredita quién firma por la empresa."
           action={
             <AtlasButton variant="secondary" icon={editandoRepresentante ? 'close' : 'edit'} onClick={() => setEditandoRepresentante((v) => !v)} data-testid="btn-editar-representante">
               {editandoRepresentante ? 'Cerrar' : 'Editar'}
@@ -126,8 +126,8 @@ export function PartnerRequirementsPanel({ partnerId, pendientes, ocupado, run }
         >
           <p className="mb-3 text-sm text-slate-700" data-testid="aviso-representante-desde-erp">
             {faltaRepresentante
-              ? 'Todavía no está cargado. Envía a tu ejecutivo de Atlas el nombre y el documento del representante y el poder notarial escaneado, o cárgalo tú con «Editar».'
-              : 'El representante ya está declarado, pero falta el poder notarial que lo acredita. Envíaselo a tu ejecutivo de Atlas o adjúntalo con «Editar».'}
+              ? 'Todavía no está cargado. Envía a tu ejecutivo de Cuotea el nombre y el documento del representante y el poder notarial escaneado, o cárgalo tú con «Editar».'
+              : 'El representante ya está declarado, pero falta el poder notarial que lo acredita. Envíaselo a tu ejecutivo de Cuotea o adjúntalo con «Editar».'}
           </p>
           {editandoRepresentante ? (
           <form className="grid gap-3 grid-cols-1 md:grid-cols-2" onSubmit={guardarRepresentante}>

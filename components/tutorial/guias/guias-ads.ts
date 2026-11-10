@@ -33,7 +33,7 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
   '/operaciones/ads/anunciantes': {
     eyebrow: 'Publicidad',
     title: 'Directorio de anunciantes',
-    intro: 'Quién puede pautar en Atlas, cómo se le factura y cuánto crédito tiene.',
+    intro: 'Quién puede pautar en Cuotea, cómo se le factura y cuánto crédito tiene.',
     sections: [
       {
         title: 'El anunciante es quien paga',
@@ -79,7 +79,7 @@ export const GUIAS_ADS: Readonly<Record<string, ScreenGuide>> = {
     sections: [
       {
         title: 'Dos estados que se confunden',
-        body: 'El estado operativo (activa, pausada) dice qué quiere el anunciante; el de aprobación (aprobada, rechazada) dice qué permite Atlas. Una campaña activa pero no aprobada NO entrega.',
+        body: 'El estado operativo (activa, pausada) dice qué quiere el anunciante; el de aprobación (aprobada, rechazada) dice qué permite Cuotea. Una campaña activa pero no aprobada NO entrega.',
       },
       {
         title: 'El presupuesto la frena sola',
