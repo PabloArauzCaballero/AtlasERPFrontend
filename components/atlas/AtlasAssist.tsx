@@ -233,9 +233,9 @@ export function AtlasAssist({
         title="Preguntale al asistente"
         data-testid="asistente-boton"
         className={cn(
-          'fixed right-4 z-[45] grid h-14 w-14 place-items-center rounded-full border border-white/20 bg-[#006a61] text-white shadow-lg transition sm:right-6',
+          'fixed right-4 z-[45] grid h-14 w-14 place-items-center rounded-full border border-white/20 bg-primary text-white shadow-lg transition sm:right-6',
           sobreBarraInferior ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:bottom-6' : 'bottom-4 sm:bottom-6',
-          'hover:-translate-y-0.5 hover:bg-[#00544d] hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30',
+          'hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30',
           abierto && 'max-sm:hidden',
         )}
       >

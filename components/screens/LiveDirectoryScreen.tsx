@@ -404,7 +404,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
         <div data-tutorial-id="directory-filters" className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap">
             {props.searchable === false ? null : (
-              <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 sm:basis-56 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-primary/15">
+              <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 sm:basis-56 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
                 <Icon name="search" className="text-[18px] text-slate-500" />
                 <input data-tutorial-id="directory-search" data-testid="directorio-buscar" className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder={props.searchPlaceholder ?? 'Buscar registros...'} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
               </label>
@@ -414,7 +414,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
             ))}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-[#006a61]" />Actualizando</span> : null}
+            {loading && rows.length ? <span className="flex items-center gap-2 text-xs font-semibold text-slate-500"><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-primary" />Actualizando</span> : null}
             <OptionSelect name="filas-por-pagina" ariaLabel="Filas por página" compact className="w-28" value={String(pageSize)} onChange={(value) => setQuery((current) => ({ ...current, page: 1, limit: Number(value), pageSize: Number(value) }))} options={[10, 25, 50, 100].map((size) => ({ value: String(size), label: `${size} filas`, description: `Muestra ${size} registros por página.` }))} />
             <AtlasButton variant="secondary" icon="refresh" loading={loading} onClick={resource.reload}>Actualizar</AtlasButton>
           </div>
@@ -499,7 +499,7 @@ export function LiveDirectoryScreen(props: LiveDirectoryScreenProps) {
             </table>
           </div>
         )}
-        {loading && rows.length ? <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-primary-soft"><div className="h-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] bg-[#006a61]" /></div> : null}
+        {loading && rows.length ? <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-primary-soft"><div className="h-full w-1/3 animate-[pulse_1s_ease-in-out_infinite] bg-primary" /></div> : null}
       </section>
 
       <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 sm:flex-row">

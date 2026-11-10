@@ -128,7 +128,7 @@ export function FileAttachmentsPanel({ ownerType, ownerId, title = 'Documentos a
               <div className="flex items-center gap-3 px-3 py-2">
                 <Icon name={iconoDeArchivo(String(file.mimeType ?? ''), String(file.fileName ?? ''))} className="text-[18px] text-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <button type="button" onClick={() => abrir(file)} className="block max-w-full truncate text-left text-xs font-semibold text-[#006a61] hover:underline">
+                  <button type="button" onClick={() => abrir(file)} className="block max-w-full truncate text-left text-xs font-semibold text-primary hover:underline">
                     {String(file.fileName ?? 'archivo')}
                   </button>
                   <span className="text-[10px] text-slate-500">{String(file.mimeType ?? '—')} · {formatBytes(file.byteSize)}</span>

@@ -181,7 +181,7 @@ export function StoredFilePreview({ cargar, mimeType, nombre, alto }: StoredFile
       <div className="flex items-center gap-2 bg-slate-50 px-3 py-3 text-[11px] text-slate-600">
         <Icon name={iconoDeArchivo(mimeType, nombre)} className="text-[18px] text-slate-500" />
         Este tipo de archivo no tiene vista previa.{' '}
-        <a href={url} download={nombre} className="font-bold text-[#006a61] hover:underline">Descargarlo</a>
+        <a href={url} download={nombre} className="font-bold text-primary hover:underline">Descargarlo</a>
       </div>
     );
   }

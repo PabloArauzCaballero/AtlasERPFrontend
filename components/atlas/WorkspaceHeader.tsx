@@ -42,7 +42,7 @@ export function WorkspaceHeader({ eyebrow, title, description, breadcrumbs = [],
         {/* El título se recompone en móvil en vez de encogerse: a 30 px en 360 px de ancho parte en
             tres líneas y empuja el contenido fuera de la primera pantalla. `text-pretty` evita
             además la palabra huérfana en la última, que es donde más se nota al partir. */}
-        <h1 className="text-pretty text-xl font-bold leading-tight tracking-tight text-[#006a61] sm:text-2xl md:text-[30px] md:leading-[38px]">{title}</h1>
+        <h1 className="text-pretty text-xl font-bold leading-tight tracking-tight text-primary sm:text-2xl md:text-[30px] md:leading-[38px]">{title}</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-600">{description}</p>
       </div>
       {/*

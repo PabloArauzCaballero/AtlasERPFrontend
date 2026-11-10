@@ -39,10 +39,10 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
         aria-expanded={open}
         className={cn(
           'flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
-          containsActive ? 'text-[#006a61]' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
+          containsActive ? 'text-primary' : 'text-slate-600 hover:bg-white hover:text-primary',
         )}
       >
-        <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-[#006a61]' : 'text-slate-500')} />
+        <Icon name={icon} className={cn('text-[18px]', containsActive ? 'text-primary' : 'text-slate-500')} />
         <span className="flex-1 truncate text-left">{label}</span>
         <Icon name={open ? 'expand_less' : 'expand_more'} className="text-[18px] text-slate-500" />
       </button>
@@ -57,7 +57,7 @@ export function CollapsibleNavGroup({ label, icon, items, defaultOpen = false, o
                 onClick={onNavigate}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors',
-                  active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]',
+                  active ? 'bg-primary-container text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-primary',
                 )}
               >
                 <Icon name={item.icon} className={cn('text-[16px]', active ? 'text-white/75' : 'text-slate-500')} />

@@ -48,12 +48,12 @@ export function MerchantBottomNav({ pathname }: Readonly<{ pathname: string }>) 
                 href={destino.href}
                 aria-current={activo ? 'page' : undefined}
                 className={cn(
-                  'relative flex h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#006a61]/60',
-                  activo ? 'text-[#006a61]' : 'text-slate-600',
+                  'relative flex h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/60',
+                  activo ? 'text-primary' : 'text-slate-600',
                 )}
               >
                 {/* La barrita superior marca la pestaña activa sin depender sólo del color. */}
-                <span aria-hidden="true" className={cn('absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-[#006a61] transition-opacity', activo ? 'opacity-100' : 'opacity-0')} />
+                <span aria-hidden="true" className={cn('absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-primary transition-opacity', activo ? 'opacity-100' : 'opacity-0')} />
                 <Icon name={destino.icon} className="text-[22px]" />
                 {destino.label}
               </Link>

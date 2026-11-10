@@ -40,9 +40,9 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-slate-200/80 px-5 py-5">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#006a61] text-white"><Icon name="account_balance" className="text-[23px]" /></span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary text-white"><Icon name="account_balance" className="text-[23px]" /></span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-extrabold text-[#006a61]">Financial Core</p>
+            <p className="truncate text-sm font-extrabold text-primary">Financial Core</p>
             <p className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Enterprise Hub</p>
           </div>
         </div>
@@ -52,7 +52,7 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
           href="/operaciones"
           data-tutorial-id="sidebar-dashboard"
           onClick={onNavigate}
-          className={cn('mb-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones' ? 'bg-[#00544d] text-white' : 'text-slate-600 hover:bg-white')}
+          className={cn('mb-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones' ? 'bg-primary-container text-white' : 'text-slate-600 hover:bg-white')}
         >
           <Icon name="dashboard" className="text-[19px]" /> Dashboard
         </Link>
@@ -63,7 +63,7 @@ export function AtlasSidebar({ onNavigate = () => {} }: SidebarProps) {
         <Link
           href="/operaciones/tutoriales"
           onClick={onNavigate}
-          className={cn('mb-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones/tutoriales' ? 'bg-[#00544d] text-white' : 'text-slate-600 hover:bg-white')}
+          className={cn('mb-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-bold', pathname === '/operaciones/tutoriales' ? 'bg-primary-container text-white' : 'text-slate-600 hover:bg-white')}
         >
           <Icon name="school" className="text-[19px]" /> Centro de Tutoriales
         </Link>
@@ -143,7 +143,7 @@ function GrupoDeMenu({ group, pathname, defaultOpen, onNavigate }: Readonly<{
         aria-expanded={abierto}
         className={cn(
           'mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] transition-colors',
-          contieneActiva ? 'text-[#006a61]' : 'text-slate-500 hover:bg-white hover:text-[#006a61]',
+          contieneActiva ? 'text-primary' : 'text-slate-500 hover:bg-white hover:text-primary',
         )}
       >
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${group.accent}`} />
@@ -159,7 +159,7 @@ function GrupoDeMenu({ group, pathname, defaultOpen, onNavigate }: Readonly<{
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
-                className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors', active ? 'bg-[#00544d] text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-[#006a61]')}
+                className={cn('flex items-center gap-3 rounded-md px-3 py-2 text-xs font-semibold transition-colors', active ? 'bg-primary-container text-white shadow-sm' : 'text-slate-600 hover:bg-white hover:text-primary')}
               >
                 <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-white/75' : 'text-slate-500')} />
                 <span className="truncate">{item.label}</span>

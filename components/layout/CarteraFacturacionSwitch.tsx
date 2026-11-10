@@ -16,7 +16,7 @@ export function CarteraFacturacionSwitch({ actual }: Readonly<{ actual: (typeof 
           href={s.href}
           role="tab"
           aria-selected={s.href === actual}
-          className={cn('rounded-md px-4 py-2 text-xs font-semibold transition', s.href === actual ? 'bg-white text-[#006a61] shadow-sm' : 'text-slate-600 hover:text-[#006a61]')}
+          className={cn('rounded-md px-4 py-2 text-xs font-semibold transition', s.href === actual ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-primary')}
         >
           {s.label}
         </Link>

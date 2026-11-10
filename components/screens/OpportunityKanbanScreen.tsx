@@ -15,10 +15,10 @@ import type { ResourceRow } from '@/services/types';
 
 const STAGES = [
   { key: 'DISCOVERY', label: 'Descubrimiento', accent: 'bg-slate-400', description: 'Primer contacto: todavía no se sabe qué necesita ni si encaja.' },
-  { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-[#006a61]/40', description: 'Ya se confirmó necesidad, presupuesto y quién decide.' },
-  { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-[#006a61]/55', description: 'Se le envió una propuesta comercial y se espera respuesta.' },
-  { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-[#006a61]/70', description: 'Se discuten precio, plazos o condiciones de la propuesta.' },
-  { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-[#006a61]', description: 'Acuerdo cerrado de palabra; se redacta y firma el contrato.' },
+  { key: 'QUALIFICATION', label: 'Calificación', accent: 'bg-primary/40', description: 'Ya se confirmó necesidad, presupuesto y quién decide.' },
+  { key: 'PROPOSAL', label: 'Propuesta', accent: 'bg-primary/55', description: 'Se le envió una propuesta comercial y se espera respuesta.' },
+  { key: 'NEGOTIATION', label: 'Negociación', accent: 'bg-primary/70', description: 'Se discuten precio, plazos o condiciones de la propuesta.' },
+  { key: 'CONTRACTING', label: 'Contratación', accent: 'bg-primary', description: 'Acuerdo cerrado de palabra; se redacta y firma el contrato.' },
   { key: 'CLOSED_WON', label: 'Ganada', accent: 'bg-emerald-500', description: 'Contrato firmado: la oportunidad pasa a ser una cuenta activa.' },
   { key: 'CLOSED_LOST', label: 'Perdida', accent: 'bg-red-500', description: 'El cliente desistió o eligió otra opción; se cierra sin venta.' },
 ];

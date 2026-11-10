@@ -111,7 +111,7 @@ export function TutorialCenter({ audience, embedded = false }: { audience: 'inte
           <a
             href={guiaPdf.href}
             download={guiaPdf.archivo}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-[#006a61] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#00544d]"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary-container"
           >
             <Icon name="download" className="text-[16px]" />
             Descargar la guía en PDF
@@ -128,7 +128,7 @@ export function TutorialCenter({ audience, embedded = false }: { audience: 'inte
 
       <Panel compact>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-[#006a61]">
+          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-primary">
             <Icon name="search" className="text-[18px] text-slate-500" />
             <input
               className="min-w-0 flex-1 bg-transparent text-xs outline-none"
@@ -244,7 +244,7 @@ function TutorialCard({ listing, state, audience, isCompleted, onStart }: CardPr
           {TUTORIAL_CATEGORY_LABELS[listing.category]}
         </span>
         {listing.essential ? (
-          <span className="rounded-full bg-[#006a61] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+          <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
             Esencial
           </span>
         ) : null}
@@ -271,7 +271,7 @@ function TutorialCard({ listing, state, audience, isCompleted, onStart }: CardPr
         <button
           type="button"
           onClick={() => onStart(state === 'in-progress' ? { resume: true } : state === 'completed' ? { repeat: true } : undefined)}
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-[#006a61] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#00544d]"
+          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary-container"
         >
           <Icon name={state === 'in-progress' ? 'play_arrow' : 'explore'} className="text-[16px]" />
           {label}

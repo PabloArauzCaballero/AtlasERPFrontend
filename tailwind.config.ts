@@ -1,94 +1,98 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * El lenguaje visual de ATLAS, traído desde el motor de decisión.
+ * La identidad de Cuotea, servida a Tailwind desde `app/tema.css`.
  *
- * Este portal pinta con clases crudas de Tailwind —unas cuatrocientas `slate-*` repartidas por los
- * componentes— y no con tokens semánticos. Cambiar el aspecto tocando cada una habría sido un
- * barrido de cuatrocientos sitios con cuatrocientas oportunidades de dejar uno atrás.
+ * Este portal pinta con clases crudas de Tailwind —más de mil `slate-*` y unas doscientas de
+ * estado— y no con tokens semánticos. Por eso no se edita cada clase: se REDEFINE la rampa. Cada
+ * familia de Tailwind apunta a una variable CSS (`--c-neutral-700`, `--c-red-50`…) escrita como
+ * tripleta RGB, y el tema oscuro sólo cambia el valor de la variable. `rgb(var(--c-x) / <alpha-value>)`
+ * mantiene vivos los modificadores de opacidad (`bg-red-50/60`).
  *
- * En vez de eso se REDEFINE la rampa: `slate` deja de ser la de Tailwind y pasa a ser la escala
- * neutra del motor. Cada `text-slate-700` que ya existía queda pintado con el gris de ATLAS sin
- * que nadie edite el componente, y el que se escriba mañana también.
- *
- * Los valores no son estéticos: vienen de `AtlasDecisionEngineFrontend/src/styles/parts/theme.css`,
- * donde `theme-contrast.test.ts` los mide contra TODAS las superficies del sistema y falla si
- * alguno baja de 4,5:1. Aclarar uno aquí rompe esa garantía en silencio.
+ * Aquí NO hay ningún color: los valores viven en `app/tema.css` y los mide
+ * `tests/unit/tema-contraste.test.ts`. Si falta un color, lo que falta es un token allí.
  */
+const PASOS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+const token = (nombre: string) => `rgb(var(--c-${nombre}) / <alpha-value>)`;
+const rampa = (familia: string) => Object.fromEntries(PASOS.map((paso) => [paso, token(`${familia}-${paso}`)]));
+
+const neutro = rampa('neutral');
+const rojo = rampa('red');
+const naranja = rampa('orange');
+const verde = rampa('green');
+const azul = rampa('azul');
+
+/** Sin sombras: una capa flotante se separa con un aro de 1 px del borde de control. */
+const ARO = '0 0 0 1px rgb(var(--c-border-strong))';
+
 const config: Config = {
-  darkMode: ['class'],
+  darkMode: ['selector', '[data-theme="dark"]'],
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './hooks/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        /*
-         * La escala neutra del motor, mapeada a los peldaños que este portal ya usa.
-         * Los extremos y los pasos intermedios salen de sus tokens: `--canvas`, `--line`,
-         * `--line-strong`, `--faint`, `--muted`, `--text`, `--ink`, `--ink-strong`.
-         */
-        slate: {
-          50: '#fafafa', // --surface-sunken
-          100: '#f5f5f7', // --canvas
-          200: '#e4e4e7', // --line
-          300: '#c9c9cf', // --line-strong
-          400: '#9a9aa3',
-          500: '#6b6b75', // --faint  (4,63:1 en la peor superficie)
-          600: '#5a5a63', // --muted
-          700: '#38383d', // --text
-          800: '#26262a',
-          900: '#1d1d1f', // --ink
-          950: '#0b0b0c', // --ink-strong
-        },
+        // Familias de Tailwind → las cinco rampas de la identidad (ESPECIFICACION-COMUN §2).
+        slate: neutro, gray: neutro, zinc: neutro, neutral: neutro, stone: neutro,
+        red: rojo, rose: rojo,
+        amber: naranja, orange: naranja, yellow: naranja,
+        emerald: verde, green: verde, teal: verde,
+        blue: azul, sky: azul, indigo: azul, cyan: azul, violet: azul, purple: azul,
+        // `white` es la superficie: `bg-white` se oscurece en el tema oscuro y `text-white` sobre
+        // una rampa invertida sigue contrastando.
+        white: token('surface'),
 
-        background: '#f5f5f7', // --canvas
-        surface: '#ffffff',
-        'surface-muted': '#fafafa', // --surface-sunken
-        'surface-container': '#f0f0f3', // --surface-hover
-        'border-subtle': '#e4e4e7', // --line
+        // Marca: el amarillo es SÓLO relleno de la acción principal, con tinta encima.
+        brand: { DEFAULT: token('yellow'), strong: token('yellow-strong'), soft: token('yellow-soft') },
+        'on-brand': token('on-yellow'),
 
-        /*
-         * El acento deja de ser el azul marino `#031636` y pasa al verde azulado del motor.
-         * Es deliberadamente profundo y poco saturado: en este sistema el color es SEÑAL, y un
-         * acento que grita compite con los estados que sí tienen algo que decir.
-         */
-        primary: '#006a61', // --accent
-        'primary-container': '#00544d', // --accent-strong
-        'primary-soft': '#d9ebe8', // --accent-soft
-        'primary-wash': '#f0f8f7', // --accent-wash
-        'on-primary': '#ffffff',
+        // Roles neutros.
+        ink: { DEFAULT: token('ink'), muted: token('ink-muted') },
+        canvas: token('canvas'),
+        background: token('canvas'),
+        surface: { DEFAULT: token('surface'), sunken: token('surface-sunken'), muted: token('surface-sunken') },
+        border: { DEFAULT: token('border'), strong: token('border-strong') },
+        'border-subtle': token('border'),
+        'on-surface': token('ink'),
+        'on-surface-variant': token('ink-muted'),
+        outline: token('neutral-500'),
 
-        'on-surface': '#1d1d1f', // --ink
-        'on-surface-variant': '#5a5a63', // --muted
-        outline: '#6b6b75', // --faint
+        // El antiguo acento verde azulado pasa a AZUL: texto interactivo, borde y foco.
+        primary: { DEFAULT: token('blue'), container: token('azul-700'), soft: token('azul-100'), wash: token('blue-soft') },
+        'on-primary': token('surface'),
+        focus: token('focus'),
 
-        // Semánticos con su lavado casi blanco: un aviso destaca por su icono y su letra, no
-        // pintando un tercio de la pantalla de color.
-        success: '#0f7b52',
-        'success-wash': '#f0f9f4',
-        warning: '#a34a05',
-        'warning-wash': '#fdf6ec',
-        danger: '#b42318',
-        'danger-wash': '#fdf3f2',
+        // Estados, cada uno con su fondo suave (`-soft`; `-wash` es el nombre que ya usaba el portal).
+        success: { DEFAULT: token('success'), soft: token('success-soft'), wash: token('success-soft') },
+        warning: { DEFAULT: token('warning'), soft: token('warning-soft'), wash: token('warning-soft') },
+        danger: { DEFAULT: token('danger'), soft: token('danger-soft'), wash: token('danger-soft') },
 
-        finance: '#006a61',
-        legal: '#6b3fa0',
+        // Velo detrás de diálogos y cajones. Lleva su alfa dentro: se usa como `bg-scrim`, sin `/NN`.
+        scrim: 'rgb(var(--c-scrim) / var(--scrim-alpha))',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
+      // Outfit se carga en 400, 500 y 600: nada pesa más de 600.
+      fontWeight: { bold: '600', extrabold: '600', black: '600' },
       /*
-       * A más superficie, más radio: un panel va a `lg`, una tarjeta a `md`, un control a `sm`.
-       * Es la escala del motor, y existe porque este portal llegó a tener paneles de 4 px con
-       * tarjetas de 8 dentro.
+       * Radios de consola (§4): 8 en controles y chips, 16 en tarjetas, paneles y tablas, 24 en
+       * diálogos y cajones, píldora en estados. Se remapea la escala para no editar cada clase.
        */
       borderRadius: {
-        xs: '4px',
+        none: '0',
+        xs: '8px',
         sm: '8px',
-        md: '12px',
+        DEFAULT: '8px',
+        md: '8px',
         lg: '16px',
-        xl: '20px',
+        xl: '24px',
+        '2xl': '24px',
+        '3xl': '24px',
+        full: '9999px',
       },
+      // Sin sombras (§4). `lg`, `xl` y `2xl` son las que ya llevan las capas flotantes.
+      boxShadow: { sm: 'none', DEFAULT: 'none', md: 'none', inner: 'none', lg: ARO, xl: ARO, '2xl': ARO },
     },
   },
   plugins: [],

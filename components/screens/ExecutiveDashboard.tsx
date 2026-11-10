@@ -54,10 +54,10 @@ export function ExecutiveDashboard() {
   const resource = useAsyncResource(load);
   const data = resource.data;
   const counts = [
-    { label: 'Cuentas B2B', value: totalOf(data?.accounts ?? null), color: 'bg-[#006a61]' },
-    { label: 'Business Partners', value: totalOf(data?.partners ?? null), color: 'bg-[#006a61]/70' },
-    { label: 'Cuentas GL', value: totalOf(data?.glAccounts ?? null), color: 'bg-[#006a61]/55' },
-    { label: 'Registro de actividad', value: totalOf(data?.audit ?? null), color: 'bg-[#006a61]/40' },
+    { label: 'Cuentas B2B', value: totalOf(data?.accounts ?? null), color: 'bg-primary' },
+    { label: 'Business Partners', value: totalOf(data?.partners ?? null), color: 'bg-primary/70' },
+    { label: 'Cuentas GL', value: totalOf(data?.glAccounts ?? null), color: 'bg-primary/55' },
+    { label: 'Registro de actividad', value: totalOf(data?.audit ?? null), color: 'bg-primary/40' },
   ];
   const maxCount = Math.max(1, ...counts.map((item) => item.value));
   const alerts = Array.isArray(data?.ads?.alerts) ? data.ads.alerts : [];
@@ -93,4 +93,4 @@ export function ExecutiveDashboard() {
   );
 }
 function Snapshot({ label, value, tone }: { label: string; value: string | number; tone: 'warning' | 'danger' | 'neutral' }) { const className = tone === 'danger' ? 'bg-red-50 text-red-700' : tone === 'warning' ? 'bg-amber-50 text-amber-800' : 'bg-slate-50 text-slate-700'; return <div className={`flex items-center justify-between rounded-md px-3 py-3 text-xs ${className}`}><span className="font-semibold">{label}</span><b className="text-base">{value}</b></div>; }
-function ModuleCard({ title, icon, href, detail, links }: { title: string; icon: string; href: string; detail: string; links: string[][] }) { return <Panel title={title} icon={icon} action={<Link href={href} className="text-xs font-bold text-[#006a61] hover:underline">Abrir →</Link>}><p className="rounded-md bg-slate-50 p-3 text-xs font-semibold text-slate-700">{detail}</p><div className="mt-3 divide-y divide-slate-100">{links.map(([label, route]) => route && label ? <Link key={route} href={route} className="flex items-center justify-between py-2 text-xs text-slate-600 hover:text-[#006a61]"><span>{label}</span><Icon name="chevron_right" className="text-[17px]" /></Link> : null)}</div></Panel>; }
+function ModuleCard({ title, icon, href, detail, links }: { title: string; icon: string; href: string; detail: string; links: string[][] }) { return <Panel title={title} icon={icon} action={<Link href={href} className="text-xs font-bold text-primary hover:underline">Abrir →</Link>}><p className="rounded-md bg-slate-50 p-3 text-xs font-semibold text-slate-700">{detail}</p><div className="mt-3 divide-y divide-slate-100">{links.map(([label, route]) => route && label ? <Link key={route} href={route} className="flex items-center justify-between py-2 text-xs text-slate-600 hover:text-primary"><span>{label}</span><Icon name="chevron_right" className="text-[17px]" /></Link> : null)}</div></Panel>; }

@@ -30,10 +30,10 @@ export function OrigenDeCaja({ origen, className = '' }: Readonly<{ origen: Orig
   }
   return (
     <p className={`mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-700 ${className}`} data-testid="origen-de-caja">
-      <span className="material-symbols-rounded text-[14px] text-[#006a61]">store</span>
+      <span className="material-symbols-rounded text-[14px] text-primary">store</span>
       <span>{origen.branchName ?? 'Sucursal sin nombre'}</span>
       {caja ? (
-        <span className="rounded bg-[#e6f4f1] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#006a61]">{caja}</span>
+        <span className="rounded bg-primary-wash px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">{caja}</span>
       ) : null}
     </p>
   );
