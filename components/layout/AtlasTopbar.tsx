@@ -88,8 +88,8 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           >
             <Icon name="menu" className="text-[22px]" />
           </button>
-          <Link href="/operaciones" className="inline-flex min-h-11 shrink-0 items-center text-base font-black tracking-tight text-[#006a61] sm:text-lg">ATLAS ERP</Link>
-          <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-[#006a61] focus-within:bg-white md:flex lg:w-72">
+          <Link href="/operaciones" className="inline-flex min-h-11 shrink-0 items-center text-base font-black tracking-tight text-primary sm:text-lg">ATLAS ERP</Link>
+          <form onSubmit={submit} data-tutorial-id="topbar-search" className="hidden h-9 w-56 items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 focus-within:border-primary focus-within:bg-white md:flex lg:w-72">
             <Icon name="search" className="text-[19px] text-slate-500" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs outline-none" placeholder="Buscar una pantalla..." />
             <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-slate-500 lg:inline">↵</kbd>
@@ -105,7 +105,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
           >
             <Icon name={searchOpen ? 'close' : 'search'} className="text-[20px]" />
           </button>
-          <Link href="/operaciones/contabilidad/documentos/crear" className="mr-2 hidden h-9 items-center gap-2 rounded-md bg-[#006a61] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#00544d] xl:flex">
+          <Link href="/operaciones/contabilidad/documentos/crear" className="mr-2 hidden h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-bold text-white shadow-sm hover:bg-primary-container xl:flex">
             <Icon name="add" className="text-[17px]" />Nueva transacción
           </Link>
           <Link href="/operaciones/contabilidad/documentos/crear" className="grid h-11 w-11 place-items-center rounded-full text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Nueva transacción">
@@ -124,7 +124,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               data-tutorial-id="topbar-profile"
-              className="relative grid h-9 w-9 place-items-center rounded-full bg-[#00544d] text-[10px] font-black text-white ring-2 ring-slate-100 before:absolute before:-inset-1 before:content-['']"
+              className="relative grid h-9 w-9 place-items-center rounded-full bg-primary-container text-[10px] font-black text-white ring-2 ring-slate-100 before:absolute before:-inset-1 before:content-['']"
               aria-label="Perfil de usuario"
               aria-expanded={menuOpen}
             >
@@ -168,7 +168,7 @@ export function AtlasTopbar({ onOpenNav }: TopbarProps) {
             className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             placeholder="Buscar una pantalla..."
           />
-          <button type="submit" className="rounded-md bg-[#006a61] px-3 py-2 text-xs font-bold text-white">Buscar</button>
+          <button type="submit" className="rounded-md bg-primary px-3 py-2 text-xs font-bold text-white">Buscar</button>
         </form>
       ) : null}
     </header>

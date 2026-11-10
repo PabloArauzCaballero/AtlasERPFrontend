@@ -200,7 +200,7 @@ export function OptionSelect(props: OptionSelectProps) {
 
   const activeId = open && visible[active] ? `${listId}-${active}` : undefined;
   const buttonClass = cn(
-    'flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white text-left text-slate-900 outline-none focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100 disabled:text-slate-500',
+    'flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white text-left text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:text-slate-500',
     props.compact ? 'h-9 px-3 text-xs font-semibold text-slate-700' : 'h-9 px-3 text-sm',
     props.className,
   );
@@ -293,7 +293,7 @@ export function OptionSelect(props: OptionSelectProps) {
                       setActive(0);
                     }}
                     placeholder="Escribe para filtrar…"
-                    className="h-8 w-full rounded border border-slate-300 px-2 text-sm outline-none focus:border-[#006a61]"
+                    className="h-8 w-full rounded border border-slate-300 px-2 text-sm outline-none focus:border-primary"
                   />
                 </div>
               ) : null}
@@ -316,8 +316,8 @@ export function OptionSelect(props: OptionSelectProps) {
                         title={option.description}
                         className={cn(
                           'cursor-pointer px-3 py-2',
-                          isActive && 'bg-[#006a61]/10',
-                          isSelected && 'font-semibold text-[#006a61]',
+                          isActive && 'bg-primary/10',
+                          isSelected && 'font-semibold text-primary',
                           option.disabled && 'cursor-not-allowed opacity-50',
                         )}
                         onMouseEnter={() => setActive(index)}

@@ -682,7 +682,7 @@ export function CrudDirectory(props: CrudDirectoryProps) {
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={props.searchPlaceholder ?? 'Buscar en todas las columnas…'}
                 data-testid="crud-buscar"
-                className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20"
+                className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>

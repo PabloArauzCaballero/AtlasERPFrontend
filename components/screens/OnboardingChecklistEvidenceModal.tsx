@@ -261,7 +261,7 @@ export function OnboardingChecklistEvidenceModal({
           <div className="overflow-hidden rounded-lg border border-slate-200" data-testid="vista-evidencia-actual">
             <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-1.5">
               <span className="text-[11px] font-bold text-slate-700">Archivo actual del requisito</span>
-              <button type="button" onClick={abrirEnPestana} className="inline-flex items-center gap-1 text-[11px] font-bold text-[#006a61] hover:underline">
+              <button type="button" onClick={abrirEnPestana} className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
                 <Icon name="open_in_new" className="text-[14px]" />
                 Abrir en otra pestaña
               </button>

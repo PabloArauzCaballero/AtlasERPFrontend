@@ -33,7 +33,7 @@ export function PinControl({ className: _className, onChange, maxLength: _maxLen
       }}
       // Clase propia y completa: `cn` del ERP sólo concatena, así que mezclarla con la del control
       // normal dejaría dos altos y dos anchos peleando. 6 dígitos + 6 separaciones de 0,5em.
-      className="block h-11 w-[calc(9ch+2.25rem)] max-w-full rounded-md border border-slate-300 bg-white pl-[calc(1.125rem+0.25em)] pr-[1.125rem] font-mono text-xl tracking-[0.5em] text-slate-900 outline-none placeholder:text-slate-300 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100"
+      className="block h-11 w-[calc(9ch+2.25rem)] max-w-full rounded-md border border-slate-300 bg-white pl-[calc(1.125rem+0.25em)] pr-[1.125rem] font-mono text-xl tracking-[0.5em] text-slate-900 outline-none placeholder:text-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100"
     />
   );
 }
@@ -60,7 +60,7 @@ export function PasswordControl({ className, type: _type, ...props }: ControlPro
         aria-pressed={visible}
         title={label}
         disabled={props.disabled}
-        className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006a61]/40 disabled:cursor-not-allowed disabled:opacity-50"
+        className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Icon name={visible ? 'visibility_off' : 'visibility'} className="text-[18px]" />
       </button>

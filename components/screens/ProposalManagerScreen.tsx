@@ -186,7 +186,7 @@ function ResumenTarjeta({ icon, label, value, tone = 'navy' }: { icon: string; l
 
 /* Dos paradas del mismo tono: basta para que el chip tenga volumen. */
 const tonoDelChip = {
-  navy: 'bg-gradient-to-br from-[#e2f1ef] to-[#cde5e2] text-[#00544d]',
+  navy: 'bg-gradient-to-br from-primary-wash to-primary-soft text-primary',
   slate: 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700',
   amber: 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700',
 };

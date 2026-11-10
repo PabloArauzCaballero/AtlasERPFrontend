@@ -91,7 +91,7 @@ export function ConfirmDialog({
       >
         <div className="flex items-start gap-3">
           <span
-            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone === 'danger' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-[#006a61]'}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone === 'danger' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-primary'}`}
           >
             <Icon name={tone === 'danger' ? 'warning' : 'help'} className="text-[21px]" />
           </span>
@@ -109,7 +109,7 @@ export function ConfirmDialog({
               onChange={(event) => setReason(event.target.value)}
               rows={3}
               placeholder={reasonPlaceholder}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-[#006a61]"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-primary"
             />
             {/* El motivo no es un trámite: es lo único que queda cuando alguien
                 revisa la decisión meses después. Y si falta, se DICE cuánto

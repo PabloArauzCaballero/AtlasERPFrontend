@@ -70,7 +70,7 @@ export function MultiSelectField(props: MultiSelectFieldProps) {
                 title={option.description}
                 className={cn(
                   'inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition',
-                  checked ? 'border-[#006a61] bg-[#006a61]/10 text-[#006a61]' : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400',
+                  checked ? 'border-primary bg-primary/10 text-primary' : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400',
                 )}
               >
                 <input type="checkbox" className="sr-only" checked={checked} onChange={() => toggle(option.value)} />

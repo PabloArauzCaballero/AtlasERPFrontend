@@ -93,7 +93,7 @@ export function ScreenGuideButton({ note }: Props = {}) {
         className="relative inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:px-3"
         aria-label={`Qué es esta pantalla: ${guide.title}`}
       >
-        <Icon name="help" className="text-[17px] text-[#006a61]" />
+        <Icon name="help" className="text-[17px] text-primary" />
         <span className="hidden sm:inline">¿Qué es esto?</span>
         {unseen ? <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" /> : null}
       </button>

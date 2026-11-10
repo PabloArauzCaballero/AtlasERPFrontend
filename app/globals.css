@@ -2,15 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* FASE 3 BORRA ESTA LÍNEA y el bloque `:root` de abajo, junto con el fondo ambiental. */
 @import '../styles/ambient.css';
 
 /*
- * Los tokens que el fondo ambiental y el resto del lenguaje de ATLAS dan por sentados.
- *
- * El motor de decisión los define en `theme.css`; aquí se declaran como variables CSS porque el
- * fondo se portó VERBATIM y su hoja los consume por nombre. Duplicar los valores en la
- * configuración de Tailwind y aquí es deliberado: Tailwind los necesita para generar clases, el
- * CSS portado los necesita en tiempo de ejecución, y no hay puente entre ambos sin un plugin.
+ * Variables que la hoja del fondo ambiental (portada verbatim del Motor) consume por nombre.
+ * NO son la identidad: los colores de Cuotea viven en `app/tema.css`. Se van en la fase 3.
  */
 :root {
   --accent: #006a61;
@@ -22,20 +19,16 @@
   --line: #e4e4e7;
   --canvas: #f5f5f7;
   --surface: #ffffff;
-
-  /* Movimiento: mismas curvas y duraciones que el motor. */
   --dur-slow: 280ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* El lienzo del motor: un neutro cálido, no el azulado de Tailwind. */
-:root { color-scheme: light; background: #f5f5f7; }
 * { box-sizing: border-box; }
 
 html {
   min-width: 320px;
-  background: #f5f5f7;
+  background: rgb(var(--c-canvas));
   /* Safari en iOS reescala el texto al girar el móvil; con densidades como las
      de este ERP eso descuadra tablas enteras. */
   -webkit-text-size-adjust: 100%;
@@ -43,9 +36,9 @@ html {
 
 body {
   margin: 0;
-  background: #f5f5f7;
-  color: #38383d;
-  font-family: Inter, system-ui, sans-serif;
+  background: rgb(var(--c-canvas));
+  color: rgb(var(--c-ink));
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   /* Una sola tabla ancha sin contenedor propio arrastraba la página entera hacia
@@ -58,8 +51,16 @@ body {
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { transition-duration: 150ms; }
 button { -webkit-tap-highlight-color: transparent; }
-/* El anillo de foco lleva el acento: es la única forma de saber dónde está el teclado. */
-:focus-visible { outline: 2px solid #006a61; outline-offset: 2px; }
+
+/* Outfit se carga hasta 600: sin esto el navegador sintetiza una negrita falsa en <b> y <strong>. */
+b, strong { font-weight: 600; }
+/* Montos y recuentos alineados por columna. */
+table { font-variant-numeric: tabular-nums; }
+/* El marcador de un campo también es texto: paso 500, que mide 4,5:1 en la peor superficie. */
+::placeholder { color: rgb(var(--c-neutral-500)); opacity: 1; }
+
+/* Anillo de foco de la identidad: 2 px, separado 2 px. Azul en claro, amarillo en oscuro. */
+:focus-visible { outline: 2px solid rgb(var(--c-focus)); outline-offset: 2px; }
 
 /* Los campos por debajo de 16 px hacen que iOS acerque la página al enfocarlos, y
    al salir del campo la deja acercada: la pantalla queda descuadrada hasta que el
@@ -70,9 +71,9 @@ button { -webkit-tap-highlight-color: transparent; }
 
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; line-height: 1; }
 
-.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #c9c9cf transparent; }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgb(var(--c-neutral-300)) transparent; }
 .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #c9c9cf; border-radius: 999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--c-neutral-300)); border-radius: 999px; }
 
 /**
  * Contenedor de desplazamiento horizontal para tablas y tableros anchos.
@@ -86,14 +87,10 @@ button { -webkit-tap-highlight-color: transparent; }
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: #c9c9cf transparent;
+  scrollbar-color: rgb(var(--c-neutral-300)) transparent;
 }
 .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-.table-scroll::-webkit-scrollbar-thumb { background: #c9c9cf; border-radius: 999px; }
-
-.atlas-grid-lines { background-image: linear-gradient(to right, rgba(107,107,117,.10) 1px, transparent 1px), linear-gradient(to bottom, rgba(107,107,117,.10) 1px, transparent 1px); background-size: 28px 28px; }
-@keyframes atlas-pulse { 0%,100% { opacity: .55 } 50% { opacity: 1 } }
-.atlas-pulse { animation: atlas-pulse 1.4s ease-in-out infinite; }
+.table-scroll::-webkit-scrollbar-thumb { background: rgb(var(--c-neutral-300)); border-radius: 999px; }
 
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
 
@@ -114,10 +111,12 @@ button { -webkit-tap-highlight-color: transparent; }
 .atlas-rail { scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 .atlas-rail::-webkit-scrollbar { display: none; }
 /*
- * Pista de que un carril desplazable tiene más contenido: el borde con pestañas ocultas se difumina.
- * Sin esto, en 375 px «Historial» ni se veía y «Comprobantes por ver…» se cortaba a media palabra,
- * sin nada que dijera que había que deslizar. Las marcas las pone `TabbedPanels` al medir el carril.
+ * Pista de que un carril desplazable tiene más contenido: el borde con pestañas ocultas se recorta.
+ * Es una MÁSCARA de recorte, no un degradado de color: `black` aquí significa «opaco».
  */
-.atlas-rail[data-mas-derecha='true'] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.25rem), transparent); }
-.atlas-rail[data-mas-izquierda='true'] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 2.25rem), transparent); }
-.atlas-rail[data-mas-izquierda='true'][data-mas-derecha='true'] { -webkit-mask-image: linear-gradient(to right, transparent, #000 2.25rem, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, transparent, #000 2.25rem, #000 calc(100% - 2.25rem), transparent); }
+/* colores-ok: máscara de recorte del carril; no pinta ningún color */
+.atlas-rail[data-mas-derecha='true'] { -webkit-mask-image: linear-gradient(to right, black calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, black calc(100% - 2.25rem), transparent); }
+/* colores-ok: máscara de recorte del carril; no pinta ningún color */
+.atlas-rail[data-mas-izquierda='true'] { -webkit-mask-image: linear-gradient(to left, black calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to left, black calc(100% - 2.25rem), transparent); }
+/* colores-ok: máscara de recorte del carril; no pinta ningún color */
+.atlas-rail[data-mas-izquierda='true'][data-mas-derecha='true'] { -webkit-mask-image: linear-gradient(to right, transparent, black 2.25rem, black calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, transparent, black 2.25rem, black calc(100% - 2.25rem), transparent); }

@@ -24,7 +24,7 @@ function PortalNav({ pathname, onNavigate = () => {} }: { pathname: string; onNa
             onClick={onNavigate}
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold transition',
-              active ? 'bg-[#006a61] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-[#006a61]',
+              active ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-primary',
             )}
           >
             <Icon name={item.icon} className={cn('shrink-0 text-[18px]', active ? 'text-cyan-300' : 'text-slate-500')} />
@@ -63,7 +63,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           >
             <Icon name="menu" className="text-[22px]" />
           </button>
-          <div className="hidden h-8 w-8 shrink-0 place-items-center rounded bg-[#006a61] text-white sm:grid"><Icon name="account_balance" className="text-[19px]" /></div>
+          <div className="hidden h-8 w-8 shrink-0 place-items-center rounded bg-primary text-white sm:grid"><Icon name="account_balance" className="text-[19px]" /></div>
           <div className="min-w-0">
             <p className="truncate text-sm font-extrabold tracking-tight">ATLAS ERP</p>
             <p className="truncate text-[9px] font-bold uppercase tracking-[.18em] text-slate-500">Merchant Portal</p>
@@ -113,7 +113,7 @@ export function MerchantPortalShell({ children }: Readonly<{ children: React.Rea
           // Sólo en escritorio: por debajo de `lg` «Soporte» es una pestaña de la barra inferior, porque
           // en 375 px este botón se pintaba encima del texto de la pantalla.
           'fixed bottom-[5.5rem] right-4 z-[45] hidden h-11 items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-lg transition sm:right-6 lg:flex lg:bottom-[6.5rem]',
-          isActivePath(pathname, '/portal-comercio/soporte') ? 'bg-[#006a61] text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:text-[#006a61]',
+          isActivePath(pathname, '/portal-comercio/soporte') ? 'bg-primary text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:text-primary',
         )}
       >
         <Icon name="support_agent" className="text-[18px]" />

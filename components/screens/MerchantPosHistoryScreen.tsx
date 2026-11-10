@@ -216,7 +216,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
                       </span>
                     </td>
                     <td className="whitespace-nowrap">{m.branchName ?? '—'}</td>
-                    <td className="whitespace-nowrap font-semibold text-[#006a61]">{nombreDeCaja(m) ?? '—'}</td>
+                    <td className="whitespace-nowrap font-semibold text-primary">{nombreDeCaja(m) ?? '—'}</td>
                     <td className="whitespace-nowrap text-right font-semibold tabular-nums">{formatBob(m.amount)}</td>
                     <td className="whitespace-nowrap tabular-nums">{m.reference ?? '—'}</td>
                     <td className="whitespace-nowrap">

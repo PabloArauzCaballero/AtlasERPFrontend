@@ -16,7 +16,7 @@ export function ScreenExplainer({ lead, points }: Readonly<{ lead: React.ReactNo
   return (
     <section aria-labelledby="screen-explainer-title" className="rounded-lg border border-teal-200 bg-teal-50/60 p-4">
       <div className="flex items-start gap-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-[#006a61] ring-1 ring-teal-200">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-primary ring-1 ring-teal-200">
           <Icon name="lightbulb" className="text-[18px]" />
         </span>
         <div className="min-w-0">
@@ -28,7 +28,7 @@ export function ScreenExplainer({ lead, points }: Readonly<{ lead: React.ReactNo
         {points.map((point, index) => (
           <li key={point.title} className="rounded-md bg-white p-3 ring-1 ring-teal-100">
             <p className="flex items-center gap-2 text-xs font-bold text-slate-900">
-              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#006a61] text-[10px] text-white">{index + 1}</span>
+              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] text-white">{index + 1}</span>
               {point.title}
             </p>
             <p className="mt-1.5 text-xs leading-5 text-slate-600">{point.text}</p>

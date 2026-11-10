@@ -98,7 +98,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
         aria-haspopup="tree"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 text-left text-sm text-slate-900 outline-none focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20"
+        className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 text-left text-sm text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
       >
         <span className={cn('truncate', !countryCode && 'text-slate-500')}>{summary}</span>
         <Icon name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-[18px] text-slate-500" />
@@ -110,7 +110,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
       {open ? (
         <div className="absolute left-0 right-0 z-30 mt-1 overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl">
           <div className="border-b border-slate-200 p-2">
-            <div className="flex h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-2 focus-within:border-[#006a61] focus-within:ring-2 focus-within:ring-[#006a61]/20">
+            <div className="flex h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-2 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
               <Icon name="search" className="text-[16px] text-slate-400" />
               <input
                 ref={searchRef}
@@ -179,7 +179,7 @@ export function CountryCityField(props: CountryCityFieldProps) {
                               if (customCity.trim()) choose(country.code, customCity.trim());
                             }}
                             placeholder="Otra ciudad..."
-                            className="h-7 min-w-0 flex-1 rounded border border-dashed border-slate-300 bg-white px-2 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#006a61]"
+                            className="h-7 min-w-0 flex-1 rounded border border-dashed border-slate-300 bg-white px-2 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-primary"
                           />
                           <button
                             type="button"

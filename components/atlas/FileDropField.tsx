@@ -300,13 +300,13 @@ export function FileDropField(props: FileDropFieldProps) {
             className={cn(
               'group grid w-full place-items-center rounded-lg border-2 border-dashed px-4 text-center transition',
               hayArchivos ? 'min-h-[64px] py-3' : 'min-h-[112px] py-5',
-              encima ? 'border-[#006a61] bg-primary-wash ring-4 ring-primary/15' : error ? 'border-red-300 bg-red-50/40' : 'border-slate-300 bg-slate-50',
-              'hover:border-[#006a61] hover:bg-primary-wash focus-visible:border-[#006a61] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20',
+              encima ? 'border-primary bg-primary-wash ring-4 ring-primary/15' : error ? 'border-red-300 bg-red-50/40' : 'border-slate-300 bg-slate-50',
+              'hover:border-primary hover:bg-primary-wash focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20',
               'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:bg-slate-50',
             )}
           >
             <span className={cn('flex items-center gap-3', hayArchivos ? 'flex-row' : 'flex-col gap-2')}>
-              <span className={cn('grid place-items-center rounded-full bg-white text-[#006a61] shadow-sm ring-1 ring-slate-200', hayArchivos ? 'h-8 w-8' : 'h-10 w-10')}>
+              <span className={cn('grid place-items-center rounded-full bg-white text-primary shadow-sm ring-1 ring-slate-200', hayArchivos ? 'h-8 w-8' : 'h-10 w-10')}>
                 <Icon name={encima ? 'file_download' : 'cloud_upload'} className={hayArchivos ? 'text-[18px]' : 'text-[22px]'} />
               </span>
               <span className={hayArchivos ? 'text-left' : ''}>

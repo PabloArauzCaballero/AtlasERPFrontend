@@ -55,7 +55,7 @@ export function ChipsField(props: ChipsFieldProps) {
           id={id}
           aria-describedby={help.describedById}
           onFocus={help.onFocus}
-          className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20"
+          className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20"
           value={draft}
           placeholder={props.placeholder ?? 'Escribe y pulsa Enter...'}
           onChange={(event) => {

@@ -49,7 +49,7 @@ interface TextareaFieldProps extends BaseFieldProps, Omit<TextareaHTMLAttributes
 
 type FormFieldProps = InputFieldProps | SelectFieldProps | TextareaFieldProps;
 
-const controlClass = 'h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-[#006a61] focus:ring-2 focus:ring-[#006a61]/20 disabled:bg-slate-100';
+const controlClass = 'h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100';
 
 const asString = (value: string | number | readonly string[] | undefined): string | undefined =>
   value === undefined ? undefined : Array.isArray(value) ? String(value[0] ?? '') : String(value);

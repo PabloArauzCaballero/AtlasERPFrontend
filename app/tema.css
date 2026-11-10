@@ -1,0 +1,185 @@
+/*
+ * Cuotea · capa de tema. ÚNICO sitio del portal donde se escribe un color.
+ *
+ * Cada token es una tripleta RGB (sin comas) para que Tailwind pueda aplicarle opacidad:
+ * rgb(var(--c-ink) / 0.5). El primer bloque es el tema claro; el segundo, el oscuro, que NO es el
+ * claro invertido sino la paleta oscura propia de la identidad. Los valores salen de
+ * ESPECIFICACION-COMUN.md (apartados 1 y 2) y los mide tests/unit/tema-contraste.test.ts: si un par
+ * falla, se corrige el paso aquí; el umbral no se toca.
+ *
+ * Ojo con dos nombres: --c-blue es el azul base de la identidad y --c-azul-50…950 es su rampa
+ * (se llama azul para no chocar con el base). El hex de cada comentario es sólo para leerlo.
+ */
+:root {
+  color-scheme: light;
+  --c-yellow: 252 238 58; /* #FCEE3A */
+  --c-yellow-strong: 239 223 31; /* #EFDF1F */
+  --c-yellow-soft: 255 250 199; /* #FFFAC7 */
+  --c-on-yellow: 17 17 17; /* #111111 */
+  --c-ink: 17 17 17; /* #111111 */
+  --c-ink-muted: 92 92 85; /* #5C5C55 */
+  --c-canvas: 246 246 241; /* #F6F6F1 */
+  --c-surface: 255 255 255; /* #FFFFFF */
+  --c-surface-sunken: 236 236 229; /* #ECECE5 */
+  --c-border: 220 220 211; /* #DCDCD3 */
+  --c-border-strong: 133 133 123; /* #85857B */
+  --c-blue: 31 63 214; /* #1F3FD6 */
+  --c-blue-soft: 232 236 255; /* #E8ECFF */
+  --c-focus: 31 63 214; /* #1F3FD6 */
+  --c-success: 8 107 94; /* #086B5E */
+  --c-success-soft: 221 243 238; /* #DDF3EE */
+  --c-warning: 160 78 0; /* #A04E00 */
+  --c-warning-soft: 255 235 214; /* #FFEBD6 */
+  --c-danger: 194 42 26; /* #C22A1A */
+  --c-danger-soft: 253 229 225; /* #FDE5E1 */
+  /* Velo de capas flotantes. Derivado (la especificación sólo dice «velo de fondo»): tinta #111111 al 45 %. */
+  --c-scrim: 17 17 17; /* #111111 */
+  --scrim-alpha: 0.45;
+  /* rampa neutral */
+  --c-neutral-50: 250 250 247; /* #FAFAF7 */
+  --c-neutral-100: 246 246 241; /* #F6F6F1 */
+  --c-neutral-200: 220 220 211; /* #DCDCD3 */
+  --c-neutral-300: 196 196 186; /* #C4C4BA */
+  --c-neutral-400: 133 133 123; /* #85857B */
+  --c-neutral-500: 104 104 96; /* #686860 */
+  --c-neutral-600: 92 92 85; /* #5C5C55 */
+  --c-neutral-700: 58 58 53; /* #3A3A35 */
+  --c-neutral-800: 38 38 35; /* #262623 */
+  --c-neutral-900: 17 17 17; /* #111111 */
+  --c-neutral-950: 10 10 9; /* #0A0A09 */
+  /* rampa red */
+  --c-red-50: 253 229 225; /* #FDE5E1 */
+  --c-red-100: 251 211 205; /* #FBD3CD */
+  --c-red-200: 245 181 172; /* #F5B5AC */
+  --c-red-300: 236 142 130; /* #EC8E82 */
+  --c-red-400: 223 98 83; /* #DF6253 */
+  --c-red-500: 208 68 51; /* #D04433 */
+  --c-red-600: 194 42 26; /* #C22A1A */
+  --c-red-700: 168 35 21; /* #A82315 */
+  --c-red-800: 138 28 16; /* #8A1C10 */
+  --c-red-900: 107 21 12; /* #6B150C */
+  --c-red-950: 69 12 6; /* #450C06 */
+  /* rampa orange */
+  --c-orange-50: 255 235 214; /* #FFEBD6 */
+  --c-orange-100: 255 221 184; /* #FFDDB8 */
+  --c-orange-200: 249 196 140; /* #F9C48C */
+  --c-orange-300: 239 163 90; /* #EFA35A */
+  --c-orange-400: 220 130 38; /* #DC8226 */
+  --c-orange-500: 192 104 8; /* #C06808 */
+  --c-orange-600: 160 78 0; /* #A04E00 */
+  --c-orange-700: 138 67 0; /* #8A4300 */
+  --c-orange-800: 115 56 0; /* #733800 */
+  --c-orange-900: 92 45 0; /* #5C2D00 */
+  --c-orange-950: 58 28 0; /* #3A1C00 */
+  /* rampa green */
+  --c-green-50: 221 243 238; /* #DDF3EE */
+  --c-green-100: 199 234 227; /* #C7EAE3 */
+  --c-green-200: 163 218 207; /* #A3DACF */
+  --c-green-300: 111 194 179; /* #6FC2B3 */
+  --c-green-400: 59 165 149; /* #3BA595 */
+  --c-green-500: 23 136 118; /* #178876 */
+  --c-green-600: 8 107 94; /* #086B5E */
+  --c-green-700: 7 92 81; /* #075C51 */
+  --c-green-800: 6 76 67; /* #064C43 */
+  --c-green-900: 5 60 53; /* #053C35 */
+  --c-green-950: 3 38 33; /* #032621 */
+  /* rampa azul */
+  --c-azul-50: 232 236 255; /* #E8ECFF */
+  --c-azul-100: 214 221 255; /* #D6DDFF */
+  --c-azul-200: 180 192 250; /* #B4C0FA */
+  --c-azul-300: 138 155 242; /* #8A9BF2 */
+  --c-azul-400: 92 115 230; /* #5C73E6 */
+  --c-azul-500: 59 85 221; /* #3B55DD */
+  --c-azul-600: 31 63 214; /* #1F3FD6 */
+  --c-azul-700: 26 53 184; /* #1A35B8 */
+  --c-azul-800: 21 43 150; /* #152B96 */
+  --c-azul-900: 16 32 115; /* #102073 */
+  --c-azul-950: 10 20 71; /* #0A1447 */
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-yellow: 252 238 58; /* #FCEE3A */
+  --c-yellow-strong: 255 245 122; /* #FFF57A */
+  --c-yellow-soft: 58 54 16; /* #3A3610 */
+  --c-on-yellow: 17 17 17; /* #111111 */
+  --c-ink: 245 245 239; /* #F5F5EF */
+  --c-ink-muted: 168 168 158; /* #A8A89E */
+  --c-canvas: 17 17 17; /* #111111 */
+  --c-surface: 28 28 26; /* #1C1C1A */
+  --c-surface-sunken: 38 38 35; /* #262623 */
+  --c-border: 52 52 47; /* #34342F */
+  --c-border-strong: 125 125 115; /* #7D7D73 */
+  --c-blue: 163 180 255; /* #A3B4FF */
+  --c-blue-soft: 27 35 80; /* #1B2350 */
+  --c-focus: 252 238 58; /* #FCEE3A */
+  --c-success: 95 212 192; /* #5FD4C0 */
+  --c-success-soft: 15 47 42; /* #0F2F2A */
+  --c-warning: 255 176 92; /* #FFB05C */
+  --c-warning-soft: 58 36 8; /* #3A2408 */
+  --c-danger: 255 143 128; /* #FF8F80 */
+  --c-danger-soft: 61 22 18; /* #3D1612 */
+  /* Velo de capas flotantes. Derivado (la especificación sólo dice «velo de fondo»): tinta #111111 al 70 %. */
+  --c-scrim: 17 17 17; /* #111111 */
+  --scrim-alpha: 0.7;
+  /* rampa neutral */
+  --c-neutral-50: 34 34 32; /* #222220 */
+  --c-neutral-100: 38 38 35; /* #262623 */
+  --c-neutral-200: 52 52 47; /* #34342F */
+  --c-neutral-300: 74 74 68; /* #4A4A44 */
+  --c-neutral-400: 125 125 115; /* #7D7D73 */
+  --c-neutral-500: 150 150 140; /* #96968C */
+  --c-neutral-600: 168 168 158; /* #A8A89E */
+  --c-neutral-700: 207 207 198; /* #CFCFC6 */
+  --c-neutral-800: 228 228 220; /* #E4E4DC */
+  --c-neutral-900: 245 245 239; /* #F5F5EF */
+  --c-neutral-950: 255 255 255; /* #FFFFFF */
+  /* rampa red */
+  --c-red-50: 61 22 18; /* #3D1612 */
+  --c-red-100: 74 27 22; /* #4A1B16 */
+  --c-red-200: 107 41 33; /* #6B2921 */
+  --c-red-300: 143 58 48; /* #8F3A30 */
+  --c-red-400: 192 90 77; /* #C05A4D */
+  --c-red-500: 229 117 103; /* #E57567 */
+  --c-red-600: 255 143 128; /* #FF8F80 */
+  --c-red-700: 255 143 128; /* #FF8F80 */
+  --c-red-800: 255 165 152; /* #FFA598 */
+  --c-red-900: 255 194 184; /* #FFC2B8 */
+  --c-red-950: 255 224 219; /* #FFE0DB */
+  /* rampa orange */
+  --c-orange-50: 58 36 8; /* #3A2408 */
+  --c-orange-100: 71 48 15; /* #47300F */
+  --c-orange-200: 97 66 22; /* #614216 */
+  --c-orange-300: 134 96 31; /* #86601F */
+  --c-orange-400: 184 131 58; /* #B8833A */
+  --c-orange-500: 224 154 76; /* #E09A4C */
+  --c-orange-600: 255 176 92; /* #FFB05C */
+  --c-orange-700: 255 176 92; /* #FFB05C */
+  --c-orange-800: 255 194 127; /* #FFC27F */
+  --c-orange-900: 255 214 168; /* #FFD6A8 */
+  --c-orange-950: 255 233 208; /* #FFE9D0 */
+  /* rampa green */
+  --c-green-50: 15 47 42; /* #0F2F2A */
+  --c-green-100: 19 58 52; /* #133A34 */
+  --c-green-200: 27 80 72; /* #1B5048 */
+  --c-green-300: 39 112 100; /* #277064 */
+  --c-green-400: 60 156 140; /* #3C9C8C */
+  --c-green-500: 77 184 166; /* #4DB8A6 */
+  --c-green-600: 95 212 192; /* #5FD4C0 */
+  --c-green-700: 95 212 192; /* #5FD4C0 */
+  --c-green-800: 134 224 208; /* #86E0D0 */
+  --c-green-900: 174 235 224; /* #AEEBE0 */
+  --c-green-950: 213 245 239; /* #D5F5EF */
+  /* rampa azul */
+  --c-azul-50: 27 35 80; /* #1B2350 */
+  --c-azul-100: 33 43 97; /* #212B61 */
+  --c-azul-200: 44 58 130; /* #2C3A82 */
+  --c-azul-300: 66 84 176; /* #4254B0 */
+  --c-azul-400: 106 126 219; /* #6A7EDB */
+  --c-azul-500: 135 153 240; /* #8799F0 */
+  --c-azul-600: 163 180 255; /* #A3B4FF */
+  --c-azul-700: 163 180 255; /* #A3B4FF */
+  --c-azul-800: 187 200 255; /* #BBC8FF */
+  --c-azul-900: 211 219 255; /* #D3DBFF */
+  --c-azul-950: 232 236 255; /* #E8ECFF */
+}
