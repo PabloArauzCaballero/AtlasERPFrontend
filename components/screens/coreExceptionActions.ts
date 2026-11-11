@@ -22,6 +22,12 @@ const MOTIVOS: Record<string, string> = {
   CURRENCY_MISMATCH: 'Moneda distinta de bolivianos',
   UNLINKED_INSTALLMENT: 'Pago de una cuota sin compra registrada',
   CONFLICTING_DECISION: 'Decisión contraria a la ya aplicada',
+  // Desde el 2026-11-11 (dinero exacto Core ↔ ERP). La primera es un AVISO: la compra sí quedó
+  // registrada, pero con el precio deducido por la regla anterior porque el evento no lo traía.
+  LEGACY_AMOUNTS_DERIVED: 'Compra registrada con importes deducidos (evento antiguo)',
+  // La conciliación diaria encontró que el ERP y Atlas no dicen lo mismo de un préstamo; se cierra
+  // sola cuando vuelven a cuadrar.
+  RECONCILIATION_MISMATCH: 'El ERP y Atlas no cuadran en la conciliación diaria',
 };
 
 const QUE_ES: Record<string, string> = {
@@ -29,6 +35,7 @@ const QUE_ES: Record<string, string> = {
   'payment.reported': 'Pago avisado',
   'payment.confirmed': 'Pago confirmado',
   'payment.rejected': 'Pago rechazado',
+  'core.reconciliation': 'Conciliación diaria',
 };
 
 const DESENLACES: Record<string, string> = {

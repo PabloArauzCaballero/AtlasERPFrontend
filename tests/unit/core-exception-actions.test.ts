@@ -43,6 +43,19 @@ describe('bandeja de lo que llegó de Atlas sin aplicar', () => {
     expect(motivoDeExcepcion(undefined)).toBe('—');
   });
 
+  // Los dos motivos que trae el dinero exacto Core ↔ ERP (#72): antes salían como el código en
+  // minúsculas («legacy amounts derived», «reconciliation mismatch»).
+  it('dice en palabras los avisos del dinero exacto y de la conciliación diaria', async () => {
+    servicio.listCoreExceptions.mockResolvedValue([
+      { id: '3', topic: 'loan.originated', reason: 'LEGACY_AMOUNTS_DERIVED', coreLoanId: '88' },
+      { id: '4', topic: 'core.reconciliation', reason: 'RECONCILIATION_MISMATCH', coreLoanId: '99' },
+    ]);
+    const filas = await cargarExcepcionesDeCore();
+    expect(filas[0]).toMatchObject({ motivo: 'Compra registrada con importes deducidos (evento antiguo)', queEs: 'Compra a plazos' });
+    expect(filas[1]).toMatchObject({ motivo: 'El ERP y Atlas no cuadran en la conciliación diaria', queEs: 'Conciliación diaria' });
+    for (const fila of filas) expect(String(fila.motivo)).not.toMatch(/_|legacy|reconciliation/i);
+  });
+
   it('sólo pregunta comercio y sucursal cuando el evento no los traía', () => {
     const campos = reprocesar!.form!.fields as (row: Record<string, unknown>) => Array<{ name: string }>;
     expect(campos(compraSinComercio).map((campo) => campo.name)).toEqual(['merchantAccountId', 'branchId']);
