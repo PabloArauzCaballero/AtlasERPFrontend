@@ -59,8 +59,8 @@ const CANAL_COPY: Record<
   interno: {
     antetitulo: 'Panel administrativo interno',
     etiquetaCorreo: 'Correo corporativo',
-    tooltipCorreo: 'El correo con el que entras al panel interno. Ej.: usuario@atlas.internal.',
-    marcador: 'usuario@atlas.internal',
+    tooltipCorreo: 'El correo con el que entras al panel interno. Ej.: nombre@empresa.com.',
+    marcador: 'nombre@empresa.com',
     entradilla: 'Escribe tu correo corporativo y te enviamos un código para poner una contraseña nueva.',
     pedir: (email) => authService.requestPasswordReset({ email }),
     confirmar: (body) => authService.confirmPasswordReset(body),
