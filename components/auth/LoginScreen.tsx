@@ -51,7 +51,7 @@ const AUDIENCE_COPY: Record<
     antetitulo: 'Acceso corporativo',
     acceso: 'al panel administrativo interno',
     emailLabel: 'Correo corporativo',
-    placeholder: 'usuario@atlas.internal',
+    placeholder: 'nombre@empresa.com',
     home: '/operaciones',
     otraPuerta: { pregunta: '¿Tienes un comercio afiliado?', enlace: 'Entra al portal del comercio', audience: 'merchant' },
   },
