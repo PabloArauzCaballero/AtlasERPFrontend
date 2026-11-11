@@ -17,7 +17,7 @@ import type { SolicitudDeCompra } from '@/services/merchantCreditService';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 
 const MOTIVOS = [
-  { label: '— Elija el motivo —', value: '' },
+  { label: '— Elige el motivo —', value: '' },
   { label: 'El cliente se arrepintió', value: 'CLIENTE_DESISTIO' },
   { label: 'No tengo el producto disponible', value: 'SIN_STOCK' },
   { label: 'El importe no corresponde a esta venta', value: 'IMPORTE_NO_CORRESPONDE' },
@@ -114,7 +114,7 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar su comercio.');
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
         setCargando(false);
       });
     return () => { cancelado = true; };
@@ -183,7 +183,7 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
         <WorkspaceHeader
           breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Solicitudes' }]}
           title="Solicitudes de compra"
-          description="Lo que sus clientes pidieron escaneando el QR del local. Usted acepta o rechaza; el importe y las cuotas los fijó el motor de decisión."
+          description="Lo que tus clientes pidieron escaneando el QR del local. Tú aceptas o rechazas; el importe y las cuotas los fijó el motor de decisión."
           actions={acciones}
         />
       )}
@@ -193,8 +193,8 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
 
       <Panel
         data-tutorial-id="solicitudes-cola"
-        title="Esperando su respuesta"
-        description="Sólo puede aceptar o rechazar. No hay ningún campo que se pueda modificar."
+        title="Esperando tu respuesta"
+        description="Sólo puedes aceptar o rechazar. No hay ningún campo que se pueda modificar."
         icon="inbox"
         action={embedded ? acciones : undefined}
       >
@@ -258,7 +258,7 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
         )}
       </Panel>
 
-      <InlineNotice tone="info" title="Por qué no puede editar nada">
+      <InlineNotice tone="info" title="Por qué no puedes editar nada">
         El importe y el calendario de cuotas los decidió el motor al aprobar la solicitud, con el
         historial del cliente delante. Cambiarlos aquí sería rehacer esa decisión desde el mostrador.
       </InlineNotice>

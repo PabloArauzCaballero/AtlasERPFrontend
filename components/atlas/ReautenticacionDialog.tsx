@@ -20,13 +20,13 @@ interface ReautenticacionDialogProps {
 /** El rechazo, dicho con palabras del comercio y con lo que puede hacer. */
 export function motivoDeRechazo(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.code === 'REAUTH_INVALID_PASSWORD') return 'La contraseña no es correcta. Vuelva a escribirla.';
+    if (error.code === 'REAUTH_INVALID_PASSWORD') return 'La contraseña no es correcta. Vuelve a escribirla.';
     if (error.code === 'ACCOUNT_LOCKED' || error.status === 429) {
-      return 'Demasiados intentos fallidos: su cuenta quedó bloqueada un rato. Espere unos minutos e inténtelo otra vez.';
+      return 'Demasiados intentos fallidos: tu cuenta quedó bloqueada un rato. Espera unos minutos e inténtalo otra vez.';
     }
     return error.message;
   }
-  return error instanceof Error ? error.message : 'No se pudo confirmar su contraseña.';
+  return error instanceof Error ? error.message : 'No se pudo confirmar tu contraseña.';
 }
 
 /**
@@ -55,7 +55,7 @@ export function ReautenticacionDialog({ open, accion, onConfirmada, onCancel }: 
   async function confirmar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     if (!password) {
-      setError('Escriba su contraseña.');
+      setError('Escribe tu contraseña.');
       return;
     }
     setEnviando(true);
@@ -77,18 +77,18 @@ export function ReautenticacionDialog({ open, accion, onConfirmada, onCancel }: 
       open={open}
       width="md"
       icon="lock"
-      title="Confirme que es usted"
-      description={`Para ${accion} escriba otra vez la contraseña con la que entró.`}
+      title="Confirma que eres tú"
+      description={`Para ${accion} escribe otra vez la contraseña con la que entraste.`}
       busy={enviando}
       onClose={onCancel}
     >
       <form onSubmit={(evento) => void confirmar(evento)} className="space-y-4" data-testid="dialogo-reautenticacion" noValidate>
         <p className="text-xs text-slate-600">
-          Es una protección de su dinero: aunque alguien tuviera su sesión abierta, no podría cambiar la cuenta a la que le
-          pagan sus clientes sin saber su contraseña.
+          Es una protección de tu dinero: aunque alguien tuviera tu sesión abierta, no podría cambiar la cuenta a la que te
+          pagan tus clientes sin saber tu contraseña.
         </p>
         <FormField
-          tooltip="La misma contraseña con la que inicia sesión en el portal. No se guarda: sólo confirma que es usted."
+          tooltip="La misma contraseña con la que inicias sesión en el portal. No se guarda: sólo confirma que eres tú."
           label="Contraseña"
           name="reauthPassword"
           type="password"

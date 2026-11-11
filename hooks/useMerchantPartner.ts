@@ -63,7 +63,7 @@ export function useMerchantPartner(): MerchantPartner {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar su comercio.');
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
         setCargando(false);
       });
     return () => {

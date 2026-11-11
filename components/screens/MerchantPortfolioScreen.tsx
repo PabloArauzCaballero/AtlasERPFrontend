@@ -59,7 +59,7 @@ export function MerchantPortfolioScreen() {
       setFacturado(await portalService.commissions().catch(() => null));
       setError(null);
     } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer su cartera.');
+      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer tu cartera.');
     } finally {
       setCargando(false);
     }
@@ -78,7 +78,7 @@ export function MerchantPortfolioScreen() {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar su comercio.');
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
         setCargando(false);
       });
     return () => { cancelado = true; };
@@ -92,7 +92,7 @@ export function MerchantPortfolioScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Cartera' }]}
         title="Mi cartera"
-        description={`Lo que le deben${nombre ? ` a ${nombre}` : ''}, con su detalle cuota a cuota y el calendario de cobros.`}
+        description={`${nombre ? `Lo que le deben a ${nombre}` : 'Lo que te deben'}, con su detalle cuota a cuota y el calendario de cobros.`}
         actions={
           <div className="flex flex-wrap gap-1.5">
             <BotonPdf
@@ -194,12 +194,12 @@ export function MerchantPortfolioScreen() {
             icon: 'request_quote',
             content: (
               <>
-          <Panel data-tutorial-id="cartera-creditos" title="Créditos pendientes de pago" description="Abra uno para ver su detalle cuota a cuota." icon="request_quote">
+          <Panel data-tutorial-id="cartera-creditos" title="Créditos pendientes de pago" description="Abre uno para ver su detalle cuota a cuota." icon="request_quote">
             {cargando ? <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
               : (cartera?.credits ?? []).length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-xs font-semibold">No hay créditos originados en su comercio</p>
-                  <p className="mt-1 text-xs text-slate-500">Los créditos de las compras financiadas en su comercio aparecerán aquí.</p>
+                  <p className="text-xs font-semibold">No hay créditos originados en tu comercio</p>
+                  <p className="mt-1 text-xs text-slate-500">Los créditos de las compras financiadas en tu comercio aparecerán aquí.</p>
                 </div>
               )
               : (
@@ -260,7 +260,7 @@ export function MerchantPortfolioScreen() {
               : proximos.length === 0 ? (
                 <div className="py-8 text-center">
                   <p className="text-xs font-semibold">No hay cobros programados</p>
-                  <p className="mt-1 text-xs text-slate-500">Cuando haya cuotas por cobrar, verá aquí cuánto entra cada día.</p>
+                  <p className="mt-1 text-xs text-slate-500">Cuando haya cuotas por cobrar, verás aquí cuánto entra cada día.</p>
                 </div>
               )
               : (
@@ -287,7 +287,7 @@ export function MerchantPortfolioScreen() {
             icon: 'percent',
             content: (
               <>
-          <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Cuotea le cobra por el servicio. Se devenga sólo sobre lo que usted cobra." icon="percent">
+          <Panel data-tutorial-id="cartera-comision" title="Comisión por venta" description="Lo que Cuotea te cobra por el servicio. Se devenga sólo sobre lo que tú cobras." icon="percent">
             <div className="mb-4 grid gap-3 grid-cols-1 sm:grid-cols-3">
               <div className="rounded-md bg-slate-50 p-3">
                 <p className="text-xs font-semibold text-slate-500">Tasa de comisión</p>
@@ -297,7 +297,7 @@ export function MerchantPortfolioScreen() {
               <div className="rounded-md bg-slate-50 p-3">
                 <p className="text-xs font-semibold text-slate-500">Cobrado (base)</p>
                 <p className="mt-1 text-xl font-semibold">{formatBob(Number(resumen?.collected ?? 0))}</p>
-                <p className="text-xs text-slate-500">Lo que sus clientes ya pagaron</p>
+                <p className="text-xs text-slate-500">Lo que tus clientes ya pagaron</p>
               </div>
               <div className="rounded-md bg-slate-50 p-3">
                 <p className="text-xs font-semibold text-slate-500">Comisión a Cuotea</p>
@@ -306,7 +306,7 @@ export function MerchantPortfolioScreen() {
               </div>
             </div>
             {(cartera?.credits ?? []).length === 0 ? (
-              <p className="py-6 text-center text-xs text-slate-500">Todavía no hay ventas financiadas en su comercio.</p>
+              <p className="py-6 text-center text-xs text-slate-500">Todavía no hay ventas financiadas en tu comercio.</p>
             ) : (
               <div className="table-scroll rounded-lg border border-slate-200">
                 <table className="w-full min-w-[560px] text-left text-xs">
@@ -325,13 +325,13 @@ export function MerchantPortfolioScreen() {
               </div>
             )}
             <InlineNotice className="mt-4" tone="info" title="Cómo se cobra">
-              La comisión se devenga a medida que sus clientes pagan: un crédito aprobado que aún no
+              La comisión se devenga a medida que tus clientes pagan: un crédito aprobado que aún no
               cobra no genera comisión, y una venta pagada al 100 % la genera completa. La tasa se pactó
-              en su alta desde el ERP interno de Cuotea.
+              en tu alta desde el ERP interno de Cuotea.
             </InlineNotice>
             {facturado ? (
               <div className="mt-4 rounded-lg border border-slate-200 p-3">
-                <p className="text-xs font-semibold text-slate-500">Lo que Cuotea ya le facturó</p>
+                <p className="text-xs font-semibold text-slate-500">Lo que Cuotea ya te facturó</p>
                 <div className="mt-2 grid gap-3 grid-cols-1 sm:grid-cols-3">
                   <div>
                     <p className="text-lg font-semibold">{formatBob(Number(facturado.summary?.chargedTotal ?? 0))}</p>
@@ -339,7 +339,7 @@ export function MerchantPortfolioScreen() {
                   </div>
                   <div>
                     <p className="text-lg font-semibold">{formatBob(Number(facturado.summary?.settled ?? 0))}</p>
-                    <p className="text-xs text-slate-500">Ya pagado por usted</p>
+                    <p className="text-xs text-slate-500">Ya pagado por ti</p>
                   </div>
                   <div>
                     <p className="text-lg font-semibold text-amber-700">{formatBob(Number(facturado.summary?.owedToAtlas ?? 0))}</p>
@@ -348,8 +348,8 @@ export function MerchantPortfolioScreen() {
                 </div>
                 <p className="mt-2 text-xs leading-4 text-slate-500">
                   Devengado y facturado no son el mismo número y no tienen por qué coincidir: lo primero
-                  crece con cada cobro suyo, lo segundo sólo cuando Cuotea emite el cargo. La diferencia
-                  es comisión ya generada que todavía no se le ha facturado.
+                  crece con cada cobro tuyo, lo segundo sólo cuando Cuotea emite el cargo. La diferencia
+                  es comisión ya generada que todavía no se te ha facturado.
                 </p>
               </div>
             ) : null}
@@ -360,8 +360,8 @@ export function MerchantPortfolioScreen() {
         ]}
       />
 
-      <InlineNotice tone="info" title="Por qué no ve nombres">
-        Su cartera dice qué operación vence y cuándo, no quién la debe. El comercio decide sobre la
+      <InlineNotice tone="info" title="Por qué no ves nombres">
+        Tu cartera dice qué operación vence y cuándo, no quién la debe. Tú decides sobre la
         operación; el expediente del cliente es suyo y no de quien le vendió.
       </InlineNotice>
     </div>

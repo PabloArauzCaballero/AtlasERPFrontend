@@ -13,7 +13,7 @@ import { merchantCreditService, type PagoInicial } from '@/services/merchantCred
 import { ComprobanteImagen } from './MerchantPaymentProofsScreen';
 
 const MOTIVOS = [
-  { label: '— Elija el motivo —', value: '' },
+  { label: '— Elige el motivo —', value: '' },
   { label: 'No encuentro la transferencia en mi cuenta', value: 'No encuentro la transferencia en mi cuenta' },
   { label: 'El importe no coincide', value: 'El importe no coincide' },
   { label: 'El comprobante no se lee o no corresponde', value: 'El comprobante no se lee o no corresponde' },
@@ -89,7 +89,7 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
       {aviso ? <InlineNotice tone={aviso.tono}>{aviso.texto}</InlineNotice> : null}
       <Panel
         title="Pagos iniciales de compras"
-        description="El 60 % que sus clientes le pagaron directo al comprar. Compruebe en su cuenta que el dinero entró antes de confirmar."
+        description="El 60 % que tus clientes te pagaron directo al comprar. Comprueba en tu cuenta que el dinero entró antes de confirmar."
         icon="payments"
         action={<AtlasButton variant="secondary" icon="refresh" loading={cargando} onClick={() => void recargar()}>Actualizar</AtlasButton>}
       >
@@ -133,7 +133,7 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
                 ) : (
                   <div className="mt-4">
                     <InlineNotice tone="warning" title="Sin comprobante adjunto">
-                      El cliente avisó del pago pero no subió ninguna imagen. Búsquelo en su cuenta por la referencia antes de confirmar.
+                      El cliente avisó del pago pero no subió ninguna imagen. Búscalo en tu cuenta por la referencia antes de confirmar.
                     </InlineNotice>
                   </div>
                 )}

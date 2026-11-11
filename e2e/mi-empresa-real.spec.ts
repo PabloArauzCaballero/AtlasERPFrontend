@@ -141,7 +141,7 @@ test('el QR de cada caja se ve en la tabla de sucursales, sin abrir nada', async
 
 test('el QR de cobro se sube desde su pestaña, con el expediente ya aprobado', async ({ page }) => {
   await page.goto('/portal-comercio/expediente?tab=qr');
-  await expect(page.getByRole('heading', { name: /lo que ve su cliente/i })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('heading', { name: /lo que ve tu cliente/i })).toBeVisible({ timeout: 30_000 });
   /*
    * Con el expediente APROBADO el botón tiene que estar vivo: el comercio que de verdad cobra era
    * exactamente el que no podía reemplazar su QR, y ése fue el fallo que separó esta pantalla del

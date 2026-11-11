@@ -34,19 +34,19 @@ const ESTADOS_QUE_ADMITEN_QR = new Set(['draft', 'contact_verified', 'documents_
 function motivoSinSubida(estadoExpediente: string): string | null {
   if (!estadoExpediente || ESTADOS_QUE_ADMITEN_QR.has(estadoExpediente)) return null;
   if (estadoExpediente === 'under_review') {
-    return 'Cuotea está revisando su expediente. Mientras dure la revisión no se puede cambiar el QR de cobro.';
+    return 'Cuotea está revisando tu expediente. Mientras dure la revisión no se puede cambiar el QR de cobro.';
   }
   if (estadoExpediente === 'rejected') {
-    return 'Su expediente fue rechazado. Corrija lo que se le indicó y vuelva a enviarlo antes de subir un QR.';
+    return 'Tu expediente fue rechazado. Corrige lo que se te indicó y vuelve a enviarlo antes de subir un QR.';
   }
   return `Con el expediente en «${estadoExpediente}» no se admite cambiar el QR de cobro.`;
 }
 
 /** Lo que significa cada estado del QR para el comercio, sin la clave interna. */
 const ESTADO_QR: Record<string, { tono: 'success' | 'warning' | 'danger' | 'neutral'; texto: string }> = {
-  active: { tono: 'success', texto: 'Activo · sus clientes ya lo ven' },
+  active: { tono: 'success', texto: 'Activo · tus clientes ya lo ven' },
   /* Desde el 2026-10-02 el QR queda activo al confirmarlo el comercio; este estado sólo lo tienen los subidos antes. */
-  pending_review: { tono: 'warning', texto: 'Pendiente de activar · sus clientes aún no lo ven' },
+  pending_review: { tono: 'warning', texto: 'Pendiente de activar · tus clientes aún no lo ven' },
   rejected: { tono: 'danger', texto: 'Revocado por Cuotea' },
   replaced: { tono: 'neutral', texto: 'Archivado' },
 };
@@ -188,7 +188,7 @@ export function MerchantPaymentQrScreen({
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar su comercio.');
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
         setCargando(false);
       });
     return () => {
@@ -207,11 +207,11 @@ export function MerchantPaymentQrScreen({
   async function subir() {
     const file = archivo.current?.files?.[0];
     if (!file) {
-      setAviso({ tono: 'info', texto: 'Elija primero la imagen de su QR bancario.' });
+      setAviso({ tono: 'info', texto: 'Elige primero la imagen de tu QR bancario.' });
       return;
     }
     if (!entidad.trim()) {
-      setAviso({ tono: 'info', texto: 'Elija la entidad de su banco: su sigla es lo que permite cruzarlo con ASFI.' });
+      setAviso({ tono: 'info', texto: 'Elige la entidad de tu banco: su sigla es lo que permite cruzarlo con ASFI.' });
       return;
     }
     // Nunca sale el número completo: si se escribió entero, se envían sólo los 4 últimos.
@@ -254,7 +254,7 @@ export function MerchantPaymentQrScreen({
         const file = archivo.current?.files?.[0];
         const cuentaLeida = leerCuentaEnmascarada(cuenta);
         if (!file || !cuentaLeida.ok) {
-          setAviso({ tono: 'info', texto: 'Vuelva a elegir la imagen de su QR bancario.' });
+          setAviso({ tono: 'info', texto: 'Vuelve a elegir la imagen de tu QR bancario.' });
           return;
         }
         const ticket = await partnerOnboardingService.createQrUploadUrl(partnerId, {
@@ -278,7 +278,7 @@ export function MerchantPaymentQrScreen({
       registroPendiente.current = null;
       setAviso({
         tono: 'success',
-        texto: 'QR bancario registrado: desde ahora es el que ven sus clientes al pagar.',
+        texto: 'QR bancario registrado: desde ahora es el que ven tus clientes al pagar.',
       });
       if (archivo.current) archivo.current.value = '';
       setSubidas((cuenta) => cuenta + 1);
@@ -286,7 +286,7 @@ export function MerchantPaymentQrScreen({
     } catch (fallo) {
       if (fallo instanceof ApiError && fallo.code === 'REAUTH_REQUIRED') {
         // La confirmación venció o ya se usó: el QR ya está subido, sólo falta confirmar otra vez.
-        setAviso({ tono: 'info', texto: 'Su confirmación venció. Escriba otra vez su contraseña para terminar el cambio.' });
+        setAviso({ tono: 'info', texto: 'Tu confirmación venció. Escribe otra vez tu contraseña para terminar el cambio.' });
         setPidiendoContrasena(true);
         return;
       }
@@ -373,13 +373,13 @@ export function MerchantPaymentQrScreen({
         <WorkspaceHeader
           breadcrumbs={[{ label: 'Portal comercio' }, { label: 'QR de cobro' }]}
           title="Mi QR de cobro"
-          description="Es el código que sus clientes escanean para pagarle cada cuota. El dinero entra en su cuenta, no en la de Cuotea."
+          description="Es el código que tus clientes escanean para pagarte cada cuota. El dinero entra en tu cuenta, no en la de Cuotea."
           actions={acciones}
         />
       )}
 
       {!embedded && expedientes.length > 1 ? (
-        <InlineNotice tone="info" title="Su usuario tiene varios expedientes">
+        <InlineNotice tone="info" title="Tu usuario tiene varios expedientes">
           <label className="flex flex-wrap items-center gap-2 text-xs">
             <span>El QR se sube al expediente elegido:</span>
             <OptionSelect
@@ -400,13 +400,13 @@ export function MerchantPaymentQrScreen({
         </InlineNotice>
       ) : null}
       {ultimoRechazo && !aprobado && !enRevision ? (
-        <InlineNotice tone="danger" title="Cuotea rechazó su último QR" data-testid="qr-cobro-rechazo">
-          {ultimoRechazo.reviewNote ?? 'No se indicó el motivo. Suba una imagen nítida del QR de su banco.'}
+        <InlineNotice tone="danger" title="Cuotea rechazó tu último QR" data-testid="qr-cobro-rechazo">
+          {ultimoRechazo.reviewNote ?? 'No se indicó el motivo. Sube una imagen nítida del QR de tu banco.'}
         </InlineNotice>
       ) : null}
       {enRevision && !aprobado ? (
-        <InlineNotice tone="info" title="Su QR está en revisión">
-          Cuotea lo revisa antes de enseñárselo a sus clientes. Hasta entonces, la app les dice que el QR está pendiente de
+        <InlineNotice tone="info" title="Tu QR está en revisión">
+          Cuotea lo revisa antes de enseñárselo a tus clientes. Hasta entonces, la app les dice que el QR está pendiente de
           aprobación.
         </InlineNotice>
       ) : null}
@@ -418,19 +418,19 @@ export function MerchantPaymentQrScreen({
       ) : null}
 
       {!cargando && !aprobado ? (
-        <InlineNotice tone="warning" title="Sus clientes todavía no pueden pagarle">
+        <InlineNotice tone="warning" title="Tus clientes todavía no pueden pagarte">
           {enRevision
             ? 'El QR bancario está en revisión. Hasta que Cuotea lo apruebe, la app no mostrará un código de pago.'
-            : 'Suba su QR bancario. Hasta que Cuotea lo apruebe, la app no mostrará un código de pago.'}
+            : 'Sube tu QR bancario. Hasta que Cuotea lo apruebe, la app no mostrará un código de pago.'}
         </InlineNotice>
       ) : null}
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Panel
           data-tutorial-id="qr-cobro-vigente"
-          title={aprobado ? 'Lo que ve su cliente' : 'QR bancario del comercio'}
+          title={aprobado ? 'Lo que ve tu cliente' : 'QR bancario del comercio'}
           description={aprobado
-            ? 'Esta es la imagen exacta que aparece en la app cuando su cliente pulsa «pagar».'
+            ? 'Esta es la imagen exacta que aparece en la app cuando tu cliente pulsa «pagar».'
             : 'Vista previa del QR. En cuanto lo confirmes, es el que ven tus clientes al pagar; Cuotea no lo revisa antes.'}
           icon="smartphone"
           action={embedded ? acciones : undefined}
@@ -449,7 +449,7 @@ export function MerchantPaymentQrScreen({
               <StatusPill tone={estadoVigente?.tono ?? 'neutral'}>{estadoVigente?.texto ?? vigente.status}</StatusPill>
               {aprobado && enRevision ? (
                 <p className="text-xs text-slate-500" data-testid="qr-cobro-nuevo-en-revision">
-                  Hay un QR nuevo esperando revisión (huella {enRevision.fingerprint}). Sus clientes siguen viendo el
+                  Hay un QR nuevo esperando revisión (huella {enRevision.fingerprint}). Tus clientes siguen viendo el
                   aprobado hasta que Cuotea lo apruebe.
                 </p>
               ) : null}
@@ -458,7 +458,7 @@ export function MerchantPaymentQrScreen({
             <div className="py-10 text-center">
               <Icon name="qr_code_2" className="text-[28px] text-slate-500" />
               <p className="mt-2 text-xs font-semibold">Todavía no hay QR de cobro</p>
-              <p className="mt-1 text-xs text-slate-500">Sus clientes ven la instrucción de pago sin código que escanear.</p>
+              <p className="mt-1 text-xs text-slate-500">Tus clientes ven la instrucción de pago sin código que escanear.</p>
             </div>
           )}
         </Panel>
@@ -474,7 +474,7 @@ export function MerchantPaymentQrScreen({
             <FileDropField
               key={subidas}
               label="Imagen del QR (PNG o JPG)"
-              tooltip="La imagen del QR que le dio su banco, tal cual: se guarda con su huella para poder comprobarla."
+              tooltip="La imagen del QR que te dio tu banco, tal cual: se guarda con su huella para poder comprobarla."
               accept="image/png,image/jpeg"
               inputRef={archivo}
               data-testid="input-qr-cobro"
@@ -489,7 +489,7 @@ export function MerchantPaymentQrScreen({
                 required
                 value={entidad}
                 onChange={(evento) => setEntidad(evento.target.value)}
-                options={withEmpty(entidades, '— Elija su banco —')}
+                options={withEmpty(entidades, '— Elige tu banco —')}
                 hint="La entidad que emitió el QR."
                 data-testid="campo-entidad"
               />
@@ -562,7 +562,7 @@ export function MerchantPaymentQrScreen({
 
       <ReautenticacionDialog
         open={pidiendoContrasena}
-        accion={vigente ? 'reemplazar su QR de cobro' : 'registrar su QR de cobro'}
+        accion={vigente ? 'reemplazar tu QR de cobro' : 'registrar tu QR de cobro'}
         onConfirmada={(reauthToken) => {
           setPidiendoContrasena(false);
           void guardar(reauthToken);
@@ -570,13 +570,13 @@ export function MerchantPaymentQrScreen({
         onCancel={() => {
           setPidiendoContrasena(false);
           registroPendiente.current = null;
-          setAviso({ tono: 'info', texto: 'No se cambió el QR de cobro: hace falta confirmar su contraseña.' });
+          setAviso({ tono: 'info', texto: 'No se cambió el QR de cobro: hace falta confirmar tu contraseña.' });
         }}
       />
 
       <InlineNotice tone="info" title="Cuotea nunca recibe este dinero">
-        Su cliente transfiere directo a la cuenta de este QR. Por eso, cuando avise que pagó, es usted quien lo confirma
-        desde «Comprobantes por verificar»: es el único que ve la transferencia en su extracto.
+        Tu cliente transfiere directo a la cuenta de este QR. Por eso, cuando avise que pagó, eres tú quien lo confirma
+        desde «Comprobantes por verificar»: eres el único que ve la transferencia en tu extracto.
       </InlineNotice>
     </div>
   );
