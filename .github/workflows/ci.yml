@@ -97,8 +97,20 @@ jobs:
 
       # Sólo Chromium: es el único navegador que usan estas baterías. WebKit lo pide
       # `layout-responsive`, que necesita sesión y no corre aquí.
+      # `--with-deps` llama a apt, que en el runner apunta al espejo de Azure. El 2026-11-11 ese espejo no
+      # resolvía DNS («Temporary failure resolving 'azure.archive.ubuntu.com'») y el job moría antes de
+      # correr una sola prueba, bloqueando el parche crítico de Next.js. Se usa el espejo oficial de Ubuntu,
+      # se reintenta, y si apt sigue sin responder se instala sólo el navegador: la imagen del runner trae
+      # casi todas sus librerías, y si faltara alguna las pruebas fallan a la vista, no en silencio.
       - name: Instalar Chromium de Playwright
-        run: npx playwright install --with-deps chromium
+        run: |
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+          for intento in 1 2 3; do
+            npx playwright install --with-deps chromium && exit 0
+            echo "apt falló (intento $intento); se reintenta en 15 s"; sleep 15
+          done
+          echo "::warning::apt no respondió: se instala Chromium sin las dependencias del sistema"
+          npx playwright install chromium
 
       - name: Build
         run: yarn build
