@@ -102,15 +102,12 @@ jobs:
       # correr una sola prueba, bloqueando el parche crítico de Next.js. Se usa el espejo oficial de Ubuntu,
       # se reintenta, y si apt sigue sin responder se instala sólo el navegador: la imagen del runner trae
       # casi todas sus librerías, y si faltara alguna las pruebas fallan a la vista, no en silencio.
+      # Segunda corrida del 2026-11-11: con el espejo oficial apt tampoco respondía y se comió los 25 min
+      # del job. npm sí descarga, así que el navegador se baja sin apt; la imagen ubuntu del runner ya trae
+      # las librerías de Chromium. Si alguna faltara, las pruebas fallan a la vista.
       - name: Instalar Chromium de Playwright
-        run: |
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/*.sources 2>/dev/null || true
-          for intento in 1 2 3; do
-            npx playwright install --with-deps chromium && exit 0
-            echo "apt falló (intento $intento); se reintenta en 15 s"; sleep 15
-          done
-          echo "::warning::apt no respondió: se instala Chromium sin las dependencias del sistema"
-          npx playwright install chromium
+        timeout-minutes: 6
+        run: npx playwright install chromium
 
       - name: Build
         run: yarn build
