@@ -176,7 +176,7 @@ export function MerchantBillingScreen() {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setCarteraError(fallo instanceof Error ? fallo.message : 'No fue posible identificar su comercio.');
+        setCarteraError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
         setCargandoCartera(false);
       });
     return () => { cancelado = true; };
@@ -195,7 +195,7 @@ export function MerchantBillingScreen() {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setCarteraError(fallo instanceof Error ? fallo.message : 'No fue posible leer sus cobros.');
+        setCarteraError(fallo instanceof Error ? fallo.message : 'No fue posible leer tus cobros.');
       })
       .finally(() => { if (!cancelado) setCargandoCartera(false); });
     return () => { cancelado = true; };
@@ -252,7 +252,7 @@ export function MerchantBillingScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Consumo y facturación' }]}
         title="Consumo y facturación"
-        description="Cada cobro con su comisión, lo que queda por cobrar y los cargos que Cuotea le factura."
+        description="Cada cobro con su comisión, lo que queda por cobrar y los cargos que Cuotea te factura."
         actions={
           <BotonPdf
             label="Descargar PDF"
@@ -270,7 +270,7 @@ export function MerchantBillingScreen() {
               sections: [
                 {
                   title: 'Cobros recibidos',
-                  description: 'Cada pago de sus clientes con la comisión que devengó.',
+                  description: 'Cada pago de tus clientes con la comisión que devengó.',
                   table: tablaPdf(
                     [
                       { key: 'receivedAt', label: 'Fecha' },
@@ -348,7 +348,7 @@ export function MerchantBillingScreen() {
             className="max-w-md"
             value={expedienteId ?? ''}
             onChange={(e) => setExpedienteId(e.target.value)}
-            hint="Tiene más de un expediente: los cobros y las cuotas son los del que elija aquí."
+            hint="Tienes más de un expediente: los cobros y las cuotas son los del que elijas aquí."
             options={expedientes.map((uno) => ({ label: uno.tradeName ?? uno.legalName ?? uno.partnerId, value: uno.partnerId }))}
           />
         </Panel>
@@ -372,7 +372,7 @@ export function MerchantBillingScreen() {
       {/* Un fallo al resolver el alcance se dice como lo que es, y no como «no se pudo cargar la
           facturación»: la facturación ni siquiera se llegó a pedir. */}
       {scope.error ? <InlineNotice tone="danger" title="No se pudo determinar tu negocio">{scope.error}</InlineNotice> : null}
-      {carteraError ? <InlineNotice tone="danger" title="No se pudieron cargar sus cobros">{carteraError}</InlineNotice> : null}
+      {carteraError ? <InlineNotice tone="danger" title="No se pudieron cargar tus cobros">{carteraError}</InlineNotice> : null}
       {billing.error ? <InlineNotice tone="danger" title="No se pudieron cargar los cargos de Cuotea">{billing.error}</InlineNotice> : null}
 
       <Resumen
@@ -396,14 +396,14 @@ export function MerchantBillingScreen() {
             content: (
               <Panel
                 title="Cobros recibidos"
-                description="Cada pago de sus clientes, con la comisión que ese pago le devengó a Cuotea."
+                description="Cada pago de tus clientes, con la comisión que ese pago le devengó a Cuotea."
                 icon="receipt"
                 action={nombreExpediente ? <StatusPill tone="neutral">{nombreExpediente}</StatusPill> : null}
               >
                 {cargandoCartera ? (
                   <p className="py-8 text-center text-xs text-slate-500">Cargando…</p>
                 ) : pagos.length === 0 && cobradoSinPago === 0 ? (
-                  <p className="py-6 text-center text-xs text-slate-500">Todavía no se ha registrado ningún cobro en sus créditos.</p>
+                  <p className="py-6 text-center text-xs text-slate-500">Todavía no se ha registrado ningún cobro en tus créditos.</p>
                 ) : (
                   <div className="table-scroll rounded-lg border border-slate-200">
                     <table className="w-full min-w-[820px] text-left text-xs">
@@ -451,11 +451,11 @@ export function MerchantBillingScreen() {
           },
           {
             id: 'cuotas',
-            label: 'Estado de sus cuotas',
+            label: 'Estado de tus cuotas',
             icon: 'fact_check',
             content: (
               <Panel
-                title="Estado de sus cuotas"
+                title="Estado de tus cuotas"
                 description="Rojo en mora, ámbar pendiente y verde pagado."
                 icon="fact_check"
                 action={
@@ -473,8 +473,8 @@ export function MerchantBillingScreen() {
                 ) : creditosVisibles.length === 0 ? (
                   <p className="py-6 text-center text-xs text-slate-500">
                     {cuotas.length === 0
-                      ? 'No hay créditos originados en su comercio.'
-                      : 'Ninguna cuota en ese estado. Elija otro estado arriba para ver más.'}
+                      ? 'No hay créditos originados en tu comercio.'
+                      : 'Ninguna cuota en ese estado. Elige otro estado arriba para ver más.'}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -546,7 +546,7 @@ export function MerchantBillingScreen() {
                 <>
                   <Panel
                     title="Cargos de Cuotea"
-                    description="Lo que Cuotea le factura: la comisión de cada venta, la publicidad y su tarifa."
+                    description="Lo que Cuotea te factura: la comisión de cada venta, la publicidad y tu tarifa."
                     icon="account_balance_wallet"
                     action={<StatusPill tone="neutral">{`Tarifa: ${String(summary.planName ?? 'sin tarifa')}`}</StatusPill>}
                   >
@@ -585,7 +585,7 @@ export function MerchantBillingScreen() {
                         </table>
                       </div>
                     ) : (
-                      <p className="py-6 text-center text-xs text-slate-500">Cuotea todavía no le ha emitido ningún cargo.</p>
+                      <p className="py-6 text-center text-xs text-slate-500">Cuotea todavía no te ha emitido ningún cargo.</p>
                     )}
                   </Panel>
 
@@ -652,13 +652,13 @@ export function MerchantBillingScreen() {
 
       {!ready && !error ? (
         <InlineNotice tone="info" title="Elige un negocio">
-          Administras varios negocios: elige de cuál quieres ver los cargos que Cuotea le factura.
+          Administras varios negocios: elige de cuál quieres ver los cargos que Cuotea te factura.
         </InlineNotice>
       ) : null}
 
       <InlineNotice tone="info" title="Cómo se cobra la comisión">
-        La comisión se devenga sobre lo que usted COBRA, no sobre lo que vende: una cuota impagada no
-        genera comisión, y un pago revertido la devuelve. La tasa vigente es {tasa} % y se pactó en su
+        La comisión se devenga sobre lo que tú COBRAS, no sobre lo que vendes: una cuota impagada no
+        genera comisión, y un pago revertido la devuelve. La tasa vigente es {tasa} % y se pactó en tu
         alta desde el ERP interno de Cuotea.
       </InlineNotice>
     </div>

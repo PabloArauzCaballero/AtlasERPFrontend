@@ -429,7 +429,7 @@ export function MerchantStructureScreen({ embedded = false, partnerId: partnerId
                   editando.city && !ciudades.some((option) => option.value === String(editando.city))
                     ? [...ciudades, { value: String(editando.city), label: `${String(editando.city)} (valor anterior)` }]
                     : ciudades,
-                  '— Elija la ciudad —',
+                  '— Elige la ciudad —',
                 )}
               />
               <FormField tooltip="Dirección completa de la casa matriz. Pulsa el pin para verla en el mapa." label="Dirección" name="address" className="md:col-span-2" defaultValue={String(editando.address ?? '')} />

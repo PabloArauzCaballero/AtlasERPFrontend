@@ -179,7 +179,7 @@ export function MerchantPosHistoryScreen({ partnerId }: Readonly<{ partnerId: st
             <p className="mt-2 text-xs font-semibold">{hayFiltros ? 'Ningún movimiento coincide con estos filtros' : 'Todavía no hay movimientos en la caja'}</p>
             <p className="mt-1 text-xs text-slate-500">
               {hayFiltros
-                ? 'Pulse «Quitar filtros» para ver todo el historial.'
+                ? 'Pulsa «Quitar filtros» para ver todo el historial.'
                 : 'Aquí aparecerán las solicitudes respondidas y los pagos verificados.'}
             </p>
           </div>

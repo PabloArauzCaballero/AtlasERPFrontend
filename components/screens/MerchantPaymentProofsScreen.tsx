@@ -18,7 +18,7 @@ import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 import { MerchantDownPaymentsPanel } from './MerchantDownPaymentsPanel';
 
 const MOTIVOS = [
-  { label: '— Elija el motivo —', value: '' },
+  { label: '— Elige el motivo —', value: '' },
   { label: 'No encuentro la transferencia en mi cuenta', value: 'NO_APARECE_EN_CUENTA' },
   { label: 'El importe no coincide', value: 'IMPORTE_NO_COINCIDE' },
   { label: 'El comprobante no se lee o no corresponde', value: 'COMPROBANTE_ILEGIBLE' },
@@ -82,7 +82,7 @@ export function ComprobanteImagen({
     return (
       <div data-testid={`comprobante-error-${claimId}`}>
         <InlineNotice tone="warning" title="No se pudo mostrar el comprobante">
-          {fallo} Puede rechazarlo indicando que el comprobante no se lee.
+          {fallo} Puedes rechazarlo indicando que el comprobante no se lee.
         </InlineNotice>
       </div>
     );
@@ -109,7 +109,7 @@ export function ComprobanteImagen({
         />
       </button>
       <figcaption className="text-xs text-slate-500">
-        {ampliado ? 'Pulse la imagen para reducirla.' : 'Pulse la imagen para ampliarla.'} Compruebe el monto, la fecha y la
+        {ampliado ? 'Pulsa la imagen para reducirla.' : 'Pulsa la imagen para ampliarla.'} Comprueba el monto, la fecha y la
         cuenta de destino antes de confirmar.
       </figcaption>
     </figure>
@@ -199,7 +199,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar su comercio.');
+        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
         setCargando(false);
       });
     return () => { cancelado = true; };
@@ -268,7 +268,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
         <WorkspaceHeader
           breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Comprobantes' }]}
           title="Comprobantes por verificar"
-          description="Sus clientes avisaron que transfirieron a su cuenta. Confirme lo que ya vio entrar; la cuota se da por pagada sólo entonces."
+          description="Tus clientes avisaron que transfirieron a tu cuenta. Confirma lo que ya viste entrar; la cuota se da por pagada sólo entonces."
           actions={acciones}
         />
       )}
@@ -280,8 +280,8 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
 
       <Panel
         data-tutorial-id="comprobantes-cola"
-        title="Esperando su confirmación"
-        description="Compruebe en su extracto que el dinero entró antes de confirmar."
+        title="Esperando tu confirmación"
+        description="Comprueba en tu extracto que el dinero entró antes de confirmar."
         icon="fact_check"
         action={embedded ? acciones : undefined}
       >
@@ -326,7 +326,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
                 ) : (
                   <div className="mt-4">
                     <InlineNotice tone="warning" title="Sin comprobante adjunto">
-                      El cliente avisó del pago pero no subió ninguna imagen. Búsquelo en su extracto por la referencia
+                      El cliente avisó del pago pero no subió ninguna imagen. Búscalo en tu extracto por la referencia
                       antes de confirmar.
                     </InlineNotice>
                   </div>
@@ -361,10 +361,10 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
         )}
       </Panel>
 
-      <InlineNotice tone="info" title="Por qué lo confirma usted">
-        El cliente transfiere al QR bancario de su comercio, así que ese dinero entra en su cuenta y
+      <InlineNotice tone="info" title="Por qué lo confirmas tú">
+        El cliente transfiere al QR bancario de tu comercio, así que ese dinero entra en tu cuenta y
         no en la de Cuotea. Un comprobante es evidencia de que alguien hizo una transferencia, no de
-        que usted la recibió: por eso la cuota se salda cuando usted lo ve en su extracto.
+        que tú la recibiste: por eso la cuota se salda cuando tú lo ves en tu extracto.
       </InlineNotice>
     </div>
   );

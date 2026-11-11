@@ -54,7 +54,7 @@ export function MerchantPosScreen() {
       <WorkspaceHeader
         breadcrumbs={[{ label: 'Portal comercio' }, { label: 'Gestión POS' }]}
         title="Gestión POS"
-        description="Lo que pasa en su caja: las compras que sus clientes piden con el QR y los pagos que avisan haber transferido. Usted acepta, rechaza y confirma."
+        description="Lo que pasa en tu caja: las compras que tus clientes piden con el QR y los pagos que avisan haber transferido. Tú aceptas, rechazas y confirmas."
       />
 
       <MerchantPartnerPicker partner={partner} />

@@ -103,10 +103,10 @@ test('las solicitudes de compra no tienen ningún campo editable', async ({ page
 
   // El expediente se resuelve solo: el portal sabe cuál es su comercio.
   await expect(page.getByText(/expediente \d+/i).first()).toBeVisible();
-  await expect(page.getByText(/usted no puede editarlas/i)).toBeVisible();
+  await expect(page.getByText(/sólo puedes aceptar o rechazar/i)).toBeVisible();
 
   // Dentro de la cola no hay un solo control de entrada: sólo se acepta o se rechaza.
-  const cola = page.locator('section, article').filter({ hasText: /esperando su respuesta/i }).first();
+  const cola = page.locator('section, article').filter({ hasText: /esperando tu respuesta/i }).first();
   await expect(cola.locator('input:not([type=hidden]), textarea')).toHaveCount(0);
   await sinErrores(page, 'solicitudes');
   await page.screenshot({ path: `${EVIDENCIA}/06-solicitudes.png`, fullPage: true });
@@ -136,13 +136,13 @@ test('las sucursales se pueden crear, editar y dar de baja', async ({ page }) =>
 test('los comprobantes de transferencia los verifica el comercio', async ({ page }) => {
   await page.goto('/portal-comercio/gestion-pos?tab=comprobantes');
   await expect(page.getByRole('tab', { name: /comprobantes por verificar/i })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('heading', { name: /esperando su confirmación/i })).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole('heading', { name: /esperando tu confirmación/i })).toBeVisible({ timeout: 120_000 });
 
   // El expediente se resuelve solo, igual que en solicitudes.
   await expect(page.getByText(/expediente \d+/i).first()).toBeVisible();
   // Y la pantalla dice de quién es la decisión y por qué.
-  await expect(page.getByText(/el dinero entra en su cuenta/i)).toBeVisible();
-  await expect(page.getByText(/por qué lo confirma usted/i)).toBeVisible();
+  await expect(page.getByText(/dinero entra en tu cuenta/i)).toBeVisible();
+  await expect(page.getByText(/por qué lo confirmas tú/i)).toBeVisible();
 
   /*
    * Lee del backend: o hay comprobantes, o dice que no hay ninguno. Nunca un error.
@@ -169,7 +169,7 @@ test('verificar comprobantes se alcanza desde el menú en dos pasos', async ({ p
   await menu.getByText(/gestión pos/i).click();
   await page.getByRole('tab', { name: /comprobantes por verificar/i }).click();
   await expect(page).toHaveURL(/tab=comprobantes/, { timeout: 60_000 });
-  await expect(page.getByRole('heading', { name: /esperando su confirmación/i })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole('heading', { name: /esperando tu confirmación/i })).toBeVisible({ timeout: 60_000 });
 });
 
 test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => {
@@ -212,7 +212,7 @@ test('la cartera resume, detalla y calendariza los cobros', async ({ page }) => 
   await page.screenshot({ path: `${EVIDENCIA}/09-comision.png`, fullPage: true });
 
   // La cartera no revela a quién se le debe.
-  await expect(page.getByText(/por qué no ve nombres/i)).toBeVisible();
+  await expect(page.getByText(/por qué no ves nombres/i)).toBeVisible();
 });
 
 /*

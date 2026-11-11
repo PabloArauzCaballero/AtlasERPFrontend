@@ -16,7 +16,7 @@ export function MerchantPartnerPicker({ partner }: Readonly<{ partner: MerchantP
   if (partner.expedientes.length <= 1) return null;
 
   return (
-    <InlineNotice tone="info" title="Su usuario tiene varios expedientes">
+    <InlineNotice tone="info" title="Tu usuario tiene varios expedientes">
       <label className="flex flex-wrap items-center gap-2 text-xs">
         <span>Todo lo de esta pantalla es del expediente elegido:</span>
         <OptionSelect
