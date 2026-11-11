@@ -14,8 +14,10 @@
  * SÓLO con este mismo origen (`/almacen/subida`, `app/almacen/subida/route.ts`) y el salto al
  * almacén lo da el servidor de Next, donde ni el contenido mixto ni el filtro existen.
  *
- * Sigue sin llevar la sesión del ERP: el reenvío copia sólo las cabeceras que firma el permiso.
+ * Lleva el bearer de la sesión del ERP: el reenvío lo exige y lo comprueba contra el backend, pero
+ * NO lo pasa al almacén (sólo copia las cabeceras que firma el permiso).
  */
+import { getAccessToken } from './apiClient';
 import { conReintentos } from './reintentos';
 
 export const RUTA_SUBIDA_AL_ALMACEN = '/almacen/subida';
@@ -35,7 +37,11 @@ export async function subirAlAlmacen(permiso: PermisoDeSubida, file: File): Prom
     () =>
       fetch(RUTA_SUBIDA_AL_ALMACEN, {
         method: permiso.method,
-        headers: { ...permiso.requiredHeaders, [CABECERA_DESTINO]: permiso.uploadUrl },
+        headers: {
+          ...permiso.requiredHeaders,
+          [CABECERA_DESTINO]: permiso.uploadUrl,
+          ...(getAccessToken() ? { Authorization: `Bearer ${getAccessToken()}` } : {}),
+        },
         body: file,
       }),
     { repeticion: 'segura', esSinRespuesta: (error) => error instanceof TypeError },
