@@ -7,6 +7,7 @@ import './tutorial.css';
 import { AuthProvider } from '@/lib/authContext';
 import { ToastHost } from '@/components/atlas/ToastHost';
 import { CierrePorInactividad } from '@/components/layout/CierrePorInactividad';
+import { CapturadorDeErrores } from '@/components/layout/CapturadorDeErrores';
 import { SCRIPT_DE_TEMA } from '@/lib/tema';
 
 // El CSP usa un nonce nuevo por petición; el HTML debe generarse con ese nonce.
@@ -66,7 +67,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0,0&display=swap" rel="stylesheet" />
       </head>
-      <body><AuthProvider>{children}<CierrePorInactividad /></AuthProvider><ToastHost /></body>
+      <body><CapturadorDeErrores /><AuthProvider>{children}<CierrePorInactividad /></AuthProvider><ToastHost /></body>
     </html>
   );
 }
