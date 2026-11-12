@@ -6,7 +6,14 @@
  *
  * ## Qué impide que sea un proxy abierto (falla CERRADO)
  *
- * Esta ruta no exige sesión, así que el único freno es este archivo. Hasta el 2026-10-09 aceptaba,
+ *  - SESIÓN (desde el 2026-11-11, E8): sin un bearer que el backend del ERP dé por bueno
+ *    (`GET /api/v1/auth/session`), 401 sin salir a la red; si el backend no contesta, 503. Antes
+ *    cualquiera en internet podía usar este servidor para hacer PUT. Ver `lib/relaySubida.ts`.
+ *  - RED: el nombre del destino se resuelve y se rechaza (403) si alguna de sus direcciones es
+ *    loopback, privada, de enlace local (metadatos de la nube) o reservada. Antes se comparaba sólo
+ *    el NOMBRE, y uno de la lista que resolviera a una IP interna llevaba la petición dentro.
+ *
+ * Hasta el 2026-10-09 aceptaba,
  * sin la variable, cualquier host que empezara por `minio.` o acabara en `.ts.net`, en cualquier
  * puerto, y devolvía entero lo que contestara el destino: con `minio.10.0.0.5.sslip.io` se llegaba a
  * cualquier IP de la red interna (auditoría de seguridad, ERP-02). Ahora:
@@ -18,8 +25,8 @@
  *    valores de TEST y DEV vienen por defecto en `docker-compose.coolify.yml`.
  *  - Lista vacía: 503 «almacén no configurado». Sólo fuera de producción (`next dev` en el equipo)
  *    se aceptan `localhost` y `127.0.0.1`, en cualquier puerto.
- *  - Sin usuario ni contraseña en la URL, sin seguir redirecciones, y sin la sesión del ERP: sólo
- *    pasan las cabeceras que la firma cubre.
+ *  - Sin usuario ni contraseña en la URL, sin seguir redirecciones, y sin la sesión del ERP hacia el
+ *    almacén: la sesión se comprueba aquí y NO se reenvía; sólo pasan las cabeceras que la firma cubre.
  *  - `content-length` obligatorio y el cuerpo se lee con tope: nunca más de lo declarado ni de
  *    `TAMANO_MAXIMO`.
  *  - Al llamante vuelve el ESTADO del almacén. El cuerpo, sólo si es el XML de error de S3 y cabe en
@@ -29,6 +36,7 @@
  * recibe exactamente la petición que se firmó.
  */
 import { CABECERA_DESTINO } from '@/lib/almacen';
+import { comprobarSesion, destinoDeRedSeguro } from '@/lib/relaySubida';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +120,12 @@ async function respuestaParaElNavegador(respuesta: Response): Promise<Response> 
 }
 
 export async function PUT(request: Request): Promise<Response> {
+  const sesion = await comprobarSesion(request);
+  if (sesion === 'sin-sesion') return rechazo(401, 'Inicia sesión para subir archivos.');
+  if (sesion === 'no-comprobable') {
+    return rechazo(503, 'No se pudo comprobar la sesión. Vuelve a intentarlo en unos segundos.');
+  }
+
   let destino: URL;
   try {
     destino = new URL(request.headers.get(CABECERA_DESTINO) ?? '');
@@ -134,6 +148,10 @@ export async function PUT(request: Request): Promise<Response> {
   }
   if (veredicto === 'prohibido') {
     return rechazo(403, `El almacén ${destino.host} no está permitido (ALMACEN_HOSTS_PERMITIDOS).`);
+  }
+  const red = await destinoDeRedSeguro(destino.hostname);
+  if (!red.ok) {
+    return rechazo(403, `El almacén ${destino.host} no es un destino de red permitido.`);
   }
 
   const declarado = request.headers.get('content-length');

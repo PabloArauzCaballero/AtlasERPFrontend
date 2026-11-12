@@ -1,5 +1,10 @@
 import type { NextConfig } from 'next';
 
+/** Backend del ERP para el servidor de Next (rewrite y comprobación de sesión del reenvío de subidas). */
+function erpApiOrigin(): string {
+  return process.env.ERP_API_ORIGIN ?? 'http://127.0.0.1:3020';
+}
+
 function securityHeaders() {
   return [
     // CSP vive en middleware.ts: el nonce cambia por petición.
@@ -57,8 +62,12 @@ const nextConfig: NextConfig = {
       { source: '/operaciones/admin/formularios-papel', destination: '/operaciones/admin/mapa-sitio', permanent: false },
     ];
   },
+  // El servidor de Next también habla con el backend fuera del rewrite: `/almacen/subida` comprueba
+  // la sesión en `GET /api/v1/auth/session`. Se hornea aquí, igual que el rewrite, porque la imagen
+  // final (`runner`) no lleva la variable: sólo existía al construir.
+  env: { ERP_API_ORIGIN: erpApiOrigin() },
   async rewrites() {
-    const origin = process.env.ERP_API_ORIGIN ?? 'http://127.0.0.1:3020';
+    const origin = erpApiOrigin();
     return [{ source: '/api/v1/:path*', destination: `${origin}/api/v1/:path*` }];
   },
   experimental: {
