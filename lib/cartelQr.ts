@@ -109,6 +109,25 @@ function nombreDelComercio(ctx: CanvasRenderingContext2D, texto: string, y: numb
   return segunda ? 62 : 0;
 }
 
+const ALTO_CABECERA = 300;
+/** El logo de identidad: lienzo 760 × 320 con el cuadro de la «c» (150 × 150) en (117,08, 85). */
+const LOGO = { ancho: 760, alto: 320, cuadroX: 117.08, cuadroY: 85, lado: 150 } as const;
+const ESCALA_LOGO = 0.9;
+
+/**
+ * Dónde se dibuja el SVG del logo para que el cuadro de la «c» quede en x = 90 y centrado en la banda
+ * (y = (300 − 150 × 0,9) / 2 = 82,5), como en la app del comercio.
+ */
+export function planoDelLogo(): { x: number; y: number; ancho: number; alto: number } {
+  const cuadroY = (ALTO_CABECERA - LOGO.lado * ESCALA_LOGO) / 2;
+  return {
+    x: 90 - LOGO.cuadroX * ESCALA_LOGO,
+    y: cuadroY - LOGO.cuadroY * ESCALA_LOGO,
+    ancho: LOGO.ancho * ESCALA_LOGO,
+    alto: LOGO.alto * ESCALA_LOGO,
+  };
+}
+
 /** Dibuja el cartel y lo devuelve como PNG. */
 export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea-logo-amarillo.svg'): Promise<Blob> {
   if (!datos.codigoManual) throw new Error('Esta caja todavía no tiene código manual: recarga la pantalla e inténtalo de nuevo.');
@@ -124,22 +143,25 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea
   ctx.fillStyle = IMPRESO.papel;
   ctx.fillRect(0, 0, ANCHO, ALTO);
 
-  // Cabecera con la marca: banda amarilla y el logo tal cual lo entrega la identidad (760 × 320).
+  // Cabecera con la marca: banda amarilla (el único bloque amarillo) y el logo tal cual lo entrega la
+  // identidad (760 × 320), entero y sin recolorear. Mismo plano que el cartel de la app del comercio
+  // (PLAN-06, fase 4): escala 0,9 y el cuadro de la «c» con su esquina en (90, 82,5), así el margen
+  // libre (≥ alto de la «c») se cumple y la web y la app imprimen el mismo cartel. Sin eslogan: la
+  // identidad no define ninguno.
   ctx.fillStyle = IMPRESO.amarillo;
-  ctx.fillRect(0, 0, ANCHO, 300);
+  ctx.fillRect(0, 0, ANCHO, ALTO_CABECERA);
   const logo = await cargarImagen(urlLogo);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = IMPRESO.tinta;
   if (logo) {
-    ctx.drawImage(logo, 20, 30, 570, 240);
+    const { x, y, ancho, alto } = planoDelLogo();
+    ctx.drawImage(logo, x, y, ancho, alto);
   } else {
     // Sin logo el cartel sale igual, con la marca escrita: el QR es lo que no puede faltar.
     ctx.font = `600 92px ${fuenteDeLaPagina()}`;
     ctx.fillText('Cuotea', 90, 180);
   }
-  ctx.font = `500 34px ${fuenteDeLaPagina()}`;
-  ctx.fillText('Compra ahora, paga en cuotas', 640, 165);
 
   // A quién pertenece.
   const baja = nombreDelComercio(ctx, datos.comercio, 410);
@@ -159,7 +181,7 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea
   ctx.fill();
   rectanguloRedondeado(ctx, x0 - marco, y0 - marco, lado + marco * 2, lado + marco * 2, 44);
   ctx.lineWidth = 6;
-  ctx.strokeStyle = IMPRESO.bordeFuerte;
+  ctx.strokeStyle = IMPRESO.tinta;
   ctx.stroke();
   ctx.fillStyle = IMPRESO.papel;
   ctx.fillRect(x0, y0, lado, lado);
@@ -179,7 +201,7 @@ export async function dibujarCartel(datos: DatosCartel, urlLogo = '/marca/cuotea
   // El código que se teclea.
   const yCaja = finQr + 160;
   rectanguloRedondeado(ctx, 110, yCaja, ANCHO - 220, 330, 40);
-  ctx.fillStyle = IMPRESO.lavado;
+  ctx.fillStyle = IMPRESO.hundido;
   ctx.fill();
   ctx.lineWidth = 4;
   ctx.strokeStyle = IMPRESO.bordeFuerte;

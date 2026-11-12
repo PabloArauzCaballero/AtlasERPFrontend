@@ -27,7 +27,7 @@ const MOTIVOS: Record<string, string> = {
   LEGACY_AMOUNTS_DERIVED: 'Compra registrada con importes deducidos (evento antiguo)',
   // La conciliación diaria encontró que el ERP y Atlas no dicen lo mismo de un préstamo; se cierra
   // sola cuando vuelven a cuadrar.
-  RECONCILIATION_MISMATCH: 'El ERP y Atlas no cuadran en la conciliación diaria',
+  RECONCILIATION_MISMATCH: 'El ERP y la plataforma de Cuotea no cuadran en la conciliación diaria',
 };
 
 const QUE_ES: Record<string, string> = {

@@ -11,6 +11,7 @@ export const IMPRESO = {
   tinta: '#111111',
   tintaSuave: '#5C5C55',
   papel: '#FFFFFF',
-  lavado: '#F6F6F1',
+  /** La caja del código a mano (`surface-sunken` claro), igual que el cartel de la app del comercio. */
+  hundido: '#ECECE5',
   bordeFuerte: '#85857B',
 } as const;
