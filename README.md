@@ -35,7 +35,7 @@ Cada área usa su propio shell de navegación. No se mezclan permisos ni navegac
 
 | Población        | Endpoint                | Identidad                                        |
 | ---------------- | ----------------------- | ------------------------------------------------ |
-| Personal Atlas   | `auth/login`            | Usuarios internos de AtlasBackend, con RBAC      |
+| Personal Cuotea  | `auth/login`            | Usuarios internos de AtlasBackend, con RBAC      |
 | Comercio afiliado| `auth/merchant/login`   | `iam.merchant_users` de AtlasBackend, sin RBAC   |
 
 Un comercio **no tiene permisos**: lo que puede tocar lo decide el backend contra sus membresías
@@ -50,7 +50,7 @@ endpoint por endpoint.
 elige (y queda auditado como acceso delegado), el comercio no elige nada —su alcance lo deriva el
 backend— y por eso no ve el selector. Antes todas las pantallas asumían siempre lo primero, con un
 selector alimentado por `b2b/accounts`, un endpoint interno que un comercio ni siquiera puede
-llamar: el portal sólo era usable por personal de Atlas.
+llamar: el portal sólo era usable por personal de Cuotea.
 
 ## Ayuda en pantalla
 
