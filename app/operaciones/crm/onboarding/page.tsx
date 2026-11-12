@@ -17,6 +17,7 @@ import { MerchantAccessModal } from '@/components/screens/MerchantAccessModal';
 import { OnboardingChecklistEvidenceModal } from '@/components/screens/OnboardingChecklistEvidenceModal';
 import { OnboardingQueueDashboard, type OnboardingScope } from '@/components/screens/OnboardingQueueDashboard';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
+import { useSondeo } from '@/hooks/useSondeo';
 import { useAuth } from '@/lib/authContext';
 import { toast } from '@/lib/toast';
 import { b2bService } from '@/services/b2bService';
@@ -41,6 +42,8 @@ const PERMISO_PEDIR_VERIFICACION = 'partner.kyb.request';
 const PERMISO_PEDIR_CREDENCIALES = 'merchant.users.request';
 /** Estados en los que el desenlace puede cambiar sin que el ERP haga nada: hay que ir a mirar. */
 const ESPERA_AL_MOTOR = new Set(['EN_VERIFICACION', 'REVISION_MANUAL']);
+/** Mientras algún caso espera al Motor, la cola se relee (y se concilia) sola cada 20 s. */
+const SONDEO_COLA_MS = 20_000;
 
 /** Opción vacía de los filtros opcionales de la regla de comisión: vacío es «aplica a todos». */
 const CUALQUIERA = '— Cualquiera —';
@@ -73,6 +76,8 @@ export default function OnboardingPage() {
   const [scope, setScope] = useState<OnboardingScope>('abiertos');
   const [version, setVersion] = useState(0);
   const recargar = useCallback(() => setVersion((value) => value + 1), []);
+  /* Si algún caso de la última lectura espera al Motor o al portal: sólo entonces se vuelve a mirar sola. */
+  const [esperando, setEsperando] = useState(false);
   /*
    * Al abrir la cola se acusan las credenciales pendientes: por cada caso que espera al portal se
    * pregunta a Atlas en qué quedó, y si algo cambió se vuelve a leer la lista. Es el aviso que antes
@@ -83,12 +88,19 @@ export default function OnboardingPage() {
     const primera = await b2bService.listOnboardingCases({ scope, limit: 200 });
     const filas = primera.items ?? [];
     const esperando = filas.some((row) => ESPERA_AL_MOTOR.has(String(row.status ?? '')) || Number((row.credentials as { pendientes?: number } | undefined)?.pendientes ?? 0) > 0);
+    setEsperando(esperando);
     if (!esperando) return primera;
     // UNA llamada para todo lo pendiente; sin token de Atlas falla en silencio y la cola se pinta igual.
     const acuse = await b2bService.reconcilePendingCases().catch(() => null);
     return Number(acuse?.cambiados ?? 0) > 0 ? b2bService.listOnboardingCases({ scope, limit: 200 }) : primera;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, version]);
+  /*
+   * Quien pidió la verificación se queda mirando la fila: el veredicto (o una revisión manual
+   * resuelta) aparece solo, sin pulsar «Actualizar verificación». Sólo mientras haya algo que
+   * esperar y la pestaña esté a la vista; cada vuelta concilia con Atlas en UNA llamada.
+   */
+  useSondeo(async () => recargar(), { activo: esperando, intervaloMs: SONDEO_COLA_MS });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const summary = useAsyncResource(useCallback(() => b2bService.summarizeOnboardingCases(), [version]));
 

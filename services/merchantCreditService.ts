@@ -16,6 +16,17 @@ export interface SolicitudDeCompra {
   branchCode: string | null;
   terminalAlias: string | null;
   terminalSerial: string | null;
+  /*
+   * La venta completa (AtlasBackend, 2026-11-12). Opcionales: un núcleo anterior no los manda y la
+   * tarjeta cae a enseñar sólo el financiado.
+   */
+  grossAmount?: string | null;
+  downPaymentAmount?: string | null;
+  financedAmount?: string | null;
+  planCode?: string | null;
+  /* Hasta cuándo se puede aceptar; pasado ese momento aceptar sólo puede fallar. */
+  decisionExpiresAt?: string | null;
+  decisionExpired?: boolean;
 }
 
 /** El pago inicial de una compra, avisado por el cliente con su comprobante. */
@@ -97,6 +108,12 @@ export interface CreditoDeCartera {
   terminalSerial?: string | null;
   applicationCode?: string | null;
   originatedAt?: string | null;
+  /* La venta completa: total, inicial cobrado en caja, financiado, plan y número de cuotas. */
+  grossAmount?: string | null;
+  downPaymentAmount?: string | null;
+  financedAmount?: string | null;
+  planCode?: string | null;
+  installmentsCount?: number;
   installments: CuotaDeCartera[];
 }
 

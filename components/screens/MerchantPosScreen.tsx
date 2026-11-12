@@ -1,11 +1,15 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { InlineNotice } from '@/components/atlas/InlineNotice';
 import { TabbedPanels } from '@/components/atlas/TabbedPanels';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { useMerchantPartner } from '@/hooks/useMerchantPartner';
 import { useTabParam } from '@/hooks/useTabParam';
+import { useAvisoDeLlegada } from '@/hooks/useAvisoDeLlegada';
+import { formatBob } from '@/lib/formatters';
+import type { ComprobanteDePago, PagoInicial, SolicitudDeCompra } from '@/services/merchantCreditService';
 import { MerchantPartnerPicker } from './MerchantPartnerPicker';
 import { MerchantPaymentProofsScreen } from './MerchantPaymentProofsScreen';
 import { MerchantPosHistoryScreen } from './MerchantPosHistoryScreen';
@@ -49,6 +53,30 @@ export function MerchantPosScreen() {
     setPendientes((previo) => (previo.comprobantes === total ? previo : { ...previo, comprobantes: total }));
   }, []);
 
+  /*
+   * Lo que llega mientras alguien espera en la caja: aviso en la página, número en el título de la
+   * pestaña y un tono corto (que se puede apagar). Las colas se releen solas cada pocos segundos.
+   */
+  const { llegadas, avisar, descartar, sonido, alternarSonido } = useAvisoDeLlegada(
+    'Gestión POS',
+    (pendientes.solicitudes ?? 0) + (pendientes.comprobantes ?? 0),
+  );
+  const nuevasSolicitudes = useCallback(
+    (nuevas: SolicitudDeCompra[]) =>
+      avisar(nuevas.map((s) => ({ id: `s-${s.applicationId}`, texto: `Nueva solicitud: ${importe(s.grossAmount ?? s.requestedAmount)}` }))),
+    [avisar],
+  );
+  const nuevosComprobantes = useCallback(
+    (nuevos: ComprobanteDePago[]) =>
+      avisar(nuevos.map((c) => ({ id: `c-${c.claimId}`, texto: `Nuevo comprobante de cuota: ${importe(c.claimedAmount)}` }))),
+    [avisar],
+  );
+  const nuevosIniciales = useCallback(
+    (nuevos: PagoInicial[]) =>
+      avisar(nuevos.map((p) => ({ id: `i-${p.applicationId}`, texto: `Nuevo pago inicial: ${importe(p.downPaymentAmount)}` }))),
+    [avisar],
+  );
+
   return (
     <div className="space-y-5">
       <WorkspaceHeader
@@ -59,6 +87,32 @@ export function MerchantPosScreen() {
 
       <MerchantPartnerPicker partner={partner} />
       {partner.error ? <InlineNotice tone="danger">{partner.error}</InlineNotice> : null}
+
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div role="status" aria-live="polite" className="min-w-0 flex-1" data-testid="llegadas-pos">
+          {llegadas.length ? (
+            <InlineNotice tone="info" title={llegadas.length === 1 ? 'Llegó algo nuevo' : `Llegaron ${llegadas.length} novedades`}>
+              <ul>
+                {llegadas.map((llegada) => (
+                  <li key={llegada.id}>{llegada.texto}</li>
+                ))}
+              </ul>
+              <button type="button" className="mt-1 font-semibold underline" onClick={descartar}>Entendido</button>
+            </InlineNotice>
+          ) : (
+            <p className="text-xs text-slate-500">Las listas se actualizan solas cada pocos segundos mientras esta pestaña está abierta.</p>
+          )}
+        </div>
+        <AtlasButton
+          variant="secondary"
+          icon={sonido ? 'volume_up' : 'volume_off'}
+          aria-pressed={sonido}
+          onClick={alternarSonido}
+          data-testid="alternar-sonido"
+        >
+          {sonido ? 'Sonido activado' : 'Sonido apagado'}
+        </AtlasButton>
+      </div>
 
       <TabbedPanels
         keepMounted
@@ -76,6 +130,7 @@ export function MerchantPosScreen() {
                 partnerId={partner.partnerId}
                 nombre={partner.nombre}
                 onCount={contarSolicitudes}
+                onNuevas={nuevasSolicitudes}
               />
             ),
           },
@@ -90,6 +145,8 @@ export function MerchantPosScreen() {
                 partnerId={partner.partnerId}
                 nombre={partner.nombre}
                 onCount={contarComprobantes}
+                onNuevos={nuevosComprobantes}
+                onNuevosIniciales={nuevosIniciales}
               />
             ),
           },
@@ -104,4 +161,9 @@ export function MerchantPosScreen() {
       />
     </div>
   );
+}
+
+function importe(valor: string | number | null | undefined): string {
+  const numero = Number(valor);
+  return Number.isFinite(numero) && valor !== null && valor !== '' ? formatBob(numero) : 'importe por confirmar';
 }

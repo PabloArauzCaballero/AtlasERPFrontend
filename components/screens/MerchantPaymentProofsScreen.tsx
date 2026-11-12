@@ -16,6 +16,10 @@ import { merchantCreditService } from '@/services/merchantCreditService';
 import type { ComprobanteDePago } from '@/services/merchantCreditService';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 import { MerchantDownPaymentsPanel } from './MerchantDownPaymentsPanel';
+import type { PagoInicial } from '@/services/merchantCreditService';
+import { useSondeo } from '@/hooks/useSondeo';
+import { crearDetectorDeNuevos } from '@/lib/sondeo';
+import { CODIGOS_DE_LISTA_VIEJA, codigoDeNegocio, mensajeParaComercio } from '@/lib/mensajesDelComercio';
 
 const MOTIVOS = [
   { label: '— Elige el motivo —', value: '' },
@@ -67,7 +71,7 @@ export function ComprobanteImagen({
         setUrl(blobUrl);
       })
       .catch((error: unknown) => {
-        if (!cancelado) setFallo(error instanceof Error ? error.message : 'No se pudo cargar el comprobante.');
+        if (!cancelado) setFallo(mensajeParaComercio(error, 'No se pudo cargar el comprobante.'));
       });
     return () => {
       cancelado = true;
@@ -126,6 +130,10 @@ interface MerchantPaymentProofsScreenProps {
   nombre?: string | undefined;
   /** Cuántos esperan confirmación, para el contador de la pestaña. */
   onCount?: ((total: number) => void) | undefined;
+  /** Comprobantes de cuota que llegaron desde la última lectura. */
+  onNuevos?: ((nuevos: ComprobanteDePago[]) => void) | undefined;
+  /** Pagos iniciales que llegaron desde la última lectura. */
+  onNuevosIniciales?: ((nuevos: PagoInicial[]) => void) | undefined;
 }
 
 /**
@@ -138,7 +146,7 @@ interface MerchantPaymentProofsScreenProps {
  * Rechazar exige motivo. Quien queda sin su pago reconocido tiene derecho a saber por qué, y sin
  * motivo no hay forma de distinguir un error del cliente de uno del comercio.
  */
-export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partnerIdProp, nombre: nombreProp, onCount }: MerchantPaymentProofsScreenProps = {}) {
+export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partnerIdProp, nombre: nombreProp, onCount, onNuevos, onNuevosIniciales }: MerchantPaymentProofsScreenProps = {}) {
   const [partnerIdPropio, setPartnerIdPropio] = useState('');
   const [nombrePropio, setNombrePropio] = useState('');
   const partnerId = partnerIdProp ?? partnerIdPropio;
@@ -151,23 +159,32 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
   const [motivo, setMotivo] = useState('');
   const [ocupado, setOcupado] = useState<string | null>(null);
 
+  const detectarNuevos = useRef(crearDetectorDeNuevos<ComprobanteDePago>((comprobante) => comprobante.claimId));
+
   const recargar = useCallback(
-    async (id: string) => {
-      setCargando(true);
+    /** `silencioso`: la relectura periódica no pinta «Cargando…» y deja que el sondeo espere más si falla. */
+    async (id: string, silencioso = false) => {
+      if (!silencioso) setCargando(true);
       try {
         const resultado = await merchantCreditService.listarComprobantes(id);
         const filas = resultado.claims ?? [];
         setComprobantes(filas);
         onCount?.(filas.length);
         setError(null);
+        const nuevos = detectarNuevos.current(filas);
+        if (nuevos.length) onNuevos?.(nuevos);
       } catch (fallo) {
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible leer los comprobantes.');
+        setError(mensajeParaComercio(fallo, 'No fue posible leer los comprobantes. Volvemos a intentarlo solos en unos segundos.'));
+        if (silencioso) throw fallo;
       } finally {
-        setCargando(false);
+        if (!silencioso) setCargando(false);
       }
     },
-    [onCount],
+    [onCount, onNuevos],
   );
+
+  /* Quien avisó que transfirió puede estar esperando en la caja: se relee sola mientras se ve. */
+  useSondeo(() => recargar(partnerId, true), { activo: Boolean(partnerId) });
 
   /* Ver `MerchantRequestsScreen`: embebida, el expediente lo resuelve una sola vez el padre. */
   useEffect(() => {
@@ -199,7 +216,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
+        setError(mensajeParaComercio(fallo, 'No fue posible identificar tu comercio.'));
         setCargando(false);
       });
     return () => { cancelado = true; };
@@ -223,7 +240,9 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
       setMotivo('');
       await recargar(partnerId);
     } catch (fallo) {
-      setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No fue posible registrar la decisión.' });
+      setAviso({ tono: 'danger', texto: mensajeParaComercio(fallo, 'No fue posible registrar la decisión. Vuelve a intentarlo.') });
+      const codigo = codigoDeNegocio(fallo);
+      if (codigo && CODIGOS_DE_LISTA_VIEJA.has(codigo)) void recargar(partnerId).catch(() => undefined);
     } finally {
       setOcupado(null);
     }
@@ -276,7 +295,7 @@ export function MerchantPaymentProofsScreen({ embedded = false, partnerId: partn
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       {aviso ? <InlineNotice tone={aviso.tono}>{aviso.texto}</InlineNotice> : null}
 
-      {partnerId ? <MerchantDownPaymentsPanel partnerId={partnerId} /> : null}
+      {partnerId ? <MerchantDownPaymentsPanel partnerId={partnerId} onNuevos={onNuevosIniciales} /> : null}
 
       <Panel
         data-tutorial-id="comprobantes-cola"

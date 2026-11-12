@@ -13,6 +13,7 @@ import { ScreenState } from '@/components/ui/ScreenState';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { adsService } from '@/services/adsService';
 import type { ResourceRow } from '@/services/types';
+import { diasAntesEnLaPaz, hoyEnLaPaz } from '@/lib/fechaLaPaz';
 
 function numeric(row: ResourceRow | null, key: string): number { const value = row?.[key]; return typeof value === 'number' ? value : Number(value ?? 0) || 0; }
 function microsToBob(value: number): string { return new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB', maximumFractionDigits: 2 }).format(value / 1_000_000); }
@@ -28,11 +29,9 @@ const RANGOS = [
   { label: 'Últimos 90 días', dias: 90, description: 'El trimestre: tendencias y comparación entre campañas largas.' },
 ] as const;
 
+/* «Hasta hoy» es hoy en La Paz: con la fecha UTC, desde las 20:00 el rango pedía un día que no ha empezado. */
 function rangoDeFechas(dias: number): { from: string; to: string } {
-  const hasta = new Date();
-  const desde = new Date(hasta);
-  desde.setDate(hasta.getDate() - dias);
-  return { from: desde.toISOString().slice(0, 10), to: hasta.toISOString().slice(0, 10) };
+  return { from: diasAntesEnLaPaz(dias), to: hoyEnLaPaz() };
 }
 
 export function AdsDashboardScreen() {
