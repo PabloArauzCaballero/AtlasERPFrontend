@@ -1,5 +1,11 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -86,5 +92,29 @@ describe('el compose de Coolify pasa SOURCE_COMMIT como build-arg (Coolify const
   it('declara SOURCE_COMMIT dentro de build.args', () => {
     const compose = readFileSync('docker-compose.coolify.yml', 'utf8');
     expect(compose).toMatch(/args:\n(?:[ ]+#[^\n]*\n)*[ ]+SOURCE_COMMIT: '\$\{SOURCE_COMMIT:-\}'/);
+  });
+});
+
+// Con `import.meta.url === new URL(argv[1], 'file:').href` el script no hacía NADA (y salía 0)
+// si la ruta llevaba `#`, `?` o `%`, y en Windows nunca: el build quedaba sin build-info.json.
+describe('write-build-info: se ejecuta desde cualquier ruta', () => {
+  it('con espacios, # y % en la ruta escribe el artefacto', () => {
+    const dir = join(
+      mkdtempSync(join(tmpdir(), 'build info ')),
+      'con espacio #1 %20',
+      'scripts',
+    );
+    mkdirSync(join(dir, 'lib'), { recursive: true });
+    copyFileSync(script, join(dir, 'write-build-info.mjs'));
+    copyFileSync(
+      join(process.cwd(), 'scripts', 'lib', 'es-principal.mjs'),
+      join(dir, 'lib', 'es-principal.mjs'),
+    );
+    const out = join(dir, 'x.json');
+    execFileSync(process.execPath, [join(dir, 'write-build-info.mjs'), out], {
+      env: { ...process.env, SOURCE_COMMIT: 'c'.repeat(40) },
+      cwd: dir,
+    });
+    expect(JSON.parse(readFileSync(out, 'utf8')).commit).toBe('c'.repeat(40));
   });
 });

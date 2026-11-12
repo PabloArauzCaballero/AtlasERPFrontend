@@ -13,6 +13,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { esPrincipal } from './lib/es-principal.mjs';
 
 const COMMIT_SHA = /^[0-9a-f]{40}$/;
 const isCommitSha = (value) => typeof value === 'string' && COMMIT_SHA.test(value);
@@ -44,7 +45,7 @@ export function buildInfo(env = process.env, gitDir = resolve('.git'), now = new
   return { commit: isCommitSha(fromArg) ? fromArg : readCommitFromGitDir(gitDir), builtAt: now.toISOString() };
 }
 
-if (import.meta.url === new URL(process.argv[1] ?? '', 'file:').href) {
+if (esPrincipal(import.meta.url)) {
   const out = resolve(process.argv[2] ?? 'build-info.json');
   const info = buildInfo();
   mkdirSync(dirname(out), { recursive: true });
