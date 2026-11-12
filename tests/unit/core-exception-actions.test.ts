@@ -52,7 +52,7 @@ describe('bandeja de lo que llegó de Atlas sin aplicar', () => {
     ]);
     const filas = await cargarExcepcionesDeCore();
     expect(filas[0]).toMatchObject({ motivo: 'Compra registrada con importes deducidos (evento antiguo)', queEs: 'Compra a plazos' });
-    expect(filas[1]).toMatchObject({ motivo: 'El ERP y Atlas no cuadran en la conciliación diaria', queEs: 'Conciliación diaria' });
+    expect(filas[1]).toMatchObject({ motivo: 'El ERP y la plataforma de Cuotea no cuadran en la conciliación diaria', queEs: 'Conciliación diaria' });
     for (const fila of filas) expect(String(fila.motivo)).not.toMatch(/_|legacy|reconciliation/i);
   });
 
