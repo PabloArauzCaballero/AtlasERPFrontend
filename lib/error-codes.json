@@ -1,0 +1,2270 @@
+{
+  "contract": "atlas-error-codes",
+  "version": 1,
+  "description": "Códigos que la API devuelve en `error.code`. `audience`: customer (la app del cliente puede mostrarlo), merchant (portal y app del comercio), internal (fallo del despliegue o pantalla interna: mostrar un mensaje genérico y citar el código al soporte). `generic` son los códigos por estado HTTP, que viajan siempre en `error.category`.",
+  "source": "AtlasBackend/src/platform/contracts/error-codes.constants.ts",
+  "generic": [
+    {
+      "code": "VALIDATION_ERROR",
+      "status": 400
+    },
+    {
+      "code": "UNAUTHORIZED",
+      "status": 401
+    },
+    {
+      "code": "FORBIDDEN",
+      "status": 403
+    },
+    {
+      "code": "NOT_FOUND",
+      "status": 404
+    },
+    {
+      "code": "CONFLICT",
+      "status": 409
+    },
+    {
+      "code": "GONE",
+      "status": 410
+    },
+    {
+      "code": "PAYLOAD_TOO_LARGE",
+      "status": 413
+    },
+    {
+      "code": "UNPROCESSABLE_ENTITY",
+      "status": 422
+    },
+    {
+      "code": "RATE_LIMIT_EXCEEDED",
+      "status": 429
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "status": 500
+    },
+    {
+      "code": "SERVICE_UNAVAILABLE",
+      "status": 503
+    },
+    {
+      "code": "GATEWAY_TIMEOUT",
+      "status": 504
+    }
+  ],
+  "codes": [
+    {
+      "code": "ACCOUNT_LOCKED",
+      "status": 401,
+      "audience": "customer"
+    },
+    {
+      "code": "APP_CONTENT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "APPLICATION_WITHOUT_PARTNER",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "APPROVED_STAGING_ITEM_REQUIRES_ITEM_CODE_AND_NAME",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "ASSIST_IN_FLIGHT",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "ASSIST_REJECTED",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "ASSIST_SURFACE_FORBIDDEN",
+      "status": 403,
+      "audience": "customer"
+    },
+    {
+      "code": "ASSIST_UNAVAILABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "ATTRIBUTE_CATALOG_NOT_SEEDED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "AUTH_BROKER_CONTRACT_MISMATCH",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "AUTH_BROKER_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "AUTH_BROKER_UNREACHABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "BANK_STATEMENT_FILE_NOT_AVAILABLE",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "BANK_STATEMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "BANK_STATEMENT_NOT_PDF",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "BANK_STATEMENT_OBJECT_NOT_FOUND",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "BANK_STATEMENT_REVIEW_ALREADY_OPEN",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "BANK_STATEMENT_REVIEW_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "BANK_STATEMENT_STORAGE_KEY_NOT_OWNED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "BRANCH_CODE_ALREADY_REGISTERED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "BUSINESS_TERM_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "CALLBACK_BREVO_NO_AUTORIZADO",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "CALLBACK_SENDGRID_NO_CONFIGURADO",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "CALLBACK_TWILIO_NO_CONFIGURADO",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "CARD_TIER_EXPIRY_IN_PAST",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "CARD_TIER_NOT_FOUND",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "CARD_TIER_OVERRIDE_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CASE_ALREADY_CLOSED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "CASE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_VERSION_NOT_DRAFT",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_VERSION_NOT_PENDING_APPROVAL",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_VERSION_NOT_READY_TO_PUBLISH",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_VERSION_NOT_REJECTABLE",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_VERSION_NOT_RETIRABLE",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CATALOG_VERSION_WITHOUT_ITEMS",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CONSENT_DOCUMENT_NOT_ACTIVE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_DOCUMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_DOCUMENT_PUBLISH_REQUIRES_NEW_VERSION",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_DOCUMENT_PUBLISHED_IS_IMMUTABLE",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_GRANT_REQUIRES_CUSTOMER",
+      "status": 403,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_NOT_GRANTED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "CONSENT_REVOCATION_PENDING_SYNC",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_REVOKED_AFTER_DECISION",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONSENT_VERSION_ALREADY_EXISTS",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONTACT_ALREADY_REGISTERED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONTACT_ALREADY_VERIFIED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CONTACT_INVALID",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "CONTACT_NOT_REGISTERED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDENTIALS_ALREADY_PROVISIONED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_APPLICATION_ALREADY_DECIDED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_APPLICATION_ALREADY_OPEN",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_APPLICATION_NOT_APPROVED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_APPLICATION_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_BUSINESS_ACCEPTANCE_DECLINED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_BUSINESS_ACCEPTANCE_NOT_PENDING",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_DECISION_DELEGADA_AL_MOTOR",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_DECISION_EXPIRED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_EXPOSURE_ALREADY_CONSUMED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_EXPOSURE_LIMIT_EXCEEDED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_EXPOSURE_RESERVATION_NOT_AVAILABLE",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_LIMIT_CURRENCY_MISMATCH",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_LIMIT_UNKNOWN",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_LINE_ENGINE_UNAVAILABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "CREDIT_LINE_NOT_CALCULATED",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_PRODUCT_CODE_ALREADY_EXISTS",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_PRODUCT_NOT_AVAILABLE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_PRODUCT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CREDIT_PRODUCT_WITHOUT_RATE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CUERPO_CRUDO_NO_DISPONIBLE",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "CURRENCY_MISMATCH",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CUSTOMER_ALREADY_EXISTS",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "CUSTOMER_BLOCKED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CUSTOMER_BLOCKED_FOR_RISK_ASSESSMENT",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "CUSTOMER_NOT_ELIGIBLE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "CUSTOMER_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CUSTOMER_NOTIFICATION_ACCESS_DENIED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "CUSTOMER_RATING_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "CUSTOMER_RESOURCE_FORBIDDEN",
+      "status": 403,
+      "audience": "customer"
+    },
+    {
+      "code": "DATA_EXPORT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "DATA_QUALITY_ISSUE_ALREADY_RESOLVED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "DATA_QUALITY_ISSUE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "DATA_QUALITY_RULE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "DATA_SUBJECT_REQUEST_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "DECISION_ENGINE_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "DECISION_ENGINE_UNAVAILABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "DECISION_REASON_REQUIRED",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "DELINQUENCY_POLICY_NOT_PUBLISHED",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "DEVICE_TOKEN_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "DEVICE_TOKEN_OWNER_ONLY",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "DISBURSED_AT_BEFORE_DECISION",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "DISBURSED_AT_IN_THE_FUTURE",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "DOCUMENT_NUMBER_MISMATCH",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "DOCUMENT_STORAGE_DELETE_FAILED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "DOCUMENT_STORAGE_HEAD_FAILED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "DOCUMENT_STORAGE_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "DOWN_PAYMENT_ALREADY_CONFIRMED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "DOWN_PAYMENT_ALREADY_PENDING",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "DOWN_PAYMENT_NOT_ALLOWED_YET",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "DOWN_PAYMENT_NOT_PENDING",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "DOWN_PAYMENT_WITHOUT_PROOF",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "EMPTY_LOAN_SCHEDULE",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "ERP_BRANCH_ALREADY_LINKED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "ERP_DOCUMENT_KEY_NOT_OWNED",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "ERP_DOCUMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "EVENT_AGGREGATE_NOT_ALLOWED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EVENT_ALREADY_CANCELLED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EVENT_KEY_HEADER_MISMATCH",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EVENT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EVENT_NOT_REGISTERED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EVENT_RESERVED_FOR_SYSTEM",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "EVIDENCE_CONTENT_TYPE_NOT_ALLOWED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "EVIDENCE_DOCUMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "EVIDENCE_OBJECT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "EVIDENCE_OBJECT_TOO_LARGE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "EVIDENCE_STORAGE_KEY_NOT_OWNED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "EXPEDIENTE_ARCHIVO_DUPLICADO",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_CARPETA_LLENA",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_CONCESION_NO_ENCONTRADA",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_CONCESION_YA_REVOCADA",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_DESTINO_NO_ES_CARPETA",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_MOTIVO_REQUERIDO",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_MOVIMIENTO_CIRCULAR",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NIVEL_INSUFICIENTE",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NIVEL_SUPERIOR_AL_PROPIO",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NO_ENCONTRADO",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NODO_CONGELADO",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NODO_NO_ENCONTRADO",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NODO_NO_ESTA_EN_PAPELERA",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NODO_SIN_CONTENIDO",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NOMBRE_INVALIDO",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_NOMBRE_OCUPADO",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_OBJETO_AUSENTE",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_PADRE_NO_ES_CARPETA",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_PROFUNDIDAD_MAXIMA",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_REQUIERE_SESION_INTERNA",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_REVELAR_NO_PERMITIDO",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_TICKET_NO_ENCONTRADO",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_TICKET_VENCIDO",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_TICKET_YA_CONSUMIDO",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTE_ULTIMA_ADMINISTRACION",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "EXPEDIENTES_DISABLED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "EXTERNAL_REQUEST_NOT_AWAITING_APPROVAL",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_CONTENT_TYPE_NOT_ALLOWED",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FILE_MULTIPART_BUFFER_MISSING",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FILE_MULTIPART_FIELD_MISSING",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FILE_STORAGE_DELETE_FAILED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_STORAGE_KEY_OUTSIDE_ROOT",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_STORAGE_LOCAL_URL_SECRET_MISSING",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_STORAGE_MINIO_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_STORAGE_READ_FAILED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_STORAGE_WRITE_FAILED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "FILE_TOO_LARGE",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FILE_TOO_MANY_FILES",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FIRMA_SENDGRID_INVALIDA",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "FIRMA_TWILIO_INVALIDA",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "FIRST_DUE_DATE_NOT_AFTER_DISBURSEMENT",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FIRST_DUE_DATE_TOO_FAR",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "FRAUD_CASE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "FRAUD_REASON_REQUIRED",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "GOVERNANCE_POLICY_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "IDEMPOTENCY_CONFLICT",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYMENT",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "IDEMPOTENCY_REPLAY_NOT_AVAILABLE",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "IDEMPOTENCY_REQUEST_IN_PROGRESS",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "IDENTITY_ALREADY_VERIFIED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_ATTEMPT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_ATTEMPT_WITHOUT_CUSTOMER",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_DECISION_DELEGADA_AL_MOTOR",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_FIELDS_LOCKED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_PACKAGE_REQUIRED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_REVIEWER_MISMATCH",
+      "status": 403,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_REVIEWER_REQUIRED",
+      "status": 403,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_VERIFICATION_ATTEMPT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "IDENTITY_VERIFICATION_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "INSTALLMENT_ALREADY_PAID",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "INSTALLMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "INTERNAL_USER_EMAIL_ALREADY_EXISTS",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "INTERNAL_USER_NOT_LOCKED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "INTERNAL_USER_TOKEN_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "INVALID_INTEREST_RATE",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "INVALID_STATUS_TRANSITION",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "INVALID_VERIFICATION_CODE",
+      "status": 401,
+      "audience": "customer"
+    },
+    {
+      "code": "INVALID_VIEW_FIELDS",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "JOB_RUN_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_ARTICLE_FORBIDDEN",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_ARTICLE_KEY_TAKEN",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_ARTICLE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_DOMAIN_APPROVER_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_EDITOR_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_SELF_APPROVAL_FORBIDDEN",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_VERSION_NOT_APPROVED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_VERSION_NOT_DRAFT",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_VERSION_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "KNOWLEDGE_VERSION_NOT_IN_REVIEW",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "LAUNCH_LINKS_MISSING",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LEAD_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "LINEAGE_NODE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "LOAN_ALREADY_DISBURSED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_ALREADY_WRITTEN_OFF",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_CONTRACT_INTEGRITY_FAILED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_CONTRACT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_NOT_COLLECTABLE",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_NOT_RATEABLE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_NOT_WRITE_OFF_ELIGIBLE",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_OFFER_CHANGED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_OFFER_NOT_ACCEPTED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_PAYMENT_ALREADY_REVERSED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_PAYMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_RATING_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_WITHOUT_PARTNER",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "LOAN_WRITTEN_OFF_PAYMENT_NOT_REVERSIBLE",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "MAIL_CHANNEL_NOT_AVAILABLE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "MAIL_PROVIDER_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "MANUAL_REVIEW_DELEGADA_AL_MOTOR",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "MANUAL_REVIEW_ES_DE_CREDITO",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "MANUAL_REVIEW_ES_DE_IDENTIDAD",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "MERCHANT_PROVISIONING_REQUEST_ALREADY_DECIDED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "MERCHANT_PROVISIONING_REQUEST_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "MERCHANT_PROVISIONING_REQUEST_PENDING_FOR_EMAIL",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "MERCHANT_USER_EMAIL_TAKEN",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "MERCHANT_USER_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "MESSAGE_NOT_RETRYABLE",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "MONGO_LOGS_DESTINATION_GONE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "MONGO_LOGS_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "MONGO_LOGS_UNAVAILABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "NOT_READY",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_AUDIENCE_SEGMENT_NAME_TAKEN",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_AUDIENCE_SEGMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_BODY_REQUIRED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_AUDIENCE_EMPTY",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_ENDS_BEFORE_START",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_INVALID_TRANSITION",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_NO_CHANNELS",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_START_IN_PAST",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_STATUS_CHANGED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_TEST_NOT_CREATED",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CAMPAIGN_WINDOW_INVALID",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_CHANNEL_NOT_ALLOWED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_MESSAGE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_POLICY_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_RECIPIENT_INVALID",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_TEMPLATE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "NOTIFICATION_TENANT_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "ONBOARDING_ALREADY_SUBMITTED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "ONBOARDING_INCOMPLETE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "ONBOARDING_NOT_SUBMITTABLE_IN_STATUS",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PARTNER_BRANCH_ALREADY_LINKED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_BRANCH_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_CONTACT_ALREADY_VERIFIED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_CONTRACT_TEMPLATE_ARCHIVED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_CONTRACT_TEMPLATE_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_DECISION_CONFLICT",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_DECISION_DELEGADA_AL_MOTOR",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_ERP_ACCOUNT_ALREADY_LINKED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_NETWORK_NOT_EDITABLE_IN_STATUS",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_NOT_AVAILABLE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PARTNER_NOT_EDITABLE_IN_STATUS",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_NOT_FOUND",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_NOT_UNDER_REVIEW",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_QR_NOT_EDITABLE_IN_STATUS",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_SUBMISSION_INCOMPLETE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_TAX_ID_ALREADY_REGISTERED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_VERIFICATION_ATTEMPTS_EXHAUSTED",
+      "status": 401,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_VERIFICATION_CODE_EXPIRED",
+      "status": 401,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_VERIFICATION_CODE_INVALID",
+      "status": 401,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_VERIFICATION_NOT_REQUESTED",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "PARTNER_VERIFICATION_RATE_LIMITED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "PAYLOAD_CONTRACT_VIOLATION",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "PAYLOAD_TOO_LARGE",
+      "status": 413,
+      "audience": "customer"
+    },
+    {
+      "code": "PAYMENT_CLAIM_ALREADY_PENDING",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "PAYMENT_CLAIM_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "PAYMENT_CLAIM_NOT_PENDING",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "PAYMENT_CLAIM_WITHOUT_PROOF",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "PAYMENT_EXCEEDS_OUTSTANDING",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PAYMENT_PROOF_STORAGE_KEY_NOT_OWNED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PIN_INCORRECT",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "POS_SERIAL_ALREADY_REGISTERED",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "POWER_OF_ATTORNEY_OBJECT_NOT_FOUND",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "POWER_OF_ATTORNEY_OUTSIDE_PARTNER_SCOPE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "PROCESS_INSTANCE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "PROCESS_INSTANCES_NOT_HERE",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "PROCESS_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "PROCESSED_EVENT_CANNOT_BE_CANCELLED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "PROCESSED_EVENT_CANNOT_BE_RETRIED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "PROCESSING_EVENT_CANNOT_BE_CANCELLED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "PROCESSING_EVENT_CANNOT_BE_RETRIED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "PRODUCTION_GATE_BLOCKED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "PRODUCTION_MODE_REQUIRES_CONFIRMATION_AND_REAL_PROVIDER_CONTRACT",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "PRODUCTION_READONLY_REQUIRES_SAFE_SUITE",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "PRODUCTION_SAFE_SUITE_ONLY_ALLOWS_READONLY_METHODS",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "PRODUCTION_SAFE_SUITE_PATH_LOOKS_MUTATING",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "PROFILE_INCOMPLETE_FOR_VERIFICATION",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_NOT_EDITABLE_IN_STATUS",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_PHOTO_KEY_NOT_ALLOWED",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_PHOTO_NOT_AN_IMAGE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_PHOTO_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_PHOTO_NOT_UPLOADED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_PHOTO_REJECTED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PROFILE_PHOTO_TOO_LARGE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "PURCHASE_AMOUNTS_INCONSISTENT",
+      "status": 422,
+      "audience": "customer",
+      "field": "downPaymentAmount"
+    },
+    {
+      "code": "PURCHASE_GROSS_BELOW_FINANCED",
+      "status": 422,
+      "audience": "customer",
+      "field": "grossAmount"
+    },
+    {
+      "code": "QR_EXPIRED",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_IMAGE_HAS_NO_CODE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_IMAGE_TOO_LARGE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_IMAGE_UNREADABLE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_NOT_PENDING_REVIEW",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_NOT_RECOGNIZED",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_OBJECT_NOT_AN_IMAGE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_OBJECT_NOT_FOUND",
+      "status": 404,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_OBJECT_NOT_READABLE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_OBJECT_OUTSIDE_PARTNER_SCOPE",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "QR_REVOKED",
+      "status": 422,
+      "audience": "merchant"
+    },
+    {
+      "code": "RATING_POLICY_NOT_ACTIVE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "RATING_POLICY_NOT_FOUND",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "RATING_POLICY_SCALE_INVALID",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "RAW_CONTACTS_NOT_ALLOWED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "RAW_JSON_BODY_REQUIRED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "REAUTH_INVALID_PASSWORD",
+      "status": 400,
+      "audience": "customer"
+    },
+    {
+      "code": "REFERENCE_ALREADY_REGISTERED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "REFERENCE_CANNOT_BE_THE_CUSTOMER",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "REFERENCE_LIMIT_EXCEEDED",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "REFERENCE_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "REFRESH_TOKEN_MISSING",
+      "status": 401,
+      "audience": "customer"
+    },
+    {
+      "code": "REPORT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "REQUEST_HAS_NO_NORMALIZED_OBSERVATIONS_TO_REBUILD",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "REQUEST_TIMEOUT_EXCEEDED",
+      "status": 408,
+      "audience": "customer"
+    },
+    {
+      "code": "REQUEST_WITHOUT_CUSTOMER_CANNOT_REBUILD_FEATURES",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "REQUIRED_CONSENT_MISSING",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "REQUIRED_EVIDENCE_MISSING",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "REQUIRED_NOTIFICATION_CANNOT_BE_DISABLED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "RETRY_REQUIRES_NEW_INPUT",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "RISK_DEVICE_NOT_OWNED_BY_CUSTOMER",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "RISK_SESSION_NOT_OWNED_BY_CUSTOMER",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "RULESET_VERSION_NOT_ACTIVATABLE",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "SENT_MESSAGE_CANNOT_BE_CANCELLED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SERVICE_SCOPE_UNDECLARED",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "SERVICE_TOKEN_REQUIRED",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "SERVICE_TOKENS_DISABLED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "SESSION_NOT_ACTIVE",
+      "status": 422,
+      "audience": "customer"
+    },
+    {
+      "code": "SESSION_ORIGIN_NOT_ALLOWED",
+      "status": 403,
+      "audience": "customer"
+    },
+    {
+      "code": "SIGNED_EVENT_SOURCE_UNDECLARED",
+      "status": 401,
+      "audience": "internal"
+    },
+    {
+      "code": "SIGNED_EVENTS_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "STAGING_ITEM_ALREADY_DECIDED",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "STRESS_RUN_REQUIRES_APPROVAL_TICKET",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "STRESS_RUNS_ARE_BLOCKED_IN_PRODUCTION",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_AGENT_AT_CAPACITY",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_AGENT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_AGENT_PROFILE_EXISTS",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_AGENT_PROFILE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_AGENT_PROFILE_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ASSIGN_REQUIRES_SUPERVISOR",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_CONTENT_MISSING",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_KEY_NOT_ISSUED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_NOT_AVAILABLE",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_ORPHAN",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_REJECTED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_SHA256_REQUIRED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_STORAGE_UNAVAILABLE",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_STORAGE_UNREACHABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_ATTACHMENT_TYPE_NOT_ALLOWED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_ALREADY_ASSIGNED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_AUTO_CLOSE_FORBIDDEN",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_FORBIDDEN",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_INTERNAL_ONLY",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_LEGAL_HOLD",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_POSSIBLE_DUPLICATE",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_RESTRICTED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_STATE_CONFLICT",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CASE_WITHOUT_RESOLUTION",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CATEGORY_NOT_ALLOWED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CATEGORY_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CHANNEL_ALREADY_CLAIMED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CHANNEL_CLOSED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CHANNEL_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_CHANNEL_NOT_PARTICIPANT",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_FEEDBACK_ALREADY_SUBMITTED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_FEEDBACK_TOO_EARLY",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_INTERNAL_USER_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_MESSAGE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_MESSAGE_NOT_OWN",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_PARTNER_PROFILE_REQUIRED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_QUEUE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SUPPORT_REOPEN_WINDOW_EXPIRED",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_DATA_COLUMN_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_DATA_ENTITY_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_DATA_IMPACT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_DOMAIN_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_ENDPOINT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_FIELD_IMPACT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_STRESS_APPROVAL_WAIVER_REQUIRES_GOVERNANCE",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_STRESS_ENVIRONMENT_NOT_ALLOWED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_STRESS_PROFILE_NOT_ACTIVE",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_STRESS_PROFILE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_BASE_URL_REQUIRED_FOR_REAL_RUN",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_ENVIRONMENT_NOT_ALLOWED_FOR_SUITE",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_HOST_NOT_IN_ENVIRONMENT_ALLOWLIST",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_INVALID_URL",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_PATH_MUST_BE_RELATIVE",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_PATH_TEMPLATE_MUST_RESOLVE_TO_STRING",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_PRODUCTION_EXECUTION_BLOCKED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_RUN_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_STEP_ENDPOINT_NOT_FOUND",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_STEP_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_SUITE_DISABLED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_SUITE_EXCEEDS_MAX_STEPS",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_SUITE_HAS_NO_STEPS",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_SUITE_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_SUITE_OR_STEP_ALREADY_EXISTS",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_TARGET_DNS_RESOLUTION_FAILED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_TARGET_IS_INTERNAL_OR_METADATA",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_TARGET_ORIGIN_CHANGED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_TARGET_RESOLVES_TO_INTERNAL_OR_METADATA",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_TEMPLATE_SCOPE_UNSUPPORTED",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_TEMPLATE_VALUE_NOT_FOUND",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TEST_URL_PROTOCOL_OR_CREDENTIALS_NOT_ALLOWED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TOOL_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEM_TOOL_REQUIREMENT_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEMS_CATALOG_REFRESH_ALREADY_RUNNING",
+      "status": 409,
+      "audience": "internal"
+    },
+    {
+      "code": "SYSTEMS_OPS_TENANT_SCOPE_REQUIRED",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "TARGET_VERSION_NOT_EDITABLE",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "UNEXPECTED_PRODUCER",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "UNKNOWN_SCHEMA_VERSION",
+      "status": 422,
+      "audience": "internal"
+    },
+    {
+      "code": "VERIFICATION_ATTEMPT_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "VERIFICATION_CHANNEL_UNAVAILABLE",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "VERIFICATION_CODE_EXPIRED",
+      "status": 401,
+      "audience": "customer"
+    },
+    {
+      "code": "VERIFICATION_RATE_LIMITED",
+      "status": 409,
+      "audience": "customer"
+    },
+    {
+      "code": "WEAK_PASSWORD",
+      "status": 409,
+      "audience": "merchant"
+    },
+    {
+      "code": "WELCOME_AUDIO_NOT_CONFIGURED",
+      "status": 503,
+      "audience": "internal"
+    },
+    {
+      "code": "WELCOME_AUDIO_NOT_FOUND",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "WELCOME_AUDIO_NOT_READY",
+      "status": 404,
+      "audience": "customer"
+    },
+    {
+      "code": "WORK_QUEUE_FRAUD_ONLY",
+      "status": 403,
+      "audience": "internal"
+    },
+    {
+      "code": "WORK_QUEUE_WINDOW_TOO_DEEP",
+      "status": 400,
+      "audience": "internal"
+    },
+    {
+      "code": "WORKFLOW_NOT_FOUND",
+      "status": 404,
+      "audience": "internal"
+    }
+  ]
+}

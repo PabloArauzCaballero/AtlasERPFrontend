@@ -23,6 +23,11 @@ import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
 import { ReautenticacionDialog } from '@/components/atlas/ReautenticacionDialog';
 import { ApiError, getSessionKind } from '@/lib/apiClient';
 import type { JsonObject } from '@/services/types';
+import { useSondeo } from '@/hooks/useSondeo';
+import { mensajeParaComercio } from '@/lib/mensajesDelComercio';
+
+/** Un QR en revisión cambia cuando lo mira una persona de Atlas: basta con mirar cada 15 s. */
+const SONDEO_QR_MS = 15_000;
 
 /**
  * Los estados del expediente en los que AtlasBackend admite subir o cambiar el QR
@@ -140,15 +145,35 @@ export function MerchantPaymentQrScreen({
    */
   const registroPendiente = useRef<{ partnerId: string; body: JsonObject } | null>(null);
 
-  const recargar = useCallback(async (id: string) => {
-    setCargando(true);
+  /* `onDone` puede cambiar en cada render de quien contiene la pantalla: se lee de una referencia. */
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  /** Los QR que estaban en revisión en la última lectura: para notar cuándo Atlas los resuelve. */
+  const enRevisionAntes = useRef<Set<string>>(new Set());
+
+  const recargar = useCallback(async (id: string, silencioso = false) => {
+    if (!silencioso) setCargando(true);
     try {
-      setCodigos(await partnerOnboardingService.listQrCodes(id));
+      const leidos = await partnerOnboardingService.listQrCodes(id);
+      setCodigos(leidos);
       setError(null);
+      const resueltos = leidos.filter((codigo) => enRevisionAntes.current.has(codigo.qrId) && codigo.status !== 'pending_review');
+      enRevisionAntes.current = new Set(leidos.filter((codigo) => codigo.status === 'pending_review').map((codigo) => codigo.qrId));
+      if (resueltos.length) {
+        const aprobado = resueltos.some((codigo) => codigo.status === 'active');
+        setAviso({
+          tono: aprobado ? 'success' : 'danger',
+          texto: aprobado
+            ? 'Cuotea aprobó tu QR de cobro: tus clientes ya lo ven al pagar.'
+            : 'Cuotea revisó tu QR de cobro y no lo aprobó. Mira el motivo abajo y sube uno nuevo.',
+        });
+        onDoneRef.current?.();
+      }
     } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer los QR del comercio.');
+      setError(mensajeParaComercio(fallo, 'No fue posible leer los QR del comercio.'));
+      if (silencioso) throw fallo;
     } finally {
-      setCargando(false);
+      if (!silencioso) setCargando(false);
     }
   }, []);
 
@@ -188,7 +213,7 @@ export function MerchantPaymentQrScreen({
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
+        setError(mensajeParaComercio(fallo, 'No fue posible identificar tu comercio.'));
         setCargando(false);
       });
     return () => {
@@ -291,7 +316,7 @@ export function MerchantPaymentQrScreen({
         return;
       }
       registroPendiente.current = null;
-      setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No se pudo subir el QR.' });
+      setAviso({ tono: 'danger', texto: mensajeParaComercio(fallo, 'No se pudo subir el QR. Vuelve a intentarlo.') });
     } finally {
       setSubiendo(false);
     }
@@ -305,6 +330,8 @@ export function MerchantPaymentQrScreen({
   const aprobado = bancarios.find((codigo) => codigo.status === 'active');
   const enRevision = bancarios.find((codigo) => codigo.status === 'pending_review');
   const vigente = aprobado ?? enRevision;
+  /* Mientras un QR espera la aprobación de Atlas, la pantalla se entera sola de la respuesta. */
+  useSondeo(() => recargar(partnerId, true), { activo: Boolean(partnerId && enRevision), intervaloMs: SONDEO_QR_MS });
   const ultimoRechazo = bancarios.find((codigo) => codigo.status === 'rejected');
   const historial = bancarios.filter((codigo) => codigo !== vigente && codigo !== enRevision);
   const bloqueo = motivoSinSubida(estadoExpediente);
@@ -620,7 +647,7 @@ function QrImagen({ partnerId, qrId }: Readonly<{ partnerId: string; qrId: strin
         setUrl(blobUrl);
       })
       .catch((error: unknown) => {
-        if (!cancelado) setFallo(error instanceof Error ? error.message : 'No se pudo cargar la imagen del QR.');
+        if (!cancelado) setFallo(mensajeParaComercio(error, 'No se pudo cargar la imagen del QR.'));
       });
     return () => {
       cancelado = true;

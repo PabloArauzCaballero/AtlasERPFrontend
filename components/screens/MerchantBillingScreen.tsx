@@ -23,6 +23,9 @@ import type { Cartera, CreditoDeCartera, CuotaDeCartera, ExpedientePropio, PagoD
 import { OrigenDeCaja, textoDeOrigen } from '@/components/atlas/OrigenDeCaja';
 import type { ResourceRow } from '@/services/types';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
+import { vencioEnLaPaz } from '@/lib/fechaLaPaz';
+import { resumenDeVenta } from '@/components/atlas/VentaEnCaja';
+import { mensajeParaComercio } from '@/lib/mensajesDelComercio';
 
 /*
  * Consumo y facturación del comercio.
@@ -104,7 +107,7 @@ function estadoDelCargo(status: string, saldoAbierto: number, vence?: string): E
   if (normalizado === 'OVERDUE') return 'mora';
   /* Un cargo sin marcar como vencido pero con fecha pasada TAMBIÉN está en mora: la etiqueta la
      pone un proceso que corre una vez al día, y hasta que corre la pantalla mentía. */
-  if (vence && vence.slice(0, 10) < new Date().toISOString().slice(0, 10)) return 'mora';
+  if (vence && vencioEnLaPaz(vence)) return 'mora';
   return 'pendiente';
 }
 
@@ -176,7 +179,7 @@ export function MerchantBillingScreen() {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setCarteraError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
+        setCarteraError(mensajeParaComercio(fallo, 'No fue posible identificar tu comercio.'));
         setCargandoCartera(false);
       });
     return () => { cancelado = true; };
@@ -195,7 +198,7 @@ export function MerchantBillingScreen() {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setCarteraError(fallo instanceof Error ? fallo.message : 'No fue posible leer tus cobros.');
+        setCarteraError(mensajeParaComercio(fallo, 'No fue posible leer tus cobros.'));
       })
       .finally(() => { if (!cancelado) setCargandoCartera(false); });
     return () => { cancelado = true; };
@@ -377,7 +380,11 @@ export function MerchantBillingScreen() {
 
       <Resumen
         datos={[
-          { label: 'Cobrado', value: cargandoCartera ? '…' : formatBob(Number(resumen?.collected ?? 0)) },
+          {
+            label: 'Cobrado',
+            value: cargandoCartera ? '…' : formatBob(Number(resumen?.collected ?? 0)),
+            nota: 'cuotas ya pagadas por tus clientes; no incluye el inicial que cobraste en caja',
+          },
           { label: `Comisión a Cuotea (${tasa} %)`, value: cargandoCartera ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
           { label: 'Pendiente', value: cargandoCartera ? '…' : formatBob(Number(resumen?.pendingAmount ?? 0)) },
           { label: 'En mora', value: cargandoCartera ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0)), alerta: Number(resumen?.overdueAmount ?? 0) > 0 },
@@ -492,6 +499,9 @@ export function MerchantBillingScreen() {
                             <p className="mt-0.5 text-xs text-slate-500">
                               Fecha de origen: <b className="text-slate-700">{credito.originatedAt ? formatDate(credito.originatedAt) : '—'}</b>
                             </p>
+                            {resumenDeVenta(credito) ? (
+                              <p className="mt-0.5 text-xs text-slate-600" data-testid={`venta-${credito.loanId}`}>{resumenDeVenta(credito)}</p>
+                            ) : null}
                           </div>
                           <div className="text-right text-xs">
                             <p className="text-slate-500">

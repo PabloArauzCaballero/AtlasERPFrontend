@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
@@ -11,10 +11,21 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { WorkspaceHeader } from '@/components/atlas/WorkspaceHeader';
 import { BotonPdf } from '@/components/atlas/BotonPdf';
 import { tablaPdf } from '@/lib/pdf';
-import { formatBob } from '@/lib/formatters';
 import { merchantCreditService } from '@/services/merchantCreditService';
 import type { SolicitudDeCompra } from '@/services/merchantCreditService';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
+import { VentaEnCaja } from '@/components/atlas/VentaEnCaja';
+import { useSondeo } from '@/hooks/useSondeo';
+import { crearDetectorDeNuevos } from '@/lib/sondeo';
+import {
+  CODIGOS_DE_LISTA_VIEJA,
+  CODIGOS_QUE_CIERRAN_LA_SOLICITUD,
+  codigoDeNegocio,
+  mensajeParaComercio,
+} from '@/lib/mensajesDelComercio';
+
+/** Por qué una solicitud que sigue en la lista ya no se puede aceptar. */
+const VENCIDA = 'La aprobación de esta compra venció. El cliente puede escanear el QR y pedirla de nuevo.';
 
 const MOTIVOS = [
   { label: '— Elige el motivo —', value: '' },
@@ -35,6 +46,8 @@ interface MerchantRequestsScreenProps {
   nombre?: string | undefined;
   /** Cuántas esperan respuesta, para el contador de la pestaña. */
   onCount?: ((total: number) => void) | undefined;
+  /** Las que llegaron desde la última lectura (no las que ya estaban al abrir). */
+  onNuevas?: ((nuevas: SolicitudDeCompra[]) => void) | undefined;
 }
 
 /**
@@ -49,7 +62,7 @@ interface MerchantRequestsScreenProps {
  * plazo, que el motor la aprobó—, no sobre la persona: enseñarle el expediente convertiría cada
  * compra en una consulta de historial crediticio que nadie autorizó.
  */
-export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdProp, nombre: nombreProp, onCount }: MerchantRequestsScreenProps = {}) {
+export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdProp, nombre: nombreProp, onCount, onNuevas }: MerchantRequestsScreenProps = {}) {
   const [partnerIdPropio, setPartnerIdPropio] = useState('');
   const [nombrePropio, setNombrePropio] = useState('');
   const partnerId = partnerIdProp ?? partnerIdPropio;
@@ -61,24 +74,38 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
   const [rechazando, setRechazando] = useState<string | null>(null);
   const [motivo, setMotivo] = useState('');
   const [ocupado, setOcupado] = useState<string | null>(null);
+  /*
+   * Las que ya no se pueden aceptar aunque el núcleo aún las liste como pendientes: sin cupo, o con
+   * la aprobación vencida. Se muestran CERRADAS, con el motivo, en vez de pendientes con un botón
+   * que sólo puede volver a fallar.
+   */
+  const [cerradas, setCerradas] = useState<Record<string, string>>({});
+  const detectarNuevas = useRef(crearDetectorDeNuevos<SolicitudDeCompra>((s) => s.applicationId));
 
   const recargar = useCallback(
-    async (id: string) => {
-      setCargando(true);
+    /** `silencioso`: la relectura periódica no pinta «Cargando…» y deja que el sondeo espere más si falla. */
+    async (id: string, silencioso = false) => {
+      if (!silencioso) setCargando(true);
       try {
         const resultado = await merchantCreditService.listar(id);
         const filas = resultado.applications ?? [];
         setSolicitudes(filas);
-        onCount?.(filas.length);
+        onCount?.(filas.filter((fila) => !fila.decisionExpired).length);
         setError(null);
+        const nuevas = detectarNuevas.current(filas).filter((fila) => !fila.decisionExpired);
+        if (nuevas.length) onNuevas?.(nuevas);
       } catch (fallo) {
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible leer las solicitudes.');
+        setError(mensajeParaComercio(fallo, 'No fue posible leer las solicitudes. Volvemos a intentarlo solos en unos segundos.'));
+        if (silencioso) throw fallo;
       } finally {
-        setCargando(false);
+        if (!silencioso) setCargando(false);
       }
     },
-    [onCount],
+    [onCount, onNuevas],
   );
+
+  /* El cliente espera de pie en la caja: la lista se relee sola mientras esta pestaña está a la vista. */
+  useSondeo(() => recargar(partnerId, true), { activo: Boolean(partnerId) });
 
   /*
    * Primero hay que saber cuál es mi expediente; sin él no hay nada que pedir. Embebida, el
@@ -114,7 +141,7 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
+        setError(mensajeParaComercio(fallo, 'No fue posible identificar tu comercio.'));
         setCargando(false);
       });
     return () => { cancelado = true; };
@@ -138,7 +165,19 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
       setMotivo('');
       await recargar(partnerId);
     } catch (fallo) {
-      setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No fue posible registrar la decisión.' });
+      const codigo = codigoDeNegocio(fallo);
+      const texto = mensajeParaComercio(fallo, 'No fue posible registrar la decisión. Vuelve a intentarlo.');
+      if (codigo && CODIGOS_QUE_CIERRAN_LA_SOLICITUD.has(codigo)) {
+        setCerradas((previas) => ({ ...previas, [solicitud.applicationId]: texto }));
+        setRechazando(null);
+        setAviso({ tono: 'danger', texto: `${solicitud.applicationCode}: ${texto}` });
+      } else {
+        setAviso({ tono: 'danger', texto });
+      }
+      // Otra caja (o Atlas) ya respondió, o la solicitud cambió: la lista está vieja.
+      if (codigo && (CODIGOS_DE_LISTA_VIEJA.has(codigo) || CODIGOS_QUE_CIERRAN_LA_SOLICITUD.has(codigo))) {
+        void recargar(partnerId).catch(() => undefined);
+      }
     } finally {
       setOcupado(null);
     }
@@ -162,7 +201,9 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
                       [
                         { key: 'applicationCode', label: 'Código' },
                         { key: 'submittedAt', label: 'Recibida' },
-                        { key: 'requestedAmount', label: 'Importe' },
+                        { key: 'grossAmount', label: 'Total' },
+                        { key: 'downPaymentAmount', label: 'Cobrar en caja' },
+                        { key: 'requestedAmount', label: 'Financiado' },
                         { key: 'requestedTermMonths', label: 'Cuotas' },
                         { key: 'branchName', label: 'Sucursal' },
                         { key: 'status', label: 'Estado' },
@@ -208,13 +249,15 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
           </div>
         ) : (
           <div className="space-y-3">
-            {solicitudes.map((solicitud) => (
-              <article key={solicitud.applicationId} className="rounded-md border border-slate-200 p-4">
+            {solicitudes.map((solicitud) => {
+              const cerrada = cerradas[solicitud.applicationId] ?? (solicitud.decisionExpired ? VENCIDA : null);
+              return (
+              <article key={solicitud.applicationId} className="rounded-md border border-slate-200 p-4" data-testid={`solicitud-${solicitud.applicationId}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-semibold">{solicitud.applicationCode}</h3>
-                      <StatusPill tone="warning">{solicitud.businessAcceptance ?? 'PENDIENTE'}</StatusPill>
+                      {cerrada ? <StatusPill tone="neutral">Cerrada</StatusPill> : <StatusPill tone="warning">Esperando tu respuesta</StatusPill>}
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
                       Pedida el {new Date(solicitud.submittedAt).toLocaleString('es-BO')} · aprobada por el motor
@@ -222,14 +265,14 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
                     {/* A qué sucursal y caja corresponde: dos compras del mismo importe pueden venir de cajas distintas. */}
                     <OrigenDeCaja origen={solicitud} />
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs font-semibold text-slate-500">Importe</p>
-                    <p className="text-2xl font-semibold">{formatBob(Number(solicitud.requestedAmount))}</p>
-                    <p className="text-xs text-slate-500">{solicitud.requestedTermMonths} meses · {solicitud.currencyCode}</p>
-                  </div>
+                  <VentaEnCaja venta={solicitud} />
                 </div>
 
-                {rechazando === solicitud.applicationId ? (
+                {cerrada ? (
+                  <div className="mt-4">
+                    <InlineNotice tone="warning" title="Ya no se puede aceptar">{cerrada}</InlineNotice>
+                  </div>
+                ) : rechazando === solicitud.applicationId ? (
                   <div className="mt-4 space-y-3 rounded-md bg-slate-50 p-3">
                     <FormField tooltip="Motivo codificado del rechazo; queda explicado para auditoría."
                       kind="select"
@@ -253,7 +296,8 @@ export function MerchantRequestsScreen({ embedded = false, partnerId: partnerIdP
                   </div>
                 )}
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </Panel>

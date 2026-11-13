@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AtlasButton } from '@/components/atlas/AtlasButton';
 import { FormField } from '@/components/atlas/FormField';
 import { Icon } from '@/components/atlas/Icon';
@@ -11,6 +11,9 @@ import { StatusPill } from '@/components/atlas/StatusPill';
 import { formatBob } from '@/lib/formatters';
 import { merchantCreditService, type PagoInicial } from '@/services/merchantCreditService';
 import { ComprobanteImagen } from './MerchantPaymentProofsScreen';
+import { useSondeo } from '@/hooks/useSondeo';
+import { crearDetectorDeNuevos } from '@/lib/sondeo';
+import { CODIGOS_DE_LISTA_VIEJA, codigoDeNegocio, mensajeParaComercio } from '@/lib/mensajesDelComercio';
 
 const MOTIVOS = [
   { label: '— Elige el motivo —', value: '' },
@@ -30,7 +33,7 @@ const imagenDePagoInicial = (socio: string, id: string) => merchantCreditService
  * comprobante se quedaba en el teléfono del cliente: la app decía «esperando al comercio» y el comercio no veía nada.
  * Confirmarlo es lo que el cliente ve como «pagado» en su app; rechazarlo exige motivo y también se lo enseña.
  */
-export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ partnerId: string; onCount?: ((total: number) => void) | undefined }>) {
+export function MerchantDownPaymentsPanel({ partnerId, onCount, onNuevos }: Readonly<{ partnerId: string; onCount?: ((total: number) => void) | undefined; /** Los que llegaron desde la última lectura. */ onNuevos?: ((nuevos: PagoInicial[]) => void) | undefined }>) {
   const [pagos, setPagos] = useState<PagoInicial[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,20 +42,29 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
   const [motivo, setMotivo] = useState('');
   const [ocupado, setOcupado] = useState<string | null>(null);
 
-  const recargar = useCallback(async () => {
-    setCargando(true);
+  const detectarNuevos = useRef(crearDetectorDeNuevos<PagoInicial>((pago) => pago.applicationId));
+
+  /** `silencioso`: la relectura periódica no pinta «Cargando…» y deja que el sondeo espere más si falla. */
+  const recargar = useCallback(async (silencioso = false) => {
+    if (!silencioso) setCargando(true);
     try {
       const resultado = await merchantCreditService.listarPagosIniciales(partnerId);
       const filas = resultado.downPayments ?? [];
       setPagos(filas);
       onCount?.(filas.length);
       setError(null);
+      const nuevos = detectarNuevos.current(filas);
+      if (nuevos.length) onNuevos?.(nuevos);
     } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer los pagos iniciales.');
+      setError(mensajeParaComercio(fallo, 'No fue posible leer los pagos iniciales. Volvemos a intentarlo solos en unos segundos.'));
+      if (silencioso) throw fallo;
     } finally {
-      setCargando(false);
+      if (!silencioso) setCargando(false);
     }
-  }, [partnerId, onCount]);
+  }, [partnerId, onCount, onNuevos]);
+
+  /* El cliente que acaba de pagar el inicial espera en la caja: se relee solo mientras se ve. */
+  useSondeo(() => recargar(true), { activo: Boolean(partnerId) });
 
   useEffect(() => {
     if (partnerId) void recargar();
@@ -77,7 +89,9 @@ export function MerchantDownPaymentsPanel({ partnerId, onCount }: Readonly<{ par
       setMotivo('');
       await recargar();
     } catch (fallo) {
-      setAviso({ tono: 'danger', texto: fallo instanceof Error ? fallo.message : 'No fue posible registrar la decisión.' });
+      setAviso({ tono: 'danger', texto: mensajeParaComercio(fallo, 'No fue posible registrar la decisión. Vuelve a intentarlo.') });
+      const codigo = codigoDeNegocio(fallo);
+      if (codigo && CODIGOS_DE_LISTA_VIEJA.has(codigo)) void recargar().catch(() => undefined);
     } finally {
       setOcupado(null);
     }

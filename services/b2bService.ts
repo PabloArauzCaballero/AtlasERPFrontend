@@ -1,6 +1,7 @@
 import { requireUuidPathParam } from '@/lib/apiPath';
 import { apiBlobUrl, apiFileDownload, apiRequest } from '@/lib/apiClient';
 import { guardarArchivo } from '@/lib/pdf';
+import { hoyEnLaPaz } from '@/lib/fechaLaPaz';
 import type { UploadTicket } from '@/services/filesService';
 import { buildBackendQuery } from './query';
 import type { JsonObject, PageQuery, PaginatedResult, ResourceRow } from './types';
@@ -253,7 +254,11 @@ export const b2bService = {
    */
   sendProposal(proposalId: string, body: { contactIds: string[]; extraEmails: string[]; message?: string | undefined }) {
     const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
-    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/send`, { method: 'PATCH', body: body as JsonObject });
+    return apiRequest<ResourceRow>(`/b2b/proposals/${safeProposalId}/send`, {
+      method: 'PATCH',
+      body: body as JsonObject,
+      headers: { 'x-idempotency-key': llaveDeEnvio(safeProposalId, body) },
+    });
   },
   acceptProposal(proposalId: string) {
     const safeProposalId = requireUuidPathParam(proposalId, 'el UUID de la propuesta');
@@ -517,3 +522,27 @@ export const b2bService = {
     return apiRequest<ResourceRow>(`/b2b/activities/${activityId}`, { method: 'DELETE' });
   },
 };
+
+/**
+ * La llave del envío de una propuesta: misma propuesta, mismos destinatarios y mismo mensaje el mismo
+ * día (en La Paz) = el mismo envío. Un reintento —el automático de `reintentos`, o el comercial que
+ * pulsa otra vez porque la respuesta no llegó— no vuelve a mandar los correos que ya salieron; el
+ * backend sólo reintenta los que fallaron. Cambiar un destinatario o el mensaje es un envío nuevo.
+ */
+export function llaveDeEnvio(
+  proposalId: string,
+  body: { contactIds: string[]; extraEmails: string[]; message?: string | undefined },
+): string {
+  const destinatarios = [...body.contactIds, ...body.extraEmails.map((correo) => correo.trim().toLowerCase())].sort().join(',');
+  return `propuesta:${proposalId}:${hoyEnLaPaz()}:${huella(`${destinatarios}|${body.message?.trim() ?? ''}`)}`;
+}
+
+/** FNV-1a de 32 bits en hexadecimal: sólo para distinguir contenidos, no es seguridad. */
+function huella(texto: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < texto.length; i += 1) {
+    hash ^= texto.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}

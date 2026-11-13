@@ -16,10 +16,16 @@ import { merchantCreditService } from '@/services/merchantCreditService';
 import { portalService } from '@/services/portalService';
 import type { Cartera, CreditoDeCartera } from '@/services/merchantCreditService';
 import { SIN_EXPEDIENTE } from '@/lib/avisosDelComercio';
+import { OrigenDeCaja } from '@/components/atlas/OrigenDeCaja';
+import { resumenDeVenta } from '@/components/atlas/VentaEnCaja';
+import { mensajeParaComercio } from '@/lib/mensajesDelComercio';
 
 const VISTAS = ['panel', 'creditos', 'calendario', 'comision'] as const;
 type Vista = (typeof VISTAS)[number];
 
+/* La compra es un instante (ISO con hora): se lee en la fecha de La Paz. */
+const diaDeCompra = (instante: string) =>
+  new Date(instante).toLocaleDateString('es-BO', { timeZone: 'America/La_Paz', day: '2-digit', month: 'short', year: 'numeric' });
 const fecha = (valor: string) => new Date(`${valor}T12:00:00`).toLocaleDateString('es-BO', { weekday: 'short', day: '2-digit', month: 'short' });
 
 /**
@@ -59,7 +65,7 @@ export function MerchantPortfolioScreen() {
       setFacturado(await portalService.commissions().catch(() => null));
       setError(null);
     } catch (fallo) {
-      setError(fallo instanceof Error ? fallo.message : 'No fue posible leer tu cartera.');
+      setError(mensajeParaComercio(fallo, 'No fue posible leer tu cartera.'));
     } finally {
       setCargando(false);
     }
@@ -78,7 +84,7 @@ export function MerchantPortfolioScreen() {
       })
       .catch((fallo: unknown) => {
         if (cancelado) return;
-        setError(fallo instanceof Error ? fallo.message : 'No fue posible identificar tu comercio.');
+        setError(mensajeParaComercio(fallo, 'No fue posible identificar tu comercio.'));
         setCargando(false);
       });
     return () => { cancelado = true; };
@@ -143,7 +149,7 @@ export function MerchantPortfolioScreen() {
         datos={[
           { label: 'Por cobrar', value: cargando ? '…' : formatBob(Number(resumen?.outstanding ?? 0)) },
           { label: 'Vencido', value: cargando ? '…' : formatBob(Number(resumen?.overdueAmount ?? 0)), alerta: Number(resumen?.overdueAmount ?? 0) > 0 },
-          { label: 'Cobrado', value: cargando ? '…' : formatBob(Number(resumen?.collected ?? 0)) },
+          { label: 'Cobrado', value: cargando ? '…' : formatBob(Number(resumen?.collected ?? 0)), nota: 'cuotas ya pagadas; no incluye el inicial que cobraste en caja' },
           { label: `Comisión a Cuotea (${resumen?.mdrRatePercent ?? '0'} %)`, value: cargando ? '…' : formatBob(Number(resumen?.commissionAccrued ?? 0)) },
         ]}
       />
@@ -209,9 +215,17 @@ export function MerchantPortfolioScreen() {
                     return (
                       <div key={credito.loanId} className="rounded-md border border-slate-200">
                         <button type="button" onClick={() => setAbierto(abiertoAhora ? null : credito.loanId)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left hover:bg-surface-sunken">
-                          <div>
-                            <p className="text-xs font-semibold">{credito.loanCode}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">{credito.installments.length} cuotas · {credito.status}</p>
+                          <div className="min-w-0">
+                            {/* La compra, no el código interno del préstamo: fecha, caja y la venta entera. */}
+                            <p className="text-xs font-semibold">
+                              Compra {credito.applicationCode ?? '—'}
+                              {credito.originatedAt ? <span className="ml-2 font-normal text-slate-500">{diaDeCompra(credito.originatedAt)}</span> : null}
+                            </p>
+                            <OrigenDeCaja origen={credito} />
+                            <p className="mt-0.5 text-xs text-slate-500">
+                              {resumenDeVenta({ ...credito, installmentsCount: credito.installments.length }) ?? `${credito.installments.length} cuotas`}
+                            </p>
+                            <p className="mt-0.5 font-mono text-xs text-slate-500" title="Código interno del crédito">{credito.loanCode}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
