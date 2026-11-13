@@ -115,7 +115,7 @@ export const TOURS_NEGOCIO: readonly InteractiveTutorial[] = [
         target: '[data-tutorial-id="crud-tabla"]',
         title: '3 · Cuotea concede y avisa por correo',
         content:
-          'En el Portal interno (Comercios › Usuarios) un operador aprueba la petición. En ese momento Cuotea genera la contraseña temporal y la envía al correo de la persona («ATLAS — Tu cuenta fue creada»). El ERP reconcilia solo y el usuario pasa de INVITADO a ACTIVO.',
+          'En el Portal interno (Comercios › Usuarios) un operador aprueba la petición. En ese momento Cuotea genera la contraseña temporal y la envía al correo de la persona («Cuotea — Tu cuenta fue creada»). El ERP reconcilia solo y el usuario pasa de INVITADO a ACTIVO.',
       },
       {
         id: 'entrar',
