@@ -104,7 +104,9 @@ export function TabbedPanels({ tabs, initialId, keepMounted = false, className, 
         onScroll={medir}
         data-mas-izquierda={mas.izquierda}
         data-mas-derecha={mas.derecha}
-        className="atlas-rail -mx-1 flex gap-1 overflow-x-auto rounded-md border border-slate-200 bg-white p-1"
+        // Sin margen negativo: el carril desplaza por dentro. Un `-mx-1` aquí sacaba 4 px por cada lado del
+        // contenedor y desbordaba la página a 390 px (Gestión POS, tema claro, 2026-11-12).
+        className="atlas-rail flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-md border border-slate-200 bg-white p-1"
       >
         {tabs.map((tab) => {
           const selected = tab.id === active?.id;

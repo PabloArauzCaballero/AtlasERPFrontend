@@ -75,4 +75,15 @@ describe('TabbedPanels · pista de que el carril tiene más pestañas', () => {
 
     expect(() => render(<TabbedPanels tabs={TABS} />)).not.toThrow();
   });
+
+  it('el carril nunca sobresale de su contenedor: sin márgenes negativos y acotado al ancho (390 px)', () => {
+    medidas({ ancho: 600, visible: 300 });
+    render(<TabbedPanels tabs={TABS} />);
+
+    const clases = screen.getByRole('tablist').className.split(/\s+/);
+    expect(clases.filter((clase) => /^-m[xlr]?-/.test(clase))).toEqual([]);
+    expect(clases).toContain('max-w-full');
+    expect(clases).toContain('overflow-x-auto');
+  });
 });
+
